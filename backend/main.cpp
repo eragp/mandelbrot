@@ -1,22 +1,9 @@
 #include <iostream>
 #include <fstream>
+#include "Fractal.h"
+#include "Mandelbrot.h"
 
 using namespace std;
-
-int calculateMandelbrot(double cReal, double cImaginary, int maxIteration) {
-	int i = 0;
-	double zReal = 0.0;
-	double zImaginary = 0.0;
-	while (i < maxIteration && zReal * zReal + zImaginary * zImaginary < 4.0) {
-		double nextZReal = (zReal * zReal - zImaginary * zImaginary) + cReal;
-		double nextZImaginary = 2 * (zReal * zImaginary) + cImaginary;
-		zReal = nextZReal;
-		zImaginary = nextZImaginary;
-		i++;
-	}
-
-	return i;
-}
 
 double xToReal(int x, double maxReal, double minReal, int width) {
 	return x * ((maxReal - minReal) / width) + minReal;
@@ -34,6 +21,7 @@ int main() {
 	double maxReal = 0.7;
 	double minImaginary = -1.0;
 	double maxImaginary = 1.0;
+	Fractal* f = new Mandelbrot();
 
 	ofstream fout("Mandelbrot.ppm");
 	fout << "P3" << endl;
@@ -42,7 +30,7 @@ int main() {
 
 	for (int y = 0; y < height; y++) {
 		for (int x = 0; x < width; x++) {
-			int n = calculateMandelbrot(xToReal(x, maxReal, minReal, width), yToImaginary(y, maxImaginary, minImaginary, height), maxIteration);
+			int n = f->calculateFractal(xToReal(x, maxReal, minReal, width), yToImaginary(y, maxImaginary, minImaginary, height), maxIteration);
 			int r = 0;
 			int g = 0;
 			int b = 0;
@@ -57,7 +45,7 @@ int main() {
 	}
 
 	fout.close();
-	cout << "Fertig!" << endl;
+	cout << "\a" << "Fertig!" << endl;
 	cin.get();
 	return 0;
 }
