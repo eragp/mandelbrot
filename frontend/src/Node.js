@@ -51,7 +51,7 @@ class NodeList extends Component {
         <Node
           key={i}
           id={i}
-          usage={randomNumber(25, 101)}
+          usage={randomNumber(50, 101)}
           tileX={randomNumber(0, 20)}
           tileY={randomNumber(0, 20)}
         />
@@ -64,7 +64,7 @@ class NodeList extends Component {
   componentDidMount() {
     this.interval = setInterval(
       () => this.setState({ nodes: this.getNodes() }),
-      5000
+      1000
     );
   }
 

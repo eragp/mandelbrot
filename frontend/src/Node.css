@@ -1,9 +1,10 @@
-.progress{
-    width: 50px;
-    margin-left: 5px;
-    margin-right: 5px;
+.progress {
+  width: 50px;
+  margin-left: 5px;
+  margin-right: 5px;
 }
 
 .Node-name {
-    width: 75px;
+  width: 75px;
+  text-align: center;
 }
