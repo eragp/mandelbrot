@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import './Node.css';
 
 function Node(props) {
   return (
@@ -7,8 +8,19 @@ function Node(props) {
       <table>
         <tbody>
           <tr>
-            <td>Node-{props.id}</td>
-            <td>Usage: {props.usage} %</td>
+            <td className="Node-name">Node-{props.id}</td>
+            <td>
+              <div className="progress">
+                <div
+                  className="progress-bar"
+                  role="progressbar"
+                  style={{ width: props.usage + '%' }}
+                  aria-valuenow={props.usage}
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                />
+              </div>
+            </td>
             <td>
               Tile: ({props.tileX}, {props.tileY})
             </td>
@@ -39,7 +51,7 @@ class NodeList extends Component {
         <Node
           key={i}
           id={i}
-          usage={randomNumber(0, 101)}
+          usage={randomNumber(25, 101)}
           tileX={randomNumber(0, 20)}
           tileY={randomNumber(0, 20)}
         />
@@ -52,7 +64,7 @@ class NodeList extends Component {
   componentDidMount() {
     this.interval = setInterval(
       () => this.setState({ nodes: this.getNodes() }),
-      2000
+      5000
     );
   }
 
@@ -60,7 +72,7 @@ class NodeList extends Component {
     return (
       <div>
         <h2>Workers</h2>
-        <ul>{this.state.nodes}</ul>
+        <ul className="list-unstyled">{this.state.nodes}</ul>
       </div>
     );
   }

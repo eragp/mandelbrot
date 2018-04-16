@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 // custom stylesheet
 import './Viewer.css';
+import m from './img/mandelbrot.png';
 
 class Viewer extends Component {
   componentDidMount() {
@@ -16,10 +17,14 @@ class Viewer extends Component {
 }
 
 const renderLeaflet = () => {
-  let londonMap = L.map('viewer').setView([51.505, -0.09], 13);
-  L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: 'OpenStreetMaps'
-  }).addTo(londonMap);
+  let map = L.map('viewer', {
+    crs: L.CRS.Simple,
+    minZoom: -2
+  });
+  let bounds = [[0, 0], [3000, 4000]];
+  console.log(m);
+  L.imageOverlay(m, bounds).addTo(map);
+  map.fitBounds(bounds);
 };
 
 export default Viewer;

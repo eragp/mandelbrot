@@ -6,17 +6,17 @@ Als dependency management habe ich npm verwendet.
 Herunterladen aller benötigten libraries:
 
 ```bash
-npm install
+$ npm install
 ```
 
 Starten des lokalen Servers:
 
 ```bash
-npm start
+$ npm start
 ```
 
 Kompilieren des JavaScript:
 
 ```bash
-npm run build
+$ npm run build
 ```
