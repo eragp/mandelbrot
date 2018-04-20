@@ -4,6 +4,10 @@ WORKDIR /usr/src/mandelbrot-backend
 # install required dependencies
 RUN apt-get update && apt-get install -y \
     cmake \
+    libccprest-dev \
+    zliblg-dev \
+    libboost-all-dev \
+    libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # changes that depend on src/ only after this point
