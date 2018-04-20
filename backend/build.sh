@@ -2,15 +2,14 @@
 
 echo "Starting the Build Process"
 
-## start the cmake build
-cd build
-cmake ..
-make
-cd ..
-
+## Docker ##
+# remove old images
+docker rmi $(docker images --filter "dangling=true" -q)
+docker rm $(docker ps -aq -f "status=exited")
 docker build -t mandelbrot:0.1 .
-docker run  \
-	-d -p 4000:80 mandelbrot:0.1 \
-    ./t mandelbrot.out
-
-# echo "Finished the Build Process"
+# this needs to be the last command
+# beacause it attaches the current shell to the running container
+docker run --rm -it \
+    --name mandelbrot_build \
+	-p 4000:80 mandelbrot:0.1 \
+    /bin/bash

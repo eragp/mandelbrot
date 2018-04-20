@@ -5,7 +5,7 @@
 To run the build pipeline a current version of `docker` needs to 
 be installed on the host system
 
-## Testing
+## Development
 
 For testing the app on the local machine just run the `build` script `backend/build.sh`.
 

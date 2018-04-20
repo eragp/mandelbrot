@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.11.0)
+cmake_minimum_required(VERSION 3.7.0)
 
 project(Mandelbrot)
 # load the header files

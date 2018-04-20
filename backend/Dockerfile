@@ -1,6 +1,16 @@
 # the gcc dockerfile uses the buildpack-deps package and is based on debian:stretch
 FROM gcc:7
-COPY . /usr/src/mandelbrot-backend
 WORKDIR /usr/src/mandelbrot-backend
-RUN g++ Mandelbrot.cpp main.cpp -o mandelbrot.out
-# CMD ["./mandelbrot.out"]
+# install required dependencies
+RUN apt-get update && apt-get install -y \
+    cmake \
+    && rm -rf /var/lib/apt/lists/*
+
+# changes that depend on src/ only after this point
+COPY . /usr/src/mandelbrot-backend
+RUN cd build && \
+    cmake .. && \
+    make && \
+    mv *.out .. &&  \
+    cd ..
+CMD ["/bin/bash"]
