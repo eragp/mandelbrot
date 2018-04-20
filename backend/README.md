@@ -16,6 +16,12 @@ $ ./build.sh
 The first execution of the script will take some time as `docker` needs to download the base images. Successive runs are a lot faster due to caching.
 
 After the script has been executed the current shell will be connected to the container.
+Run the compiled application with:
+
+```bash
+$ ./mandelbrot.out
+```
+
 To detach from the container exit the current shell. You will be returned to the previous working directory on the local system
 
 ```bash
