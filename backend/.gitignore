@@ -333,7 +333,6 @@ __pycache__/
 
 
 ### CMake ### 
-build/
 CMakeCache.txt
 CMakeFiles
 CMakeScripts
