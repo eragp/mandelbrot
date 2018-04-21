@@ -20,7 +20,8 @@ For testing the app on the local machine just run the `build` script `backend/ru
 $ ./run.sh
 ```
 
-The first execution of the script will take some time as `docker` needs to download the base images. Successive runs are a lot faster due to caching .
+The first execution of the script will take some time as `docker` needs to download the base images and compile cpprest (~20 min). Successive runs are a lot faster due to caching .
+> TODO: Upload the cached image to docker hub to avoid recompilation of libs
 
 After the script has been executed the current shell will be connected to the container.
 Run the compiled application with:
