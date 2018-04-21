@@ -13,5 +13,5 @@ find_package(cpprestsdk REQUIRED)
 target_link_libraries(mandelbrot PUBLIC cpprestsdk::cpprest)
 
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lboost_system -lcrypto -lssl -lccprest")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lboost_system -lcrypto -lssl")
 
