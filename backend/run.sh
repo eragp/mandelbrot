@@ -1,7 +1,6 @@
 #!/bin/bash
 
 echo "Starting the Build Process"
-
 ## Docker ##
 # remove old images
 docker rmi $(docker images --filter "dangling=true" -q)

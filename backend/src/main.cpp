@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
-#include "model/Fractal.h"
-#include "model/Mandelbrot.h"
+#include "Fractal.h"
+#include "Mandelbrot.h"
 
 // Teile diese Codes zur Erzeugung eines Servers sind Abwandlungen oder Kopien von http://mariusbancila.ro/blog/2017/11/19/revisited-full-fledged-client-server-example-with-c-rest-sdk-2-10/
 #include <cpprest/http_listener.h>
@@ -14,6 +14,7 @@ using namespace std;
 using namespace web;
 using namespace web::http;
 using namespace web::http::experimental::listener;
+
 #define TRACE(msg) wcout << msg
 #define TRACE_ACTION(a, k, v) wcout << a << L" (" << k << L", " << v << L")\n"
 map<utility::string_t, utility::string_t> dictionary;
@@ -79,8 +80,10 @@ int main()
 	cin.get();
 
 	// Kommunikationsteil
-
-	http_listener listener(L"http://localhost/restdemo");
+	/*
+	* IMPORTANT: use the U() Makro for any strings passed to cpprest. This is required for Linux compilation
+	*/
+	http_listener listener(U("http://localhost/restdemo"));
 
 	listener.support(methods::GET, handle_get);
 
@@ -88,7 +91,7 @@ int main()
 	{
 		listener
 			.open()
-			.then([&listener]() { TRACE(L"\nstarting to listen\n"); })
+			.then([&listener]() { TRACE(U("\nstarting to listen\n")); })
 			.wait();
 
 		while (true)
