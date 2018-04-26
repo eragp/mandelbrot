@@ -83,15 +83,21 @@ int run()
 			free(f);
 			cout << "\a"
 				<< "Fertig!" << endl;
-			cin.get();
+			//cin.get();
 
 			// Kommunikationsteil
 			/*
 			* IMPORTANT: use the U() Makro for any strings passed to cpprest. This is required for Linux compilation
 			*/
-			http_listener listener(U("http://localhost/restdemo"));
+			auto url = web::uri_builder();
+			url.set_host(U("0.0.0.0"));
+			url.set_scheme(U("http"));
+			url.set_port(U("80"));
+			url.set_path(U("mandelbrot"));
 
+			http_listener listener(url.to_uri());
 			listener.support(methods::GET, handle_get);
+
 
 			try
 			{
@@ -108,8 +114,6 @@ int run()
 				wcout << e.what() << endl;
 			}
 	}
-
-	
 	return 0;
 }
 
