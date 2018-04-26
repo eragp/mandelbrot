@@ -37,7 +37,7 @@ To detach from the container exit the current shell. You will be returned to the
 $ exit
 ```
 
-A connection to the hosted service inside the docker container can be established by connecting to `http://localhost:8080/mandelbrot` (i.e. via your browser).
+A connection to the hosted service inside the docker container can be established by connecting to `http://localhost:8080/mandelbrot?x=0&y=1` (i.e. via your browser, replace 0/1 with x/y coordinates).
 
 ### Deployment
 
