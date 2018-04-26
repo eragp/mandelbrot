@@ -24,16 +24,41 @@ using namespace web::http::experimental::listener;
 map<utility::string_t, utility::string_t> dictionary;
 
 int world_rank;
+json::value imagebuf = json::value::array();
 
 void handle_get(http_request request)
 {
 	TRACE(L"\nhandle GET\n");
 
-  request.reply(status_codes::OK, "Hello");
+
+	auto response = http_response();
+	response.set_status_code(status_codes::OK);
+
+	// Expect a data map string->string with x, y and z coordinate
+	auto data = uri::split_query(request.request_uri().query());
+	map<utility::string_t, utility::string_t>::iterator itx = data.find(U("x"));
+	map<utility::string_t, utility::string_t>::iterator ity = data.find(U("y"));
+
+	// Returns either value at x/y or the whole array
+	if (itx != data.end() && ity != data.end()) {
+		int x = stoi(data[U("x")]);
+		int y = stoi(data[U("y")]);
+
+		// Hard-coded height, need some communication here, wish to avoid global vars
+		// => lambda?
+		response.set_body(imagebuf[x+y*2048]);
+	}
+	else {
+		response.set_body(imagebuf);
+	}
+
+	request.reply(response);
 }
 
-double xToReal(int x, double maxReal, double minReal, int width) {
-  return x * ((maxReal - minReal) / width) + minReal;
+
+double xToReal(int x, double maxReal, double minReal, int width)
+{
+	return x * ((maxReal - minReal) / width) + minReal;
 }
 
 double yToImaginary(int y, double maxImaginary, double minImaginary,
@@ -74,6 +99,9 @@ int run()
 						g = n * 20 % 256;
 						b = n * 40 % 256;
 					}
+					
+					imagebuf[x+y*height] = n;
+
 					fout << r << " " << g << " " << b << " ";
 				}
 				fout << endl;
