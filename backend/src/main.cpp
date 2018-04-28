@@ -10,6 +10,7 @@
 // Cpp REST libraries
 #include <cpprest/http_listener.h>
 #include <cpprest/json.h>
+#include <cpprest/ws_client.h>
 #include <map>
 #include <set>
 #include <string>
@@ -18,6 +19,7 @@ using namespace std;
 using namespace web;
 using namespace web::http;
 using namespace web::http::experimental::listener;
+using namespace web::websockets::client;
 
 #define TRACE(msg) wcout << msg
 #define TRACE_ACTION(a, k, v) wcout << a << L" (" << k << L", " << v << L")\n"
@@ -42,6 +44,7 @@ void handle_get(http_request request)
 	map<utility::string_t, utility::string_t>::iterator ity = data.find(U("y"));
 
 	// Returns either value at x/y or the whole array
+	// TODO correctly assign x/y to areas of the mandelbrot set
 	// TODO access the buffer of computed tiles to choose the correct one
 	if (itx != data.end() && ity != data.end()) {
 		int x = stoi(data[U("x")]);
@@ -49,7 +52,16 @@ void handle_get(http_request request)
 
 		// Hard-coded height, need some communication here, wish to avoid global vars
 		// => lambda?
-		response.set_body(imagebuf[x+y*2048]);
+		json::value tile = json::value::array();
+		for(int x1 = 0; x1 < 256; x1++){
+			for(int y1 = 0; y1 < 256; y1++){
+				if(x+x1+(y+y1)*2048 < 0  || x+x1+(y+y1)*2048 > 2048*2048){
+					continue;
+				}
+				tile[x1+y1*256] = imagebuf[x+x1+(y+y1)*2048];
+			}
+		}
+		response.set_body(tile);
 	}
 	else {
 		response.set_body(imagebuf);
@@ -110,40 +122,68 @@ int run()
 				fout << endl;
 			}
 
-			fout.close();
-			free(f);
-			cout << "\a"
-				<< "Fertig!" << endl;
-			//cin.get();
+	fout.close();
+	//free(f);
+	cout << "\a"
+		 << "Fertig!" << endl;
+	//cin.get();
 
-			// Kommunikationsteil
-			/*
-			* IMPORTANT: use the U() Makro for any strings passed to cpprest. This is required for Linux compilation
-			*/
-			auto url = web::uri_builder();
-			url.set_host(U("0.0.0.0"));
-			url.set_scheme(U("http"));
-			url.set_port(U("80"));
-			url.set_path(U("mandelbrot"));
-
-			http_listener listener(url.to_uri());
-			listener.support(methods::GET, handle_get);
+	// Kommunikationsteil
 
 
-			try
-			{
-				listener
-					.open()
-					.then([&listener]() { TRACE(U("\nstarting to listen\n")); })
-					.wait();
+	// WebSocket
+		 // Tutorial for i.e. image transimission
+		 // https://github.com/Microsoft/cpprestsdk/wiki/Web-Socket
+	// Maybe this will work some day
+	/*auto wsurl = web::uri_builder();
+	wsurl.set_host(U("0.0.0.0"));
+	wsurl.set_scheme(U("ws"));
+	wsurl.set_port(U("1234"));
+	
+	websocket_client client;
+	client.connect(wsurl.to_uri()).then([&client]{ 
+		// sucessfully conected 
+		websocket_outgoing_message msg;
+		msg.set_utf8_message("I am a UTF-8 string! (Or close enough...)");
+		client.send(msg).then([](){ 
+			// Successfully sent the message. 
+		});
 
-				while (true)
-					;
-			}
-			catch (exception const &e)
-			{
-				wcout << e.what() << endl;
-			}
+		client.receive().then([](websocket_incoming_message msg) {
+			return msg.extract_string();
+		}).then([](std::string body) {
+			std::cout << body << std::endl;
+		});
+	});*/
+	
+
+	// REST 
+	/*
+	* IMPORTANT: use the U() Makro for any strings passed to cpprest. This is required for Linux compilation
+	*/
+	auto resturl = web::uri_builder();
+	resturl.set_host(U("0.0.0.0"));
+	resturl.set_scheme(U("http"));
+	resturl.set_port(U("80"));
+	resturl.set_path(U("mandelbrot"));
+
+	http_listener listener(resturl.to_uri());
+	listener.support(methods::GET, handle_get);
+
+
+	try
+	{
+		listener
+			.open()
+			.then([&listener]() { TRACE(U("\nstarting to listen\n")); })
+			.wait();
+
+		while (true){
+		}
+	}
+	catch (exception const &e)
+	{
+		wcout << e.what() << endl;
 	}
 	return 0;
 }
