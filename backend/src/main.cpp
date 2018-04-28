@@ -29,7 +29,9 @@ json::value imagebuf = json::value::array();
 void handle_get(http_request request)
 {
 	TRACE(L"\nhandle GET\n");
+	// TODO initiate computation
 
+	// TODO wait until computation is finished
 
 	auto response = http_response();
 	response.set_status_code(status_codes::OK);
@@ -40,6 +42,7 @@ void handle_get(http_request request)
 	map<utility::string_t, utility::string_t>::iterator ity = data.find(U("y"));
 
 	// Returns either value at x/y or the whole array
+	// TODO access the buffer of computed tiles to choose the correct one
 	if (itx != data.end() && ity != data.end()) {
 		int x = stoi(data[U("x")]);
 		int y = stoi(data[U("y")]);
