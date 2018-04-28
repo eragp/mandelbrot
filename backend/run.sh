@@ -9,6 +9,5 @@ docker build -t mandelbrot:0.1 .
 # this needs to be the last command
 # beacause it attaches the current shell to the running container
 docker run --rm -it \
-    --name mandelbrot_build \
-	-p 4000:80 mandelbrot:0.1 \
-    /bin/bash
+	--name mandelbrot_build \
+	-p 8080:80 mandelbrot:0.1 
