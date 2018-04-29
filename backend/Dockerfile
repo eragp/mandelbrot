@@ -8,4 +8,6 @@ RUN cd build \
     && cmake .. \
     && make 
 
-CMD mpirun --allow-run-as-root /usr/src/mandelbrot-backend/build/mandelbrot
+# Runs bash to start a bash that, on startup
+# runs mpiexec and is afterwards left open for interaction
+CMD /bin/bash -c "/bin/bash --init-file <(echo 'mpiexec -f /usr/src/mandelbrot-backend/hosts /usr/src/mandelbrot-backend/build/mandelbrot')"
