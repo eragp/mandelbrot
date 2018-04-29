@@ -23,12 +23,13 @@ $ ./run.sh
 The first execution of the script will take some time as `docker` needs to download the base images and compile cpprest (~20 min). Successive runs are a lot faster due to caching .
 > TODO: Upload the cached image to docker hub to avoid recompilation of libs
 
-After the script has been executed the current shell will be connected to the container.
-Run the compiled application with:
+After the script has been executed the compiled MPI program will be launched (with correct settings, hopefully). After pressing ctrl+c an interactive bash is left open. If you want to reastart the binary run
 
 ```bash
-$ mpirun ./build/mandelbrot
+$ mpiexec -f hosts ./build/mandelbrot
 ```
+
+Parameter `-np {processes}` can be added to specify the number of parallel processes that should be started. Edit the file `hosts` to [add machines with ssh access or to specify the process slots on the local machine](https://wiki.mpich.org/mpich/index.php/Using_the_Hydra_Process_Manager).
 
 To detach from the container exit the current shell. You will be returned to the previous working directory on the local system
 
