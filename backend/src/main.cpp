@@ -1,5 +1,5 @@
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include "Fractal.h"
 #include "Mandelbrot.h"
 
@@ -29,17 +29,16 @@ void handle_get(http_request request)
 {
 	TRACE(L"\nhandle GET\n");
 
-	request.reply(status_codes::OK, "Hello");
+  request.reply(status_codes::OK, "Hello");
 }
 
-double xToReal(int x, double maxReal, double minReal, int width)
-{
-	return x * ((maxReal - minReal) / width) + minReal;
+double xToReal(int x, double maxReal, double minReal, int width) {
+  return x * ((maxReal - minReal) / width) + minReal;
 }
 
-double yToImaginary(int y, double maxImaginary, double minImaginary, int height)
-{
-	return y * ((maxImaginary - minImaginary) / height) + minImaginary;
+double yToImaginary(int y, double maxImaginary, double minImaginary,
+                    int height) {
+  return y * ((maxImaginary - minImaginary) / height) + minImaginary;
 }
 
 int run()

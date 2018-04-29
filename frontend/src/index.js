@@ -1,11 +1,22 @@
-import 'leaflet/dist/leaflet.css';
-import './index.css';
-import L from 'leaflet';
+import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
+// Bootstrap
+import 'bootstrap/dist/css/bootstrap.css';
+// Custom Components
+import NodeList from './Node';
+import Viewer from './Viewer';
+import registerServiceWorker from './registerServiceWorker';
 
-// demo loading the london city map
-let londonMap = L.map('map01').setView([51.505, -0.09], 13);
-L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: 'OpenStreetMaps',
-}).addTo(londonMap);
+class App extends Component {
+  render() {
+    return (
+      <div>
+        <NodeList />
+        <Viewer />
+      </div>
+    );
+  }
+}
 
-console.log('This is a test');
+ReactDOM.render(<App />, document.getElementById('root'));
+registerServiceWorker();
