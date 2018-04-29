@@ -8,4 +8,4 @@ RUN cd build \
     && cmake .. \
     && make 
 
-CMD ["/usr/src/mandelbrot-backend/build/mandelbrot"]
+CMD mpirun --allow-run-as-root /usr/src/mandelbrot-backend/build/mandelbrot
