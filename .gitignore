@@ -60,8 +60,7 @@ typings/
 # dotenv environment variables file
 .env
 
-
-
+### React ###
 # End of https://www.gitignore.io/api/node
 
 # Created by https://www.gitignore.io/api/c++,visualstudio
