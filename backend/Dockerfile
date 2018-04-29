@@ -11,4 +11,5 @@ RUN cd build \
 # Runs bash to start a bash that, on startup
 # runs mpiexec and is afterwards left open for interaction
 # Source: https://serverfault.com/questions/368054/run-an-interactive-bash-subshell-with-initial-commands-without-returning-to-the/586272#586272
+# Necessary for the hydra process manager to work correctly
 CMD /bin/bash -c "/bin/bash --init-file <(echo 'mpiexec -f /usr/src/mandelbrot-backend/hosts /usr/src/mandelbrot-backend/build/mandelbrot')"
