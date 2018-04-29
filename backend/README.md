@@ -27,7 +27,7 @@ After the script has been executed the current shell will be connected to the co
 Run the compiled application with:
 
 ```bash
-$ ./build/mandelbrot
+$ mpirun ./build/mandelbrot
 ```
 
 To detach from the container exit the current shell. You will be returned to the previous working directory on the local system
