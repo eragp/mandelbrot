@@ -8,4 +8,4 @@ RUN cd build \
     && cmake .. \
     && make 
 
-CMD ["/bin/bash"]
+CMD ["/usr/src/mandelbrot-backend/build/mandelbrot"]

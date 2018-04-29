@@ -1,0 +1,6 @@
+-Berechnung der Mandelbrotmenge und Darstellung in der komplexen Ebene
+-Parallelisierung der Berechnung durch MPI
+-Interaktives Frontend im Browser (bietet Verschieben des dargestellten Ausschnitts, Zoom)
+-Verschiedene Overlays um die Parallelisierung zu visualisieren (Welcher Rechenkern berechnet welchen Auschnitt? usw.)
+-Backend, das über HTTP/Websockets(?) die Daten für die Mandelbrotmenge bereitstellt
+-(optional) Berechnung und Darstellung weiterer Fraktale (z.B.: Julia-Mengen)
