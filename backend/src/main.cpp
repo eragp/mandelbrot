@@ -2,7 +2,6 @@
 #include <iostream>
 #include "Fractal.h"
 #include "Mandelbrot.h"
-//#include "server_ws.hpp"
 
 // MPI Libraries
 #include <mpi.h>
@@ -134,19 +133,6 @@ int run()
 		//cin.get();
 
 		// Kommunikationsteil
-
-
-		// WebSocket
-			// Tutorial for i.e. image transimission
-			// https://github.com/Microsoft/cpprestsdk/wiki/Web-Socket
-			// Cpp REST seems to only support WS clients!
-		// Maybe this will work some day
-		auto wsurl = web::uri_builder();
-		wsurl.set_host(U("0.0.0.0"));
-		wsurl.set_scheme(U("ws"));
-		wsurl.set_port(U("1234"));
-		
-		
 
 		// REST 
 		/*
