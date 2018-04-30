@@ -62,12 +62,3 @@ RUN wget -q -O - https://www.mpich.org/static/downloads/3.2.1/mpich-3.2.1.tar.gz
     && rm -rf mpi-tests \
     && rm -rf /var/lib/apt/lists/* /var/log/* /tmp/* \
     && echo "export PATH=\"$MPI_HOME/bin:\$PATH\"" >> /etc/bash.bashrc
-
-# Install websocketlib
-# move to main dir first?
-RUN git clone https://github.com/eidheim/Simple-WebSocket-Server.git simple-websocket-server \
-    && mkdir simple-websocket-server/build \
-    && cd simple-websocket-server/build \
-    && cmake .. \
-    && make \
-    && make install 
