@@ -10,7 +10,6 @@
 // Cpp REST libraries
 #include <cpprest/http_listener.h>
 #include <cpprest/json.h>
-#include <cpprest/ws_client.h>
 #include <map>
 #include <set>
 #include <string>
@@ -37,6 +36,8 @@ void handle_get(http_request request)
 
 	auto response = http_response();
 	response.set_status_code(status_codes::OK);
+	response.headers().add(U("Access-Control-Allow-Origin"), U("localhost:3000"));
+	response.headers().add(U("Access-Control-Allow-Methods"), U("GET"));
 
 	// Expect a data map string->string with x, y and z coordinate
 	auto data = uri::split_query(request.request_uri().query());
@@ -134,27 +135,13 @@ int run()
 	// WebSocket
 		 // Tutorial for i.e. image transimission
 		 // https://github.com/Microsoft/cpprestsdk/wiki/Web-Socket
+		 // Cpp REST seems to only support WS clients!
 	// Maybe this will work some day
-	/*auto wsurl = web::uri_builder();
+	auto wsurl = web::uri_builder();
 	wsurl.set_host(U("0.0.0.0"));
 	wsurl.set_scheme(U("ws"));
 	wsurl.set_port(U("1234"));
 	
-	websocket_client client;
-	client.connect(wsurl.to_uri()).then([&client]{ 
-		// sucessfully conected 
-		websocket_outgoing_message msg;
-		msg.set_utf8_message("I am a UTF-8 string! (Or close enough...)");
-		client.send(msg).then([](){ 
-			// Successfully sent the message. 
-		});
-
-		client.receive().then([](websocket_incoming_message msg) {
-			return msg.extract_string();
-		}).then([](std::string body) {
-			std::cout << body << std::endl;
-		});
-	});*/
 	
 
 	// REST 

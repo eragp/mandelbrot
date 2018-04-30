@@ -37,34 +37,36 @@ L.GridLayer.MandelBrotLayer = L.GridLayer.extend({
           // Documentation: http://leafletjs.com/reference-1.3.0.html#tilelayer
           var ctx = tile.getContext("2d");
           // draw something asynchronously and pass the tile to the done() callback
-          $.get('http://localhost:8080/mandelbrot?x={x}&y={y}', {
-            x: coords.x,
-            y: coords.y
-          }, function(data){
-            console.log('called too!');
-            var result = JSON.parse(data);
-            for(var y = 0; y < size; y++){
-             for(var x = 0; x < size; x++){
-              var n = result[x+y*256]; 
-              var r = n * 10 % 256;
-              var g = n * 20 % 256;
-              var b = n * 40 % 256;
-              
-              ctx.fillStyle = "rgba("+r+","+g+","+b+", 255)";
-              ctx.fillRect(x,y,x,y);
-             }
-            }
-            
-          }, "json")
-          .fail(function(jq, textStatus, errorThrown){
-            console.log(textStatus +": " + errorThrown);
-            error = textStatus;
-          })
-          .always(function(){
-            done(error, tile);
-          });
-
-
+          $.ajax({
+            url: 'http://localhost:8080/mandelbrot', 
+            method: "GET",
+            crossDomain: true,
+            data: {
+              x: coords.x,
+              y: coords.y
+            }, 
+            success: function(data){
+                console.log('called too!');
+                var result = JSON.parse(data);
+                for(var y = 0; y < size; y++){
+                  for(var x = 0; x < size; x++){
+                    var n = result[x+y*256]; 
+                    var r = n * 10 % 256;
+                    var g = n * 20 % 256;
+                    var b = n * 40 % 256;
+                    
+                    ctx.fillStyle = "rgba("+r+","+g+","+b+", 255)";
+                    ctx.fillRect(x,y,x,y);
+                    done(error, tile);
+                  }
+                }
+                
+              },
+            dataType: "json",
+            error: function(jq, textStatus, errorThrown){
+              console.log(textStatus +": " + errorThrown);
+              error = textStatus;
+            }});
           return tile;
       }
 });
