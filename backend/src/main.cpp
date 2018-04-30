@@ -24,16 +24,60 @@ using namespace web::http::experimental::listener;
 map<utility::string_t, utility::string_t> dictionary;
 
 int world_rank;
+json::value imagebuf = json::value::array();
 
 void handle_get(http_request request)
 {
 	TRACE(L"\nhandle GET\n");
+	// TODO initiate computation
 
-  request.reply(status_codes::OK, "Hello");
+	// TODO wait until computation is finished
+
+	auto response = http_response();
+	response.set_status_code(status_codes::OK);
+	response.headers().add(U("Access-Control-Allow-Origin"), U("*"));
+	response.headers().add(U("Access-Control-Allow-Methods"), U("GET"));
+
+	// Expect a data map string->string with x, y and z coordinate
+	auto data = uri::split_query(request.request_uri().query());
+	map<utility::string_t, utility::string_t>::iterator itx = data.find(U("x"));
+	map<utility::string_t, utility::string_t>::iterator ity = data.find(U("y"));
+	map<utility::string_t, utility::string_t>::iterator itsize = data.find(U("size"));
+	map<utility::string_t, utility::string_t>::iterator itz = data.find(U("z"));
+
+	// Returns either value at x/y or the whole array
+	// TODO correctly assign x/y to areas of the mandelbrot set
+	// TODO access the buffer of computed tiles to choose the correct one
+	if (itx != data.end() && ity != data.end()) {
+		int x = stoi(data[U("x")]);
+		int y = stoi(data[U("y")]);
+		int z = stoi(data[U("z")]);
+		int size = stoi(data[U("size")]);
+
+		// Hard-coded height, need some communication here, wish to avoid global vars
+		// => lambda?
+		json::value tile = json::value::array();
+		for(int x1 = 0; x1 < size; x1++){
+			for(int y1 = 0; y1 < size; y1++){
+				if(x+x1+(y+y1)*2048 < 0  || x+x1+(y+y1)*2048 > 2048*2048){
+					continue;
+				}
+				tile[x1+y1*size] = imagebuf[x+x1+(y+y1)*2048];
+			}
+		}
+		response.set_body(tile);
+	}
+	else {
+		response.set_body(imagebuf);
+	}
+
+	request.reply(response);
 }
 
-double xToReal(int x, double maxReal, double minReal, int width) {
-  return x * ((maxReal - minReal) / width) + minReal;
+
+double xToReal(int x, double maxReal, double minReal, int width)
+{
+	return x * ((maxReal - minReal) / width) + minReal;
 }
 
 double yToImaginary(int y, double maxImaginary, double minImaginary,
@@ -74,42 +118,51 @@ int run()
 						g = n * 20 % 256;
 						b = n * 40 % 256;
 					}
+					
+					imagebuf[x+y*height] = n;
+
 					fout << r << " " << g << " " << b << " ";
 				}
 				fout << endl;
 			}
 
-			fout.close();
-			free(f);
-			cout << "\a"
-				<< "Fertig!" << endl;
-			cin.get();
+		fout.close();
+		//free(f);
+		cout << "\a"
+			<< "Fertig!" << endl;
+		//cin.get();
 
-			// Kommunikationsteil
-			/*
-			* IMPORTANT: use the U() Makro for any strings passed to cpprest. This is required for Linux compilation
-			*/
-			http_listener listener(U("http://localhost/restdemo"));
+		// Kommunikationsteil
 
-			listener.support(methods::GET, handle_get);
+		// REST 
+		/*
+		* IMPORTANT: use the U() Makro for any strings passed to cpprest. This is required for Linux compilation
+		*/
+		auto resturl = web::uri_builder();
+		resturl.set_host(U("0.0.0.0"));
+		resturl.set_scheme(U("http"));
+		resturl.set_port(U("80"));
+		resturl.set_path(U("mandelbrot"));
 
-			try
-			{
-				listener
-					.open()
-					.then([&listener]() { TRACE(U("\nstarting to listen\n")); })
-					.wait();
+		http_listener listener(resturl.to_uri());
+		listener.support(methods::GET, handle_get);
 
-				while (true)
-					;
+
+		try
+		{
+			listener
+				.open()
+				.then([&listener]() { TRACE(U("\nstarting to listen\n")); })
+				.wait();
+
+			while (true){
 			}
-			catch (exception const &e)
-			{
-				wcout << e.what() << endl;
-			}
+		}
+		catch (exception const &e)
+		{
+			wcout << e.what() << endl;
+		}
 	}
-
-	
 	return 0;
 }
 
