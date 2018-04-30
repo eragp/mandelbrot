@@ -2,6 +2,7 @@
 #include <iostream>
 #include "Fractal.h"
 #include "Mandelbrot.h"
+//#include "server_ws.hpp"
 
 // MPI Libraries
 #include <mpi.h>
@@ -18,7 +19,6 @@ using namespace std;
 using namespace web;
 using namespace web::http;
 using namespace web::http::experimental::listener;
-using namespace web::websockets::client;
 
 #define TRACE(msg) wcout << msg
 #define TRACE_ACTION(a, k, v) wcout << a << L" (" << k << L", " << v << L")\n"
@@ -123,54 +123,55 @@ int run()
 				fout << endl;
 			}
 
-	fout.close();
-	//free(f);
-	cout << "\a"
-		 << "Fertig!" << endl;
-	//cin.get();
+		fout.close();
+		//free(f);
+		cout << "\a"
+			<< "Fertig!" << endl;
+		//cin.get();
 
-	// Kommunikationsteil
-
-
-	// WebSocket
-		 // Tutorial for i.e. image transimission
-		 // https://github.com/Microsoft/cpprestsdk/wiki/Web-Socket
-		 // Cpp REST seems to only support WS clients!
-	// Maybe this will work some day
-	auto wsurl = web::uri_builder();
-	wsurl.set_host(U("0.0.0.0"));
-	wsurl.set_scheme(U("ws"));
-	wsurl.set_port(U("1234"));
-	
-	
-
-	// REST 
-	/*
-	* IMPORTANT: use the U() Makro for any strings passed to cpprest. This is required for Linux compilation
-	*/
-	auto resturl = web::uri_builder();
-	resturl.set_host(U("0.0.0.0"));
-	resturl.set_scheme(U("http"));
-	resturl.set_port(U("80"));
-	resturl.set_path(U("mandelbrot"));
-
-	http_listener listener(resturl.to_uri());
-	listener.support(methods::GET, handle_get);
+		// Kommunikationsteil
 
 
-	try
-	{
-		listener
-			.open()
-			.then([&listener]() { TRACE(U("\nstarting to listen\n")); })
-			.wait();
+		// WebSocket
+			// Tutorial for i.e. image transimission
+			// https://github.com/Microsoft/cpprestsdk/wiki/Web-Socket
+			// Cpp REST seems to only support WS clients!
+		// Maybe this will work some day
+		auto wsurl = web::uri_builder();
+		wsurl.set_host(U("0.0.0.0"));
+		wsurl.set_scheme(U("ws"));
+		wsurl.set_port(U("1234"));
+		
+		
 
-		while (true){
+		// REST 
+		/*
+		* IMPORTANT: use the U() Makro for any strings passed to cpprest. This is required for Linux compilation
+		*/
+		auto resturl = web::uri_builder();
+		resturl.set_host(U("0.0.0.0"));
+		resturl.set_scheme(U("http"));
+		resturl.set_port(U("80"));
+		resturl.set_path(U("mandelbrot"));
+
+		http_listener listener(resturl.to_uri());
+		listener.support(methods::GET, handle_get);
+
+
+		try
+		{
+			listener
+				.open()
+				.then([&listener]() { TRACE(U("\nstarting to listen\n")); })
+				.wait();
+
+			while (true){
+			}
 		}
-	}
-	catch (exception const &e)
-	{
-		wcout << e.what() << endl;
+		catch (exception const &e)
+		{
+			wcout << e.what() << endl;
+		}
 	}
 	return 0;
 }
