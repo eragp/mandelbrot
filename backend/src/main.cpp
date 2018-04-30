@@ -36,13 +36,15 @@ void handle_get(http_request request)
 
 	auto response = http_response();
 	response.set_status_code(status_codes::OK);
-	response.headers().add(U("Access-Control-Allow-Origin"), U("localhost:3000"));
+	response.headers().add(U("Access-Control-Allow-Origin"), U("*"));
 	response.headers().add(U("Access-Control-Allow-Methods"), U("GET"));
 
 	// Expect a data map string->string with x, y and z coordinate
 	auto data = uri::split_query(request.request_uri().query());
 	map<utility::string_t, utility::string_t>::iterator itx = data.find(U("x"));
 	map<utility::string_t, utility::string_t>::iterator ity = data.find(U("y"));
+	map<utility::string_t, utility::string_t>::iterator itsize = data.find(U("size"));
+	map<utility::string_t, utility::string_t>::iterator itz = data.find(U("z"));
 
 	// Returns either value at x/y or the whole array
 	// TODO correctly assign x/y to areas of the mandelbrot set
@@ -50,16 +52,18 @@ void handle_get(http_request request)
 	if (itx != data.end() && ity != data.end()) {
 		int x = stoi(data[U("x")]);
 		int y = stoi(data[U("y")]);
+		int z = stoi(data[U("z")]);
+		int size = stoi(data[U("size")]);
 
 		// Hard-coded height, need some communication here, wish to avoid global vars
 		// => lambda?
 		json::value tile = json::value::array();
-		for(int x1 = 0; x1 < 256; x1++){
-			for(int y1 = 0; y1 < 256; y1++){
+		for(int x1 = 0; x1 < size; x1++){
+			for(int y1 = 0; y1 < size; y1++){
 				if(x+x1+(y+y1)*2048 < 0  || x+x1+(y+y1)*2048 > 2048*2048){
 					continue;
 				}
-				tile[x1+y1*256] = imagebuf[x+x1+(y+y1)*2048];
+				tile[x1+y1*size] = imagebuf[x+x1+(y+y1)*2048];
 			}
 		}
 		response.set_body(tile);

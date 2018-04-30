@@ -4,9 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 // custom stylesheet
 import './Viewer.css';
-import m from './img/mandelbrot.png';
 import generate from './GeoJSON';
-import $ from 'jquery';
 
 class Viewer extends Component {
   componentDidMount() {
@@ -21,7 +19,6 @@ class Viewer extends Component {
 L.GridLayer.MandelBrotLayer = L.GridLayer.extend({
 
       createTile: function(coords, done){
-          console.log("Called!" + coords);
           var error;
           // create a <canvas> element for drawing
           var tile = L.DomUtil.create('canvas', 'leaflet-tile');
@@ -37,36 +34,34 @@ L.GridLayer.MandelBrotLayer = L.GridLayer.extend({
           // Documentation: http://leafletjs.com/reference-1.3.0.html#tilelayer
           var ctx = tile.getContext("2d");
           // draw something asynchronously and pass the tile to the done() callback
-          $.ajax({
-            url: 'http://localhost:8080/mandelbrot', 
-            method: "GET",
-            crossDomain: true,
-            data: {
-              x: coords.x,
-              y: coords.y
-            }, 
-            success: function(data){
-                console.log('called too!');
-                var result = JSON.parse(data);
-                for(var y = 0; y < size; y++){
-                  for(var x = 0; x < size; x++){
-                    var n = result[x+y*256]; 
-                    var r = n * 10 % 256;
-                    var g = n * 20 % 256;
-                    var b = n * 40 % 256;
-                    
-                    ctx.fillStyle = "rgba("+r+","+g+","+b+", 255)";
-                    ctx.fillRect(x,y,x,y);
-                    done(error, tile);
-                  }
+          var url = "http://localhost:8080/mandelbrot?"
+            + "x=" + coords.x
+            + "&y=" + coords.y
+            + "&z=" + coords.z
+            + "&size=" + size.x;
+            console.log(url);
+          fetch(url, {
+            method: 'GET',
+            mode: 'cors'
+          })
+            .then(function(response) {
+              return response.json();
+            }).then(function(myJson) {
+              var result = myJson;
+              console.log(result);
+              for(var y = 0; y < size; y++){
+                for(var x = 0; x < size; x++){
+                  var n = result[x+y*size]; 
+                  var r = n * 10 % 256;
+                  var g = n * 20 % 256;
+                  var b = n * 40 % 256;
+                  
+                  ctx.fillStyle = "rgba("+r+","+g+","+b+", 255)";
+                  ctx.fillRect(x,y,x,y);
                 }
-                
-              },
-            dataType: "json",
-            error: function(jq, textStatus, errorThrown){
-              console.log(textStatus +": " + errorThrown);
-              error = textStatus;
-            }});
+              }
+              done(error, tile);
+            }).catch(error => console.error(error));
           return tile;
       }
 });
@@ -78,16 +73,17 @@ L.gridLayer.mandelBrotLayer = function() {
 const renderLeaflet = () => {
   let map = L.map('viewer', {
     crs: L.CRS.Simple,
-    minZoom: 2
+    minZoom: 2,
+    center: [0, 0],
+    zoom: 2
   });
-  let imageSize = 2048; // sync with backend => maybe even through websocket at beginnig?
-
-  let bounds = [[0, 0], [imageSize, imageSize]];
+  // TODO data is definetely transmitted, coordinates are messed up though, have a look at that
+  //let bounds = [[0, 0], [imageSize, imageSize]];
   //L.imageOverlay(m, bounds).addTo(map);
   
   
   L.gridLayer.mandelBrotLayer().addTo(map);
-  map.fitBounds(bounds);
+  //map.fitBounds(bounds);
   L.geoJSON(generate(), { style: styleUsageMap }).addTo(map);
 };
 const styleUsageMap = feature => {
