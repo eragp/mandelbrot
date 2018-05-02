@@ -6,6 +6,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 import NodeList from './Node';
 import Viewer from './Viewer';
 import registerServiceWorker from './registerServiceWorker';
+import './Index.css';
 
 class App extends Component {
   render() {
