@@ -21,166 +21,80 @@ using namespace web::http::experimental::listener;
 
 #define TRACE(msg) wcout << msg
 #define TRACE_ACTION(a, k, v) wcout << a << L" (" << k << L", " << v << L")\n"
-map<utility::string_t, utility::string_t> dictionary;
 
-int world_rank;
-json::value imagebuf = json::value::array();
+//ACHTUNG: (2048 / steps = nat. Zahl) muss gelten! Ein Bereich aus Speps*Steps Pixel wird von einem Prozessor / Kern berechnet.
+const int steps = 256;
 
-void handle_get(http_request request)
-{
-	TRACE(L"\nhandle GET\n");
-	// TODO initiate computation
+typedef struct {
+	int start_x;	//included
+	int start_y;	//included
+	int end_x;		//excluded
+	int end_y;		//excluded
+	int height;
+	int width;
+	int maxIteration;
+	double minReal;
+	double maxReal;
+	double minImaginary;
+	double maxImaginary;
+} Info;
 
-	// TODO wait until computation is finished
+typedef struct {
+	int start_x;	//included
+	int start_y;	//included
+	int end_x;		//excluded
+	int end_y;		//excluded
+	int n[steps][steps];
+	int world_rank;
+} Returned;
 
-	auto response = http_response();
-	response.set_status_code(status_codes::OK);
-	response.headers().add(U("Access-Control-Allow-Origin"), U("*"));
-	response.headers().add(U("Access-Control-Allow-Methods"), U("GET"));
+Host host;
 
-	// Expect a data map string->string with x, y and z coordinate
-	auto data = uri::split_query(request.request_uri().query());
-	map<utility::string_t, utility::string_t>::iterator itx = data.find(U("x"));
-	map<utility::string_t, utility::string_t>::iterator ity = data.find(U("y"));
-	map<utility::string_t, utility::string_t>::iterator itsize = data.find(U("size"));
-	map<utility::string_t, utility::string_t>::iterator itz = data.find(U("z"));
-
-	// Returns either value at x/y or the whole array
-	// TODO correctly assign x/y to areas of the mandelbrot set
-	// TODO access the buffer of computed tiles to choose the correct one
-	if (itx != data.end() && ity != data.end()) {
-		int x = stoi(data[U("x")]);
-		int y = stoi(data[U("y")]);
-		int z = stoi(data[U("z")]);
-		int size = stoi(data[U("size")]);
-
-		// Hard-coded height, need some communication here, wish to avoid global vars
-		// => lambda?
-		json::value tile = json::value::array();
-		for(int x1 = 0; x1 < size; x1++){
-			for(int y1 = 0; y1 < size; y1++){
-				if(x+x1+(y+y1)*2048 < 0  || x+x1+(y+y1)*2048 > 2048*2048){
-					continue;
+void client(int world_rank, int world_size) {
+	Fractal* f = new Mandelbrot();
+	while (true) {
+		Info info;
+		MPI_Recv(&info, sizeof(Info), MPI_BYTE, 0, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		cout << "Data recv " << info.start_x << " ; " << info.start_y << "\n";
+		if (info.start_x != -1) {
+			Returned returned;
+			for (int x = info.start_x; x < info.end_x; x++) {
+				for (int y = info.start_y; y < info.end_y; y++) {
+					returned.n[x - info.start_x][y - info.start_y] = f->calculateFractal(xToReal(x, info.maxReal, info.minReal, info.width), yToImaginary(y, info.maxImaginary, info.minImaginary, info.height), info.maxIteration);
 				}
-				tile[x1+y1*size] = imagebuf[x+x1+(y+y1)*2048];
 			}
+			returned.start_x = info.start_x;
+			returned.start_y = info.start_y;
+			returned.end_x = info.end_x;
+			returned.end_y = info.end_y;
+			returned.world_rank = world_rank;
+			MPI_Send((const void*)&returned, sizeof(Returned), MPI_BYTE, 0, 0, MPI_COMM_WORLD);
 		}
-		response.set_body(tile);
-	}
-	else {
-		response.set_body(imagebuf);
-	}
-
-	request.reply(response);
-}
-
-
-double xToReal(int x, double maxReal, double minReal, int width)
-{
-	return x * ((maxReal - minReal) / width) + minReal;
-}
-
-double yToImaginary(int y, double maxImaginary, double minImaginary,
-                    int height) {
-  return y * ((maxImaginary - minImaginary) / height) + minImaginary;
-}
-
-int run()
-{
-	// Hauptprozessor führt diesen Prozess durch
-	if(world_rank == 0){
-		// Berechnungsteil
-			int height = 2048;
-			int width = 2048;
-			int maxIteration = 200;
-			double minReal = -1.5;
-			double maxReal = 0.7;
-			double minImaginary = -1.0;
-			double maxImaginary = 1.0;
-			Fractal *f = new Mandelbrot();
-
-			ofstream fout("Mandelbrot.ppm");
-			fout << "P3" << endl;
-			fout << width << " " << height << endl;
-			fout << "256" << endl;
-
-			for (int y = 0; y < height; y++)
-			{
-				for (int x = 0; x < width; x++)
-				{
-					int n = f->calculateFractal(xToReal(x, maxReal, minReal, width), yToImaginary(y, maxImaginary, minImaginary, height), maxIteration);
-					int r = 0;
-					int g = 0;
-					int b = 0;
-					if (n != maxIteration)
-					{
-						r = n * 10 % 256;
-						g = n * 20 % 256;
-						b = n * 40 % 256;
-					}
-					
-					imagebuf[x+y*height] = n;
-
-					fout << r << " " << g << " " << b << " ";
-				}
-				fout << endl;
-			}
-
-		fout.close();
-		//free(f);
-		cout << "\a"
-			<< "Fertig!" << endl;
-		//cin.get();
-
-		// Kommunikationsteil
-
-		// REST 
-		/*
-		* IMPORTANT: use the U() Makro for any strings passed to cpprest. This is required for Linux compilation
-		*/
-		auto resturl = web::uri_builder();
-		resturl.set_host(U("0.0.0.0"));
-		resturl.set_scheme(U("http"));
-		resturl.set_port(U("80"));
-		resturl.set_path(U("mandelbrot"));
-
-		http_listener listener(resturl.to_uri());
-		listener.support(methods::GET, handle_get);
-
-
-		try
-		{
-			listener
-				.open()
-				.then([&listener]() { TRACE(U("\nstarting to listen\n")); })
-				.wait();
-
-			while (true){
-			}
-		}
-		catch (exception const &e)
-		{
-			wcout << e.what() << endl;
+		else {
+			return;
 		}
 	}
-	return 0;
 }
 
 int main(int argc, char** argv) {
-    MPI_Init(&argc, &argv);
-    
-    int world_size;
-    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+	MPI_Init(&argc, &argv);
+	int world_rank;
+	MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+	int world_size;
+	MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+	cout << "Process " << world_rank << " of " << world_size << endl;
 
-    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-
-    char processorname[MPI_MAX_PROCESSOR_NAME];
-    int name_len;
-    MPI_Get_processor_name(processorname, &name_len);
-
-    cout << processorname << ", Size: " << world_size << ", Rank: " << world_rank << endl;
-    run();
-
-    MPI_Finalize();
-    return 0;
+	if(world_size == 1){
+		cout << "Not enough processes running!" << endl;
+		MPI_Finalize();
+	}
+	else{
+		if (world_rank == 0) {
+			host = Host(world_rank, world_size);
+		}
+		else {
+			client(world_rank, world_size);
+		}
+	}
+	return 0;
 }
