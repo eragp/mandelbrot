@@ -3,6 +3,7 @@ typedef struct {
 	int start_y;	//included
 	int end_x;		//excluded
 	int end_y;		//excluded
+	int z;
 	int size;
 	int maxIteration;
 	double minReal;

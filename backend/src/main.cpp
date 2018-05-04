@@ -67,6 +67,7 @@ void client(int world_rank, int world_size) {
 			returned.start_y = info.start_y;
 			returned.end_x = info.end_x;
 			returned.end_y = info.end_y;
+			returned.z = z;
 			returned.world_rank = world_rank;
 			MPI_Send((const void*)&returned, sizeof(Returned), MPI_BYTE, 0, 0, MPI_COMM_WORLD);
 		}

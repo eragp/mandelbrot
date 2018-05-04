@@ -27,7 +27,7 @@ using namespace web::http::experimental::listener;
 const int steps = 64;
 
 
-void Host:handle_get(http_request request)
+void Host::handle_get(http_request request)
 {
 	TRACE(L"\nhandle GET\n");
 
@@ -53,6 +53,7 @@ void Host:handle_get(http_request request)
 		info.start_y = y;
 		info.end_x = x + size;
 		info.end_y = y + size;
+		info.z = z;
 		info.size = size;
 		info.maxIteration = maxIteration;
 		info.minReal = minReal;
@@ -61,21 +62,18 @@ void Host:handle_get(http_request request)
 		info.maxImaginary = maxImaginary;
 
 		// Create an identifier to store the received request
-		ID identifier;
-		identifier.start_x = x;
-		identifier.start_y = y;
-		identifier.size = size;
-		dictionary.insert(pair<ID, http_request>(identifier, request))
+		vector<int> identifier = {x,y,z,size};
+		dictionary.insert(pair<vector<int>, http_request>(identifier, request));
 
-		// Invoke an available slave
-		MPI_Send((const void*)&info, sizeof(Info), MPI_BYTE, avail_cores.pop(), 0, MPI_COMM_WORLD);
+		// Invoke any available slave
+		MPI_Send((const void*)&info, sizeof(Info), MPI_BYTE, MPI_ANY_TAG, 0, MPI_COMM_WORLD);//avail_cores.pop(), 0, MPI_COMM_WORLD);
 	}
 		
 	
 	
 }
 
-Host:Host(int world_rank, int world_size) {
+Host::Host(int world_rank, int world_size) {
 	cores = world_size;
     height = 2048;
 	width = 2048;
@@ -128,17 +126,25 @@ Host:Host(int world_rank, int world_size) {
 			// CORs enabling
 			response.headers().add(U("Access-Control-Allow-Origin"), U("*"));
 			response.headers().add(U("Access-Control-Allow-Methods"), U("GET"));
+			// Create json value from returned
+			json::value tile;
+			for(int x = 0; x < returned.size; x++){
+				for(int y = 0; y < returned.size; y++){
+					tile[x+y*returned.size] = returned.n[x][y];
+				}
+			}
 			response.set_body(tile);
 
-			ID identifier;
-			identifier.start_x = returned.start_x;
-			identifier.start_y = returned.start_y;
-			identifier.size = returned.size;
-
+			vector<int> identifier = {
+				returned.start_x,
+				returned.start_y,
+				returned.z,
+				returned.size
+			};
 			http_request request = dictionary.at(identifier);
 			request.reply(response);
 
-			avail_cores.push(returned.world_rank)
+			avail_cores.push(returned.world_rank);
 
 			
 			cout << "Data recv from " << returned.world_rank << " ; " << returned.n[0][0] << "\n";

@@ -3,19 +3,13 @@
 #include <cpprest/http_listener.h>
 #include <map>
 #include <queue>
-typedef struct {
-	int start_x;	//included
-	int start_y;	//included
-	int size;
-	int fractal; // For later, identify fractal type
-} ID;
-
+#include <vector>
 class Host
 {
 public:
 	Host(int worldRank, int worldSize);
+	void handle_get(web::http::http_request request);
 private:
-    void handle_get();
     int cores;
 	int height;
 	int width;
@@ -25,8 +19,8 @@ private:
 	double minImaginary;
 	double maxImaginary;
     // Das Dictionary, in dem nach x,y,z,fraktalart,size der zugehörige Request aufbewahrt werden
-	map<ID, web::http::http_request> dictionary;
+	std::map<std::vector<int>, web::http::http_request> dictionary;
 	// Verwaltet die verfügbaren Kerne
-	queue<int> avail_cores;
+	std::queue<int> avail_cores;
 };
 
