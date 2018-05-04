@@ -11,6 +11,7 @@
 
 // Teile diese Codes zur Erzeugung eines Servers sind Abwandlungen oder Kopien von http://mariusbancila.ro/blog/2017/11/19/revisited-full-fledged-client-server-example-with-c-rest-sdk-2-10/
 // Cpp REST libraries
+#include <cpprest/json.h>
 #include <cpprest/http_listener.h>
 #include <set>
 #include <string>
@@ -25,7 +26,14 @@ using namespace web::http::experimental::listener;
 
 //ACHTUNG: (2048 / steps = nat. Zahl) muss gelten! Ein Bereich aus Speps*Steps Pixel wird von einem Prozessor / Kern berechnet.
 const int steps = 64;
-
+int Host::maxIteration = 200;
+double Host::minReal = -1.5;
+double Host::maxReal = 0.7;
+double Host::minImaginary = -1.0;
+double Host::maxImaginary = 1.0;
+std::map<std::vector<int>, web::http::http_request> Host::request_dictionary;
+// Verwaltet die verfügbaren Kerne
+std::queue<int> Host::avail_cores;	
 
 void Host::handle_get(http_request request)
 {
@@ -41,11 +49,14 @@ void Host::handle_get(http_request request)
 	// Returns either value at x/y or the whole array
 	// TODO correctly assign x/y to areas of the mandelbrot set
 	// TODO access the buffer of computed tiles to choose the correct one
-	if (itx != data.end() && ity != data.end() && itsize != data.end() && itz != data.end()) {
+	if (itx != data.end() && ity != data.end() && itz != data.end()) {
 		int x = stoi(data[U("x")]);
 		int y = stoi(data[U("y")]);
 		int z = stoi(data[U("z")]);
-		int size = stoi(data[U("size")]);
+		int size = 256;
+		if(itsize == data.end()){
+			size = stoi(data[U("size")]);
+		}
 
 		// Initiate computation on a slave
 		Info info;
@@ -63,20 +74,19 @@ void Host::handle_get(http_request request)
 
 		// Create an identifier to store the received request
 		vector<int> identifier = {x,y,z,size};
-		dictionary.insert(pair<vector<int>, http_request>(identifier, request));
+		request_dictionary.insert(pair<vector<int>, http_request>(identifier, request));
 
 		// Invoke any available slave
-		MPI_Send((const void*)&info, sizeof(Info), MPI_BYTE, MPI_ANY_TAG, 0, MPI_COMM_WORLD);//avail_cores.pop(), 0, MPI_COMM_WORLD);
+		MPI_Request req; // Later => store to check if has been received
+		MPI_Isend((const void*)&info, sizeof(Info), MPI_BYTE, MPI_ANY_TAG, 0, MPI_COMM_WORLD, &req); //avail_cores.pop(), 0, MPI_COMM_WORLD);
 	}
 		
 	
 	
 }
 
-Host::Host(int world_rank, int world_size) {
-	cores = world_size;
-    height = 2048;
-	width = 2048;
+void Host::init(int world_rank, int world_size) {
+	int cores = world_size;
 	maxIteration = 200;
 	minReal = -1.5;
 	maxReal = 0.7;
@@ -88,7 +98,8 @@ Host::Host(int world_rank, int world_size) {
 		Info info;
 		info.start_x = -1;
 		Returned returned;
-		MPI_Send((const void*)&info, sizeof(info), MPI_BYTE, i, 0, MPI_COMM_WORLD);
+		MPI_Request req;
+		MPI_Isend((const void*)&info, sizeof(info), MPI_BYTE, i, 0, MPI_COMM_WORLD, &req);
 		//TODO: Send data from "returned" to Frontend. Write a new method for that.
 	}
 
@@ -105,7 +116,7 @@ Host::Host(int world_rank, int world_size) {
 	resturl.set_path(U("mandelbrot"));
 
 	http_listener listener(resturl.to_uri());
-	listener.support(methods::GET, this->handle_get);
+	listener.support(methods::GET, handle_get);
 
 
 	try
@@ -141,7 +152,7 @@ Host::Host(int world_rank, int world_size) {
 				returned.z,
 				returned.size
 			};
-			http_request request = dictionary.at(identifier);
+			http_request request = request_dictionary.at(identifier);
 			request.reply(response);
 
 			avail_cores.push(returned.world_rank);
