@@ -38,7 +38,7 @@ void client(int world_rank, int world_size) {
 	while (true) {
 		Info info;
 		MPI_Recv(&info, sizeof(Info), MPI_BYTE, 0, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		cout << "Data recv " << info.start_x << " ; " << info.start_y << "\n";
+		cout << "Data recv " << info.start_x << " ; " << info.start_y << endl;
 		if (info.start_x != -1) {
 			Returned returned;
 			for (int x = info.start_x; x < info.end_x; x++) {
@@ -55,7 +55,7 @@ void client(int world_rank, int world_size) {
 			MPI_Send((const void*)&returned, sizeof(Returned), MPI_BYTE, 0, 0, MPI_COMM_WORLD);
 		}
 		else {
-			return;
+			// Intentionally left blank
 		}
 	}
 }
@@ -74,7 +74,6 @@ int main(int argc, char** argv) {
 	}
 	else{
 		if (world_rank == 0) {
-			cout << "Main process running" << endl;
 			Host::init(world_rank, world_size);
 		}
 		else {

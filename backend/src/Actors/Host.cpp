@@ -25,7 +25,7 @@ using namespace web::http::experimental::listener;
 #define TRACE_ACTION(a, k, v) wcout << a << L" (" << k << L", " << v << L")\n"
 
 //ACHTUNG: (2048 / steps = nat. Zahl) muss gelten! Ein Bereich aus Speps*Steps Pixel wird von einem Prozessor / Kern berechnet.
-const int steps = 64;
+const int steps = 265;
 int Host::maxIteration = 200;
 double Host::minReal = -1.5;
 double Host::maxReal = 0.7;
