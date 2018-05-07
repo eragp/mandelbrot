@@ -73,14 +73,18 @@ void Host::handle_get(http_request request)
 		info.maxImaginary = maxImaginary;
 
 		// Create an identifier to store the received request
-		vector<int> identifier = {x,y,z,size};
-		request_dictionary.insert(pair<vector<int>, http_request>(identifier, request));
+		vector<int> identifier = {x,y,z,size};	
+		cout << "Storing request at "  << identifier[0] << identifier[1] << identifier [2] << identifier[3] << endl;
+		request_dictionary[identifier] = request;
 
-		// Invoke any available slave
+		// Invoke the longest unused available slave
 		MPI_Request req; // Later => store to check if has been received
-		MPI_Isend((const void*)&info, sizeof(Info), MPI_BYTE, MPI_ANY_TAG, 0, MPI_COMM_WORLD, &req); //avail_cores.pop(), 0, MPI_COMM_WORLD);
+		cout << "Invoking core " << avail_cores.front() << endl;
+		MPI_Isend((const void*)&info, sizeof(Info), MPI_BYTE, avail_cores.front(), 1, MPI_COMM_WORLD, &req);
+		avail_cores.pop();
+	} else {
+		TRACE(L"Not enough arguments\n");
 	}
-		
 	
 	
 }
@@ -93,14 +97,16 @@ void Host::init(int world_rank, int world_size) {
 	minImaginary = -1.0;
 	maxImaginary = 1.0;
 
-	// Initialize the cores
-	for (int i = 0; i < cores; i++) {
+	// Initialize the cores (except for yourself (id==0))
+	for (int i = 1; i < cores; i++) {
 		Info info;
 		info.start_x = -1;
 		Returned returned;
 		MPI_Request req;
-		MPI_Isend((const void*)&info, sizeof(info), MPI_BYTE, i, 0, MPI_COMM_WORLD, &req);
+		MPI_Isend((const void*)&info, sizeof(info), MPI_BYTE, i, 1, MPI_COMM_WORLD, &req);
 		//TODO: Send data from "returned" to Frontend. Write a new method for that.
+		//TODO: only push if core received data
+		avail_cores.push(i);
 	}
 
 	// Kommunikationsteil
@@ -128,9 +134,11 @@ void Host::init(int world_rank, int world_size) {
 
 		while (true){
 			// Listen for incoming complete computations
-			// TODO asynchronous
+			// TODO asynchronous (maybe?)
 			Returned returned;
-			MPI_Recv((void*)&returned, sizeof(Returned), MPI_BYTE, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			MPI_Recv((void*)&returned, sizeof(Returned), MPI_BYTE, MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			cout << "Data recv from " << returned.world_rank << " ; " << returned.n[0][0] << endl;
+			
 
 			auto response = http_response();
 			response.set_status_code(status_codes::OK);
@@ -152,14 +160,14 @@ void Host::init(int world_rank, int world_size) {
 				returned.z,
 				returned.size
 			};
-			http_request request = request_dictionary.at(identifier);
+			// Get the request that was stored before
+			http_request request = request_dictionary[identifier];
+			cout << "Getting request from "  << identifier[0] << identifier[1] << identifier [2] << identifier[3] << endl;
 			request.reply(response);
 
 			avail_cores.push(returned.world_rank);
-
-			
-			cout << "Data recv from " << returned.world_rank << " ; " << returned.n[0][0] << "\n";
-			//TODO: Send data from "returned" to Frontend. Write a new method for that.
+			//TODO: Send data from "returned" to Frontend. Write a new method for that.	
+			cout << "done" << endl;
 		}
 	}
 	catch (exception const &e)

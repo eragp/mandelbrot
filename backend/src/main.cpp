@@ -37,7 +37,7 @@ void client(int world_rank, int world_size) {
 	Fractal* f = new Mandelbrot();
 	while (true) {
 		Info info;
-		MPI_Recv(&info, sizeof(Info), MPI_BYTE, 0, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		MPI_Recv(&info, sizeof(Info), MPI_BYTE, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		cout << "Data recv " << info.start_x << " ; " << info.start_y << endl;
 		if (info.start_x != -1) {
 			Returned returned;
@@ -51,8 +51,9 @@ void client(int world_rank, int world_size) {
 			returned.end_x = info.end_x;
 			returned.end_y = info.end_y;
 			returned.z = info.z;
+			returned.size = info.size;
 			returned.world_rank = world_rank;
-			MPI_Send((const void*)&returned, sizeof(Returned), MPI_BYTE, 0, 0, MPI_COMM_WORLD);
+			MPI_Send((const void*)&returned, sizeof(Returned), MPI_BYTE, 0, 2, MPI_COMM_WORLD);
 		}
 		else {
 			// Intentionally left blank
