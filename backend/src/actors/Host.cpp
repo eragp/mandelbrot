@@ -14,6 +14,8 @@
 #include <cpprest/json.h>
 #include <cpprest/http_listener.h>
 #include <set>
+#include <queue>
+#include <map>
 #include <string>
 
 using namespace std;
@@ -31,7 +33,7 @@ double Host::minReal = -1.5;
 double Host::maxReal = 0.7;
 double Host::minImaginary = -1.0;
 double Host::maxImaginary = 1.0;
-std::map<std::vector<int>, web::http::http_request> Host::request_dictionary;
+std::map<std::vector<int>, std::queue<web::http::http_request>> Host::request_dictionary;
 // Verwaltet die verfügbaren Kerne
 std::queue<int> Host::avail_cores;	
 
@@ -54,11 +56,13 @@ void Host::handle_get(http_request request)
 		int y = stoi(data[U("y")]);
 		int z = stoi(data[U("z")]);
 		int size = 256;
-		if(itsize == data.end()){
+		if(itsize != data.end()){
 			size = stoi(data[U("size")]);
 		}
 
 		// Initiate computation on a slave
+		// TODO caching could check whether this square has already been computed or is computing 
+		// i.e. via request_dictionary[identifier].size() > 0
 		Info info;
 		info.start_x = x;
 		info.start_y = y;
@@ -75,7 +79,7 @@ void Host::handle_get(http_request request)
 		// Create an identifier to store the received request
 		vector<int> identifier = {x,y,z,size};	
 		cout << "Storing request at "  << identifier[0] << identifier[1] << identifier [2] << identifier[3] << endl;
-		request_dictionary[identifier] = request;
+		request_dictionary[identifier].push(request);
 
 		// Invoke the longest unused available slave
 		MPI_Request req; // Later => store to check if has been received
@@ -161,9 +165,13 @@ void Host::init(int world_rank, int world_size) {
 				returned.size
 			};
 			// Get the request that was stored before
-			http_request request = request_dictionary[identifier];
+			// If more than one request demanded exactly this square, answer them all
 			cout << "Getting request from "  << identifier[0] << identifier[1] << identifier [2] << identifier[3] << endl;
-			request.reply(response);
+			while(request_dictionary[identifier].size() > 0){
+				http_request request = request_dictionary[identifier].front();
+				request.reply(response);
+				request_dictionary[identifier].pop();
+			}
 
 			avail_cores.push(returned.world_rank);
 			//TODO: Send data from "returned" to Frontend. Write a new method for that.	

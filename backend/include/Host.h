@@ -16,7 +16,8 @@ class Host {
 		static double minImaginary;
 		static double maxImaginary;
 		// Das Dictionary, in dem nach x,y,z,fraktalart,size der zugehörige Request aufbewahrt werden
-		static std::map<std::vector<int>, web::http::http_request> request_dictionary;
+		// Queue von requests, damit mehrere Requests auf denselben bereich nicht überlappen
+		static std::map<std::vector<int>, std::queue<web::http::http_request>> request_dictionary;
 		// Verwaltet die verfügbaren Kerne
 		static std::queue<int> avail_cores;		
 };
