@@ -37,8 +37,14 @@ To detach from the container exit the current shell. You will be returned to the
 $ exit
 ```
 
-A connection to the hosted service inside the docker container can be established by connecting to `http://localhost:8080/mandelbrot?x=0&y=1` (i.e. via your browser, replace 0/1 with x/y coordinates).
+A connection to the hosted service inside the docker container can be established by connecting to `http://localhost:8080/mandelbrot?x=0&y=1&z=2&size=256` (i.e. via your browser, replace 0/1/2 with x/y/zoom coordinates).
 
 ### Deployment
 
 To deploy the compiled `mandelbrot` binary copy it to the target system.
+
+## Developer notes
+
+Http requests are handled by the code in the new actors/Host.cpp. It starts a listener on the url specified above. Incoming requests are stored in an internal request dictionary and a computation command (tag 1) is issued to the next available core (managed through a queue).
+
+Parallely the host listens to incoming messages (on tag 2), converts the received data to a JSON array and answers the corresponding request stored in the request dictionary. For finding the correct request, the dictionary identifiers are based on the coordinates of the tile to compute.
