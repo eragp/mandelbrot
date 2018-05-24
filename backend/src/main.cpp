@@ -36,7 +36,11 @@ void client(int world_rank, int world_size) {
     while (true) {
         Info info;
         MPI_Recv(&info, sizeof(Info), MPI_BYTE, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        cout << "Data recv " << info.start_x << " ; " << info.start_y << endl;
+        cout << "Received data for "
+             << "(" << info.start_x << "," << info.start_y << ")"
+             << " -> "
+             << "(" << info.end_x << "," << info.end_y << ")"
+             << endl;
         if (info.start_x != -1) {
             Returned returned;
             for (int x = info.start_x; x < info.end_x; x++) {
@@ -70,7 +74,7 @@ int main(int argc, char** argv) {
     cout << "Process " << world_rank << " of " << world_size << endl;
 
     if (world_size == 1) {
-        cerr << "Not enough processes running!" << endl;
+        cerr << "need at least 2 processes to run. Currently have "<< world_size << endl;
         MPI_Finalize();
         return -1;  // return with error
     }

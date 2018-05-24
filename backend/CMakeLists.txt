@@ -15,7 +15,7 @@ include_directories(${MPI_INCLUDE_PATH})
 
 target_link_libraries(mandelbrot PUBLIC cpprestsdk::cpprest ${MPI_LIBRARIES})
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lboost_system -lcrypto -lssl")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -lboost_system -lcrypto -lssl")
 
 if(MPI_COMPILE_FLAGS)
   set_target_properties(mandelbrot PROPERTIES

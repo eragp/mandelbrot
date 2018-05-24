@@ -38,7 +38,7 @@ std::map<std::vector<int>, std::queue<web::http::http_request>> Host::request_di
 std::queue<int> Host::avail_cores;
 
 void Host::handle_get(http_request request) {
-    TRACE(L"\nhandle GET\n");
+    TRACE(U("\nhandle GET\n"));
 
     // Expect a data map string->string with x, y and z coordinate
     auto data = uri::split_query(request.request_uri().query());
@@ -77,7 +77,11 @@ void Host::handle_get(http_request request) {
 
         // Create an identifier to store the received request
         vector<int> identifier = {x, y, z, size};
-        cout << "Storing request at " << identifier[0] << identifier[1] << identifier[2] << identifier[3] << endl;
+        cout << "Storing request at"
+             << " x:" << identifier[0]
+             << " y:" << identifier[1]
+             << " z:" << identifier[2]
+             << " size:" << identifier[3] << endl;
         request_dictionary[identifier].push(request);
 
         // Invoke the longest unused available slave
@@ -128,7 +132,7 @@ void Host::init(int world_rank, int world_size) {
     try {
         listener
             .open()
-            .then([&listener]() { TRACE(U("\nstarting to listen\n")); })
+            .then([&listener]() { TRACE(U("\nlistening for HTTP Requests\n")); })
             .wait();
 
         while (true) {
@@ -155,7 +159,11 @@ void Host::init(int world_rank, int world_size) {
             vector<int> identifier = {returned.start_x, returned.start_y, returned.z, returned.size};
             // Get the request that was stored before
             // If more than one request demanded exactly this square, answer them all
-            cout << "Getting request from " << identifier[0] << identifier[1] << identifier[2] << identifier[3] << endl;
+            cout << "Answering Request"
+                 << " x:" << identifier[0]
+                 << " y:" << identifier[1]
+                 << " z:" << identifier[2]
+                 << " size:" << identifier[3] << endl;
             while (request_dictionary[identifier].size() > 0) {
                 http_request request = request_dictionary[identifier].front();
                 request.reply(response);
@@ -164,7 +172,7 @@ void Host::init(int world_rank, int world_size) {
 
             avail_cores.push(returned.world_rank);
             //TODO: Send data from "returned" to Frontend. Write a new method for that.
-            cout << "done" << endl;
+            cout << "Answered Request" << endl;
         }
     } catch (exception const &e) {
         wcout << e.what() << endl;
