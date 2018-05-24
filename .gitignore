@@ -398,3 +398,6 @@ __pycache__/
 
 *.DS_Store
 frontend/build
+
+## VSCODE ##
+.vscode
