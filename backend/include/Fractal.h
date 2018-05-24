@@ -1,7 +1,5 @@
 #pragma once
-class Fractal
-{
-public:
-	virtual int calculateFractal(double cReal, double cImaginary, int maxIteration) = 0;
+class Fractal {
+   public:
+    virtual int calculateFractal(double cReal, double cImaginary, int maxIteration) = 0;
 };
-
