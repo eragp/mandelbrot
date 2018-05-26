@@ -4,7 +4,6 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 // custom stylesheet
 import './TileDisplay.css';
-import './MandelbrotLayer';
 
 class TileDisplay extends Component {
   componentDidMount() {
@@ -18,32 +17,51 @@ class TileDisplay extends Component {
 
 const renderLeaflet = () => {
   L.GridLayer.MandelbrotLayer = L.GridLayer.extend({
-    createTile: function(coords) {
-      // var error;
-      // var tile = L.DomUtil.create('canvas', 'leaflet-tile');
-      var tile = document.createElement('div');
-      const fromLatLng = map.unproject(coords, coords.z);
-      const toLatLng = map.unproject(
-        L.point(coords.x + 1, coords.y + 1),
-        coords.z
-      );
+    createTile: function(coords, done) {
+      var tile = L.DomUtil.create('canvas', 'leaflet-tile');
+      // var tile = document.createElement('canvas');
+      // var tile = document.createElement('div');
       var size = this.getTileSize();
       tile.width = size.x;
       tile.height = size.y;
       var url =
-        'http://localhost:8080/mandelbrot?' +
-        'fromReal=' +
-        fromLatLng.lng.toString() +
-        '&fromImag=' +
-        fromLatLng.lat.toString() +
-        '&toReal=' +
-        toLatLng.lng.toString() +
-        '&toImag=' +
-        toLatLng.lat.toString();
-      console.log(url);
-      tile.innerHTML =
-        'from: ' + fromLatLng + '<br> to: ' + toLatLng + '<br>' + url;
-      tile.style.outline = '1px solid red';
+        'http://localhost:8080/mandelbrot?x=' +
+        coords.x +
+        '&y=' +
+        coords.y +
+        '&z=' +
+        coords.z +
+        '&size=' +
+        size.x;
+      fetch(url, {
+        method: 'GET',
+        mode: 'cors'
+      })
+        .then(response => response.json())
+        .then(json => {
+          // console.log(json);
+          let ctx = tile.getContext('2d');
+          ctx.clearRect(0, 0, size.x, size.y);
+          for (let x = 0; x < size.x; x++) {
+            for (let y = 0; y < size.y; y++) {
+              let n = json[x + y * size.x];
+              let r = (n * 10) % 256,
+                g = (n * 20) % 256,
+                b = (n * 40) % 256;
+              ctx.fillStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + 255 + ')';
+              // let value = (x | y) % 256;
+              // ctx.fillStyle =
+              //   'rgba(' + value + ',' + value + ',' + value + ',' + 255 + ')';
+              ctx.fillRect(x, y, 1, 1);
+            }
+          }
+          tile.style.outline = '1px solid red';
+          done(null, tile);
+        })
+        .catch(error => {
+          console.error(error);
+          done(error, tile);
+        });
       // console.log(map.layerPointToLatLng(coords));
       // draw a moire pattern to the tile
       // let ctx = tile.getContext('2d');
@@ -60,18 +78,22 @@ const renderLeaflet = () => {
       return tile;
     }
   });
-  const scale = 100;
+  // bounds have to be a power of two
+  let bounds = [[-256, -256], [256, 256]];
   L.gridLayer.mandelBrotLayer = () =>
     new L.GridLayer.MandelbrotLayer({
       tileSize: 256, // in px
-      bounds: [[-2 * scale, -2 * scale], [2 * scale, 2 * scale]]
+      bounds: bounds
     });
+
   var map = L.map('viewer', {
     crs: L.CRS.Simple,
-    minZoom: 1,
+    // minZoom: 0,
     center: [0, 0],
-    zoom: 1
+    zoom: 0
   });
+  // map.fitBounds(bounds);
+  // L.marker(L.latLng([0, 0])).addTo(map);
   map.addLayer(L.gridLayer.mandelBrotLayer());
   // L.geoJSON(generate(), { style: styleUsageMap }).addTo(map);
 };
@@ -104,5 +126,26 @@ const renderLeaflet = () => {
 //                 ? '#FED976'
 //                 : '#FFEDA0';
 // };
+
+const unproject = (x, y, zoom, localX, localY, size) => {
+  // top left -> bottom right
+  // bounds in the imaginary plane have to be symmetric
+  size = size || 1;
+  let bounds = [3, 2];
+  let tileCount = Math.pow(2, zoom);
+  let tileX = (x * bounds[0] * size + localX * bounds[0]) / (tileCount * size),
+    tileY = -(y * bounds[1] * size + localY * bounds[1]) / (tileCount * size);
+  return new Point(tileX, tileY);
+};
+
+class Point {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+  }
+  toString() {
+    return 'Point{' + this.x.toString() + ', ' + this.y.toString() + '}';
+  }
+}
 
 export default TileDisplay;

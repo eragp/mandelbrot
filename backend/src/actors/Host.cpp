@@ -1,10 +1,9 @@
 #include "Host.h"
+
 #include <fstream>
 #include <iostream>
-#include "Fractal.h"
-#include "Info.h"
-#include "Mandelbrot.h"
 #include "Returned.h"
+#include "Tile.h"
 
 // MPI Libraries
 #include <mpi.h>
@@ -27,53 +26,48 @@ using namespace web::http::experimental::listener;
 #define TRACE_ACTION(a, k, v) wcout << a << L" (" << k << L", " << v << L")\n"
 
 //ACHTUNG: (2048 / steps = nat. Zahl) muss gelten! Ein Bereich aus Speps*Steps Pixel wird von einem Prozessor / Kern berechnet.
-const int steps = 265;
+const int steps = 256;
 int Host::maxIteration = 200;
-double Host::minReal = -1.5;
-double Host::maxReal = 0.7;
-double Host::minImaginary = -1.0;
-double Host::maxImaginary = 1.0;
+double Host::minReal = -2.0;
+double Host::maxReal = 2.0;
+double Host::minImaginary = -2.0;
+double Host::maxImaginary = 2.0;
 std::map<std::vector<int>, std::queue<web::http::http_request>> Host::request_dictionary;
 // Verwaltet die verfügbaren Kerne
 std::queue<int> Host::avail_cores;
 
 void Host::handle_get(http_request request) {
     TRACE(U("\nhandle GET\n"));
-
-    // Expect a data map string->string with x, y and z coordinate
+    // Expect coordinates form query
     auto data = uri::split_query(request.request_uri().query());
-    map<utility::string_t, utility::string_t>::iterator itx = data.find(U("x"));
-    map<utility::string_t, utility::string_t>::iterator ity = data.find(U("y"));
-    map<utility::string_t, utility::string_t>::iterator itsize = data.find(U("size"));
-    map<utility::string_t, utility::string_t>::iterator itz = data.find(U("z"));
-
+    map<utility::string_t, utility::string_t>::iterator it_x = data.find(U("x")),
+                                                        it_y = data.find(U("y")),
+                                                        it_z = data.find(U("z")),
+                                                        it_size = data.find(U("size"));
     // Returns either value at x/y or the whole array
-    // TODO correctly assign x/y to areas of the mandelbrot set
-    // TODO access the buffer of computed tiles to choose the correct one
-    if (itx != data.end() && ity != data.end() && itz != data.end()) {
-        int x = stoi(data[U("x")]);
-        int y = stoi(data[U("y")]);
-        int z = stoi(data[U("z")]);
-        int size = 256;
-        if (itsize != data.end()) {
-            size = stoi(data[U("size")]);
+    if (it_x != data.end() && it_y != data.end() && it_z != data.end()) {
+        int x = stoi(data["x"]),
+            y = stoi(data["y"]),
+            z = stoi(data["z"]),
+            size = steps;
+        if (it_size != data.end()) {
+            size = stoi(data["size"]);
         }
 
         // Initiate computation on a slave
-        // TODO caching could check whether this square has already been computed or is computing
+        // TODO: caching could check whether this square has already been computed or is computing
         // i.e. via request_dictionary[identifier].size() > 0
-        Info info;
-        info.start_x = x;
-        info.start_y = y;
-        info.end_x = x + size;
-        info.end_y = y + size;
-        info.z = z;
-        info.size = size;
-        info.maxIteration = maxIteration;
-        info.minReal = minReal;
-        info.maxReal = maxReal;
-        info.minImaginary = minImaginary;
-        info.maxImaginary = maxImaginary;
+        Tile tile;
+        tile.x = x;
+        tile.y = y;
+        tile.zoom = z;
+        tile.size = size;
+        // TODO: remove these arguments
+        tile.maxIteration = maxIteration;
+        tile.minReal = minReal;
+        tile.maxReal = maxReal;
+        tile.minImaginary = minImaginary;
+        tile.maxImaginary = maxImaginary;
 
         // Create an identifier to store the received request
         vector<int> identifier = {x, y, z, size};
@@ -87,16 +81,17 @@ void Host::handle_get(http_request request) {
         // Invoke the longest unused available slave
         MPI_Request req;  // Later => store to check if has been received
         cout << "Invoking core " << avail_cores.front() << endl;
-        MPI_Isend((const void *)&info, sizeof(Info), MPI_BYTE, avail_cores.front(), 1, MPI_COMM_WORLD, &req);
+        MPI_Isend((const void *)&tile, sizeof(Tile), MPI_BYTE, avail_cores.front(), 1, MPI_COMM_WORLD, &req);
         avail_cores.pop();
     } else {
-        TRACE(L"Not enough arguments\n");
+        TRACE(U("Not enough arguments\n"));
     }
 }
 
 void Host::init(int world_rank, int world_size) {
     int cores = world_size;
     maxIteration = 200;
+    // TODO: remove this
     minReal = -1.5;
     maxReal = 0.7;
     minImaginary = -1.0;
@@ -104,11 +99,11 @@ void Host::init(int world_rank, int world_size) {
 
     // Initialize the cores (except for yourself (id==0))
     for (int i = 1; i < cores; i++) {
-        Info info;
-        info.start_x = -1;
+        Tile tile;
+        tile.start_x = -1;
         Returned returned;
         MPI_Request req;
-        MPI_Isend((const void *)&info, sizeof(info), MPI_BYTE, i, 1, MPI_COMM_WORLD, &req);
+        MPI_Isend((const void *)&tile, sizeof(tile), MPI_BYTE, i, 1, MPI_COMM_WORLD, &req);
         //TODO: Send data from "returned" to Frontend. Write a new method for that.
         //TODO: only push if core received data
         avail_cores.push(i);
@@ -137,7 +132,7 @@ void Host::init(int world_rank, int world_size) {
 
         while (true) {
             // Listen for incoming complete computations
-            // TODO asynchronous (maybe?)
+            // TODO: asynchronous (maybe?)
             Returned returned;
             MPI_Recv((void *)&returned, sizeof(Returned), MPI_BYTE, MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
             cout << "Data recv from " << returned.world_rank << " ; " << returned.n[0][0] << endl;
@@ -156,7 +151,7 @@ void Host::init(int world_rank, int world_size) {
             }
             response.set_body(tile);
 
-            vector<int> identifier = {returned.start_x, returned.start_y, returned.z, returned.size};
+            vector<int> identifier = {returned.x, returned.y, returned.zoom, returned.size};
             // Get the request that was stored before
             // If more than one request demanded exactly this square, answer them all
             cout << "Answering Request"
@@ -177,6 +172,5 @@ void Host::init(int world_rank, int world_size) {
     } catch (exception const &e) {
         wcout << e.what() << endl;
     }
-
     MPI_Finalize();
 }
