@@ -28,10 +28,6 @@ using namespace web::http::experimental::listener;
 //ACHTUNG: (2048 / steps = nat. Zahl) muss gelten! Ein Bereich aus Speps*Steps Pixel wird von einem Prozessor / Kern berechnet.
 const int steps = 256;
 int Host::maxIteration = 200;
-double Host::minReal = -2.0;
-double Host::maxReal = 2.0;
-double Host::minImaginary = -2.0;
-double Host::maxImaginary = 2.0;
 std::map<std::vector<int>, std::queue<web::http::http_request>> Host::request_dictionary;
 // Verwaltet die verfügbaren Kerne
 std::queue<int> Host::avail_cores;
@@ -93,12 +89,7 @@ void Host::handle_get(http_request request) {
         tile.y = y;
         tile.zoom = z;
         tile.size = size;
-        // TODO: remove these arguments
         tile.maxIteration = maxIteration;
-        tile.minReal = minReal;
-        tile.maxReal = maxReal;
-        tile.minImaginary = minImaginary;
-        tile.maxImaginary = maxImaginary;
 
         // Create an identifier to store the received request
         vector<int> identifier = {x, y, z, size};
@@ -124,11 +115,6 @@ void Host::handle_get(http_request request) {
 void Host::init(int world_rank, int world_size) {
     int cores = world_size;
     maxIteration = 200;
-    // TODO: remove this
-    minReal = -1.5;
-    maxReal = 0.7;
-    minImaginary = -1.0;
-    maxImaginary = 1.0;
 
     // Initialize the cores (except for yourself (id==0))
     for (int i = 1; i < cores; i++) {

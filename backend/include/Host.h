@@ -15,10 +15,6 @@ class Host {
 		static void request_more();
 
 		static int maxIteration;
-		static double minReal;
-		static double maxReal;
-		static double minImaginary;
-		static double maxImaginary;
 		// Das Dictionary, in dem nach (x,y,z,fraktalart,size) der zugehörige Request aufbewahrt werden
 		// Queue von requests, damit mehrere Requests auf denselben bereich nicht überlappen
 		static std::map<std::vector<int>, std::queue<web::http::http_request>> request_dictionary;
