@@ -46,7 +46,6 @@ void Host::request_more(){
 	avail_cores.pop();
 	requestedTiles.pop();
 	//TODO: Send data from "returned" to Frontend. Write a new method for that.
-	cout << "Answered Request" << endl;
 }
 
 void Host::handle_get(http_request request) {
@@ -112,7 +111,7 @@ void Host::init(int world_rank, int world_size) {
     // Initialize the cores (except for yourself (id==0))
     for (int i = 1; i < cores; i++) {
         Tile tile;
-        tile.start_x = -1;
+        tile.size = 0;
         //Returned returned;
         MPI_Request req;
         MPI_Isend((const void *)&tile, sizeof(tile), MPI_BYTE, i, 1, MPI_COMM_WORLD, &req);
@@ -179,7 +178,7 @@ void Host::init(int world_rank, int world_size) {
             }
 
             avail_cores.push(returned.world_rank);
-
+			cout << "Answered Request" << endl;
 			// Invoke the longest unused available slave for another tile if available
 			if(requestedTiles.size() > 0){
 				request_more();

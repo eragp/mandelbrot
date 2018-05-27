@@ -53,8 +53,8 @@ void Client::init(int world_rank, int world_size) {
             returned.zoom = tile.zoom;
             returned.size = tile.size;
             returned.world_rank = world_rank;
+            cout << world_rank << " is sending the data" << endl;
             MPI_Send((const void*)&returned, sizeof(Returned), MPI_BYTE, 0, 2, MPI_COMM_WORLD);
-            cout << world_rank << " sent the data" << endl;
         }
     }
 }
