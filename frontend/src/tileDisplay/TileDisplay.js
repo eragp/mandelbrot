@@ -56,7 +56,9 @@ const renderLeaflet = () => {
             }
           }
           tile.style.outline = '1px solid red';
-          done(null, tile);
+          setTimeout(function(){
+            done(null, tile);
+          }, 1000)
         })
         .catch(error => {
           console.error(error);
