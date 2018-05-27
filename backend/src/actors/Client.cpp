@@ -38,7 +38,7 @@ void Client::init(int world_rank, int world_size) {
         cout << "Client received data for "
              << "(" << tile.x << "," << tile.y << "," << tile.zoom << ")"
              << endl;
-        if (tile.start_x != -1) {
+        if (tile.size > 0) {
             Returned returned;
             for (int x = 0; x < tile.size; x++) {
                 for (int y = 0; y < tile.size; y++) {

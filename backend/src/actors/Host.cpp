@@ -15,6 +15,7 @@
 #include <queue>
 #include <set>
 #include <string>
+#include <mutex>
 
 using namespace std;
 using namespace web;
@@ -35,19 +36,37 @@ std::map<std::vector<int>, std::queue<web::http::http_request>> Host::request_di
 // Verwaltet die verfügbaren Kerne
 std::queue<int> Host::avail_cores;
 // Verwalte requests
-std::queue<Tile> Host::requestedTiles;
+std::queue<Tile> Host::requested_tiles;
+// Synchronisiere zugriffe auf alle kritischen datenstrukturen
+std::mutex Host::avail_cores_lock;
+std::mutex Host::requested_tiles_lock;
+std::map<std::vector<int>, std::mutex> Host::request_dictionary_lock;
 
+/**
+ * Invoke a new core for a new tile
+ * Checks necessary conditions on its own, always safe to call
+ */
 void Host::request_more(){
-	Tile tile = requestedTiles.front();
-	MPI_Request req;  // Later => store to check if has been received
-	cout << "Invoking core " << avail_cores.front() << endl;
-	// Tag for computation requests is 1
-	MPI_Isend((const void *)&tile, sizeof(Tile), MPI_BYTE, avail_cores.front(), 1, MPI_COMM_WORLD, &req);
-	avail_cores.pop();
-	requestedTiles.pop();
-	//TODO: Send data from "returned" to Frontend. Write a new method for that.
+	// Will never lead to deadlock because this is the only block aquiring these two locks
+	// ATTENTION: if another block with 2 locks is introduced, this will not hold anymore
+	// Take care then of locking in the same order as here
+	std::lock_guard<std::mutex>  lock1(avail_cores_lock);
+	std::lock_guard<std::mutex>  lock2(requested_tiles_lock);
+	if(avail_cores.size() > 0 && requested_tiles.size() > 0){
+		Tile tile = requested_tiles.front();
+		MPI_Request req;  // Later => store to check if has been received
+		cout << "Invoking core " << avail_cores.front() << endl;
+		// Tag for computation requests is 1
+		MPI_Isend((const void *)&tile, sizeof(Tile), MPI_BYTE, avail_cores.front(), 1, MPI_COMM_WORLD, &req);
+		avail_cores.pop();
+		requested_tiles.pop();
+		//TODO: Send data from "returned" to Frontend. Write a new method for that.
+	}
 }
 
+/**
+ * Handle a request for a new tile from client side
+ */
 void Host::handle_get(http_request request) {
     TRACE(U("\nhandle GET\n"));
     // Expect coordinates form query
@@ -88,12 +107,15 @@ void Host::handle_get(http_request request) {
              << " y:" << identifier[1]
              << " z:" << identifier[2]
              << " size:" << identifier[3] << endl;
-        request_dictionary[identifier].push(request);
-
-		requestedTiles.push(tile);
-		if(avail_cores.size() > 0){
-			request_more();
+		{
+			std::lock_guard<std::mutex>  lock(request_dictionary_lock[identifier]);
+			request_dictionary[identifier].push(request);
 		}
+		{
+			std::lock_guard<std::mutex>  lock(requested_tiles_lock);
+			requested_tiles.push(tile);
+		}
+		request_more();
     } else {
         TRACE(U("Not enough arguments\n"));
     }
@@ -117,7 +139,10 @@ void Host::init(int world_rank, int world_size) {
         MPI_Isend((const void *)&tile, sizeof(tile), MPI_BYTE, i, 1, MPI_COMM_WORLD, &req);
         //TODO: Send data from "returned" to Frontend. Write a new method for that.
         //TODO: only push if core received data
-        avail_cores.push(i);
+		{
+			std::lock_guard<std::mutex>  lock(avail_cores_lock);
+       		avail_cores.push(i);
+		}
     }
 
     // Kommunikationsteil
@@ -171,18 +196,21 @@ void Host::init(int world_rank, int world_size) {
                  << " y:" << identifier[1]
                  << " z:" << identifier[2]
                  << " size:" << identifier[3] << endl;
-            while (request_dictionary[identifier].size() > 0) {
-                http_request request = request_dictionary[identifier].front();
-                request.reply(response);
-                request_dictionary[identifier].pop();
-            }
-
-            avail_cores.push(returned.world_rank);
+			{
+				std::lock_guard<std::mutex>  lock(request_dictionary_lock[identifier]);
+				while (request_dictionary[identifier].size() > 0) {
+					http_request request = request_dictionary[identifier].front();
+					request.reply(response);
+					request_dictionary[identifier].pop();
+				}
+			}
+			{
+				std::lock_guard<std::mutex>  lock(avail_cores_lock);
+				avail_cores.push(returned.world_rank);
+			}
 			cout << "Answered Request" << endl;
 			// Invoke the longest unused available slave for another tile if available
-			if(requestedTiles.size() > 0){
-				request_more();
-			}
+			request_more();
         }
     } catch (exception const &e) {
         wcout << e.what() << endl;
