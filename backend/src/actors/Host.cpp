@@ -120,6 +120,9 @@ void Host::init(int world_rank, int world_size) {
     for (int i = 1; i < cores; i++) {
         Tile tile;
         tile.size = 0;
+        tile.x = 0;
+        tile.y = 0;
+        tile.zoom = 0;
         //Returned returned;
         MPI_Request req;
         MPI_Isend((const void *)&tile, sizeof(tile), MPI_BYTE, i, 1, MPI_COMM_WORLD, &req);
