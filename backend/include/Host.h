@@ -3,12 +3,15 @@
 #include <map>
 #include <queue>
 #include <vector>
+#include "Tile.h"
 class Host {
 	public:
 		static void init(int worldRank, int worldSize);
+	private:
 		// Static da als handle übergeben werden muss
 		// => ganzer Rest auch static, lediglich Informationskapselung
 		static void handle_get(web::http::http_request request);
+		static void request_more();
 
 		static int maxIteration;
 		static double minReal;
@@ -20,6 +23,7 @@ class Host {
 		static std::map<std::vector<int>, std::queue<web::http::http_request>> request_dictionary;
 		// Verwaltet die verfügbaren Kerne
 		static std::queue<int> avail_cores;		
+		static std::queue<Tile> requestedTiles;
 };
 
 

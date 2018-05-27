@@ -1,3 +1,4 @@
+#pragma once
 typedef struct {
     int x, y, zoom, size;
 

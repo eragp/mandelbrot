@@ -35,7 +35,7 @@ void Client::init(int world_rank, int world_size) {
     while (true) {
         Tile tile;
         MPI_Recv(&tile, sizeof(Tile), MPI_BYTE, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        cout << "Received data for "
+        cout << "Client received data for "
              << "(" << tile.x << "," << tile.y << "," << tile.zoom << ")"
              << endl;
         if (tile.start_x != -1) {
@@ -54,10 +54,7 @@ void Client::init(int world_rank, int world_size) {
             returned.size = tile.size;
             returned.world_rank = world_rank;
             MPI_Send((const void*)&returned, sizeof(Returned), MPI_BYTE, 0, 2, MPI_COMM_WORLD);
-            cout << world_rank << " sent the data";
-        } else {
-            // Intentionally left blank
-            // WTF ?!!!
+            cout << world_rank << " sent the data" << endl;
         }
     }
 }

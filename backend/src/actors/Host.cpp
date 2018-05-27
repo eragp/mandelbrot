@@ -4,7 +4,6 @@
 #include <iostream>
 #include "Returned.h"
 #include "Tile.h"
-
 // MPI Libraries
 #include <mpi.h>
 
@@ -35,6 +34,20 @@ double Host::maxImaginary = 2.0;
 std::map<std::vector<int>, std::queue<web::http::http_request>> Host::request_dictionary;
 // Verwaltet die verfügbaren Kerne
 std::queue<int> Host::avail_cores;
+// Verwalte requests
+std::queue<Tile> Host::requestedTiles;
+
+void Host::request_more(){
+	Tile tile = requestedTiles.front();
+	MPI_Request req;  // Later => store to check if has been received
+	cout << "Invoking core " << avail_cores.front() << endl;
+	// Tag for computation requests is 1
+	MPI_Isend((const void *)&tile, sizeof(Tile), MPI_BYTE, avail_cores.front(), 1, MPI_COMM_WORLD, &req);
+	avail_cores.pop();
+	requestedTiles.pop();
+	//TODO: Send data from "returned" to Frontend. Write a new method for that.
+	cout << "Answered Request" << endl;
+}
 
 void Host::handle_get(http_request request) {
     TRACE(U("\nhandle GET\n"));
@@ -78,11 +91,10 @@ void Host::handle_get(http_request request) {
              << " size:" << identifier[3] << endl;
         request_dictionary[identifier].push(request);
 
-        // Invoke the longest unused available slave
-        MPI_Request req;  // Later => store to check if has been received
-        cout << "Invoking core " << avail_cores.front() << endl;
-        MPI_Isend((const void *)&tile, sizeof(Tile), MPI_BYTE, avail_cores.front(), 1, MPI_COMM_WORLD, &req);
-        avail_cores.pop();
+		requestedTiles.push(tile);
+		if(avail_cores.size() > 0){
+			request_more();
+		}
     } else {
         TRACE(U("Not enough arguments\n"));
     }
@@ -101,7 +113,7 @@ void Host::init(int world_rank, int world_size) {
     for (int i = 1; i < cores; i++) {
         Tile tile;
         tile.start_x = -1;
-        Returned returned;
+        //Returned returned;
         MPI_Request req;
         MPI_Isend((const void *)&tile, sizeof(tile), MPI_BYTE, i, 1, MPI_COMM_WORLD, &req);
         //TODO: Send data from "returned" to Frontend. Write a new method for that.
@@ -134,8 +146,9 @@ void Host::init(int world_rank, int world_size) {
             // Listen for incoming complete computations
             // TODO: asynchronous (maybe?)
             Returned returned;
+			// Tag for completed computation is 2
             MPI_Recv((void *)&returned, sizeof(Returned), MPI_BYTE, MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            cout << "Data recv from " << returned.world_rank << " ; " << returned.n[0][0] << endl;
+            cout << "Host received from " << returned.world_rank << " ; " << returned.n[0][0] << endl;
 
             auto response = http_response();
             response.set_status_code(status_codes::OK);
@@ -154,7 +167,7 @@ void Host::init(int world_rank, int world_size) {
             vector<int> identifier = {returned.x, returned.y, returned.zoom, returned.size};
             // Get the request that was stored before
             // If more than one request demanded exactly this square, answer them all
-            cout << "Answering Request"
+            cout << "Host answering Request"
                  << " x:" << identifier[0]
                  << " y:" << identifier[1]
                  << " z:" << identifier[2]
@@ -166,8 +179,11 @@ void Host::init(int world_rank, int world_size) {
             }
 
             avail_cores.push(returned.world_rank);
-            //TODO: Send data from "returned" to Frontend. Write a new method for that.
-            cout << "Answered Request" << endl;
+
+			// Invoke the longest unused available slave for another tile if available
+			if(requestedTiles.size() > 0){
+				request_more();
+			}
         }
     } catch (exception const &e) {
         wcout << e.what() << endl;
