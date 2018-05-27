@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom';
 import 'bootstrap/dist/css/bootstrap.css';
 // Custom Components
 import NodeList from './Node';
-import Viewer from './Viewer';
+import TileDisplay from './tileDisplay/TileDisplay';
 import registerServiceWorker from './registerServiceWorker';
 import './Index.css';
 
@@ -13,7 +13,7 @@ class App extends Component {
     return (
       <div>
         <NodeList />
-        <Viewer />
+        <TileDisplay />
       </div>
     );
   }
