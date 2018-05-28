@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 // leaflet stuff
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import 'leaflet-zoombox/L.Control.ZoomBox.css';
+import 'leaflet-zoombox/L.Control.ZoomBox.min.js';
 // custom stylesheet
 import './TileDisplay.css';
 
@@ -79,6 +81,14 @@ const renderLeaflet = () => {
     zoom: 0
   });
   map.addLayer(L.gridLayer.mandelBrotLayer());
+
+  // Add zoombox controls
+  var options = {
+    modal: true,
+    title: "Box area zoom"
+  };
+  var control = L.control.zoomBox(options);
+  map.addControl(control);
 };
 
 // const unproject = (x, y, zoom, localX, localY, size) => {
