@@ -169,13 +169,16 @@ void Host::init(int world_rank, int world_size) {
             response.headers().add(U("Access-Control-Allow-Origin"), U("*"));
             response.headers().add(U("Access-Control-Allow-Methods"), U("GET"));
             // Create json value from returned
+            json::value answer;
+            answer[U("rank")] = json::value(returned.world_rank);
             json::value tile;
             for (int x = 0; x < returned.size; x++) {
                 for (int y = 0; y < returned.size; y++) {
                     tile[x + y * returned.size] = returned.n[x][y];
                 }
             }
-            response.set_body(tile);
+            answer[U("tile")] = tile;
+            response.set_body(answer);
 
             vector<int> identifier = {returned.x, returned.y, returned.zoom, returned.size};
             // Get the request that was stored before
