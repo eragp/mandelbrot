@@ -8,8 +8,6 @@
 
 #include <string>
 
-using namespace std;
-
 #define TRACE(msg) wcout << msg
 #define TRACE_ACTION(a, k, v) wcout << a << L" (" << k << L", " << v << L")\n"
 
@@ -64,10 +62,10 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
     int world_size;
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-    cout << "Process " << world_rank << " of " << world_size << endl;
+	std::cout << "Process " << world_rank << " of " << world_size << std::endl;
 
     if (world_size == 1) {
-        cerr << "need at least 2 processes to run. Currently have " << world_size << endl;
+       std:: cerr << "need at least 2 processes to run. Currently have " << world_size << std::endl;
         MPI_Finalize();
         return -1;  // return with error
     }
