@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 // leaflet stuff
 import 'leaflet/dist/leaflet.css';
-import  L from 'leaflet/dist/leaflet-src.js';
+import  L from 'leaflet';
 import 'leaflet-zoombox/L.Control.ZoomBox.css';
 import 'leaflet-zoombox/L.Control.ZoomBox.min.js';
 // custom stylesheet
@@ -19,6 +19,7 @@ class TileDisplay extends Component {
     return <div id="viewer" />;
   }
 }
+
 
 const renderLeaflet = () => {
   L.GridLayer.MandelbrotLayer = L.GridLayer.extend({
