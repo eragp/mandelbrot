@@ -35,7 +35,7 @@ void Client::init(int world_rank, int world_size) {
     while (true) {
         Tile tile;
         MPI_Recv(&tile, sizeof(Tile), MPI_BYTE, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        cout << "Client received data for "
+        cout << "Client " << world_rank << " received data for "
              << "(" << tile.x << "," << tile.y << "," << tile.zoom << ")"
              << endl;
         if (tile.size > 0) {
