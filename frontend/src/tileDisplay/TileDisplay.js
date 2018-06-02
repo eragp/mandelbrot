@@ -41,12 +41,14 @@ const renderLeaflet = () => {
       })
         .then(response => response.json())
         .then(json => {
+          let rank = json['rank'];
+          let tile_values = json['tile'];
           // console.log(json);
           let ctx = tile.getContext('2d');
           ctx.clearRect(0, 0, size.x, size.y);
           for (let x = 0; x < size.x; x++) {
             for (let y = 0; y < size.y; y++) {
-              let [r, g, b] = Shader.default(json[x + y * size.x], 200);
+              let [r, g, b] = Shader.default(tile_values[x + y * size.x], 200);
               ctx.fillStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + 255 + ')';
               ctx.fillRect(x, y, 1, 1);
             }
