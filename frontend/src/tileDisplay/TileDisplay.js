@@ -2,12 +2,12 @@ import React, { Component } from 'react';
 // leaflet stuff
 import 'leaflet/dist/leaflet.css';
 import  L from 'leaflet';
+import 'leaflet-zoombox';
 import 'leaflet-zoombox/L.Control.ZoomBox.css';
-import 'leaflet-zoombox/L.Control.ZoomBox.min.js';
+
 // custom stylesheet
 import './TileDisplay.css';
 
-import './Shader';
 import Shader from './Shader';
 
 class TileDisplay extends Component {
