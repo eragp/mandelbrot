@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 // leaflet stuff
 import 'leaflet/dist/leaflet.css';
-import  L from 'leaflet';
+import  L from 'leaflet/dist/leaflet-src.js';
 import 'leaflet-zoombox';
 import 'leaflet-zoombox/L.Control.ZoomBox.css';
 
