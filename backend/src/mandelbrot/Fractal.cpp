@@ -1,5 +1,13 @@
 #include "Fractal.h"
 
+double Fractal::deltaReal(double maxReal, double minReal, int xRes) {
+	return (maxReal - minReal) / xRes;
+}
+
+double Fractal::deltaImaginary(double maxImaginary, double minImaginary, int yRes) {
+	return (maxImaginary - minImaginary) / yRes;
+}
+
 double Fractal::xToReal(int x, double maxReal, double minReal, int width) {
 	return x * ((maxReal - minReal) / width) + minReal;
 }

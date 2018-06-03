@@ -25,8 +25,8 @@ void Client::init(int world_rank, int world_size) {
 		
 		int data[tileInfo.xRes][tileInfo.yRes];
 		
-		double deltaReal = (tileInfo.maxReal - tileInfo.minReal) / tileInfo.xRes;
-		double deltaImaginary = (tileInfo.minImaginary - tileInfo.maxImaginary) / tileInfo.yRes;
+		double deltaReal = Fractal::deltaReal(tileInfo.maxReal, tileInfo.minReal, tileInfo.xRes);
+		double deltaImaginary = Fractal::deltaImaginary(tileInfo.maxImaginary, tileInfo.minImaginary, tileInfo.yRes);
         for (int x = 0 ; x < tileInfo.xRes ; x++) {
 			for (int y = 0 ; y < tileInfo.yRes ; y++) {
 				data[x][y] = f->calculateFractal((tileInfo.minReal + x * deltaReal), (tileInfo.minImaginary + y * deltaImaginary), tileInfo.maxIteration);
