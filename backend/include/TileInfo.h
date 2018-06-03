@@ -10,6 +10,9 @@ struct TileInfo {
 	// Resolution
 	int xRes; // width
 	int yRes; // height
+	
+	// Iterations, the calculateFractal class should do.
+	int maxIteration;
 };
 
 #endif // !TILEINFO_H
