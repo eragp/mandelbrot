@@ -189,6 +189,7 @@ void Host::handle_get_region(http_request request){
 		// Update data_buffer size
 		{
 			std::lock_guard<std::mutex> lock(data_buffer_lock);
+			delete[] data_buffer;
 			data_buffer = new int[current_big_tile.xRes*current_big_tile.yRes];
 		}
 		
@@ -196,6 +197,7 @@ void Host::handle_get_region(http_request request){
 		int nodeCount = Host::world_size; // For the future: Get nodeCount from Frontend and put it instead of the 4
 		Balancer* b = new NaiveBalancer();
 		TileInfo* tiles = b->balanceLoad(current_big_tile, nodeCount); //Tiles is array with nodeCount members
+		delete b;
 		std::cout << "Tile 0: " << tiles[0].minReal << std::endl;
 		std::cout << "Tile 3: " << tiles[3].minReal << std::endl;
 		
@@ -207,6 +209,8 @@ void Host::handle_get_region(http_request request){
 				request_more();
 			}
 		}
+		
+		delete[] tiles;
 		
 		
 		//@Nils Array tiles (struct TileData) of length nodeCount is your result. Maybe convert to Frontend-Format?
