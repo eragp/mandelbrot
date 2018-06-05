@@ -166,7 +166,8 @@ void Host::handle_get_region(http_request request){
 	std::map<utility::string_t, utility::string_t>::iterator it_x = data.find(U("x")),
                                                         it_y = data.find(U("y")),
                                                         it_z = data.find(U("z")),
-                                                        it_size = data.find(U("size"));
+                                                        it_size = data.find(U("size")),
+														it_balancer = data.find(U("balancer"));
     // Returns either value at x/y or the whole array
     if (it_x != data.end() && it_y != data.end() && it_z != data.end()) {
         int x = stoi(data["x"]),
@@ -176,6 +177,11 @@ void Host::handle_get_region(http_request request){
         if (it_size != data.end()) {
             size = stoi(data["size"]);
         }
+		// Additional option to define balancer in region
+		utility::string_t balancer = "naive";
+		if(it_balancer != data.end()){
+			balancer = data["balancer"];
+		}
 		// TODO set this instance of TileInfo with all the recieved information
 		// sizeX possible if we got both sizeX and sixeY from frontend
 		current_big_tile.minReal = unprojectX(x, z, 0, size);
@@ -195,6 +201,7 @@ void Host::handle_get_region(http_request request){
 		
 		// TODO Test if this actually works
 		int nodeCount = Host::world_size; // For the future: Get nodeCount from Frontend and put it instead of the 4
+		// TODO make this based on balancer variable defined above
 		Balancer* b = new NaiveBalancer();
 		TileInfo* tiles = b->balanceLoad(current_big_tile, nodeCount); //Tiles is array with nodeCount members
 		delete b;
