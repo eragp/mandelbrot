@@ -37,7 +37,9 @@ using namespace web::http::experimental::listener;
 
 //ACHTUNG: (2048 / steps = nat. Zahl) muss gelten! Ein Bereich aus Speps*Steps Pixel wird von einem Prozessor / Kern berechnet.
 const int steps = 256;
+// Init values with some arbitrary value
 int Host::maxIteration = 200;
+int Host::world_size = 0;
 
 
 std::map<std::vector<int>, std::queue<web::http::http_request>> Host::request_dictionary;
@@ -84,6 +86,7 @@ double unprojectY(long tileY, int zoom, long localY, int size) {
 }
 
 /**
+ * TODO this will be removed because requests (except for region) will not init cores anymore!
  * Invoke a new core for a new tile
  * Checks necessary conditions on its own, always safe to call
  */
@@ -111,9 +114,9 @@ void Host::request_more() {
  * Handle a request for a new tile from client side
  * This method is responsible to create the identifier for the response. It's not about new computation requests.
  */
-void Host::handle_get(http_request request) {
-    TRACE(U("\nhandle GET\n"));
-    // Expect coordinates form query
+void Host::handle_get_tile(http_request request) {
+    TRACE(U("\nhandle GET tile\n"));
+    // Expect coordinates from query
     auto data = uri::split_query(request.request_uri().query());
 	std::map<utility::string_t, utility::string_t>::iterator it_x = data.find(U("x")),
                                                         it_y = data.find(U("y")),
@@ -128,21 +131,9 @@ void Host::handle_get(http_request request) {
         if (it_size != data.end()) {
             size = stoi(data["size"]);
         }
-
-        // Initiate computation on a slave
-        // TODO: caching could check whether this square has already been computed or is computing
-        // i.e. via request_dictionary[identifier].size() > 0
-        
-		// Delete. Not needed, because we don't init a computation.
-		/* Tile tile;
-        tile.x = x;
-        tile.y = y;
-        tile.zoom = z;
-        tile.size = size;
-        tile.maxIteration = maxIteration;*/
 		
 		// Create an identifier to store the received request
-		// @Nils Maybe its better to use x, y and size which represent the actual location in the data_buffer Array. I could change that, if that would be better for you. -Tobi
+		// @Niels Maybe its better to use x, y and size which represent the actual location in the data_buffer Array. I could change that, if that would be better for you. -Tobi
 		std::vector<int> identifier = {x, y, z, size};
 		std::cout << "Storing request at"
              << " x:" << identifier[0]
@@ -153,6 +144,9 @@ void Host::handle_get(http_request request) {
 			std::lock_guard<std::mutex>  lock(request_dictionary_lock[identifier]);
 			request_dictionary[identifier].push(request);
 		}
+
+		// TODO if region has been computed, answer request
+		// => same method as in mpi_recv loop
     } else {
         TRACE(U("Not enough arguments\n"));
     }
@@ -166,125 +160,68 @@ void Host::handle_get(http_request request) {
  * TODO 
  */
 void Host::handle_get_region(http_request request){
-    int x, y, z, size; //TODO
-	// TODO set this instance of TileInfo with all the recieved information
-	// sizeX possible if we got both sizeX and sixeY from frontend
-	current_big_tile.minReal = unprojectX(x, z, 0, size);
-	current_big_tile.maxReal = unprojectX(x, z, size, size);
-	current_big_tile.minImaginary = unprojectY(y, z, 0, size);
-	current_big_tile.maxImaginary = unprojectY(y, z, size, size);
-	current_big_tile.xRes = size;
-	current_big_tile.yRes = size;
-	current_big_tile.maxIteration = 200;	//TODO Dynamic Iteration
-	
-	// Update data_buffer size
-	{
-		std::lock_guard<std::mutex> lock(data_buffer_lock);
-		data_buffer = new int[current_big_tile.xRes*current_big_tile.yRes];
-	}
-	
-	// TODO Test if this actually works
-	int nodeCount = 4; // For the future: Get nodeCount from Frontend and put it instead of the 4
-	Balancer* b = new NaiveBalancer();
-	TileInfo* tiles = b->balanceLoad(current_big_tile, nodeCount); //Tiles is array with nodeCount members
-	std::cout << "Tile 0: " << tiles[0].minReal << std::endl;
-	std::cout << "Tile 3: " << tiles[3].minReal << std::endl;
-	
-	// Send the information to Workers via Host::request_more method
-	{
-		std::lock_guard<std::mutex>  lock(requested_tiles_lock);
-		for (int i=0 ; i<nodeCount ; i++) {
-			requested_tiles.push(tiles[i]);
-			request_more();
-		}
-	}
-	
-	
-	//@Nils Array tiles (struct TileData) of length nodeCount is your result. Maybe convert to Frontend-Format?
-	//Mock until now
-    auto response = http_response();
-    response.set_status_code(status_codes::NotImplemented);
-    // CORs enabling
-    response.headers().add(U("Access-Control-Allow-Origin"), U("*"));
-    response.headers().add(U("Access-Control-Allow-Methods"), U("GET"));
-
-    auto reply = json::value(U("Please contact Niels what kind of information you want to transmit"));
-    response.set_body(reply);
-    
-    request.reply(response);
-
-}
-
-/**
- * Response to handle_get HTTP request.
- */
-
-void Host::handle_response() {
-	// REST
-    /*
-	* IMPORTANT: use the U() Makro for any strings passed to cpprest. This is required for Linux compilation
-	*/
-    auto resturl = web::uri_builder();
-    resturl.set_host(U("0.0.0.0"));
-    resturl.set_scheme(U("http"));
-    resturl.set_port(U("80"));
-    resturl.set_path(U("mandelbrot"));
-
-    http_listener listener(resturl.to_uri());
-    listener.support(methods::GET, handle_get);
-
-	// TODO @Nils Some problems here due to the new spezification with the little requests.
-	
-    /*try {
-        listener
-            .open()
-            .then([&listener]() { TRACE(U("\nlistening for HTTP Requests\n")); })
-            .wait();
-			
-			
-			
-			auto response = http_response();
-            response.set_status_code(status_codes::OK);
-            // CORs enabling
-            response.headers().add(U("Access-Control-Allow-Origin"), U("*"));
-            response.headers().add(U("Access-Control-Allow-Methods"), U("GET"));
-            // Create json value from tileData
-            json::value tile;
-            for (int x = 0; x < tileInfo.xRes; x++) {
-                for (int y = 0; y < tileInfo.yRes; y++) {
-                    tile[x + y * tileData.xRes] = tileData.n[x + y * tileData.xRes];
-                }
-            }
-            response.set_body(tile);
-
-			std::vector<int> identifier = {tileData.x, tileData.y, tileData.zoom, tileData.size};
-			
-            // Get the request that was stored before
-            // If more than one request demanded exactly this square, answer them all
-			std::cout << "Host answering Request"
-                 << " x:" << identifier[0]
-                 << " y:" << identifier[1]
-                 << " z:" << identifier[2]
-                 << " size:" << identifier[3] << std::endl;
-			{
-				std::lock_guard<std::mutex>  lock(request_dictionary_lock[identifier]);
-				while (request_dictionary[identifier].size() > 0) {
-					http_request request = request_dictionary[identifier].front();
-					request.reply(response);
-					request_dictionary[identifier].pop();
-				}
-			}
-			{
-				std::lock_guard<std::mutex>  lock(avail_cores_lock);
-				avail_cores.push(tileData.world_rank);
-			}
-			std::cout << "Answered Request" << std::endl;
-			// Invoke the longest unused available slave for another tile if available
-			request_more();
+	TRACE(U("\nhandle GET tile\n"));
+    // Expect coordinates from query
+    auto data = uri::split_query(request.request_uri().query());
+	std::map<utility::string_t, utility::string_t>::iterator it_x = data.find(U("x")),
+                                                        it_y = data.find(U("y")),
+                                                        it_z = data.find(U("z")),
+                                                        it_size = data.find(U("size"));
+    // Returns either value at x/y or the whole array
+    if (it_x != data.end() && it_y != data.end() && it_z != data.end()) {
+        int x = stoi(data["x"]),
+            y = stoi(data["y"]),
+            z = stoi(data["z"]),
+            size = steps;
+        if (it_size != data.end()) {
+            size = stoi(data["size"]);
         }
-    } catch (std::exception const &e) {
-		std::wcout << e.what() << std::endl;
-    }*/
+		// TODO set this instance of TileInfo with all the recieved information
+		// sizeX possible if we got both sizeX and sixeY from frontend
+		current_big_tile.minReal = unprojectX(x, z, 0, size);
+		current_big_tile.maxReal = unprojectX(x, z, size, size);
+		current_big_tile.minImaginary = unprojectY(y, z, 0, size);
+		current_big_tile.maxImaginary = unprojectY(y, z, size, size);
+		current_big_tile.xRes = size;
+		current_big_tile.yRes = size;
+		current_big_tile.maxIteration = maxIteration;
+		
+		// Update data_buffer size
+		{
+			std::lock_guard<std::mutex> lock(data_buffer_lock);
+			data_buffer = new int[current_big_tile.xRes*current_big_tile.yRes];
+		}
+		
+		// TODO Test if this actually works
+		int nodeCount = Host::world_size; // For the future: Get nodeCount from Frontend and put it instead of the 4
+		Balancer* b = new NaiveBalancer();
+		TileInfo* tiles = b->balanceLoad(current_big_tile, nodeCount); //Tiles is array with nodeCount members
+		std::cout << "Tile 0: " << tiles[0].minReal << std::endl;
+		std::cout << "Tile 3: " << tiles[3].minReal << std::endl;
+		
+		// Send the information to Workers via Host::request_more method
+		{
+			std::lock_guard<std::mutex>  lock(requested_tiles_lock);
+			for (int i=0 ; i<nodeCount ; i++) {
+				requested_tiles.push(tiles[i]);
+				request_more();
+			}
+		}
+		
+		
+		//@Nils Array tiles (struct TileData) of length nodeCount is your result. Maybe convert to Frontend-Format?
+		//Mock until now
+		auto response = http_response();
+		response.set_status_code(status_codes::NotImplemented);
+		// CORs enabling
+		response.headers().add(U("Access-Control-Allow-Origin"), U("*"));
+		response.headers().add(U("Access-Control-Allow-Methods"), U("GET"));
+
+		auto reply = json::value(U("Please contact Niels what kind of information you want to transmit"));
+		response.set_body(reply);
+		
+		request.reply(response);
+	}
 }
 
 /**
@@ -298,9 +235,55 @@ void Host::printTileInfo(TileInfo tileInfo) {
 }
 
 void Host::init(int world_rank, int world_size) {
+	Host::world_size = world_size;
     int cores = world_size;
     maxIteration = 200;
 	std::cout << "Host init " << world_size << std::endl;
+
+	// REST
+    /*
+	* IMPORTANT: use the U() Makro for any strings passed to cpprest. This is required for Linux compilation
+	*/
+
+	// Init tile request handling
+    auto resturl = web::uri_builder();
+    resturl.set_host(U("0.0.0.0"));
+    resturl.set_scheme(U("http"));
+    resturl.set_port(U("80"));
+    resturl.set_path(U("mandelbrot"));
+
+    http_listener listener_tile(resturl.to_uri());
+    listener_tile.support(methods::GET, handle_get_tile);
+
+	// Init region request handling
+    resturl = web::uri_builder();
+    resturl.set_host(U("0.0.0.0"));
+    resturl.set_scheme(U("http"));
+    resturl.set_port(U("80"));
+    resturl.set_path(U("region"));
+
+    http_listener listener_region(resturl.to_uri());
+    listener_region.support(methods::GET, handle_get_region);
+
+	
+    try {
+		// These are listeners. They start a new thread that calls the methods given
+		// a few lines before when a new get request arrives
+		// handle_get and handle_get_region are never called directly!
+		// They can store requests in a dictionary which we can access later in the MPI_recv loop
+        listener_tile
+            .open()
+            .then([&listener_tile]() { TRACE(U("\nlistening for HTTP  Tile Requests\n")); })
+            .wait();
+		listener_region
+            .open()
+            .then([&listener_region]() { TRACE(U("\nlistening for HTTP Region Requests\n")); })
+            .wait();
+			
+        }
+    catch (std::exception const &e) {
+		std::wcout << e.what() << std::endl;
+    }
 
     // Test and put cores (exept yourself ; id = 0) in Queue
     for (int i = 1; i < cores; i++) {
@@ -350,6 +333,7 @@ void Host::init(int world_rank, int world_size) {
     // MPI
     while (true) {
 		// Listen for incoming complete computations from workers (MPI)
+		// This accepts messages by the workers and answers requests that were stored before
         // TODO: asynchronous (maybe?)
 		int worker_rank;
 		MPI_Recv((void *)&worker_rank, 1, MPI_INT, MPI_ANY_SOURCE, 3, MPI_COMM_WORLD, MPI_STATUS_IGNORE); // 3 is tag for world_rank of worker
@@ -382,9 +366,10 @@ void Host::init(int world_rank, int world_size) {
 				std::cout << std::endl;
 			}
 		}
-		
-		// Notify HTTP response, that there is new data
-		handle_response();
+
+		// TODO check if there are http requests waiting for this data
+		// => access the dictionary where we stored the requests accepted by handle_get_tile
+		// this can of course be outsourced to a new method
 		
 	}			
     MPI_Finalize();

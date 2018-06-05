@@ -11,13 +11,13 @@ class Host {
 	private:
 		// Static da als handle übergeben werden muss
 		// => ganzer Rest auch static, lediglich Informationskapselung
-		static void handle_get(web::http::http_request request);
+		static void handle_get_tile(web::http::http_request request);
 		static void handle_get_region(web::http::http_request request);
 		static void request_more();
-		static void handle_response();
 		static void printTileInfo(TileInfo tileInfo);
 
 		static int maxIteration;
+		static int world_size;
 		// Das Dictionary, in dem nach (x,y,z,fraktalart,size) der zugehörige Request aufbewahrt werden
 		// Queue von requests, damit mehrere Requests auf denselben bereich nicht überlappen
 		static std::map<std::vector<int>, std::queue<web::http::http_request>> request_dictionary;
