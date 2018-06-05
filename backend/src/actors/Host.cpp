@@ -343,9 +343,11 @@ void Host::init(int world_rank, int world_size) {
 			worker_info = transmitted_tiles[worker_rank];
 			transmitted_tiles.erase(worker_rank);
 		}
-		int worker_data[worker_info.xRes][worker_info.yRes];
-		MPI_Recv((void *)&worker_data, sizeof(worker_data), MPI_BYTE, worker_rank, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE); // 2 is tag for computed data
-		std::cout << "Last received Data at (" << (worker_info.xRes - 1) << ", " << (worker_info.yRes - 1) << ") is " << worker_data[worker_info.xRes - 1][worker_info.yRes - 1] << std::endl;
+		//int worker_data[worker_info.xRes][worker_info.yRes];
+		std::vector<int> worker_data2(worker_info.xRes * worker_info.yRes);
+		//MPI_Recv((void *)&worker_data, sizeof(worker_data), MPI_BYTE, worker_rank, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE); // 2 is tag for computed data
+		MPI_Recv((void *)&worker_data2[0], worker_info.xRes * worker_info.yRes, MPI_INT, worker_rank, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		//std::cout << "Last received Data at (" << (worker_info.xRes - 1) << ", " << (worker_info.yRes - 1) << ") is " << worker_data[worker_info.xRes - 1][worker_info.yRes - 1] << std::endl;
 		
 		// Put Worker back in Queue
 		{
@@ -360,7 +362,8 @@ void Host::init(int world_rank, int world_size) {
 			std::lock_guard<std::mutex> lock(data_buffer_lock);
 			for (int x = 0 ; x < worker_info.xRes ; x++) {
 				for (int y = 0 ; y < worker_info.yRes ; y++) {
-					data_buffer[(start_x + x) + ((start_y + y) * current_big_tile.xRes)] = worker_data[x][y];
+					//data_buffer[(start_x + x) + ((start_y + y) * current_big_tile.xRes)] = worker_data[x][y];
+					data_buffer[(start_x + x) + ((start_y + y) * current_big_tile.xRes)] = worker_data2[x + y * worker_info.xRes];
 					std::cout << data_buffer[(start_x + x) + ((start_y + y) * current_big_tile.xRes)] << " ";
 				}
 				std::cout << std::endl;
