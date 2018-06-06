@@ -81,6 +81,38 @@ const renderLeaflet = () => {
     zoom: 0
   });
   map.addLayer(L.gridLayer.mandelBrotLayer());
+
+  // Create region requests on map changes
+  const requestRegion = (map) => {
+    // TODO get x,y,size whatever from somewhere
+    var url =
+      'http://localhost:8080/region?balancer=' +
+      'naive' +
+      '&x=' + 
+      0 +
+      '&y=' +
+      0 +
+      '&size=' + 
+      0;
+    fetch(url, {
+      method: 'GET',
+      mode: 'cors',
+      timeout: 1500
+    }).then(response => response.json())
+    .then(json => {
+      // TODO parse incoming json response
+    });
+  };
+  map.on('zoomend', function() {
+    requestRegion(map);
+  });
+  map.on('moveend', function() {
+    requestRegion(map);
+  });
+  map.on('resize', function() {
+    requestRegion(map);
+  });
+
 };
 
 // const unproject = (x, y, zoom, localX, localY, size) => {
