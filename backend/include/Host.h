@@ -18,12 +18,13 @@ class Host {
 
 		static int maxIteration;
 		static int world_size;
-		// Das Dictionary, in dem nach (x,y,z,fraktalart,size) der zugehörige Request aufbewahrt werden
-		// Queue von requests, damit mehrere Requests auf denselben bereich nicht überlappen
-		static std::map<std::vector<int>, std::queue<web::http::http_request>> request_dictionary;
+		// Dictionary for storing requests that overlap with the given region 
+		static std::map<TileInfo, std::queue<web::http::http_request>> request_dictionary;
 		
 		// Store for the current big tile
 		static TileInfo current_big_tile;
+		// And for the split up regions
+		static TileInfo *regions;
 		
 		// Verwaltet die verfügbaren Kerne
 		static std::queue<int> avail_cores;		
@@ -42,7 +43,7 @@ class Host {
 		static std::mutex requested_tiles_lock;
 		static std::mutex transmitted_tiles_lock;
 		static std::mutex data_buffer_lock;
-		static std::map<std::vector<int>, std::mutex> request_dictionary_lock;
+		static std::map<TileInfo, std::mutex> request_dictionary_lock;
 };
 
 

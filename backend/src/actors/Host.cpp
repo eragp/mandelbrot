@@ -42,15 +42,16 @@ int Host::maxIteration = 200;
 int Host::world_size = 0;
 
 
-std::map<std::vector<int>, std::queue<web::http::http_request>> Host::request_dictionary;
+std::map<TileInfo, std::queue<web::http::http_request>> Host::request_dictionary;
 
 // Store for the current big tile
 TileInfo Host::current_big_tile;
+TileInfo* Host::regions;
 
-// Verwaltet die verfügbaren Kerne
+// Manage available cores 
 std::queue<int> Host::avail_cores;
 
-// Verwalte requests
+// Manage requests for tiles
 std::queue<TileInfo> Host::requested_tiles;
 
 // Store send MPI Requests
@@ -59,12 +60,12 @@ std::map<int, TileInfo> Host::transmitted_tiles;
 // Buffer for completed computations
 int* Host::data_buffer;
 
-// Synchronisiere zugriffe auf alle kritischen datenstrukturen
+// Synchronise access to critical data structures
 std::mutex Host::avail_cores_lock;
 std::mutex Host::requested_tiles_lock;
 std::mutex Host::transmitted_tiles_lock;
 std::mutex Host::data_buffer_lock;
-std::map<std::vector<int>, std::mutex> Host::request_dictionary_lock;
+std::map<TileInfo, std::mutex> Host::request_dictionary_lock;
 
 /**
  * All 3 methods are used to transform the Frontend-Tile to the Backend-Tile "TileInfo"
@@ -133,20 +134,32 @@ void Host::handle_get_tile(http_request request) {
         }
 		
 		// Create an identifier to store the received request
+		// It is only important which node this request is associated to
 		// @Niels Maybe its better to use x, y and size which represent the actual location in the data_buffer Array. I could change that, if that would be better for you. -Tobi
-		std::vector<int> identifier = {x, y, z, size};
-		std::cout << "Storing request at"
-             << " x:" << identifier[0]
-             << " y:" << identifier[1]
-             << " z:" << identifier[2]
-             << " size:" << identifier[3] << std::endl;
-		{
-			std::lock_guard<std::mutex>  lock(request_dictionary_lock[identifier]);
-			request_dictionary[identifier].push(request);
+		 // TODO find corresponding regions devised by the host and push this request there
+		// TODO need to compare x/y coordinates here -HOW?
+		int proj_x = x,
+			proj_y = y;
+		for(int i = 0; i < Host::world_size; i++){
+			if(/*overlap*/false){
+				// TODO store incoming request at correct region queue (meaning if there is an overlap)
+				// => in all regions that are hit, so that when worker is done per request check about "completeness" can be done and
+				// incomplete tiles will simply be thrown away
+				TileInfo region = regions[i];
+				std::cout << "Storing request at"
+					<< " x:" << x
+					<< " y:" << y
+					<< " z:" << z
+					<< " size:" << size << std::endl;
+				{
+					std::lock_guard<std::mutex>  lock(request_dictionary_lock[region]);
+					request_dictionary[region].push(request);
+				}
+				// TODO if region has been computed, answer request
+				// => same method as in mpi_recv loop
+			}
 		}
-
-		// TODO if region has been computed, answer request
-		// => same method as in mpi_recv loop
+		 
     } else {
         TRACE(U("Not enough arguments\n"));
     }
@@ -216,8 +229,11 @@ void Host::handle_get_region(http_request request){
 				request_more();
 			}
 		}
+
+		// Store split up regions
 		
-		delete[] tiles;
+		delete[] Host::regions; // TODO does this work? want to delete memory of last tile split
+		Host::regions = tiles;
 		
 		
 		//@Nils Array tiles (struct TileData) of length nodeCount is your result. Maybe convert to Frontend-Format?
