@@ -150,7 +150,9 @@ void Host::answer_requests(TileInfo tileInfo){
 			{
 				std::lock_guard<std::mutex>  lock(request_dictionary_lock[region]);
 				// iterate over all requests in the queue and check if they can be answered
-				for(int j = 0; j < request_dictionary[region].size(); j++){
+				// Because we remove elements from this vector in time it is important
+				// that we iterate backwards
+				for(int j = request_dictionary[region].size(); j >= 0 ; j--){
 					auto request = request_dictionary[region][j];
 					// if all data is available in the data buffer, answer the request
 					bool data_avail = true;
