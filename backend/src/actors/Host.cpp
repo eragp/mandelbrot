@@ -46,6 +46,7 @@ std::map<TileInfo, std::vector<web::http::http_request>> Host::request_dictionar
 
 // Store for the current big tile
 TileInfo Host::current_big_tile;
+// And the subdivided regions
 TileInfo* Host::regions;
 
 // Manage available cores 
@@ -53,6 +54,10 @@ std::queue<int> Host::avail_cores;
 
 // Manage requests for tiles
 std::queue<TileInfo> Host::requested_tiles;
+
+// Manage available = already computed regions
+std::map<TileInfo, bool> Host::available_tiles;
+std::map<TileInfo, int> Host::available_tiles_rank;
 
 // Store send MPI Requests
 std::map<int, TileInfo> Host::transmitted_tiles;
@@ -64,6 +69,7 @@ int* Host::data_buffer;
 std::mutex Host::avail_cores_lock;
 std::mutex Host::requested_tiles_lock;
 std::mutex Host::transmitted_tiles_lock;
+std::map<TileInfo, std::mutex> Host::available_tiles_lock;
 std::mutex Host::data_buffer_lock;
 std::map<TileInfo, std::mutex> Host::request_dictionary_lock;
 
@@ -137,7 +143,7 @@ void Host::request_more() {
  * in the corresponding queue
  */
 void Host::answer_requests(TileInfo tileInfo){
-	// TODO determine overlapping regions
+	// determine overlapping regions
 	for(int i = 0; i < Host::world_size; i++){
 		TileInfo region = regions[i];
 		if(tiles_overlap(tileInfo, region)){
@@ -146,7 +152,45 @@ void Host::answer_requests(TileInfo tileInfo){
 				// iterate over all requests in the queue and check if they can be answered
 				for(int j = 0; j < request_dictionary[region].size(); j++){
 					auto request = request_dictionary[region][j];
-					// TODO if all data is available in the data buffer, answer the request
+					// if all data is available in the data buffer, answer the request
+					bool data_avail = true;
+					for(int k = 0; k < Host::world_size; k++){
+						TileInfo region = regions[i];
+						if(tiles_overlap(tileInfo, region)){
+							std::lock_guard<std::mutex>  lock(available_tiles_lock[region]);
+							if(!available_tiles[region]){
+								data_avail = false;
+								break;
+							}
+						}
+					}
+					if(!data_avail) continue;
+
+					// fill reply with data
+					auto response = http_response();
+					response.set_status_code(status_codes::OK);
+					// CORs enabling
+					response.headers().add(U("Access-Control-Allow-Origin"), U("*"));
+					response.headers().add(U("Access-Control-Allow-Methods"), U("GET"));
+					// Create json value from returned
+					json::value answer;
+					answer[U("rank")] = json::value(available_tiles_rank[region]);
+					json::value tile;
+					int start_x = Fractal::realToX(tileInfo.minReal, current_big_tile.maxReal, current_big_tile.minReal, current_big_tile.xRes);
+					int start_y = Fractal::imaginaryToY(tileInfo.minImaginary, current_big_tile.maxImaginary, current_big_tile.minImaginary, current_big_tile.yRes);
+					{
+						std::lock_guard<std::mutex> lock(data_buffer_lock);
+						for (int x = 0 ; x < tileInfo.xRes ; x++) {
+							for (int y = 0 ; y < tileInfo.yRes ; y++) {
+								tile[x + y * tileInfo.xRes] = data_buffer[(start_x + x) + ((start_y + y) * current_big_tile.xRes)];
+							}
+						}
+					}
+					answer[U("tile")] = tile;
+					response.set_body(answer);
+					request.reply(response);
+					// TODO Remove request
+					request_dictionary[region].erase[j];
 				}
 			}
 		}
@@ -255,7 +299,10 @@ void Host::handle_get_region(http_request request){
 			delete[] data_buffer;
 			data_buffer = new int[current_big_tile.xRes*current_big_tile.yRes];
 		}
-		
+
+		// TODO clear available tiles dict
+
+
 		int nodeCount = Host::world_size;
 		// TODO make this based on balancer variable defined above
 		Balancer* b = new NaiveBalancer();
@@ -269,12 +316,21 @@ void Host::handle_get_region(http_request request){
 			std::lock_guard<std::mutex>  lock(requested_tiles_lock);
 			for (int i=0 ; i<nodeCount ; i++) {
 				requested_tiles.push(tiles[i]);
-				// request more only invokes when a core is available
-				// => will be invoked as soon as available
-				request_more();
 			}
 		}
+		// Store that these regions have not been computed yet
+		for(int i = 0; i < world_size; i++){
+			std::lock_guard<std::mutex>  lock(available_tiles_lock[tiles[i]]);
+			available_tiles[tiles[i]] = false;
+			available_tiles_rank[tiles[i]] = -1;
+		}
 
+		// Invoke request more at least once per tile (without causing deadlock)
+		for(int i = 0; i < world_size; i++){
+			// request more only invokes when a core is available
+			// => will be invoked as soon as available
+			request_more();
+		}
 		// Store split up regions
 		
 		delete[] Host::regions; // TODO does this work? want to delete memory of last tile split
@@ -460,6 +516,11 @@ void Host::init(int world_rank, int world_size) {
 				}
 				std::cout << std::endl;
 			}
+		}
+		{
+			std::lock_guard<std::mutex> lock(available_tiles_lock[worker_info]);
+			available_tiles[worker_info] = true;
+			available_tiles_rank[worker_info] = worker_rank;
 		}
 
 		// TODO check if there are http requests waiting for this data

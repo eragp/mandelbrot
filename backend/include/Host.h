@@ -32,6 +32,9 @@ class Host {
 		
 		// Store requests
 		static std::queue<TileInfo> requested_tiles;
+		// And answers
+		static std::map<TileInfo, bool> available_tiles;
+		static std::map<TileInfo, int> Host::available_tiles_rank;
 		
 		//Store send MPI Requests
 		static std::map<int, TileInfo> transmitted_tiles;
@@ -39,10 +42,11 @@ class Host {
 		// Buffer for completed computations
 		static int *data_buffer;
 
-		// Synchronisiert den Zugriff darauf
+		// Synchronise access
 		static std::mutex avail_cores_lock;
 		static std::mutex requested_tiles_lock;
 		static std::mutex transmitted_tiles_lock;
+		static std::map<TileInfo, std::mutex> available_tiles_lock;
 		static std::mutex data_buffer_lock;
 		static std::map<TileInfo, std::mutex> request_dictionary_lock;
 };
