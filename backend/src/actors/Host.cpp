@@ -42,7 +42,7 @@ int Host::maxIteration = 200;
 int Host::world_size = 0;
 
 
-std::map<TileInfo, std::queue<web::http::http_request>> Host::request_dictionary;
+std::map<TileInfo, std::vector<web::http::http_request>> Host::request_dictionary;
 
 // Store for the current big tile
 TileInfo Host::current_big_tile;
@@ -87,6 +87,26 @@ double unprojectY(long tileY, int zoom, long localY, int size) {
 }
 
 /**
+ * Method for determining if two Tiles (described by TileInfo) are equal
+ */
+bool tiles_equal(TileInfo one, TileInfo two){
+	return	(one.maxImaginary == two.maxImaginary) &&
+			(one.minImaginary == two.minImaginary) &&
+			(one.maxReal == two.maxReal) &&
+			(one.minReal == two.minReal) &&
+			(one.maxIteration == two.maxIteration) &&
+			(one.xRes == two.xRes) &&
+			(one.yRes == two.yRes);
+}
+
+/**
+ * Returns true if the tiles overlap
+ */
+bool tiles_overlap(TileInfo one, TileInfo two){
+	// TODO
+}
+
+/**
  * TODO this will be removed because requests (except for region) will not init cores anymore!
  * Invoke a new core for a new tile
  * Checks necessary conditions on its own, always safe to call
@@ -108,6 +128,28 @@ void Host::request_more() {
 		avail_cores.pop();
 		requested_tiles.pop();
 		transmitted_tiles[rank_worker] = tileInfo;
+	}
+}
+
+/**
+ * Determines all big regions that overlap with the given Tile
+ * and check if all necessary data has been computed to answer the requests
+ * in the corresponding queue
+ */
+void Host::answer_requests(TileInfo tileInfo){
+	// TODO determine overlapping regions
+	for(int i = 0; i < Host::world_size; i++){
+		TileInfo region = regions[i];
+		if(tiles_overlap(tileInfo, region)){
+			{
+				std::lock_guard<std::mutex>  lock(request_dictionary_lock[region]);
+				// iterate over all requests in the queue and check if they can be answered
+				for(int j = 0; j < request_dictionary[region].size(); j++){
+					auto request = request_dictionary[region][j];
+					// TODO if all data is available in the data buffer, answer the request
+				}
+			}
+		}
 	}
 }
 
@@ -138,14 +180,15 @@ void Host::handle_get_tile(http_request request) {
 		// @Niels Maybe its better to use x, y and size which represent the actual location in the data_buffer Array. I could change that, if that would be better for you. -Tobi
 		 // TODO find corresponding regions devised by the host and push this request there
 		// TODO need to compare x/y coordinates here -HOW?
-		int proj_x = x,
-			proj_y = y;
+		TileInfo requested_tile;
+		requested_tile.maxIteration = Host::maxIteration;
+		// TODO assign value correctly => transform x,y,z,size to minImaginary/maxImaginary/xRes etc
 		for(int i = 0; i < Host::world_size; i++){
-			if(/*overlap*/false){
+			TileInfo region = regions[i];
+			if(tiles_overlap(requested_tile, region)){
 				// TODO store incoming request at correct region queue (meaning if there is an overlap)
 				// => in all regions that are hit, so that when worker is done per request check about "completeness" can be done and
 				// incomplete tiles will simply be thrown away
-				TileInfo region = regions[i];
 				std::cout << "Storing request at"
 					<< " x:" << x
 					<< " y:" << y
@@ -153,12 +196,13 @@ void Host::handle_get_tile(http_request request) {
 					<< " size:" << size << std::endl;
 				{
 					std::lock_guard<std::mutex>  lock(request_dictionary_lock[region]);
-					request_dictionary[region].push(request);
+					request_dictionary[region].push_back(request);
 				}
-				// TODO if region has been computed, answer request
-				// => same method as in mpi_recv loop
 			}
 		}
+		// TODO if regions have been computed, answer request
+		// => same method as in mpi_recv loop
+		Host::answer_requests(requested_tile);
 		 
     } else {
         TRACE(U("Not enough arguments\n"));
@@ -212,8 +256,7 @@ void Host::handle_get_region(http_request request){
 			data_buffer = new int[current_big_tile.xRes*current_big_tile.yRes];
 		}
 		
-		// TODO Test if this actually works
-		int nodeCount = Host::world_size; // For the future: Get nodeCount from Frontend and put it instead of the 4
+		int nodeCount = Host::world_size;
 		// TODO make this based on balancer variable defined above
 		Balancer* b = new NaiveBalancer();
 		TileInfo* tiles = b->balanceLoad(current_big_tile, nodeCount); //Tiles is array with nodeCount members
@@ -226,6 +269,8 @@ void Host::handle_get_region(http_request request){
 			std::lock_guard<std::mutex>  lock(requested_tiles_lock);
 			for (int i=0 ; i<nodeCount ; i++) {
 				requested_tiles.push(tiles[i]);
+				// request more only invokes when a core is available
+				// => will be invoked as soon as available
 				request_more();
 			}
 		}
@@ -236,15 +281,24 @@ void Host::handle_get_region(http_request request){
 		Host::regions = tiles;
 		
 		
-		//@Nils Array tiles (struct TileData) of length nodeCount is your result. Maybe convert to Frontend-Format?
+		// Array tiles (struct TileData) of length nodeCount is your result. Converted to Frontend-Format
+		// @Tobi is this the correct format?
 		//Mock until now
 		auto response = http_response();
-		response.set_status_code(status_codes::NotImplemented);
+		response.set_status_code(status_codes::OK);
 		// CORs enabling
 		response.headers().add(U("Access-Control-Allow-Origin"), U("*"));
 		response.headers().add(U("Access-Control-Allow-Methods"), U("GET"));
 
-		auto reply = json::value(U("Please contact Niels what kind of information you want to transmit"));
+		auto reply = json::value();
+		for(int i = 0; i < Host::world_size; i++){
+			reply[i] = json::value();
+			reply[i]["x"] = Fractal::realToX(tiles[i].minReal, current_big_tile.maxReal, current_big_tile.minReal, current_big_tile.xRes);
+			reply[i]["y"] = Fractal::imaginaryToY(tiles[i].minImaginary, current_big_tile.maxImaginary, current_big_tile.minImaginary, current_big_tile.yRes);
+			reply[i]["width"] = tiles[i].xRes;
+			reply[i]["height"] = tiles[i].yRes;
+		}
+		
 		response.set_body(reply);
 		
 		request.reply(response);
@@ -371,11 +425,22 @@ void Host::init(int world_rank, int world_size) {
 			transmitted_tiles.erase(worker_rank);
 		}
 		//int worker_data[worker_info.xRes][worker_info.yRes];
-		std::vector<int> worker_data2(worker_info.xRes * worker_info.yRes);
+		std::vector<int> worker_data(worker_info.xRes * worker_info.yRes);
 		//MPI_Recv((void *)&worker_data, sizeof(worker_data), MPI_BYTE, worker_rank, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE); // 2 is tag for computed data
-		MPI_Recv((void *)&worker_data2[0], worker_info.xRes * worker_info.yRes, MPI_INT, worker_rank, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		MPI_Recv((void *)&worker_data[0], worker_info.xRes * worker_info.yRes, MPI_INT, worker_rank, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		//std::cout << "Last received Data at (" << (worker_info.xRes - 1) << ", " << (worker_info.yRes - 1) << ") is " << worker_data[worker_info.xRes - 1][worker_info.yRes - 1] << std::endl;
 		
+		// TODO check if we (=User) is still interested in this region
+		// or if new big tile has been requested in the meantime
+		bool interested = false;
+		for(int i = 0; i < world_size; i++){
+			if(tiles_equal(worker_info, regions[i])){
+				interested = true;
+				break;
+			}
+		}
+		if(!interested) continue;
+
 		// Put Worker back in Queue
 		{
 			std::lock_guard<std::mutex>  lock(avail_cores_lock);
@@ -390,7 +455,7 @@ void Host::init(int world_rank, int world_size) {
 			for (int x = 0 ; x < worker_info.xRes ; x++) {
 				for (int y = 0 ; y < worker_info.yRes ; y++) {
 					//data_buffer[(start_x + x) + ((start_y + y) * current_big_tile.xRes)] = worker_data[x][y];
-					data_buffer[(start_x + x) + ((start_y + y) * current_big_tile.xRes)] = worker_data2[x + y * worker_info.xRes];
+					data_buffer[(start_x + x) + ((start_y + y) * current_big_tile.xRes)] = worker_data[x + y * worker_info.xRes];
 					std::cout << data_buffer[(start_x + x) + ((start_y + y) * current_big_tile.xRes)] << " ";
 				}
 				std::cout << std::endl;
@@ -400,7 +465,7 @@ void Host::init(int world_rank, int world_size) {
 		// TODO check if there are http requests waiting for this data
 		// => access the dictionary where we stored the requests accepted by handle_get_tile
 		// this can of course be outsourced to a new method
-		
+		Host::answer_requests(worker_info);
 	}			
     MPI_Finalize();
 }

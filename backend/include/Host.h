@@ -15,11 +15,12 @@ class Host {
 		static void handle_get_region(web::http::http_request request);
 		static void request_more();
 		static void printTileInfo(TileInfo tileInfo);
+		static void answer_requests(TileInfo tileInfo);
 
 		static int maxIteration;
 		static int world_size;
 		// Dictionary for storing requests that overlap with the given region 
-		static std::map<TileInfo, std::queue<web::http::http_request>> request_dictionary;
+		static std::map<TileInfo, std::vector<web::http::http_request>> request_dictionary;
 		
 		// Store for the current big tile
 		static TileInfo current_big_tile;
