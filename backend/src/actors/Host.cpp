@@ -50,7 +50,7 @@ void Host::request_more() {
     if (avail_cores.size() > 0 && requested_tiles.size() > 0) {
         Tile tile = requested_tiles.front();
         MPI_Request req;  // Later => store to check if has been received
-        cout << "Invoking core " << avail_cores.front() << endl;
+        std::cout << "Invoking core " << avail_cores.front() << std::endl;
         // Tag for computation requests is 1
         MPI_Isend((const void *)&tile, sizeof(Tile), MPI_BYTE, avail_cores.front(), 1, MPI_COMM_WORLD, &req);
         avail_cores.pop();
@@ -66,10 +66,10 @@ void Host::handle_get(http_request request) {
     TRACE(U("\nhandle GET\n"));
     // Expect coordinates form query
     auto data = uri::split_query(request.request_uri().query());
-	std::map<utility::string_t, utility::string_t>::iterator it_x = data.find(U("x")),
-                                                        it_y = data.find(U("y")),
-                                                        it_z = data.find(U("z")),
-                                                        it_size = data.find(U("size"));
+    std::map<utility::string_t, utility::string_t>::iterator it_x = data.find(U("x")),
+                                                             it_y = data.find(U("y")),
+                                                             it_z = data.find(U("z")),
+                                                             it_size = data.find(U("size"));
     // Returns either value at x/y or the whole array
     if (it_x != data.end() && it_y != data.end() && it_z != data.end()) {
         int x = stoi(data["x"]),
@@ -91,12 +91,12 @@ void Host::handle_get(http_request request) {
         tile.maxIteration = maxIteration;
 
         // Create an identifier to store the received request
-		std::vector<int> identifier = {x, y, z, size};
-		std::cout << "Storing request at"
-             << " x:" << identifier[0]
-             << " y:" << identifier[1]
-             << " z:" << identifier[2]
-             << " size:" << identifier[3] << endl;
+        std::vector<int> identifier = {x, y, z, size};
+        std::cout << "Storing request at"
+                  << " x:" << identifier[0]
+                  << " y:" << identifier[1]
+                  << " z:" << identifier[2]
+                  << " size:" << identifier[3] << std::endl;
         {
             std::lock_guard<std::mutex> lock(request_dictionary_lock[identifier]);
             request_dictionary[identifier].push(request);
@@ -160,7 +160,7 @@ void Host::init(int world_rank, int world_size) {
             Returned returned;
             // Tag for completed computation is 2
             MPI_Recv((void *)&returned, sizeof(Returned), MPI_BYTE, MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-			std::cout << "Host received from " << returned.world_rank << " ; " << returned.n[0][0] << std::endl;
+            std::cout << "Host received from " << returned.world_rank << " ; " << returned.n[0][0] << std::endl;
 
             auto response = http_response();
             response.set_status_code(status_codes::OK);
@@ -179,14 +179,14 @@ void Host::init(int world_rank, int world_size) {
             answer[U("tile")] = tile;
             response.set_body(answer);
 
-			std::vector<int> identifier = {returned.x, returned.y, returned.zoom, returned.size};
+            std::vector<int> identifier = {returned.x, returned.y, returned.zoom, returned.size};
             // Get the request that was stored before
             // If more than one request demanded exactly this square, answer them all
-			std::cout << "Host answering Request"
-                 << " x:" << identifier[0]
-                 << " y:" << identifier[1]
-                 << " z:" << identifier[2]
-                 << " size:" << identifier[3] << endl;
+            std::cout << "Host answering Request"
+                      << " x:" << identifier[0]
+                      << " y:" << identifier[1]
+                      << " z:" << identifier[2]
+                      << " size:" << identifier[3] << std::endl;
             {
                 std::lock_guard<std::mutex> lock(request_dictionary_lock[identifier]);
                 while (request_dictionary[identifier].size() > 0) {
@@ -199,12 +199,12 @@ void Host::init(int world_rank, int world_size) {
                 std::lock_guard<std::mutex> lock(avail_cores_lock);
                 avail_cores.push(returned.world_rank);
             }
-            cout << "Answered Request" << endl;
+            std::cout << "Answered Request" << std::endl;
             // Invoke the longest unused available slave for another tile if available
             request_more();
         }
     } catch (std::exception const &e) {
-		std::wcout << e.what() << std::endl;
+        std::wcout << e.what() << std::endl;
     }
     MPI_Finalize();
 }
