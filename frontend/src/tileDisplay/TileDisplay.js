@@ -1,11 +1,13 @@
 import React, { Component } from 'react';
 // leaflet stuff
 import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
+import  L from 'leaflet/dist/leaflet-src.js';
+import 'leaflet-zoombox';
+import 'leaflet-zoombox/L.Control.ZoomBox.css';
+
 // custom stylesheet
 import './TileDisplay.css';
 
-import './Shader';
 import Shader from './Shader';
 
 class TileDisplay extends Component {
@@ -17,6 +19,7 @@ class TileDisplay extends Component {
     return <div id="viewer" />;
   }
 }
+
 
 const renderLeaflet = () => {
   L.GridLayer.MandelbrotLayer = L.GridLayer.extend({
@@ -81,6 +84,14 @@ const renderLeaflet = () => {
     zoom: 0
   });
   map.addLayer(L.gridLayer.mandelBrotLayer());
+
+  // Add zoombox controls
+  var options = {
+    modal: true,
+    title: "Box area zoom"
+  };
+  var control = L.control.zoomBox(options);
+  map.addControl(control);
 };
 
 // const unproject = (x, y, zoom, localX, localY, size) => {
