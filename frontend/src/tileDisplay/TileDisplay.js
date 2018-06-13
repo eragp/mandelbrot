@@ -7,6 +7,7 @@ import './TileDisplay.css';
 
 import './Shader';
 import Shader from './Shader';
+import request from './RegionRequest';
 
 class TileDisplay extends Component {
   componentDidMount() {
@@ -57,83 +58,36 @@ const renderLeaflet = () => {
           done(null, tile);
         })
         .catch(error => {
-          console.error(error);
+          // console.error(error);
           done(error, tile);
         });
       return tile;
     }
   });
   // bounds have to be a power of two
-  let bounds = [[-256, -256], [256, 256]];
+  let bounds = [[-500, -500], [500,500]];
   L.gridLayer.mandelBrotLayer = () =>
     new L.GridLayer.MandelbrotLayer({
       tileSize: 256, // in px
       bounds: bounds,
-      keepBuffer: 16,
+      keepBuffer: 16
     });
 
   var map = L.map('viewer', {
     crs: L.CRS.Simple,
     // minZoom: 0,
     // otherwise we get precision errors.
-    maxZoom: 30,
+    maxZoom: 32,
     center: [0, 0],
     zoom: 0
   });
   map.addLayer(L.gridLayer.mandelBrotLayer());
 
   // Create region requests on map changes
-  const requestRegion = (map) => {
-    // TODO get x,y,size whatever from somewhere
-    var url =
-      'http://localhost:8080/region?balancer=' +
-      'naive' +
-      '&x=' + 
-      0 +
-      '&y=' +
-      0 +
-      '&size=' + 
-      0;
-    fetch(url, {
-      method: 'GET',
-      mode: 'cors',
-      timeout: 1500
-    }).then(response => response.json())
-    .then(json => {
-      // TODO parse incoming json response
-    });
-  };
-  map.on('zoomend', function() {
-    requestRegion(map);
+  map.on({
+    zoom: () => request(map),
+    moveend: () => request(map)
   });
-  map.on('moveend', function() {
-    requestRegion(map);
-  });
-  map.on('resize', function() {
-    requestRegion(map);
-  });
-
 };
-
-// const unproject = (x, y, zoom, localX, localY, size) => {
-//   // top left -> bottom right
-//   // bounds in the imaginary plane have to be symmetric
-//   size = size || 1;
-//   let bounds = [3, 2];
-//   let tileCount = Math.pow(2, zoom);
-//   let tileX = (x * bounds[0] * size + localX * bounds[0]) / (tileCount * size),
-//     tileY = -(y * bounds[1] * size + localY * bounds[1]) / (tileCount * size);
-//   return new Point(tileX, tileY);
-// };
-
-// class Point {
-//   constructor(x, y) {
-//     this.x = x;
-//     this.y = y;
-//   }
-//   toString() {
-//     return 'Point{' + this.x.toString() + ', ' + this.y.toString() + '}';
-//   }
-// }
 
 export default TileDisplay;
