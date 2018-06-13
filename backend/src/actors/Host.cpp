@@ -50,7 +50,7 @@ void Host::request_more() {
     if (avail_cores.size() > 0 && requested_tiles.size() > 0) {
         Tile tile = requested_tiles.front();
         MPI_Request req;  // Later => store to check if has been received
-        cout << "Invoking core " << avail_cores.front() << endl;
+        std::cout << "Invoking core " << avail_cores.front() << std::endl;
         // Tag for computation requests is 1
         MPI_Isend((const void *)&tile, sizeof(Tile), MPI_BYTE, avail_cores.front(), 1, MPI_COMM_WORLD, &req);
         avail_cores.pop();
@@ -96,7 +96,7 @@ void Host::handle_get(http_request request) {
              << " x:" << identifier[0]
              << " y:" << identifier[1]
              << " z:" << identifier[2]
-             << " size:" << identifier[3] << endl;
+             << " size:" << identifier[3] << std::endl;
         {
             std::lock_guard<std::mutex> lock(request_dictionary_lock[identifier]);
             request_dictionary[identifier].push(request);
@@ -186,7 +186,7 @@ void Host::init(int world_rank, int world_size) {
                  << " x:" << identifier[0]
                  << " y:" << identifier[1]
                  << " z:" << identifier[2]
-                 << " size:" << identifier[3] << endl;
+                 << " size:" << identifier[3] << std::endl;
             {
                 std::lock_guard<std::mutex> lock(request_dictionary_lock[identifier]);
                 while (request_dictionary[identifier].size() > 0) {
@@ -199,7 +199,7 @@ void Host::init(int world_rank, int world_size) {
                 std::lock_guard<std::mutex> lock(avail_cores_lock);
                 avail_cores.push(returned.world_rank);
             }
-            cout << "Answered Request" << endl;
+            std::cout << "Answered Request" << std::endl;
             // Invoke the longest unused available slave for another tile if available
             request_more();
         }
