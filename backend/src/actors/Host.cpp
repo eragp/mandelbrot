@@ -28,7 +28,7 @@ using namespace web::http::experimental::listener;
 #define TRACE(msg) std::wcout << msg
 #define TRACE_ACTION(a, k, v) std::wcout << a << L" (" << k << L", " << v << L")\n"
 
-const int default_res = 256;
+const int default_res = 128;
 // Init values with some arbitrary value
 int Host::maxIteration = 200;
 int Host::world_size = 0;
@@ -208,7 +208,7 @@ void Host::handle_get_tile(http_request request) {
  * 
  */
 void Host::handle_get_region(http_request request) {
-    TRACE(U("\nhandle GET region\n"));
+    std::cout << "Handle GET region" << std::endl;
     // Expect coordinates from query
     auto data = uri::split_query(request.request_uri().query());
     std::map<utility::string_t, utility::string_t>::iterator it_zoom = data.find(U("zoom")),
@@ -255,6 +255,7 @@ void Host::handle_get_region(http_request request) {
         Region *blocks = b->balanceLoad(region, nodeCount);  //Tiles is array with nodeCount members
         delete b;
         // DEBUG
+        std::cout << "Balancer Output:" << std::endl;
         for (int i = 0; i < nodeCount; i++) {
             std::cout << "Tile " << i << ": "
                       << "(" << blocks[i].tlX << ", " << blocks[i].brX
@@ -359,13 +360,13 @@ void Host::init(int world_rank, int world_size) {
 
     // Only for testing - start
     Region region{};
-    region.tlX = -3;
-    region.tlY = -4;
+    region.tlX = -2;
+    region.tlY = 2;
     region.brX = 2;
-    region.brY = 3;
-    region.zoom = 1;
-    region.resX = 256;
-    region.resY = 256;
+    region.brY = -2;
+    region.zoom = 0;
+    region.resX = default_res;
+    region.resY = default_res;
     region.maxIteration = maxIteration;
     MPI_Request req;
     MPI_Isend((const void *) &region, sizeof(Region), MPI_BYTE, 1, 1, MPI_COMM_WORLD, &req);

@@ -40,9 +40,10 @@ function regionRequest(map) {
     br.y +
     '&balancer=' +
     balancer;
-  fetch({
-    url: url,
+  console.log(url);
+  fetch(url, {
     method: 'GET',
+      mode: "cors",
     timeout: 1500
   })
     .then(response => response.json())
