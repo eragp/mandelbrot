@@ -2,34 +2,14 @@
 #define TILEDATA_H
 
 struct TileData {
-	double minReal; // included
-    double maxReal; // excluded
-    double minImaginary; // included
-    double maxImaginary; // excluded
-
-	// Resolution
-	int xRes; // width
-	int yRes; // height
-	
-	// Result
+	// result of tile computation
 	int *n;
-	
-	// World-Rank of Node
+	// World-Rank of the used render node
 	int world_rank;
 	
-	TileData(double MinReal, double MaxReal, double MinImaginary, double MaxImaginary, int XRes, int YRes, int World_rank) {
-		minReal = MinReal;
-		maxReal = MaxReal;
-		minImaginary = MinImaginary;
-		maxImaginary = MaxImaginary;
-		xRes = XRes;
-		yRes = YRes;
-		n = new int[XRes*YRes];
-		world_rank = World_rank;
-	}
-	
-	TileData(int dimension) {
-		n = new int[dimension];
+	TileData(int _world_rank, int size) {
+		n = new int[size];
+		world_rank = _world_rank;
 	}
 };
 

@@ -401,3 +401,6 @@ frontend/build
 
 ## VSCODE ##
 .vscode
+
+cmake-build-debug/
+CMakeLists.txt

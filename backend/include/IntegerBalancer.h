@@ -2,11 +2,11 @@
 #ifndef NAIVEBALANCER_H	// Prevents multiple includes of this header
 #define NAIVEBALANCER_H
 #include "Balancer.h"
-#include "TileInfo.h"
+#include "Region.h"
 
-class NaiveBalancer : public Balancer {
+class IntegerBalancer : public Balancer {
 	public:
-		Region* balanceLoad(Region tile, int nodeCount);
+		Region* balanceLoad(Region region, int nodeCount) override;
 };
 
 #endif
