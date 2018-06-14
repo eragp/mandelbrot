@@ -36,7 +36,6 @@ private:
     static Region current_big_tile;
     static std::mutex big_tile_lock;
     // And for the split up regions
-//    static Region *regions;
 
     // Keeps track of all available cores
     static std::queue<int> avail_cores;

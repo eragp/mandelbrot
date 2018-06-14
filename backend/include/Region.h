@@ -76,6 +76,14 @@ struct Region {
                || (tlX == o.tlX && tlY == o.tlY && brX < o.brX)
                || (tlX == o.tlX && tlY == o.tlY && brX == o.brX && brY < o.brY);
     }
+
+    bool const operator==(const Region &o) const {
+        return tlX == o.tlX && tlY == o.tlY
+               && brX == o.brX && brY == o.brY
+               && zoom == o.zoom
+               && resX == o.resX && resY == o.resY
+               && maxIteration == o.maxIteration;
+    }
 };
 
 #endif  // !REGION_H

@@ -9,13 +9,21 @@ struct Tile {
     int resX, resY;
     int maxIteration;
 
-    // definition of < operator is required to use this object as a
+    // definition of operator< is required to use this object as a
     // std::map key
     bool operator<(const Tile &o) const {
         return x < o.x
                || (x == o.x && y < o.y)
                || (x == o.x && y == o.y && zoom < o.zoom);
     }
+
+    bool operator==(const Tile &o) const {
+        return x == o.x
+               && y == o.y && zoom == o.zoom
+               && resX == o.resX && resY == o.resY
+               && maxIteration == o.maxIteration;
+    }
+
 };
 
 #endif

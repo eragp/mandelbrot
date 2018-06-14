@@ -89,6 +89,27 @@ void Host::request_more() {
     }
 }
 
+void answer_request(http_request request, Tile tile, TileData data) {
+    auto response = http_response();
+    response.set_status_code(status_codes::OK);
+    response.headers().add(U("Access-Control-Allow-Origin"), U("*"));
+    response.headers().add(U("Access-Control-Allow-Methods"), U("GET"));
+
+    // Create json value from returned
+    json::value answer;
+    answer[U("rank")] = json::value(data.world_rank);
+    json::value tile_json;
+    for (int x = 0; x < tile.resX; x++) {
+        for (int y = 0; y < tile.resX; y++) {
+            int index = y * tile.resX + x;
+            tile_json[index] = data.n[index];
+        }
+    }
+    answer[U("tile")] = tile_json;
+    response.set_body(answer);
+    request.reply(response);
+}
+
 /**
  * Answers all stored requests for the given region.
  */
@@ -116,25 +137,8 @@ void Host::answer_requests(Region rendered_region) {
         std::vector<web::http::http_request> requests = request_dictionary[tile];
         for (int j = requests.size() - 1; j >= 0; j--) {
             auto request = requests[j];
-            // fill reply with data
-            auto response = http_response();
-            response.set_status_code(status_codes::OK);
-            response.headers().add(U("Access-Control-Allow-Origin"), U("*"));
-            response.headers().add(U("Access-Control-Allow-Methods"), U("GET"));
-
-            // Create json value from returned
-            json::value answer;
-            answer[U("rank")] = json::value(data.world_rank);
-            json::value tile_json;
-            for (int x = 0; x < tile.resX; x++) {
-                for (int y = 0; y < tile.resX; y++) {
-                    int index = y * tile.resX + x;
-                    tile_json[index] = data.n[index];
-                }
-            }
-            answer[U("tile")] = tile_json;
-            response.set_body(answer);
-            request.reply(response);
+            // reply with data
+            answer_request(request, tile, data);
             // remove request from dict
             requests.erase(requests.begin() + j);
         }
@@ -179,20 +183,20 @@ void Host::handle_get_tile(http_request request) {
                       << std::endl;
             return;
         }
-        std::cout << "Storing Request at"
-                  << " x:" << x
-                  << " y:" << y
-                  << " z:" << z
-                  << " size:" << size << std::endl;
-        {
-            std::lock_guard<std::mutex> lock(request_dictionary_lock[requested_tile]);
+        std::lock_guard<std::mutex> lock(available_tiles_lock[requested_tile]);
+        std::map<Tile, TileData>::const_iterator it_available = available_tiles.find(requested_tile);
+        if (it_available == available_tiles.end()) {
+            std::cout << "tile not found in available tiles" << std::endl;
+            std::cout << "Storing Request at"
+                      << " x:" << x
+                      << " y:" << y
+                      << " z:" << z
+                      << " size:" << size << std::endl;
+            std::lock_guard<std::mutex> lock2(request_dictionary_lock[requested_tile]);
             request_dictionary[requested_tile].push_back(request);
+        } else {
+            answer_request(request, requested_tile, available_tiles[requested_tile]);
         }
-        // TODO if regions have been computed, answer request
-        // => same method as in mpi_recv loop
-//        Host::answer_requests(requested_tile);
-
-        // TODO send answer
     } else {
         TRACE(U("Not enough arguments\n"));
     }
@@ -240,14 +244,6 @@ void Host::handle_get_region(http_request request) {
         region.resY = size;
         region.maxIteration = maxIteration;
 
-        // Update data_buffer size
-        /*
-        {
-            std::lock_guard<std::mutex> lock(data_buffer_lock);
-            delete[] data_buffer;
-            data_buffer = new int[region.xRes * region.yRes];
-        }
-        */
         {
             std::lock_guard<std::mutex> lock(big_tile_lock);
             current_big_tile = region;
@@ -270,12 +266,6 @@ void Host::handle_get_region(http_request request) {
                 requested_regions.push(blocks[i]);
             }
         }
-        // Store that these blocks have not been computed yet
-//        for (int i = 0; i < world_size; i++) {
-//            std::lock_guard<std::mutex> lock(available_tiles_lock[blocks[i]]);
-//            available_tiles[blocks[i]] = false;
-//            available_tiles_rank[blocks[i]] = -1;
-//        }
         // Invoke request more at least once per region (without causing deadlock)
         for (int i = 0; i < world_size; i++) {
             request_more();
@@ -377,12 +367,6 @@ void Host::init(int world_rank, int world_size) {
     region.resX = 256;
     region.resY = 256;
     region.maxIteration = maxIteration;
-    /*
-    {
-        std::lock_guard<std::mutex> lock(data_buffer_lock);
-        data_buffer = new int[region.resX * region.resY];
-    }
-     */
     MPI_Request req;
     MPI_Isend((const void *) &region, sizeof(Region), MPI_BYTE, 1, 1, MPI_COMM_WORLD, &req);
     {
@@ -391,7 +375,7 @@ void Host::init(int world_rank, int world_size) {
     }
     // Only for testing - end
 
-    // MPI
+    // MPI - receiving answers and answering requests
     while (true) {
         // Listen for incoming complete computations from workers (MPI)
         // This accepts messages by the workers and answers requests that were stored before
@@ -405,10 +389,8 @@ void Host::init(int world_rank, int world_size) {
             rendered_region = transmitted_regions[worker_rank];
             transmitted_regions.erase(worker_rank);
         }
-        //int worker_data[rendered_region.xRes][rendered_region.yRes];
         unsigned int region_size = rendered_region.getBytes();
         std::vector<int> worker_data(region_size);
-        //MPI_Recv((void *)&worker_data, sizeof(worker_data), MPI_BYTE, worker_rank, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE); // 2 is tag for computed data
         MPI_Recv((void *) &worker_data[0], region_size, MPI_INT, worker_rank, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         //std::cout << "Last received Data at (" << (rendered_region.xRes - 1) << ", " << (rendered_region.yRes - 1) << ") is " << worker_data[rendered_region.xRes - 1][rendered_region.yRes - 1] << std::endl;
 
@@ -432,31 +414,13 @@ void Host::init(int world_rank, int world_size) {
                 }
             }
         }
-        // Store received worker_data in buffer
-        {
-            // std::lock_guard<std::mutex> lock(data_buffer_lock);
-            // for (int x = 0; x < rendered_region.xRes; x++) {
-            //     for (int y = 0; y < rendered_region.yRes; y++) {
-            //         //data_buffer[(start_x + x) + ((start_y + y) * region.xRes)] = worker_data[x][y];
-            //         data_buffer[(start_x + x) + ((start_y + y) * region.xRes)] = worker_data[x + y * rendered_region.xRes];
-            //         std::cout << data_buffer[(start_x + x) + ((start_y + y) * region.xRes)] << " ";
-            //     }
-            //     std::cout << std::endl;
-            // }
-        }
-        // TODO write to tiles instead of region
+        // copy the tiles from worker to available_tiles
         std::vector<Tile> tiles = region.getTiles();
         for (std::vector<int>::size_type i = 0; i != tiles.size(); i++) {
             Tile t = tiles.at(i);
             std::lock_guard<std::mutex> lock(available_tiles_lock[t]);
             available_tiles[t] = tile_data.at(i);
         }
-
-        // TODO check if there are http requests waiting for this data
-        // => access the dictionary where we stored the requests accepted by handle_get_tile
-        // this can of course be outsourced to a new method
         Host::answer_requests(rendered_region);
     }
-    // why is this here?
-    // MPI_Finalize();
 }
