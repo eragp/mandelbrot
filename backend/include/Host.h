@@ -1,4 +1,5 @@
-#pragma once
+#ifndef HOST_H
+#define HOST_H
 
 #include <cpprest/http_listener.h>
 #include <map>
@@ -53,10 +54,6 @@ private:
     static std::map<int, Region> transmitted_regions;
     static std::mutex transmitted_regions_lock;
 
-    // Buffer for completed computations
-    // static int *data_buffer;
-
-    // Synchronise access
 };
-
+#endif
 

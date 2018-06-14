@@ -66,6 +66,16 @@ struct Region {
         }
         return tiles;
     }
+
+
+    // definition of operator< is required to use this struct as a
+    // std::map key
+    bool const operator<(const Region &o) const {
+        return tlX < o.tlX
+               || (tlX == o.tlX && tlY < o.tlY)
+               || (tlX == o.tlX && tlY == o.tlY && brX < o.brX)
+               || (tlX == o.tlX && tlY == o.tlY && brX == o.brX && brY < o.brY);
+    }
 };
 
 #endif  // !REGION_H
