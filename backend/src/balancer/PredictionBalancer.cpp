@@ -1,5 +1,5 @@
 #include "PredictionBalancer.h"
-#include "TileInfo.h"
+#include "Region.h"
 #include "Fractal.h"
 
 // TileInfo* PredictionBalancer::balanceLoad(TileInfo tile, int nodeCount)

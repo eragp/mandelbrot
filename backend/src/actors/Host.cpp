@@ -38,7 +38,7 @@ std::map<Tile, std::mutex> Host::request_dictionary_lock;
 
 // Store for the current big tile
 Region Host::current_big_tile;
-std::mutex big_tile_lock;
+std::mutex Host::big_tile_lock;
 
 // And the subdivided regions
 // Region *Host::regions;

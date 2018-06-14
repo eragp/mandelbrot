@@ -2,7 +2,7 @@
 #ifndef NAIVEBALANCER_H	// Prevents multiple includes of this header
 #define NAIVEBALANCER_H
 #include "Balancer.h"
-#include "TileInfo.h"
+#include "Region.h"
 
 class NaiveBalancer : public Balancer {
 	public:
