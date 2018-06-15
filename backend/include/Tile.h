@@ -19,9 +19,8 @@ struct Tile {
 
     bool operator==(const Tile &o) const {
         return x == o.x
-               && y == o.y && zoom == o.zoom
-               && resX == o.resX && resY == o.resY
-               && maxIteration == o.maxIteration;
+               && y == o.y
+               && zoom == o.zoom;
     }
 
 };

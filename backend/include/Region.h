@@ -2,6 +2,9 @@
 #define REGION_H
 
 #include <cmath>
+#include <iosfwd>
+#include <ostream>
+#include <string>
 #include <vector>
 #include "Tile.h"
 
@@ -21,11 +24,11 @@ struct Region {
     int maxIteration;
 
     int getWidth() {
-        return abs(tlX - brX);
+        return abs(tlX - brX) + 1;
     }
 
     int getHeight() {
-        return abs(tlY - brY);
+        return abs(tlY - brY) + 1;
     }
 
     unsigned int getBytes() {
@@ -84,6 +87,12 @@ struct Region {
                && resX == o.resX && resY == o.resY
                && maxIteration == o.maxIteration;
     }
+
+//    std::ostream &operator<<(std::ostream os, const Region &r) {
+//        os << "Region: ";
+//        return os;
+//    }
 };
+
 
 #endif  // !REGION_H

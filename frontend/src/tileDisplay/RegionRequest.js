@@ -10,13 +10,13 @@ function regionRequest(map) {
   // aka top left
   let tl = new Point(
     Math.floor(bounds.min.x / tileSize),
-    Math.floor(bounds.min.y / tileSize),
+    -Math.floor(bounds.min.y / tileSize),
     zoom
   );
   // aka bottom right
   let br = new Point(
     Math.floor(bounds.max.x / tileSize),
-    Math.floor(bounds.max.y / tileSize),
+    -Math.floor(bounds.max.y / tileSize),
     zoom
   );
   console.log('region request from: ' + tl + ' to: ' + br);
@@ -71,7 +71,7 @@ function unproject(x, y, zoom, localX, localY, size) {
   let bounds = [4, 4];
   let tileCount = Math.pow(2, zoom);
   let tileX = (x * bounds[0] * size + localX * bounds[0]) / (tileCount * size),
-    tileY = -(y * bounds[1] * size + localY * bounds[1]) / (tileCount * size);
+    tileY = (y * bounds[1] * size + localY * bounds[1]) / (tileCount * size);
   return new Point(tileX, tileY);
 }
 

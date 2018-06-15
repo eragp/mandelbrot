@@ -8,10 +8,12 @@
  */
 Region *IntegerBalancer::balanceLoad(Region region, const int nodeCount) {
     auto regions = new Region[nodeCount];
-    int regionWidth = abs(region.brX - region.tlX);
+    int regionWidth = region.getWidth();
     int columnWidth = regionWidth / nodeCount;
     int x = region.tlX;
     for (int i = 0; i < nodeCount; i++) {
+        Region r{};
+        regions[i] = r;
         regions[i].tlX = x;
         regions[i].brX = (i == nodeCount - 1) ? region.brX : (x += columnWidth);
         // just copying the unchanged values for each Region struct

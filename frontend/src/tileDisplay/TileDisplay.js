@@ -22,8 +22,8 @@ class TileDisplay extends Component {
 const renderLeaflet = () => {
   L.GridLayer.MandelbrotLayer = L.GridLayer.extend({
     createTile: function(coords, done) {
-      // var tile = L.DomUtil.create('canvas', 'leaflet-tile');
-      let tile = document.createElement('div');
+      var tile = L.DomUtil.create('canvas', 'leaflet-tile');
+      // let tile = document.createElement('div');
       var size = this.getTileSize();
       tile.width = size.x;
       tile.height = size.y;
@@ -95,16 +95,19 @@ const renderLeaflet = () => {
     // minZoom: 0,
     // otherwise we get precision errors.
     maxZoom: 32,
-    center: [0, 0],
+    // center: [0, 0],
     zoom: 0
   });
-  map.addLayer(L.gridLayer.mandelBrotLayer());
-
-  // Create region requests on map changes
+  // add event listeners to the map for region requests
   map.on({
-    zoom: () => request(map),
+    // zoom: () => request(map),
+    // load: () => request (map),
+    // move: () => request (map),
+    // zoomstart: () => request(map)
     moveend: () => request(map)
   });
+  map.addLayer(L.gridLayer.mandelBrotLayer());
+  map.setView([0,0])
 };
 
 export default TileDisplay;
