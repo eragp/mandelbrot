@@ -65,6 +65,21 @@ std::mutex Host::transmitted_regions_lock;
 // synchronized access to critical data structures
 
 /**
+ * Abort computations an all Workers
+ */
+void Host::abort_all_computations() {
+	MPI_Request request[world_size - 1];
+	MPI_Status status[world_size - 1];
+	for (int i=1 ; i<world_size ; i++) {
+		int abort = 1;
+		MPI_Isend((const void *) &abort, 1, MPI_INT, i, 4, MPI_COMM_WORLD, &request[i - 1]); // Tag 4: Abort
+	}
+	MPI_Waitall(world_size - 1, request, status);
+	std::cout << "All workers stopped!" << std::endl;
+}
+
+
+/**
  * TODO this will be removed because requests (except for region) will not init cores anymore!
  * Invoke a new core for a new tile
  * Checks necessary conditions on its own, always safe to call
@@ -350,7 +365,7 @@ void Host::init(int world_rank, int world_size) {
         std::wcout << e.what() << std::endl;
     }
 
-    // Test and put cores (except yourself; id = 0) in Queue
+    // Test if all cores are available and put cores (except yourself; id = 0) in Queue
     for (int i = 1; i < cores; i++) {
         int testSend = i;
         MPI_Send((const void *) &testSend, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
@@ -365,25 +380,27 @@ void Host::init(int world_rank, int world_size) {
         }
     }
 
-//    // Only for testing - start
-//    Region region{};
-//    region.tlX = -2;
-//    region.tlY = 2;
-//    region.brX = 2;
-//    region.brY = -2;
-//    region.zoom = 0;
-//    region.resX = default_res;
-//    region.resY = default_res;
-//    region.maxIteration = maxIteration;
-//    MPI_Request req;
-//    MPI_Isend((const void *) &region, sizeof(Region), MPI_BYTE, 1, 1, MPI_COMM_WORLD, &req);
-//    {
-//        std::lock_guard<std::mutex> lock(transmitted_regions_lock);
-//        transmitted_regions[0] = region;
-//        std::lock_guard<std::mutex> lock2(big_tile_lock);
-//        current_big_tile = region;
-//    }
-//    // Only for testing - end
+    // Only for testing - start
+    Region region{};
+    region.tlX = -2;
+    region.tlY = 2;
+    region.brX = 2;
+    region.brY = -2;
+    region.zoom = 0;
+    region.resX = default_res;
+    region.resY = default_res;
+    region.maxIteration = maxIteration;
+    abort_all_computations();
+	MPI_Request req;
+    MPI_Isend((const void *) &region, sizeof(Region), MPI_BYTE, 1, 1, MPI_COMM_WORLD, &req);
+	//abort_all_computations();
+    {
+        std::lock_guard<std::mutex> lock(transmitted_regions_lock);
+        transmitted_regions[0] = region;
+        std::lock_guard<std::mutex> lock2(big_tile_lock);
+        current_big_tile = region;
+    }
+    // Only for testing - end
 
     // MPI - receiving answers and answering requests
     while (true) {
