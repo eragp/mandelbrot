@@ -338,7 +338,7 @@ void Host::handle_get_region(http_request request) {
 void Host::init(int world_rank, int world_size) {
     Host::world_size = world_size;
     int cores = world_size;
-    maxIteration = 200;
+    maxIteration = 3000;
     std::cout << "Host init " << world_size << std::endl;
 
     // REST
