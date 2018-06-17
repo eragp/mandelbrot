@@ -15,11 +15,14 @@
 // Cpp REST libraries
 #include <cpprest/http_listener.h>
 #include <cpprest/json.h>
+
+// Utils
 #include <map>
 #include <mutex>
 #include <queue>
 #include <set>
 #include <string>
+#include <algorithm>
 
 using namespace web;
 using namespace web::http;
@@ -110,12 +113,9 @@ void Host::answer_requests(Region rendered_region) {
     }
     std::vector<Tile> tiles = rendered_region.getTiles();
     for (auto const &tile : tiles) {
-        TileData data;
-        {
-            std::lock_guard<std::mutex> lock(available_tiles_lock[tile]);
-            data = available_tiles[tile];
-        }
-        std::lock_guard<std::mutex> lock(request_dictionary_lock[tile]);
+        std::lock_guard<std::mutex> lock1(available_tiles_lock[tile]);
+        TileData data = available_tiles[tile];
+        std::lock_guard<std::mutex> lock2(request_dictionary_lock[tile]);
         // iterate over all requests in the queue and check if they can be answered
         // Because we remove elements from this vector in time it is important
         // that we iterate backwards
@@ -124,13 +124,16 @@ void Host::answer_requests(Region rendered_region) {
             continue;
         }
         std::vector<web::http::http_request> requests = request_dictionary[tile];
-        for (int j = requests.size() - 1; j >= 0; j--) {
-            auto request = requests[j];
+        for (auto request : requests) {
+            std::cout << "Answering Request for"
+                    << " x:" << tile.x
+                    << " y:" << tile.y
+                    << " z:" << tile.zoom
+                    << " size:" << tile.resX << std::endl;
             // reply with data
             answer_request(request, tile, data);
-            // remove request from dict
-            requests.erase(requests.begin() + j);
         }
+        request_dictionary.erase(tile);
     }
 }
 
