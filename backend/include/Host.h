@@ -18,13 +18,10 @@ public:
 private:
     // Static da als handle übergeben werden muss
     // => ganzer Rest auch static, lediglich Informationskapselung
-    static void abort_all_computations();
 	
 	static void handle_get_tile(web::http::http_request request);
 
     static void handle_get_region(web::http::http_request request);
-
-    static void request_more();
 
     static void answer_requests(Region requested_tile);
 

@@ -62,48 +62,6 @@ std::mutex Host::transmitted_regions_lock;
 // Buffer for completed computations
 // int *Host::data_buffer;
 
-// synchronized access to critical data structures
-
-/**
- * Abort computations an all Workers
- */
-void Host::abort_all_computations() {
-	MPI_Request request[world_size - 1];
-	MPI_Status status[world_size - 1];
-	for (int i=1 ; i<world_size ; i++) {
-		int abort = 1;
-		MPI_Isend((const void *) &abort, 1, MPI_INT, i, 4, MPI_COMM_WORLD, &request[i - 1]); // Tag 4: Abort
-	}
-	MPI_Waitall(world_size - 1, request, status);
-	std::cout << "All workers stopped!" << std::endl;
-}
-
-
-/**
- * TODO this will be removed because requests (except for region) will not init cores anymore!
- * Invoke a new core for a new tile
- * Checks necessary conditions on its own, always safe to call
- */
-void Host::request_more() {
-    // Will never lead to deadlock because this is the only block aquiring these two locks
-    // ATTENTION: if another block with 2 locks is introduced, this will not hold anymore
-    // Take care then of locking in the same order as here
-    std::lock_guard<std::mutex> lock1(avail_cores_lock);
-    std::lock_guard<std::mutex> lock2(requested_regions_lock);
-    std::lock_guard<std::mutex> lock3(transmitted_regions_lock);
-    if (avail_cores.size() > 0 && requested_regions.size() > 0) {
-        Region region = requested_regions.front();
-        int rank_worker = avail_cores.front();
-        MPI_Request req;  // Later => store to check if has been received
-        std::cout << "Invoking core " << rank_worker << std::endl;
-        // Tag for computation requests is 1
-        MPI_Isend((const void *) &region, sizeof(Region), MPI_BYTE, rank_worker, 1, MPI_COMM_WORLD, &req);
-        avail_cores.pop();
-        requested_regions.pop();
-        transmitted_regions[rank_worker] = region;
-    }
-}
-
 void answer_request(http_request request, Tile tile, TileData data) {
     auto response = http_response();
     response.set_status_code(status_codes::OK);
@@ -138,17 +96,26 @@ void answer_request_error(http_request request, std::string message) {
  */
 void Host::answer_requests(Region rendered_region) {
     // is the region still the requested one?
-    if (!current_big_tile.contains(rendered_region.tlX, rendered_region.tlY,
+    bool inside_current_region;
+    {
+        std::lock_guard<std::mutex> lock(big_tile_lock);
+        inside_current_region = current_big_tile.contains(rendered_region.tlX, rendered_region.tlY,
                                    rendered_region.brX, rendered_region.brY,
-                                   rendered_region.zoom)) {
+                                   rendered_region.zoom);
+
+    }
+    if (!inside_current_region) {
         std::cerr << "Host: region no longer needed" << std::endl;
         return;
     }
     std::vector<Tile> tiles = rendered_region.getTiles();
     for (auto const &tile : tiles) {
-        std::lock_guard<std::mutex> lock(available_tiles_lock[tile]);
-        TileData data = available_tiles[tile];
-        std::lock_guard<std::mutex> lock2(request_dictionary_lock[tile]);
+        TileData data;
+        {
+            std::lock_guard<std::mutex> lock(available_tiles_lock[tile]);
+            data = available_tiles[tile];
+        }
+        std::lock_guard<std::mutex> lock(request_dictionary_lock[tile]);
         // iterate over all requests in the queue and check if they can be answered
         // Because we remove elements from this vector in time it is important
         // that we iterate backwards
@@ -197,28 +164,42 @@ void Host::handle_get_tile(http_request request) {
         requested_tile.resY = size;
         requested_tile.maxIteration = Host::maxIteration;
 
-        if (!current_big_tile.contains(requested_tile.x, requested_tile.y,
+        // Check if this tile is still going to be answered
+        bool inside_current_region;
+        {
+            std::lock_guard<std::mutex> lock(big_tile_lock);
+            inside_current_region = current_big_tile.contains(requested_tile.x, requested_tile.y,
                                        requested_tile.x, requested_tile.y,
-                                       requested_tile.zoom)) {
+                                       requested_tile.zoom);
+
+        }
+        if (!inside_current_region) {
             std::cerr << "Host: Tile not in current region ("
                       << requested_tile.x << ", " << requested_tile.y << ", " << requested_tile.zoom << ")"
                       << std::endl;
             answer_request_error(request, "Tile not in current reqion");
             return;
         }
-        std::lock_guard<std::mutex> lock(available_tiles_lock[requested_tile]);
-        auto it_available = available_tiles.find(requested_tile);
-        if (it_available == available_tiles.end()) {
+
+        // Store or answer requests
+        bool answerable;
+        {
+            std::lock_guard<std::mutex> lock(available_tiles_lock[requested_tile]);
+            auto it_available = available_tiles.find(requested_tile);
+            answerable = !(it_available == available_tiles.end());
+            if (answerable) {
+                answer_request(request, requested_tile, available_tiles[requested_tile]);
+            }
+        }
+        if(!answerable){
             std::cout << "tile not found in available tiles" << std::endl;
             std::cout << "Storing Request at"
-                      << " x:" << x
-                      << " y:" << y
-                      << " z:" << z
-                      << " size:" << size << std::endl;
-            std::lock_guard<std::mutex> lock2(request_dictionary_lock[requested_tile]);
+                    << " x:" << x
+                    << " y:" << y
+                    << " z:" << z
+                    << " size:" << size << std::endl;
+            std::lock_guard<std::mutex> lock(request_dictionary_lock[requested_tile]);
             request_dictionary[requested_tile].push_back(request);
-        } else {
-            answer_request(request, requested_tile, available_tiles[requested_tile]);
         }
     } else {
         TRACE(U("Not enough arguments\n"));
@@ -272,8 +253,9 @@ void Host::handle_get_region(http_request request) {
             current_big_tile = region;
         }
 
-        int nodeCount = Host::world_size;
-        // TODO make this based on balancer variable defined above
+        // TODO increase by one as soon as host is invoked as worker too
+        int nodeCount = Host::world_size -1;
+        // TODO make this based on balancer variable defined above (sounds like strategy pattern...)
         Balancer *b = new IntegerBalancer();
         Region *blocks = b->balanceLoad(region, nodeCount);  //Tiles is array with nodeCount members
         // DEBUG
@@ -283,16 +265,21 @@ void Host::handle_get_region(http_request request) {
                       << "(" << blocks[i].tlX << ", " << blocks[i].brX
                       << ")" << std::endl;
         }
-        {
-            std::lock_guard<std::mutex> lock(requested_regions_lock);
-            for (int i = 0; i < nodeCount; i++) {
-                requested_regions.push(blocks[i]);
-            }
+        // send regions to cores deterministically
+        MPI_Request region_requests[nodeCount];
+        MPI_Status region_status[nodeCount];
+        for(int i = 0; i < nodeCount; i++) {
+            Region region = blocks[i];
+            int rank_worker = i + 1; // TODO for now, see nodeCount
+            std::cout << "Invoking core " << rank_worker << std::endl;
+            // Tag for computation requests is 1
+            // Send new region
+            MPI_Isend((const void *) &region, sizeof(Region), MPI_BYTE, rank_worker, 1, MPI_COMM_WORLD, &region_requests[i]);
+            transmitted_regions[rank_worker] = region;
         }
-        // Invoke request more at least once per region (without causing deadlock)
-        for (int i = 0; i < world_size; i++) {
-            request_more();
-        }
+        // All workers received their region
+        MPI_Waitall(nodeCount, region_requests, region_status);
+
         // Send region division to frontend
         auto response = http_response();
         response.set_status_code(status_codes::OK);
@@ -365,42 +352,17 @@ void Host::init(int world_rank, int world_size) {
         std::wcout << e.what() << std::endl;
     }
 
-    // Test if all cores are available and put cores (except yourself; id = 0) in Queue
+    // Test if all cores are available
+    // We assume from programs side that all cores *are* available, this is merely debug
     for (int i = 1; i < cores; i++) {
         int testSend = i;
         MPI_Send((const void *) &testSend, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
         int testReceive;
         MPI_Recv(&testReceive, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         if (testSend == testReceive) {
-            {
-                std::lock_guard<std::mutex> lock(avail_cores_lock);
-                avail_cores.push(i);
-            }
             std::cout << "Core " << i << " ready!" << std::endl;
         }
     }
-
-    // Only for testing - start
-    Region region{};
-    region.tlX = -2;
-    region.tlY = 2;
-    region.brX = 2;
-    region.brY = -2;
-    region.zoom = 0;
-    region.resX = default_res;
-    region.resY = default_res;
-    region.maxIteration = maxIteration;
-    abort_all_computations();
-	MPI_Request req;
-    MPI_Isend((const void *) &region, sizeof(Region), MPI_BYTE, 1, 1, MPI_COMM_WORLD, &req);
-	//abort_all_computations();
-    {
-        std::lock_guard<std::mutex> lock(transmitted_regions_lock);
-        transmitted_regions[0] = region;
-        std::lock_guard<std::mutex> lock2(big_tile_lock);
-        current_big_tile = region;
-    }
-    // Only for testing - end
 
     // MPI - receiving answers and answering requests
     while (true) {
@@ -422,16 +384,20 @@ void Host::init(int world_rank, int world_size) {
         MPI_Recv((void *) &worker_data[0], region_size, MPI_INT, worker_rank, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         std::cout << "Host: received from " << worker_rank << std::endl;
 
-        if (!current_big_tile.contains(rendered_region.tlX, rendered_region.tlY,
-                                       rendered_region.brX, rendered_region.brY, rendered_region.zoom)) {
+        // Check if this data is up to date requested data
+        bool inside_current_region;
+        {
+            std::lock_guard<std::mutex> lock(big_tile_lock);
+            inside_current_region = current_big_tile.contains(rendered_region.tlX, rendered_region.tlY,
+                                       rendered_region.brX, rendered_region.brY, rendered_region.zoom);
+
+        }
+        if (!inside_current_region) {
             std::cout << "Host: no longer interested in the rendered region" << std::endl;
             continue;
         }
-        // Put Worker back in Queue
-        {
-            std::lock_guard<std::mutex> lock(avail_cores_lock);
-            avail_cores.push(worker_rank);
-        }
+        
+        // Copy data from received vector to another data structure I guess?
         std::vector<TileData> tile_data;
         for (int i = 0; i < rendered_region.getWidth() * rendered_region.getHeight(); i++) {
             TileData data(worker_rank, rendered_region.resX * rendered_region.resY);

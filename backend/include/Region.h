@@ -35,6 +35,9 @@ struct Region {
         return (unsigned int) getWidth() * resX * getHeight() * resY;
     }
 
+    /**
+     * Returns true if given region is completely inside this region
+     */
     bool contains(int _tlX, int _tlY, int _brX, int _brY, int _zoom) {
         if (zoom != _zoom) {
             return false;
@@ -53,6 +56,9 @@ struct Region {
         return tl && br;
     }
 
+    /**
+     * Returns a vector of tiles that completely comprises this region
+     */
     std::vector<Tile> getTiles() {
         std::vector<Tile> tiles;
         for (int y = tlY; y >= brY; y--) {
