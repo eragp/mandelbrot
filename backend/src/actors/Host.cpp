@@ -296,7 +296,7 @@ void Host::handle_get_region(http_request request) {
         response.headers().add(U("Access-Control-Allow-Methods"), U("GET"));
 
         auto reply = json::value();
-        for (int i = 0; i < Host::world_size; i++) {
+        for (int i = 0; i < nodeCount; i++) {
             auto t = blocks[i];
             reply[i] = json::value();
             reply[i]["nodeID"] = i;
