@@ -74,10 +74,10 @@ void answer_request(http_request request, Tile tile, TileData data) {
     // Create json value from returned
     json::value answer;
     answer[U("rank")] = json::value(data.world_rank);
-    json::value tile_json;
-    for (int x = 0; x < tile.resX; x++) {
-        for (int y = 0; y < tile.resX; y++) {
-            int index = y * tile.resX + x;
+    json::value tile_json = json::value();
+    for (unsigned int y = 0; y < tile.resY; y++) {
+        for (unsigned int x = 0; x < tile.resX; x++) {
+            unsigned int index = y * tile.resX + x;
             tile_json[index] = data.n[index];
         }
     }
@@ -103,8 +103,8 @@ void Host::answer_requests(Region rendered_region) {
     {
         std::lock_guard<std::mutex> lock(big_tile_lock);
         inside_current_region = current_big_tile.contains(rendered_region.tlX, rendered_region.tlY,
-                                   rendered_region.brX, rendered_region.brY,
-                                   rendered_region.zoom);
+                                                          rendered_region.brX, rendered_region.brY,
+                                                          rendered_region.zoom);
 
     }
     if (!inside_current_region) {
@@ -122,18 +122,18 @@ void Host::answer_requests(Region rendered_region) {
         auto it_tile = request_dictionary.find(tile);
         if (it_tile == request_dictionary.end()) {
             std::cerr << "Request not found for " << " x:" << tile.x
-                    << " y:" << tile.y
-                    << " z:" << tile.zoom
-                    << " size:" << tile.resX << std::endl;
+                      << " y:" << tile.y
+                      << " z:" << tile.zoom
+                      << " size:" << tile.resX << std::endl;
             continue;
         }
         std::vector<web::http::http_request> requests = request_dictionary[tile];
         for (auto request : requests) {
             std::cout << "Answering Request for"
-                    << " x:" << tile.x
-                    << " y:" << tile.y
-                    << " z:" << tile.zoom
-                    << " size:" << tile.resX << std::endl;
+                      << " x:" << tile.x
+                      << " y:" << tile.y
+                      << " z:" << tile.zoom
+                      << " size:" << tile.resX << std::endl;
             // reply with data
             answer_request(request, tile, data);
         }
@@ -198,13 +198,13 @@ void Host::handle_get_tile(http_request request) {
                 answer_request(request, requested_tile, available_tiles[requested_tile]);
             }
         }
-        if(!answerable){
+        if (!answerable) {
             std::cout << "tile not found in available tiles" << std::endl;
             std::cout << "Storing Request at"
-                    << " x:" << x
-                    << " y:" << y
-                    << " z:" << z
-                    << " size:" << size << std::endl;
+                      << " x:" << x
+                      << " y:" << y
+                      << " z:" << z
+                      << " size:" << size << std::endl;
             std::lock_guard<std::mutex> lock(request_dictionary_lock[requested_tile]);
             request_dictionary[requested_tile].push_back(request);
         }
@@ -261,7 +261,7 @@ void Host::handle_get_region(http_request request) {
         }
 
         // TODO increase by one as soon as host is invoked as worker too
-        int nodeCount = Host::world_size -1;
+        int nodeCount = Host::world_size - 1;
         // TODO make this based on balancer variable defined above (sounds like strategy pattern...)
         Balancer *b = new IntegerBalancer();
         Region *blocks = b->balanceLoad(region, nodeCount);  //Tiles is array with nodeCount members
@@ -275,13 +275,14 @@ void Host::handle_get_region(http_request request) {
         // send regions to cores deterministically
         MPI_Request region_requests[nodeCount];
         MPI_Status region_status[nodeCount];
-        for(int i = 0; i < nodeCount; i++) {
+        for (int i = 0; i < nodeCount; i++) {
             Region region = blocks[i];
             int rank_worker = i + 1; // TODO for now, see nodeCount
             std::cout << "Invoking core " << rank_worker << std::endl;
             // Tag for computation requests is 1
             // Send new region
-            MPI_Isend((const void *) &region, sizeof(Region), MPI_BYTE, rank_worker, 1, MPI_COMM_WORLD, &region_requests[i]);
+            MPI_Isend((const void *) &region, sizeof(Region), MPI_BYTE, rank_worker, 1, MPI_COMM_WORLD,
+                      &region_requests[i]);
             transmitted_regions[rank_worker] = region;
         }
         // All workers received their region
@@ -310,21 +311,22 @@ void Host::handle_get_region(http_request request) {
 
 
         // Throw away all requests inside requested_tiles, that are not inside this region
-        for(auto requested_tile = request_dictionary.begin(); requested_tile != request_dictionary.end(); requested_tile ++){
+        for (auto requested_tile = request_dictionary.begin();
+             requested_tile != request_dictionary.end(); requested_tile++) {
             Tile key = requested_tile->first;
             bool inside_current_region;
             {
                 std::lock_guard<std::mutex> lock(big_tile_lock);
                 inside_current_region = current_big_tile.contains(key.x, key.y,
-                                        key.x, key.y,
-                                        key.zoom);
+                                                                  key.x, key.y,
+                                                                  key.zoom);
             }
-            if(!inside_current_region){
+            if (!inside_current_region) {
                 std::cerr << "Host: Tile not in current region ("
-                      << key.x << ", " << key.y << ", " << key.zoom << ")"
-                      << std::endl;
+                          << key.x << ", " << key.y << ", " << key.zoom << ")"
+                          << std::endl;
                 auto requests = requested_tile->second;
-                for(auto request : requests){
+                for (auto request : requests) {
                     answer_request_error(request, "Tile not in current reqion");
                 }
                 request_dictionary.erase(key);
@@ -419,24 +421,29 @@ void Host::init(int world_rank, int world_size) {
         {
             std::lock_guard<std::mutex> lock(big_tile_lock);
             inside_current_region = current_big_tile.contains(rendered_region.tlX, rendered_region.tlY,
-                                       rendered_region.brX, rendered_region.brY, rendered_region.zoom);
+                                                              rendered_region.brX, rendered_region.brY,
+                                                              rendered_region.zoom);
 
         }
         if (!inside_current_region) {
             std::cout << "Host: no longer interested in the rendered region" << std::endl;
             continue;
         }
-        
-        // Copy data from received vector to another data structure I guess?
+        std::cout << rendered_region.resX << ", " << rendered_region.resY << std::endl;
+        // copy the received data in std::vector to individual tiles
         std::vector<TileData> tile_data;
-        for (int i = 0; i < rendered_region.getWidth() * rendered_region.getHeight(); i++) {
+        for (unsigned int i = 0;
+             i < static_cast<unsigned int>(rendered_region.getWidth() * rendered_region.getHeight()); i++) {
             TileData data(worker_rank, rendered_region.resX * rendered_region.resY);
+            // loop over every pixel and write received data to tiles
             for (unsigned int y = 0; y < (unsigned int) rendered_region.resY; y++) {
                 for (unsigned int x = 0; x < (unsigned int) rendered_region.resX; x++) {
-                    unsigned int index = (y * rendered_region.resY + x);
-                    data.n[index] = worker_data.at((i + 1) * index);
+                    unsigned int block_offset = i * rendered_region.resX * rendered_region.resY;
+                    unsigned int index = y * rendered_region.resX + x;
+                    data.n[index] = worker_data.at(block_offset + index);
                 }
             }
+
             tile_data.push_back(data);
         }
         // copy the tiles from worker to available_tiles

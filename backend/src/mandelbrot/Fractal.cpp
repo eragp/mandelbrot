@@ -10,9 +10,9 @@ long double unproject(long x, long zoom, double bound, long local, long size) {
     if (size == 0) {
         size = 1;
     }
-    long long tile_count = 1L << zoom;
-    return (long double)(x * bound * size + local * bound) /
-           (long double)(tile_count * size);
+    long long tile_count = static_cast<unsigned long long>(1) << static_cast<unsigned long long>(zoom);
+    return (long double) (x * bound * size + local * bound) /
+           (long double) (tile_count * size);
 }
 
 

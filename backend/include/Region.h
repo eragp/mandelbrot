@@ -16,7 +16,7 @@ struct Region {
     int brX, brY;
     // current zoom factor
     int zoom;
-    // Resolution
+    // Resolution of the individual tiles in this region
     int resX;  // width
     int resY;  // height
 
