@@ -37,11 +37,11 @@ int Host::maxIteration = 200;
 int Host::world_size = 0;
 
 std::map<Tile, std::vector<web::http::http_request>> Host::request_dictionary;
-std::map<Tile, std::mutex> Host::request_dictionary_lock;
+std::mutex Host::request_dictionary_lock;
 
 // Store for the current big tile
 Region Host::current_big_tile;
-std::mutex Host::big_tile_lock;
+std::mutex Host::current_big_tile_lock;
 
 // And the subdivided regions
 // Region *Host::regions;
@@ -56,7 +56,7 @@ std::mutex Host::requested_regions_lock;
 
 // Manage available = already computed regions
 std::map<Tile, TileData> Host::available_tiles;
-std::map<Tile, std::mutex> Host::available_tiles_lock;
+std::mutex Host::available_tiles_lock;
 
 // Store send MPI Requests
 std::map<int, Region> Host::transmitted_regions;
@@ -75,8 +75,8 @@ void answer_request(http_request request, Tile tile, TileData data) {
     json::value answer;
     answer[U("rank")] = json::value(data.world_rank);
     json::value tile_json = json::value();
-    for (unsigned int y = 0; y < tile.resY; y++) {
-        for (unsigned int x = 0; x < tile.resX; x++) {
+    for (unsigned int y = 0; y < (unsigned int) tile.resY; y++) {
+        for (unsigned int x = 0; x < (unsigned int) tile.resX; x++) {
             unsigned int index = y * tile.resX + x;
             tile_json[index] = data.n[index];
         }
@@ -94,6 +94,7 @@ void answer_request_error(http_request request, std::string message) {
     request.reply(response);
 }
 
+
 /**
  * Answers all stored requests for the given region.
  */
@@ -101,7 +102,7 @@ void Host::answer_requests(Region rendered_region) {
     // is the region still the requested one?
     bool inside_current_region;
     {
-        std::lock_guard<std::mutex> lock(big_tile_lock);
+        std::lock_guard<std::mutex> lock(current_big_tile_lock);
         inside_current_region = current_big_tile.contains(rendered_region.tlX, rendered_region.tlY,
                                                           rendered_region.brX, rendered_region.brY,
                                                           rendered_region.zoom);
@@ -112,10 +113,10 @@ void Host::answer_requests(Region rendered_region) {
         return;
     }
     std::vector<Tile> tiles = rendered_region.getTiles();
+    std::lock_guard<std::mutex> lock1(request_dictionary_lock);
+    std::lock_guard<std::mutex> lock2(available_tiles_lock);
     for (auto const &tile : tiles) {
-        std::lock_guard<std::mutex> lock1(available_tiles_lock[tile]);
         TileData data = available_tiles[tile];
-        std::lock_guard<std::mutex> lock2(request_dictionary_lock[tile]);
         // iterate over all requests in the queue and check if they can be answered
         // Because we remove elements from this vector in time it is important
         // that we iterate backwards
@@ -171,10 +172,13 @@ void Host::handle_get_tile(http_request request) {
         requested_tile.resY = size;
         requested_tile.maxIteration = Host::maxIteration;
 
+        std::cout << "Tile: (" << requested_tile.x << ", " << requested_tile.y << ", " << requested_tile.zoom << ")"
+                  << std::endl;
+
         // Check if this tile is still going to be answered
         /*bool inside_current_region;
         {
-            std::lock_guard<std::mutex> lock(big_tile_lock);
+            std::lock_guard<std::mutex> lock(current_big_tile_lock);
             inside_current_region = current_big_tile.contains(requested_tile.x, requested_tile.y,
                                        requested_tile.x, requested_tile.y,
                                        requested_tile.zoom);
@@ -189,27 +193,29 @@ void Host::handle_get_tile(http_request request) {
         }*/
 
         // Store or answer requests
-        bool answerable;
         {
-            std::lock_guard<std::mutex> lock(available_tiles_lock[requested_tile]);
+            // Lock important data structures
+            // IMPORTANT: same order as everywhere else where we lock those two
+            std::lock_guard<std::mutex> lock1(request_dictionary_lock);
+            std::lock_guard<std::mutex> lock2(available_tiles_lock);
             auto it_available = available_tiles.find(requested_tile);
-            answerable = !(it_available == available_tiles.end());
+            bool answerable = !(it_available == available_tiles.end());
             if (answerable) {
 //                std::cout << "answering " << requested_tile.x << ", " << requested_tile.y << ", "
 //                          << requested_tile.zoom << std::endl;
                 answer_request(request, requested_tile, available_tiles[requested_tile]);
+            } else {
+                std::cout << "tile not found in available tiles" << std::endl;
+                std::cout << "Storing Request at"
+                          << " x:" << x
+                          << " y:" << y
+                          << " z:" << z
+                          << " size:" << size << std::endl;
+
+                request_dictionary[requested_tile].push_back(request);
             }
         }
-        if (!answerable) {
-            std::cout << "tile not found in available tiles" << std::endl;
-            std::cout << "Storing Request at"
-                      << " x:" << x
-                      << " y:" << y
-                      << " z:" << z
-                      << " size:" << size << std::endl;
-            std::lock_guard<std::mutex> lock(request_dictionary_lock[requested_tile]);
-            request_dictionary[requested_tile].push_back(request);
-        }
+
     } else {
         TRACE(U("Not enough arguments\n"));
     }
@@ -256,9 +262,11 @@ void Host::handle_get_region(http_request request) {
         region.resX = size;
         region.resY = size;
         region.maxIteration = maxIteration;
-
         {
-            std::lock_guard<std::mutex> lock(big_tile_lock);
+            std::lock_guard<std::mutex> lock(current_big_tile_lock);
+            if (region == current_big_tile) {
+                std::cout << "region has not changed" << std::endl;
+            }
             current_big_tile = region;
         }
 
@@ -271,8 +279,8 @@ void Host::handle_get_region(http_request request) {
         std::cout << "Balancer Output:" << std::endl;
         for (int i = 0; i < nodeCount; i++) {
             std::cout << "Region " << i << ": "
-                      << "(" << blocks[i].tlX << ", " << blocks[i].brX
-                      << ")" << std::endl;
+                      << " TopLeft: (" << blocks[i].tlX << ", " << blocks[i].tlY << ", " << blocks[i].zoom << ") -> ("
+                      << blocks[i].brX << ", " << blocks[i].brY << ", " << blocks[i].zoom << ")" << std::endl;
         }
         // send regions to cores deterministically
         MPI_Request region_requests[nodeCount];
@@ -313,34 +321,36 @@ void Host::handle_get_region(http_request request) {
 
 
         // Throw away all requests inside requested_tiles, that are not inside this region
-        for (auto requested_tile = request_dictionary.begin();
-             requested_tile != request_dictionary.end(); requested_tile++) {
-            Tile key = requested_tile->first;
-            bool inside_current_region;
-            {
-                std::lock_guard<std::mutex> lock(big_tile_lock);
-                inside_current_region = current_big_tile.contains(key.x, key.y,
-                                                                  key.x, key.y,
-                                                                  key.zoom);
-            }
-            if (!inside_current_region) {
-                std::cerr << "Host: Tile not in current region ("
-                          << key.x << ", " << key.y << ", " << key.zoom << ")"
-                          << std::endl;
-                auto requests = requested_tile->second;
-                for (auto request : requests) {
-                    answer_request_error(request, "Tile not in current reqion");
+        {
+            std::lock_guard<std::mutex> lock1(request_dictionary_lock);
+            std::lock_guard<std::mutex> lock2(current_big_tile_lock);
+            for (auto requested_tile = request_dictionary.begin();
+                 requested_tile != request_dictionary.end(); requested_tile++) {
+                Tile key = requested_tile->first;
+                bool inside_current_region = current_big_tile.contains(key.x, key.y,
+                                                                       key.x, key.y,
+                                                                       key.zoom);
+                if (!inside_current_region) {
+                    std::cerr << "Host: Tile not in current region ("
+                              << key.x << ", " << key.y << ", " << key.zoom << ")"
+                              << std::endl;
+                    auto requests = requested_tile->second;
+                    for (auto request : requests) {
+                        answer_request_error(request, "Tile not in current reqion");
+                    }
+                    request_dictionary.erase(key);
                 }
-                request_dictionary.erase(key);
             }
         }
+    } else {
+        std::cerr << "Host: Invalid region request: " << request.to_string()
+                  << std::endl;
     }
 }
 
 void Host::init(int world_rank, int world_size) {
     Host::world_size = world_size;
     int cores = world_size;
-    maxIteration = 200;
     std::cout << "Host init " << world_size << std::endl;
 
     // REST
@@ -421,7 +431,7 @@ void Host::init(int world_rank, int world_size) {
         // Check if this data is up to date requested data
         bool inside_current_region;
         {
-            std::lock_guard<std::mutex> lock(big_tile_lock);
+            std::lock_guard<std::mutex> lock(current_big_tile_lock);
             inside_current_region = current_big_tile.contains(rendered_region.tlX, rendered_region.tlY,
                                                               rendered_region.brX, rendered_region.brY,
                                                               rendered_region.zoom);
@@ -450,10 +460,12 @@ void Host::init(int world_rank, int world_size) {
         }
         // copy the tiles from worker to available_tiles
         auto tiles = rendered_region.getTiles();
-        for (std::vector<int>::size_type i = 0; i != tiles.size(); i++) {
-            Tile t = tiles.at(i);
-            std::lock_guard<std::mutex> lock(available_tiles_lock[t]);
-            available_tiles[t] = tile_data.at(i);
+        {
+            std::lock_guard<std::mutex> lock(available_tiles_lock);
+            for (std::vector<int>::size_type i = 0; i != tiles.size(); i++) {
+                Tile t = tiles.at(i);
+                available_tiles[t] = tile_data.at(i);
+            }
         }
         std::cout << "added " << tiles.size() << " tiles to available_tiles" << std::endl;
         Host::answer_requests(rendered_region);

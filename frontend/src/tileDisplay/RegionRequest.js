@@ -1,12 +1,15 @@
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
-const tileSize = 128;
+const tileSize = 256;
 const balancer = 'naive';
 
 function regionRequest(map) {
   let bounds = map.getPixelBounds();
   let zoom = map.getZoom();
+  // if (zoom !== 0) {
+    // zoom += 1;
+  // }
   // aka top left
   let tl = new Point(
     Math.floor(bounds.min.x / tileSize),
@@ -28,7 +31,7 @@ function regionRequest(map) {
   );
   let url =
     'http://localhost:8080/region?' +
-    '&zoom=' +
+    'zoom=' +
     zoom +
     '&topLeftX=' +
     tl.x +
@@ -37,13 +40,13 @@ function regionRequest(map) {
     '&bottomRightX=' +
     br.x +
     '&bottomRightY=' +
-    br.y +
+    (br.y -1) +
     '&balancer=' +
     balancer;
   console.log(url);
   fetch(url, {
     method: 'GET',
-      mode: "cors",
+    mode: 'cors',
     timeout: 1500
   })
     .then(response => response.json())
@@ -76,7 +79,7 @@ function unproject(x, y, zoom, localX, localY, size) {
 }
 
 /**
- * Models a 2D Point
+ * Models a 3D Point
  */
 class Point {
   constructor(x, y, z) {

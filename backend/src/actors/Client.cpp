@@ -12,6 +12,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <cstring>
 
 void Client::init(int world_rank, int world_size) {
     Fractal *f = new Mandelbrot();
@@ -21,28 +22,33 @@ void Client::init(int world_rank, int world_size) {
     MPI_Send((const void *) &test, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
 
     bool loopFlag = false;
-    Region region;
+    Region region, newRegion;
     MPI_Request request;
     int flag;
     MPI_Status status;
     // Recieve instructions for computation
     std::cout << "Worker " << world_rank << " is ready to receive Data." << std::endl;
-    MPI_Irecv(&region, sizeof(Region), MPI_BYTE, 0, 1, MPI_COMM_WORLD, &request); // Listen for a region asynchronously
+    MPI_Irecv(&newRegion, sizeof(Region), MPI_BYTE, 0, 1, MPI_COMM_WORLD, &request); // Listen for a region asynchronously
     // Start with actual work of this worker
     while (true) {
         MPI_Test(&request, &flag, &status);
         if (flag != 0) {
-            // Recieve instructions for computation
-            std::cout << "Worker " << world_rank << " is listening during computation." << std::endl;
-            MPI_Irecv(&region, sizeof(Region), MPI_BYTE, 0, 1, MPI_COMM_WORLD,
-                      &request); // Listen for a region asynchronously
-
+            // Set current region to newRegion, copy value explicitly (solve more beautiful if you want to)
+            std::memcpy(&region, &newRegion, sizeof(Region));
             // Debug Output
             std::cout << "Worker " << world_rank << " received data: TopLeft: (" << region.tlX << ", " << region.tlY
                       << ", "
                       << region.zoom
                       << ") ->  BottomRight: (" << region.brX << ", " << region.brY << ", " << region.zoom
                       << ") MaxIteration: " << region.maxIteration << std::endl;
+
+            // Reset loop flag
+            loopFlag = false;
+
+            // Recieve instructions for computation
+            std::cout << "Worker " << world_rank << " is listening during computation." << std::endl;
+            MPI_Irecv(&newRegion, sizeof(Region), MPI_BYTE, 0, 1, MPI_COMM_WORLD,
+                      &request); // Listen for a region asynchronously => store inside newRegion
 
             // Execute computations
             std::vector<Tile> tiles = region.getTiles();

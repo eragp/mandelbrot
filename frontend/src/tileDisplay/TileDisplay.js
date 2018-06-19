@@ -102,8 +102,14 @@ const renderLeaflet = () => {
     // otherwise we get precision errors.
     maxZoom: 32,
     // center: [0, 0],
-    zoom: 3
+    zoom:3 
   });
+  map.on({
+    // load: () => request(map),
+    // move: () => request(map),
+    // zoom: () => request(map),
+    // moveend: () => request(map),
+  })
   // add event listeners to the map for region requests
   let layer = L.gridLayer.mandelBrotLayer();
   layer.on({
