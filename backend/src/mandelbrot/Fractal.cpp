@@ -4,7 +4,8 @@ const double boundX = 4;
 const double boundY = 4;
 
 /**
- * unproject maps form tile cooridate space to the comples plane.
+ * unprojects from Tile coordinate space to the complex plane.
+ *
  */
 long double unproject(long x, long zoom, double bound, long local, long size) {
     if (size == 0) {
