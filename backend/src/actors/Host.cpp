@@ -41,7 +41,7 @@ std::mutex Host::request_dictionary_lock;
 
 // Store for the current big tile
 Region Host::current_big_tile;
-std::mutex Host::big_tile_lock;
+std::mutex Host::current_big_tile_lock;
 
 // And the subdivided regions
 // Region *Host::regions;
@@ -101,7 +101,7 @@ void Host::answer_requests(Region rendered_region) {
     // is the region still the requested one?
     bool inside_current_region;
     {
-        std::lock_guard<std::mutex> lock(big_tile_lock);
+        std::lock_guard<std::mutex> lock(current_big_tile_lock);
         inside_current_region = current_big_tile.contains(rendered_region.tlX, rendered_region.tlY,
                                                           rendered_region.brX, rendered_region.brY,
                                                           rendered_region.zoom);
@@ -174,7 +174,7 @@ void Host::handle_get_tile(http_request request) {
         // Check if this tile is still going to be answered
         /*bool inside_current_region;
         {
-            std::lock_guard<std::mutex> lock(big_tile_lock);
+            std::lock_guard<std::mutex> lock(current_big_tile_lock);
             inside_current_region = current_big_tile.contains(requested_tile.x, requested_tile.y,
                                        requested_tile.x, requested_tile.y,
                                        requested_tile.zoom);
@@ -259,7 +259,7 @@ void Host::handle_get_region(http_request request) {
         region.maxIteration = maxIteration;
 
         {
-            std::lock_guard<std::mutex> lock(big_tile_lock);
+            std::lock_guard<std::mutex> lock(current_big_tile_lock);
             current_big_tile = region;
         }
 
@@ -314,27 +314,31 @@ void Host::handle_get_region(http_request request) {
 
 
         // Throw away all requests inside requested_tiles, that are not inside this region
-        for (auto requested_tile = request_dictionary.begin();
-             requested_tile != request_dictionary.end(); requested_tile++) {
-            Tile key = requested_tile->first;
-            bool inside_current_region;
-            {
-                std::lock_guard<std::mutex> lock(big_tile_lock);
-                inside_current_region = current_big_tile.contains(key.x, key.y,
-                                                                  key.x, key.y,
-                                                                  key.zoom);
-            }
-            if (!inside_current_region) {
-                std::cerr << "Host: Tile not in current region ("
-                          << key.x << ", " << key.y << ", " << key.zoom << ")"
-                          << std::endl;
-                auto requests = requested_tile->second;
-                for (auto request : requests) {
-                    answer_request_error(request, "Tile not in current reqion");
+        {
+            std::lock_guard<std::mutex> lock1(request_dictionary_lock);
+            std::lock_guard<std::mutex> lock2(current_big_tile_lock);
+            for (auto requested_tile = request_dictionary.begin();
+                requested_tile != request_dictionary.end(); requested_tile++) {
+                Tile key = requested_tile->first;
+                bool inside_current_region = current_big_tile.contains(key.x, key.y,
+                                                                key.x, key.y,
+                                                                key.zoom);
+                if (!inside_current_region) {
+                    std::cerr << "Host: Tile not in current region ("
+                            << key.x << ", " << key.y << ", " << key.zoom << ")"
+                            << std::endl;
+                    auto requests = requested_tile->second;
+                    for (auto request : requests) {
+                        answer_request_error(request, "Tile not in current reqion");
+                    }
+                    request_dictionary.erase(key);
                 }
-                request_dictionary.erase(key);
             }
         }
+    }
+    else {
+        std::cerr << "Host: Invalid region request: " << request.to_string() 
+                          << std::endl;
     }
 }
 
@@ -422,7 +426,7 @@ void Host::init(int world_rank, int world_size) {
         // Check if this data is up to date requested data
         bool inside_current_region;
         {
-            std::lock_guard<std::mutex> lock(big_tile_lock);
+            std::lock_guard<std::mutex> lock(current_big_tile_lock);
             inside_current_region = current_big_tile.contains(rendered_region.tlX, rendered_region.tlY,
                                                               rendered_region.brX, rendered_region.brY,
                                                               rendered_region.zoom);

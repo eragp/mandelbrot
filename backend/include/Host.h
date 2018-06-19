@@ -33,7 +33,7 @@ private:
 
     // Store for the current big tile
     static Region current_big_tile;
-    static std::mutex big_tile_lock;
+    static std::mutex current_big_tile_lock;
     // And for the split up regions
 
     // Keeps track of all available cores
