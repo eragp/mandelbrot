@@ -31,7 +31,7 @@ using namespace web::http::experimental::listener;
 #define TRACE(msg) std::wcout << msg
 #define TRACE_ACTION(a, k, v) std::wcout << a << L" (" << k << L", " << v << L")\n"
 
-const int default_res = 128;
+const int default_res = 256;
 // Init values with some arbitrary value
 int Host::maxIteration = 200;
 int Host::world_size = 0;
@@ -146,7 +146,7 @@ void Host::answer_requests(Region rendered_region) {
  * This method is responsible to create the identifier for the response. It's not about new computation requests.
  */
 void Host::handle_get_tile(http_request request) {
-    TRACE(U("\nhandle GET tile\n"));
+    std::cout << "handle GET tile request" << std::endl;
     // Expect coordinates from query
     auto data = uri::split_query(request.request_uri().query());
     auto it_x = data.find(U("x")),
@@ -195,6 +195,8 @@ void Host::handle_get_tile(http_request request) {
             auto it_available = available_tiles.find(requested_tile);
             answerable = !(it_available == available_tiles.end());
             if (answerable) {
+//                std::cout << "answering " << requested_tile.x << ", " << requested_tile.y << ", "
+//                          << requested_tile.zoom << std::endl;
                 answer_request(request, requested_tile, available_tiles[requested_tile]);
             }
         }
@@ -219,7 +221,7 @@ void Host::handle_get_tile(http_request request) {
  * TODO lock this method if necessary
  */
 void Host::handle_get_region(http_request request) {
-    std::cout << "Handle GET region" << std::endl;
+    std::cout << "handle GET region request" << std::endl;
     // Expect coordinates from query
     auto data = uri::split_query(request.request_uri().query());
     auto it_zoom = data.find(U("zoom")),
@@ -268,7 +270,7 @@ void Host::handle_get_region(http_request request) {
         // DEBUG
         std::cout << "Balancer Output:" << std::endl;
         for (int i = 0; i < nodeCount; i++) {
-            std::cout << "Tile " << i << ": "
+            std::cout << "Region " << i << ": "
                       << "(" << blocks[i].tlX << ", " << blocks[i].brX
                       << ")" << std::endl;
         }

@@ -91,7 +91,7 @@ const renderLeaflet = () => {
   let bounds = [[-256, -256], [256, 256]];
   L.gridLayer.mandelBrotLayer = () =>
     new L.GridLayer.MandelbrotLayer({
-      tileSize: 128, // in px
+      tileSize: 256, // in px
       bounds: bounds,
       keepBuffer: 16
     });
