@@ -28,7 +28,7 @@ function regionRequest(map) {
   );
   let url =
     'http://localhost:8080/region?' +
-    '&zoom=' +
+    'zoom=' +
     zoom +
     '&topLeftX=' +
     tl.x +

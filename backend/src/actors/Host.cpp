@@ -37,7 +37,7 @@ int Host::maxIteration = 200;
 int Host::world_size = 0;
 
 std::map<Tile, std::vector<web::http::http_request>> Host::request_dictionary;
-std::map<Tile, std::mutex> Host::request_dictionary_lock;
+std::mutex Host::request_dictionary_lock;
 
 // Store for the current big tile
 Region Host::current_big_tile;
@@ -112,10 +112,10 @@ void Host::answer_requests(Region rendered_region) {
         return;
     }
     std::vector<Tile> tiles = rendered_region.getTiles();
+    std::lock_guard<std::mutex> lock1(request_dictionary_lock);
     for (auto const &tile : tiles) {
-        std::lock_guard<std::mutex> lock1(available_tiles_lock[tile]);
+        std::lock_guard<std::mutex> lock2(available_tiles_lock[tile]);
         TileData data = available_tiles[tile];
-        std::lock_guard<std::mutex> lock2(request_dictionary_lock[tile]);
         // iterate over all requests in the queue and check if they can be answered
         // Because we remove elements from this vector in time it is important
         // that we iterate backwards
@@ -205,7 +205,7 @@ void Host::handle_get_tile(http_request request) {
                       << " y:" << y
                       << " z:" << z
                       << " size:" << size << std::endl;
-            std::lock_guard<std::mutex> lock(request_dictionary_lock[requested_tile]);
+            std::lock_guard<std::mutex> lock(request_dictionary_lock);
             request_dictionary[requested_tile].push_back(request);
         }
     } else {

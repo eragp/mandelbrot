@@ -29,7 +29,7 @@ private:
     static int world_size;
     // Dictionary for storing requests for a given tile
     static std::map<Tile, std::vector<web::http::http_request>> request_dictionary;
-    static std::map<Tile, std::mutex> request_dictionary_lock;
+    static std::mutex request_dictionary_lock;
 
     // Store for the current big tile
     static Region current_big_tile;
