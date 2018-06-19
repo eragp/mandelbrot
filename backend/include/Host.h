@@ -46,7 +46,7 @@ private:
 
     // And answers
     static std::map<Tile, TileData> available_tiles;
-    static std::map<Tile, std::mutex> available_tiles_lock;
+    static std::mutex available_tiles_lock;
 
     //Store send MPI Requests
     static std::map<int, Region> transmitted_regions;
