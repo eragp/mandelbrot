@@ -8,6 +8,7 @@ import './TileDisplay.css';
 import './Shader';
 import Shader from './Shader';
 import request from './RegionRequest';
+import fetch from "../misc/fetchTimeout";
 
 class TileDisplay extends Component {
   componentDidMount() {
@@ -23,7 +24,6 @@ const renderLeaflet = () => {
   L.GridLayer.MandelbrotLayer = L.GridLayer.extend({
     createTile: function(coords, done) {
       var tile = L.DomUtil.create('canvas', 'leaflet-tile');
-      // let tile = document.createElement('div');
       var size = this.getTileSize();
       tile.width = size.x;
       tile.height = size.y;
@@ -38,15 +38,15 @@ const renderLeaflet = () => {
         '&size=' +
         size.x;
       // setTimeout(() => {
-      //   // let ctx = tile.getContext('2d');
-      //   // ctx.clearRect(0, 0, size.x, size.y);
-      //   // for (let x = 0; x < size.x; x += 4) {
-      //   //   for (let y = 0; y < size.y; y += 4) {
-      //   //     let v = x ^ y;
-      //   //     ctx.fillStyle = 'rgba(' + v + ',' + v + ',' + v + ',' + 255 + ')';
-      //   //     ctx.fillRect(x, y, 4, 4);
-      //   //   }
-      //   // }
+      //   let ctx = tile.getContext('2d');
+      //   ctx.clearRect(0, 0, size.x, size.y);
+      //   for (let x = 0; x < size.x; x += 4) {
+      //     for (let y = 0; y < size.y; y += 4) {
+      //       let v = x ^ y;
+      //       ctx.fillStyle = 'rgba(' + v + ',' + v + ',' + v + ',' + 255 + ')';
+      //       ctx.fillRect(x, y, 4, 4);
+      //     }
+      //   }
       //   tile.style.outline = '1px solid red';
       //   tile.innerHTML = [coords.x, coords.y, coords.z].join(', ');
       //   done(null, tile);
@@ -55,8 +55,7 @@ const renderLeaflet = () => {
       fetch(url, {
         method: 'GET',
         mode: 'cors',
-        timeout: 1500
-      })
+      }, 100)
         .then(response => response.json())
         .then(json => {
           let rank = json['rank'];
@@ -96,18 +95,23 @@ const renderLeaflet = () => {
     // otherwise we get precision errors.
     maxZoom: 32,
     // center: [0, 0],
-    zoom: 0
+    zoom:3 
   });
   // add event listeners to the map for region requests
-  map.on({
+  // map.on({
     // zoom: () => request(map),
     // load: () => request (map),
     // move: () => request (map),
+    // tileloadstart: () => request(map)
     // zoomstart: () => request(map)
-    moveend: () => request(map)
-  });
-  map.addLayer(L.gridLayer.mandelBrotLayer());
-  map.setView([0,0])
+    // load: () => request(map)
+  // });
+  let layer = L.gridLayer.mandelBrotLayer();
+  layer.on({
+    loading: () => request(map)
+  })
+  map.addLayer(layer);
+  map.setView([0, 0]);
 };
 
 export default TileDisplay;

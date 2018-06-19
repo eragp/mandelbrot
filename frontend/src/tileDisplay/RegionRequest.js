@@ -5,6 +5,10 @@ const tileSize = 128;
 const balancer = 'naive';
 
 function regionRequest(map) {
+  // if (map.== undefined) {
+  //   console.log("map not yet initialized");
+  //   return;
+  // }
   let bounds = map.getPixelBounds();
   let zoom = map.getZoom();
   // aka top left
