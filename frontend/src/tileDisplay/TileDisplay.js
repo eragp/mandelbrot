@@ -8,7 +8,8 @@ import './TileDisplay.css';
 import './Shader';
 import Shader from './Shader';
 import request from './RegionRequest';
-
+// overwrite fetch to add timeout functionality
+// import fetch from '../misc/fetchTimeout';
 class TileDisplay extends Component {
   componentDidMount() {
     renderLeaflet();
@@ -51,12 +52,17 @@ const renderLeaflet = () => {
       //   tile.innerHTML = [coords.x, coords.y, coords.z].join(', ');
       //   done(null, tile);
       // }, 10);
-
-      fetch(url, {
-        method: 'GET',
-        mode: 'cors',
-        timeout: 1500
-      })
+      // timeout(
+      //   100,
+      //   fetch(url, {
+      //     method: 'GET',
+      //     mode: 'cors'
+      //   })
+      // )
+        fetch(url, {
+          method: 'GET',
+          mode: 'cors'
+        })
         .then(response => response.json())
         .then(json => {
           let rank = json['rank'];
@@ -75,7 +81,7 @@ const renderLeaflet = () => {
           done(null, tile);
         })
         .catch(error => {
-          // console.error(error);
+          console.error(error);
           done(error, tile);
         });
       return tile;
@@ -96,18 +102,22 @@ const renderLeaflet = () => {
     // otherwise we get precision errors.
     maxZoom: 32,
     // center: [0, 0],
-    zoom: 0
+    zoom: 3
   });
   // add event listeners to the map for region requests
-  map.on({
-    // zoom: () => request(map),
-    // load: () => request (map),
-    // move: () => request (map),
-    // zoomstart: () => request(map)
-    moveend: () => request(map)
+  let layer = L.gridLayer.mandelBrotLayer();
+  layer.on({
+    loading: () => request(map)
   });
-  map.addLayer(L.gridLayer.mandelBrotLayer());
-  map.setView([0,0])
+  map.addLayer(layer);
+  map.setView([0, 0]);
 };
+
+function timeout(ms, promise) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => reject(new Error('timeout')), ms);
+    promise.then(resolve, reject);
+  });
+}
 
 export default TileDisplay;
