@@ -37,7 +37,7 @@ int Host::maxIteration = 200;
 int Host::world_size = 0;
 
 std::map<Tile, std::vector<web::http::http_request>> Host::request_dictionary;
-std::map<Tile, std::mutex> Host::request_dictionary_lock;
+std::mutex Host::request_dictionary_lock;
 
 // Store for the current big tile
 Region Host::current_big_tile;
@@ -56,7 +56,7 @@ std::mutex Host::requested_regions_lock;
 
 // Manage available = already computed regions
 std::map<Tile, TileData> Host::available_tiles;
-std::map<Tile, std::mutex> Host::available_tiles_lock;
+std::mutex Host::available_tiles_lock;
 
 // Store send MPI Requests
 std::map<int, Region> Host::transmitted_regions;
@@ -75,8 +75,8 @@ void answer_request(http_request request, Tile tile, TileData data) {
     json::value answer;
     answer[U("rank")] = json::value(data.world_rank);
     json::value tile_json = json::value();
-    for (unsigned int y = 0; y < tile.resY; y++) {
-        for (unsigned int x = 0; x < tile.resX; x++) {
+    for (unsigned int y = 0; y < (unsigned int) tile.resY; y++) {
+        for (unsigned int x = 0; x < (unsigned int) tile.resX; x++) {
             unsigned int index = y * tile.resX + x;
             tile_json[index] = data.n[index];
         }
@@ -112,10 +112,10 @@ void Host::answer_requests(Region rendered_region) {
         return;
     }
     std::vector<Tile> tiles = rendered_region.getTiles();
+    std::lock_guard<std::mutex> lock1(request_dictionary_lock);
+    std::lock_guard<std::mutex> lock2(available_tiles_lock);
     for (auto const &tile : tiles) {
-        std::lock_guard<std::mutex> lock1(available_tiles_lock[tile]);
         TileData data = available_tiles[tile];
-        std::lock_guard<std::mutex> lock2(request_dictionary_lock[tile]);
         // iterate over all requests in the queue and check if they can be answered
         // Because we remove elements from this vector in time it is important
         // that we iterate backwards
@@ -189,25 +189,28 @@ void Host::handle_get_tile(http_request request) {
         }*/
 
         // Store or answer requests
-        bool answerable;
         {
-            std::lock_guard<std::mutex> lock(available_tiles_lock[requested_tile]);
+            // Lock important data structures
+            // IMPORTANT: same order as everywhere else where we lock those two
+            std::lock_guard<std::mutex> lock1(request_dictionary_lock);
+            std::lock_guard<std::mutex> lock2(available_tiles_lock);
             auto it_available = available_tiles.find(requested_tile);
-            answerable = !(it_available == available_tiles.end());
+            bool answerable = !(it_available == available_tiles.end());
             if (answerable) {
                 answer_request(request, requested_tile, available_tiles[requested_tile]);
             }
+            else{
+                std::cout << "tile not found in available tiles" << std::endl;
+                std::cout << "Storing Request at"
+                        << " x:" << x
+                        << " y:" << y
+                        << " z:" << z
+                        << " size:" << size << std::endl;
+                
+                request_dictionary[requested_tile].push_back(request);
+            }
         }
-        if (!answerable) {
-            std::cout << "tile not found in available tiles" << std::endl;
-            std::cout << "Storing Request at"
-                      << " x:" << x
-                      << " y:" << y
-                      << " z:" << z
-                      << " size:" << size << std::endl;
-            std::lock_guard<std::mutex> lock(request_dictionary_lock[requested_tile]);
-            request_dictionary[requested_tile].push_back(request);
-        }
+
     } else {
         TRACE(U("Not enough arguments\n"));
     }
@@ -338,7 +341,7 @@ void Host::handle_get_region(http_request request) {
 void Host::init(int world_rank, int world_size) {
     Host::world_size = world_size;
     int cores = world_size;
-    maxIteration = 3000;
+    maxIteration = 200;
     std::cout << "Host init " << world_size << std::endl;
 
     // REST
@@ -448,10 +451,12 @@ void Host::init(int world_rank, int world_size) {
         }
         // copy the tiles from worker to available_tiles
         auto tiles = rendered_region.getTiles();
-        for (std::vector<int>::size_type i = 0; i != tiles.size(); i++) {
-            Tile t = tiles.at(i);
-            std::lock_guard<std::mutex> lock(available_tiles_lock[t]);
-            available_tiles[t] = tile_data.at(i);
+        {   
+            std::lock_guard<std::mutex> lock(available_tiles_lock);
+            for (std::vector<int>::size_type i = 0; i != tiles.size(); i++) {
+                Tile t = tiles.at(i);
+                available_tiles[t] = tile_data.at(i);
+            }
         }
         std::cout << "added " << tiles.size() << " tiles to available_tiles" << std::endl;
         Host::answer_requests(rendered_region);
