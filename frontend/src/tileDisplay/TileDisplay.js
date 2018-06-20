@@ -38,19 +38,23 @@ const renderLeaflet = () => {
         coords.z +
         '&size=' +
         size.x;
+
+      registerTile(coords, data => {
+        console.log(data);
+        let ctx = tile.getContext('2d');
+        ctx.clearRect(0, 0, size.x, size.y);
+        for (let x = 0; x < size.x; x += 1) {
+          for (let y = 0; y < size.y; y += 1) {
+            let v = x ^ y;
+            ctx.fillStyle = 'rgba(' + v + ',' + v + ',' + v + ',' + 255 + ')';
+            ctx.fillRect(x, y, 1, 1);
+          }
+        }
+        tile.style.outline = '1px solid red';
+        tile.innerHTML = [coords.x, coords.y, coords.z].join(', ');
+        done(null, tile);
+      });
       // setTimeout(() => {
-      //   // let ctx = tile.getContext('2d');
-      //   // ctx.clearRect(0, 0, size.x, size.y);
-      //   // for (let x = 0; x < size.x; x += 4) {
-      //   //   for (let y = 0; y < size.y; y += 4) {
-      //   //     let v = x ^ y;
-      //   //     ctx.fillStyle = 'rgba(' + v + ',' + v + ',' + v + ',' + 255 + ')';
-      //   //     ctx.fillRect(x, y, 4, 4);
-      //   //   }
-      //   // }
-      //   tile.style.outline = '1px solid red';
-      //   tile.innerHTML = [coords.x, coords.y, coords.z].join(', ');
-      //   done(null, tile);
       // }, 10);
       // timeout(
       //   100,
@@ -59,31 +63,31 @@ const renderLeaflet = () => {
       //     mode: 'cors'
       //   })
       // )
-        fetch(url, {
-          method: 'GET',
-          mode: 'cors'
-        })
-        .then(response => response.json())
-        .then(json => {
-          let rank = json['rank'];
-          let tile_values = json['tile'];
-          // console.log(json);
-          let ctx = tile.getContext('2d');
-          ctx.clearRect(0, 0, size.x, size.y);
-          for (let x = 0; x < size.x; x++) {
-            for (let y = 0; y < size.y; y++) {
-              let [r, g, b] = Shader.default(tile_values[x + y * size.x], 200);
-              ctx.fillStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + 255 + ')';
-              ctx.fillRect(x, y, 1, 1);
-            }
-          }
-          // tile.style.outline = '1px solid red';
-          done(null, tile);
-        })
-        .catch(error => {
-          console.error(error);
-          done(error, tile);
-        });
+      // fetch(url, {
+      //   method: 'GET',
+      //   mode: 'cors'
+      // })
+      //   .then(response => response.json())
+      //   .then(json => {
+      //     let rank = json['rank'];
+      //     let tile_values = json['tile'];
+      //     // console.log(json);
+      //     let ctx = tile.getContext('2d');
+      //     ctx.clearRect(0, 0, size.x, size.y);
+      //     for (let x = 0; x < size.x; x++) {
+      //       for (let y = 0; y < size.y; y++) {
+      //         let [r, g, b] = Shader.default(tile_values[x + y * size.x], 200);
+      //         ctx.fillStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + 255 + ')';
+      //         ctx.fillRect(x, y, 1, 1);
+      //       }
+      //     }
+      //     // tile.style.outline = '1px solid red';
+      //     done(null, tile);
+      //   })
+      //   .catch(error => {
+      //     console.error(error);
+      //     done(error, tile);
+      //   });
       return tile;
     }
   });
@@ -102,28 +106,57 @@ const renderLeaflet = () => {
     // otherwise we get precision errors.
     maxZoom: 32,
     // center: [0, 0],
-    zoom:3 
+    zoom: 3
   });
   map.on({
     // load: () => request(map),
     // move: () => request(map),
     // zoom: () => request(map),
-    // moveend: () => request(map),
-  })
+    moveend: () => request(map),
+  });
   // add event listeners to the map for region requests
   let layer = L.gridLayer.mandelBrotLayer();
   layer.on({
-    loading: () => request(map)
+    // loading: () => request(map)
   });
   map.addLayer(layer);
   map.setView([0, 0]);
 };
 
-function timeout(ms, promise) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => reject(new Error('timeout')), ms);
-    promise.then(resolve, reject);
-  });
+// function timeout(ms, promise) {
+//   return new Promise((resolve, reject) => {
+//     setTimeout(() => reject(new Error('timeout')), ms);
+//     promise.then(resolve, reject);
+//   });
+// }
+
+const callbacks = new Map();
+
+function registerTile(coords, draw) {
+  let promise = null;
+  const render = data => {
+    promise = new Promise((resolve, error) => {
+      try {
+        draw(data);
+        resolve();
+      } catch (err) {
+        error(err);
+      }
+    });
+  };
+  callbacks.set(coordsToString(coords), render);
+  return promise;
 }
+
+function coordsToString(coords) {
+  return [coords.x, coords.y, coords.z].join(', ');
+}
+
+setTimeout(() => {
+  for (let render of callbacks.values()) {
+    render('this is a test');
+  }
+  callbacks.clear();
+}, 100);
 
 export default TileDisplay;
