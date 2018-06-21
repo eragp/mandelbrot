@@ -41,18 +41,18 @@ function regionRequest(map) {
     '&balancer=' +
     balancer;
   console.log(url);
-  fetch(url, {
-    method: 'GET',
-    mode: 'cors',
-    timeout: 1500
-  })
-    .then(response => response.json())
-    .then(json => {
-      console.log(json);
-    })
-    .catch(error => {
-      console.log(error);
-    });
+  // fetch(url, {
+  //   method: 'GET',
+  //   mode: 'cors',
+  //   timeout: 1500
+  // })
+  //   .then(response => response.json())
+  //   .then(json => {
+  //     console.log(json);
+  //   })
+  //   .catch(error => {
+  //     console.log(error);
+  //   });
 }
 
 /**

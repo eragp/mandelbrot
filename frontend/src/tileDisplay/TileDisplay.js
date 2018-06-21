@@ -8,6 +8,8 @@ import './TileDisplay.css';
 import './Shader';
 import Shader from './Shader';
 import request from './RegionRequest';
+import { register, render } from './Callback';
+
 // overwrite fetch to add timeout functionality
 // import fetch from '../misc/fetchTimeout';
 class TileDisplay extends Component {
@@ -37,9 +39,7 @@ function renderLeaflet() {
         coords.z +
         '&size=' +
         size.x;
-
-      registerTile(coords, data => {
-        console.log(data);
+      const drawTile = data => {
         let ctx = tile.getContext('2d', { alpha: false });
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, tile.width, tile.height);
@@ -54,7 +54,8 @@ function renderLeaflet() {
         tile.style.outline = '1px solid red';
         ctx.putImageData(imgData, 0, 0);
         done(null, tile);
-      });
+      };
+      register(coords, drawTile);
       return tile;
     }
   });
@@ -88,47 +89,18 @@ function renderLeaflet() {
     // load: () => request(map),
     // move: () => request(map),
     // zoom: () => request(map),
-    moveend: () => request(map)
+    moveend: () => {
+      request(map);
+      render();
+    }
   });
   // add event listeners to the map for region requests
   let layer = L.gridLayer.mandelBrotLayer();
-  layer.on({
-    // loading: () => request(map)
-  });
+  // layer.on({
+  //   load: () => render()
+  // });
   map.addLayer(layer);
   map.setView([0, 0]);
 }
-
-/*
- * this map stores callbacks to render all the tiles requested for leaflet
- */
-const callbacks = new Map();
-
-function registerTile(coords, draw) {
-  let promise = null;
-  const render = data => {
-    promise = new Promise((resolve, error) => {
-      try {
-        draw(data);
-        resolve();
-      } catch (err) {
-        error(err);
-      }
-    });
-  };
-  callbacks.set(coordsToString(coords), render);
-  return promise;
-}
-
-function coordsToString(coords) {
-  return [coords.x, coords.y, coords.z].join(', ');
-}
-
-setTimeout(() => {
-  for (let render of callbacks.values()) {
-    render('this is a test');
-  }
-  callbacks.clear();
-}, 100);
 
 export default TileDisplay;
