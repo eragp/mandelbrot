@@ -29,17 +29,7 @@ function renderLeaflet() {
       var size = this.getTileSize();
       tile.width = size.x;
       tile.height = size.y;
-      var url =
-        'http://localhost:8080/mandelbrot?' +
-        'x=' +
-        coords.x +
-        '&y=' +
-        coords.y +
-        '&z=' +
-        coords.z +
-        '&size=' +
-        size.x;
-      const drawTile = data => {
+      const drawTile = tileData => {
         let ctx = tile.getContext('2d', { alpha: false });
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, tile.width, tile.height);
@@ -79,16 +69,13 @@ function renderLeaflet() {
 
   var map = L.map('viewer', {
     crs: L.CRS.Simple,
-    // minZoom: 0,
     // otherwise we get precision errors.
     maxZoom: 32,
-    // center: [0, 0],
     zoom: 3
   });
   map.on({
-    // load: () => request(map),
-    // move: () => request(map),
-    // zoom: () => request(map),
+    // TOOD: remove this callback, it fires render way too often
+    move: () => render(),
     moveend: () => {
       request(map);
       render();
