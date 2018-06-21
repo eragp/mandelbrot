@@ -20,11 +20,10 @@ class TileDisplay extends Component {
   }
 }
 
-const renderLeaflet = () => {
+function renderLeaflet() {
   L.GridLayer.MandelbrotLayer = L.GridLayer.extend({
     createTile: function(coords, done) {
       var tile = L.DomUtil.create('canvas', 'leaflet-tile');
-      // let tile = document.createElement('div');
       var size = this.getTileSize();
       tile.width = size.x;
       tile.height = size.y;
@@ -41,56 +40,33 @@ const renderLeaflet = () => {
 
       registerTile(coords, data => {
         console.log(data);
-        let ctx = tile.getContext('2d');
-        ctx.clearRect(0, 0, size.x, size.y);
+        let ctx = tile.getContext('2d', { alpha: false });
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, tile.width, tile.height);
+
+        let imgData = ctx.createImageData(size.x, size.y);
         for (let x = 0; x < size.x; x += 1) {
           for (let y = 0; y < size.y; y += 1) {
             let v = x ^ y;
-            ctx.fillStyle = 'rgba(' + v + ',' + v + ',' + v + ',' + 255 + ')';
-            ctx.fillRect(x, y, 1, 1);
+            drawPixel(imgData, x, y, v, v, v, 255);
           }
         }
         tile.style.outline = '1px solid red';
-        tile.innerHTML = [coords.x, coords.y, coords.z].join(', ');
+        ctx.putImageData(imgData, 0, 0);
         done(null, tile);
       });
-      // setTimeout(() => {
-      // }, 10);
-      // timeout(
-      //   100,
-      //   fetch(url, {
-      //     method: 'GET',
-      //     mode: 'cors'
-      //   })
-      // )
-      // fetch(url, {
-      //   method: 'GET',
-      //   mode: 'cors'
-      // })
-      //   .then(response => response.json())
-      //   .then(json => {
-      //     let rank = json['rank'];
-      //     let tile_values = json['tile'];
-      //     // console.log(json);
-      //     let ctx = tile.getContext('2d');
-      //     ctx.clearRect(0, 0, size.x, size.y);
-      //     for (let x = 0; x < size.x; x++) {
-      //       for (let y = 0; y < size.y; y++) {
-      //         let [r, g, b] = Shader.default(tile_values[x + y * size.x], 200);
-      //         ctx.fillStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + 255 + ')';
-      //         ctx.fillRect(x, y, 1, 1);
-      //       }
-      //     }
-      //     // tile.style.outline = '1px solid red';
-      //     done(null, tile);
-      //   })
-      //   .catch(error => {
-      //     console.error(error);
-      //     done(error, tile);
-      //   });
       return tile;
     }
   });
+
+  function drawPixel(imgData, x, y, r, g, b, a) {
+    let d = imgData.data;
+    let i = (x << 2) + ((y * imgData.width) << 2);
+    d[i] = r;
+    d[i + 1] = g;
+    d[i + 2] = b;
+    d[i + 3] = a;
+  }
   // bounds have to be a power of two
   let bounds = [[-256, -256], [256, 256]];
   L.gridLayer.mandelBrotLayer = () =>
@@ -112,7 +88,7 @@ const renderLeaflet = () => {
     // load: () => request(map),
     // move: () => request(map),
     // zoom: () => request(map),
-    moveend: () => request(map),
+    moveend: () => request(map)
   });
   // add event listeners to the map for region requests
   let layer = L.gridLayer.mandelBrotLayer();
@@ -121,15 +97,11 @@ const renderLeaflet = () => {
   });
   map.addLayer(layer);
   map.setView([0, 0]);
-};
+}
 
-// function timeout(ms, promise) {
-//   return new Promise((resolve, reject) => {
-//     setTimeout(() => reject(new Error('timeout')), ms);
-//     promise.then(resolve, reject);
-//   });
-// }
-
+/*
+ * this map stores callbacks to render all the tiles requested for leaflet
+ */
 const callbacks = new Map();
 
 function registerTile(coords, draw) {
