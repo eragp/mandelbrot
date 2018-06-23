@@ -2,6 +2,8 @@
 
 echo "Starting the Build Process"
 ## Docker ##
+# check for new base image
+docker pull rasaford/mandelbrot:latest
 # remove old images
 docker rmi $(docker images --filter "dangling=true" -q)
 docker rm $(docker ps -aq -f "status=exited")

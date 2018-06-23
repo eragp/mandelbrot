@@ -17,6 +17,8 @@ RUN update-alternatives --install /usr/bin/gfortran gfortran /usr/local/bin/gfor
     zlib1g-dev \
     libboost-all-dev \
     libssl-dev \
+    libcrypto++-dev \
+    libpthread-workqueue-dev \
     # mpich dependencies
     mpich \
     gfortran \
@@ -62,3 +64,13 @@ RUN wget -q -O - https://www.mpich.org/static/downloads/3.2.1/mpich-3.2.1.tar.gz
     && rm -rf mpi-tests \
     && rm -rf /var/lib/apt/lists/* /var/log/* /tmp/* \
     && echo "export PATH=\"$MPI_HOME/bin:\$PATH\"" >> /etc/bash.bashrc
+
+# install websocketpp v0.7.0
+RUN git clone --branch 0.7.0 https://github.com/zaphoyd/websocketpp.git websocketpp \
+    && cd websocketpp \
+    && mkdir build \
+    && cd build \
+    && cmake .. \
+    && make \
+    && make install \
+    && cd ../..
