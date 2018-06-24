@@ -487,7 +487,7 @@ void Host::init(int world_rank, int world_size) {
         std::cout << "Host: received from " << worker_rank << std::endl;
 
         // Check if this data is up to date requested data
-        bool inside_current_region;
+        /*bool inside_current_region;
         {
             std::lock_guard<std::mutex> lock(current_big_tile_lock);
             inside_current_region = current_big_tile.contains(rendered_region.tlX, rendered_region.tlY,
@@ -498,7 +498,7 @@ void Host::init(int world_rank, int world_size) {
         if (!inside_current_region) {
             std::cout << "Host: no longer interested in the rendered region" << std::endl;
             continue;
-        }
+        }*/
         std::cout << rendered_region.resX << ", " << rendered_region.resY << std::endl;
         // TODO don't copy data here
        std::vector<TileData> tile_data;
