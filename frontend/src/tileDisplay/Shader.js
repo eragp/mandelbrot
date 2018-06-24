@@ -7,7 +7,7 @@ class Shader {
   }
 
   static testPattern(x, y) {
-    return [x | y, x | y, x | y];
+    return [x ^ y, x ^ y, x ^ y];
   }
 }
 export default Shader;

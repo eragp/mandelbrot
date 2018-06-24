@@ -30,6 +30,7 @@ function renderLeaflet() {
       tile.width = size.x;
       tile.height = size.y;
       const drawTile = tileData => {
+        console.log(tileData);
         let ctx = tile.getContext('2d', { alpha: false });
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, tile.width, tile.height);
@@ -38,9 +39,10 @@ function renderLeaflet() {
         for (let x = 0; x < size.x; x += 1) {
           for (let y = 0; y < size.y; y += 1) {
             let v = x ^ y;
-            drawPixel(imgData, x, y, v, v, v, 255);
+            drawPixel(imgData, x, y, v, v, v);
           }
         }
+
         tile.style.outline = '1px solid red';
         ctx.putImageData(imgData, 0, 0);
         done(null, tile);
@@ -50,14 +52,15 @@ function renderLeaflet() {
     }
   });
 
-  function drawPixel(imgData, x, y, r, g, b, a) {
+  function drawPixel(imgData, x, y, r, g, b) {
     let d = imgData.data;
     let i = (x << 2) + ((y * imgData.width) << 2);
-    d[i] = r;
-    d[i + 1] = g;
-    d[i + 2] = b;
-    d[i + 3] = a;
+    d[i] = r; // red
+    d[i + 1] = g; // green
+    d[i + 2] = b; // blue
+    d[i + 3] = 255; // alpha
   }
+
   // bounds have to be a power of two
   let bounds = [[-256, -256], [256, 256]];
   L.gridLayer.mandelBrotLayer = () =>
@@ -74,7 +77,7 @@ function renderLeaflet() {
     zoom: 3
   });
   map.on({
-    // TOOD: remove this callback, it fires render way too often
+    // TODO: remove this callback, it fires render way too often
     move: () => render(),
     moveend: () => {
       request(map);
