@@ -61,7 +61,7 @@ private:
     static websocketpp::connection_hdl client;
     static void register_client(websocketpp::connection_hdl conn);
     static void deregister_client(websocketpp::connection_hdl conn);
-    static void send(TileData renderedRegion);
+    static void send(TileData data, Tile tile);
 };
 #endif
 

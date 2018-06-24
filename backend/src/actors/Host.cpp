@@ -378,25 +378,33 @@ void Host::deregister_client(websocketpp::connection_hdl hdl){
     // TODO maybe mock client or sth similar
 }
 
-void Host::send(TileData data){
+void Host::send(TileData data, Tile tile){
     // TODO send data of this region to the client
 
     // Create json value from returned
     json::value answer;
     answer[U("rank")] = json::value(data.world_rank);
     json::value tile_json = json::value();
-    for (unsigned int y = 0; y < (unsigned int) data.size; y++) {
-        for (unsigned int x = 0; x < (unsigned int) data.size; x++) {
-            unsigned int index = y * data.size + x;
-            tile_json[index] = data.n[index];
-        }
+    for (unsigned int index = 0; index < (unsigned int) data.size; index++) {
+        tile_json[index] = data.n[index];
     }
     answer[U("data")] = tile_json;
     answer[U("type")] = json::value("tile");
+
+    // Include region
+    json::value region_json = json::value();
+    region_json[U("x")] = tile.x;
+    region_json[U("y")] = tile.y;
+    //region_json[U("tlX")] = rendered_region.tlX;
+    //region_json[U("tlY")] = rendered_region.tlY;
+    region_json[U("resX")] = tile.resX;
+    region_json[U("resY")] = tile.resY;
+    region_json[U("zoom")] = tile.zoom;
+    region_json[U("maxIteration")] = tile.maxIteration;
+    answer[U("tile")] = region_json;
+
     utility::string_t data_string = answer.serialize();
-    websocketpp::server<websocketpp::config::asio>::connection_ptr conn = websocket_server.get_con_from_hdl(client);
-    conn->send(data_string.c_str());
-    //websocket_server.send(client, data_string.c_str(), websocketpp::frame::opcode::text);
+    websocket_server.send(client, data_string.c_str(), websocketpp::frame::opcode::text);
 }
 
 void Host::init(int world_rank, int world_size) {
@@ -483,17 +491,31 @@ void Host::init(int world_rank, int world_size) {
             continue;
         }
         std::cout << rendered_region.resX << ", " << rendered_region.resY << std::endl;
-        // copy the received data in std::vector to individual tiles
-
         // TODO don't copy data here
-        TileData data(worker_rank, rendered_region.getHeight() * rendered_region.getWidth());
-        // loop over every pixel and write received data to tiles
-        for (unsigned int y = 0; y < (unsigned int) rendered_region.getHeight(); y++) {
-            for (unsigned int x = 0; x < (unsigned int) rendered_region.getWidth(); x++) {
-                unsigned int index = y * rendered_region.getWidth() + x;
-                data.n[index] = worker_data.at(index);
+       std::vector<TileData> tile_data;
+        for (unsigned int i = 0;
+             i < static_cast<unsigned int>(rendered_region.getWidth() * rendered_region.getHeight()); i++) {
+            TileData data(worker_rank, rendered_region.resX * rendered_region.resY);
+            // loop over every pixel and write received data to tiles
+            for (unsigned int y = 0; y < (unsigned int) rendered_region.resY; y++) {
+                for (unsigned int x = 0; x < (unsigned int) rendered_region.resX; x++) {
+                    unsigned int block_offset = i * rendered_region.resX * rendered_region.resY;
+                    unsigned int index = y * rendered_region.resX + x;
+                    data.n[index] = worker_data.at(block_offset + index);
+                }
+            }
+
+            tile_data.push_back(data);
+        }
+        // copy the tiles from worker to available_tiles
+        auto tiles = rendered_region.getTiles();
+        {   
+            std::lock_guard<std::mutex> lock(available_tiles_lock);
+            for (std::vector<int>::size_type i = 0; i != tiles.size(); i++) {
+                Tile t = tiles.at(i);
+                Host::send(tile_data.at(i), t);
             }
         }
-        Host::send(data);
+
     }
 }
