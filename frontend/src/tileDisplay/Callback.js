@@ -7,9 +7,7 @@ const callbacks = new Map();
 // Web Socket setup
 const url = 'ws://localhost:9002';
 const socket = new WebSocket(url);//, 'mandelbrot');
-socket.onmessage = onWSMessage;
-
-function onWSMessage(event) {
+socket.onmessage = function (event) {
   let msg = JSON.parse(event.data);
   switch (msg.type) {
     case 'tile':
@@ -42,17 +40,6 @@ export const register = (coords, draw) => {
   callbacks.set(coordsToString(coords), render);
   console.log(coordsToString(coords));
   return promise;
-};
-/**
- * renders all available tiles
- */
-export const render = () => {
-  let data = 'this is a test';
-  console.log('rendering requested tiles');
-  for (let renderFunc of callbacks.values()) {
-    renderFunc(data);
-  }
-  callbacks.clear();
 };
 
 export const close = () => {

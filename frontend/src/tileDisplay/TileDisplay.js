@@ -80,13 +80,14 @@ function renderLeaflet() {
   map.on({
     // TOOD: remove this callback, it fires render way too often
     //move: () => render(),
-    moveend: () => {
+    moveend : () => {
       request(map);
-      render();
     },
-    zoomend: () => {
+    zoomend : () => {
       request(map);
-      render();
+    }, 
+    resize : () => {
+      request(map);
     }
   });
   // add event listeners to the map for region requests
