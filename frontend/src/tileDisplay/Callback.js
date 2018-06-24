@@ -3,12 +3,12 @@
  */
 const callbacks = new Map();
 // Web Socket setup
-const url = 'ws://localhost:80/mandelbrot';
-const socket = new WebSocket(url, 'protocolOne');
+const url = 'ws://localhost:9002';
+const socket = new WebSocket(url);//, 'mandelbrot');
 socket.onmessage = onWSMessage;
 
 function onWSMessage(event) {
-  let msg = JSON.parse(event);
+  let msg = JSON.parse(event.data);
   switch (msg.type) {
     case 'tile':
       console.log(msg);

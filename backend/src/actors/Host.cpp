@@ -16,6 +16,10 @@
 #include <cpprest/http_listener.h>
 #include <cpprest/json.h>
 
+// Websockets
+#include <websocketpp/config/asio_no_tls.hpp>
+#include <websocketpp/server.hpp>
+
 // Utils
 #include <map>
 #include <mutex>
@@ -61,6 +65,10 @@ std::mutex Host::available_tiles_lock;
 // Store send MPI Requests
 std::map<int, Region> Host::transmitted_regions;
 std::mutex Host::transmitted_regions_lock;
+
+// Websocket server
+websocketpp::server<websocketpp::config::asio> Host::websocket_server;
+websocketpp::connection_hdl Host::client;
 
 // Buffer for completed computations
 // int *Host::data_buffer;
@@ -348,6 +356,49 @@ void Host::handle_get_region(http_request request) {
     }
 }
 
+void Host::start_server(){
+
+    //print_server.set_message_handler(&listener_region);
+
+    websocket_server.init_asio();
+    websocket_server.listen(9002);
+    websocket_server.start_accept();
+
+    websocket_server.set_open_handler(&register_client);
+    websocket_server.set_close_handler(&deregister_client);
+    std::cout << "Listening for connections on to websocket server on 9002 \n";
+    websocket_server.run();
+}
+
+void Host::register_client(websocketpp::connection_hdl hdl){
+    client = hdl;
+}
+
+void Host::deregister_client(websocketpp::connection_hdl hdl){
+    // TODO maybe mock client or sth similar
+}
+
+void Host::send(TileData data){
+    // TODO send data of this region to the client
+
+    // Create json value from returned
+    json::value answer;
+    answer[U("rank")] = json::value(data.world_rank);
+    json::value tile_json = json::value();
+    for (unsigned int y = 0; y < (unsigned int) data.size; y++) {
+        for (unsigned int x = 0; x < (unsigned int) data.size; x++) {
+            unsigned int index = y * data.size + x;
+            tile_json[index] = data.n[index];
+        }
+    }
+    answer[U("data")] = tile_json;
+    answer[U("type")] = json::value("tile");
+    utility::string_t data_string = answer.serialize();
+    websocketpp::server<websocketpp::config::asio>::connection_ptr conn = websocket_server.get_con_from_hdl(client);
+    conn->send(data_string.c_str());
+    //websocket_server.send(client, data_string.c_str(), websocketpp::frame::opcode::text);
+}
+
 void Host::init(int world_rank, int world_size) {
     Host::world_size = world_size;
     int cores = world_size;
@@ -363,16 +414,6 @@ void Host::init(int world_rank, int world_size) {
     resturl.set_host(U("0.0.0.0"));
     resturl.set_scheme(U("http"));
     resturl.set_port(U("80"));
-    resturl.set_path(U("mandelbrot"));
-
-    http_listener listener_tile(resturl.to_uri());
-    listener_tile.support(methods::GET, handle_get_tile);
-
-    // Reqion GET requests are answered on http://localhost:80/region
-    resturl = web::uri_builder();
-    resturl.set_host(U("0.0.0.0"));
-    resturl.set_scheme(U("http"));
-    resturl.set_port(U("80"));
     resturl.set_path(U("region"));
 
     http_listener listener_region(resturl.to_uri());
@@ -383,10 +424,6 @@ void Host::init(int world_rank, int world_size) {
         // a few lines before when a new get request arrives
         // handle_get and handle_get_region are never called directly!
         // They can store requests in a dictionary which we can access later in the MPI_recv loop
-        listener_tile
-                .open()
-                .then([&listener_tile]() { TRACE(U("\nlistening for HTTP Tile Requests\n")); })
-                .wait();
         listener_region
                 .open()
                 .then([&listener_region]() { TRACE(U("\nlistening for HTTP Region Requests\n")); })
@@ -395,6 +432,10 @@ void Host::init(int world_rank, int world_size) {
     } catch (std::exception const &e) {
         std::wcout << e.what() << std::endl;
     }
+
+    // Websockets
+    // Start a thread that hosts the server
+    std::thread websocket_server(start_server);
 
     // Test if all cores are available
     // We assume from programs side that all cores *are* available, this is merely debug
@@ -443,31 +484,16 @@ void Host::init(int world_rank, int world_size) {
         }
         std::cout << rendered_region.resX << ", " << rendered_region.resY << std::endl;
         // copy the received data in std::vector to individual tiles
-        std::vector<TileData> tile_data;
-        for (unsigned int i = 0;
-             i < static_cast<unsigned int>(rendered_region.getWidth() * rendered_region.getHeight()); i++) {
-            TileData data(worker_rank, rendered_region.resX * rendered_region.resY);
-            // loop over every pixel and write received data to tiles
-            for (unsigned int y = 0; y < (unsigned int) rendered_region.resY; y++) {
-                for (unsigned int x = 0; x < (unsigned int) rendered_region.resX; x++) {
-                    unsigned int block_offset = i * rendered_region.resX * rendered_region.resY;
-                    unsigned int index = y * rendered_region.resX + x;
-                    data.n[index] = worker_data.at(block_offset + index);
-                }
-            }
 
-            tile_data.push_back(data);
-        }
-        // copy the tiles from worker to available_tiles
-        auto tiles = rendered_region.getTiles();
-        {
-            std::lock_guard<std::mutex> lock(available_tiles_lock);
-            for (std::vector<int>::size_type i = 0; i != tiles.size(); i++) {
-                Tile t = tiles.at(i);
-                available_tiles[t] = tile_data.at(i);
+        // TODO don't copy data here
+        TileData data(worker_rank, rendered_region.getHeight() * rendered_region.getWidth());
+        // loop over every pixel and write received data to tiles
+        for (unsigned int y = 0; y < (unsigned int) rendered_region.getHeight(); y++) {
+            for (unsigned int x = 0; x < (unsigned int) rendered_region.getWidth(); x++) {
+                unsigned int index = y * rendered_region.getWidth() + x;
+                data.n[index] = worker_data.at(index);
             }
         }
-        std::cout << "added " << tiles.size() << " tiles to available_tiles" << std::endl;
-        Host::answer_requests(rendered_region);
+        Host::send(data);
     }
 }
