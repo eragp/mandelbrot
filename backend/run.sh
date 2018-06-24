@@ -12,4 +12,6 @@ docker build -t mandelbrot:0.1 .
 # beacause it attaches the current shell to the running container
 docker run --rm -it \
 	--name mandelbrot_build \
-	-p 8080:80 mandelbrot:0.1 
+	-p 8080:80 \
+	-p 9002:9002 \
+	mandelbrot:0.1 

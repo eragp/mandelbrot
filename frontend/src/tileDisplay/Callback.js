@@ -1,17 +1,23 @@
+import Point from "../misc/Point";
+
 /*
  * this map stores callbacks to render all the tiles requested for leaflet
  */
 const callbacks = new Map();
 // Web Socket setup
-const url = 'ws://localhost:80/mandelbrot';
-const socket = new WebSocket(url, 'protocolOne');
+const url = 'ws://localhost:9002';
+const socket = new WebSocket(url);//, 'mandelbrot');
 socket.onmessage = onWSMessage;
 
 function onWSMessage(event) {
-  let msg = JSON.parse(event);
+  let msg = JSON.parse(event.data);
   switch (msg.type) {
     case 'tile':
       console.log(msg);
+      let coords = new Point(msg.tile.x, msg.tile.y, msg.tile.zoom)
+      let cb = callbacks.get(coordsToString(coords));
+      console.log(coordsToString(coords));
+      if(cb != null) cb(msg.data);
       break;
   }
 }
@@ -34,6 +40,7 @@ export const register = (coords, draw) => {
     });
   };
   callbacks.set(coordsToString(coords), render);
+  console.log(coordsToString(coords));
   return promise;
 };
 /**

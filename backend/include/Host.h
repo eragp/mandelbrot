@@ -1,7 +1,10 @@
 #ifndef HOST_H
 #define HOST_H
 
+#include <websocketpp/config/asio_no_tls.hpp>
+#include <websocketpp/server.hpp>
 #include <cpprest/http_listener.h>
+
 #include <map>
 #include <queue>
 #include <vector>
@@ -52,6 +55,13 @@ private:
     static std::map<int, Region> transmitted_regions;
     static std::mutex transmitted_regions_lock;
 
+    // Websocket server
+    static websocketpp::server<websocketpp::config::asio> websocket_server;
+    static void start_server();
+    static websocketpp::connection_hdl client;
+    static void register_client(websocketpp::connection_hdl conn);
+    static void deregister_client(websocketpp::connection_hdl conn);
+    static void send(TileData data, Tile tile);
 };
 #endif
 
