@@ -407,7 +407,13 @@ void Host::send(TileData data, Tile tile){
     answer[U("tile")] = region_json;
 
     utility::string_t data_string = answer.serialize();
-    websocket_server.send(client, data_string.c_str(), websocketpp::frame::opcode::text);
+
+    try{
+        websocket_server.send(client, data_string.c_str(), websocketpp::frame::opcode::text);
+    } catch(websocketpp::exception e){
+        std::cerr << e.what() << "\n" 
+        << "Refresh websocket connection.\n";
+    }
 }
 
 void Host::init(int world_rank, int world_size) {
