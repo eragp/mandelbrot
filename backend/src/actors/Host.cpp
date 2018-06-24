@@ -371,6 +371,9 @@ void Host::start_server(){
 }
 
 void Host::register_client(websocketpp::connection_hdl hdl){
+    // TODO frontend has to connect a second time during server
+    // runtime for hdl not to be a BAD CONN
+    // (this means to try the code one has to refresh fast or to set region fetching to manual)
     client = hdl;
 }
 

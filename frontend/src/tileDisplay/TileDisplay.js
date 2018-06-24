@@ -35,10 +35,11 @@ function renderLeaflet() {
         ctx.fillRect(0, 0, tile.width, tile.height);
 
         let imgData = ctx.createImageData(size.x, size.y);
-        for (let x = 0; x < size.x; x += 1) {
-          for (let y = 0; y < size.y; y += 1) {
-            let v = x ^ y;
-            drawPixel(imgData, x, y, v, v, v, 255);
+        for (let y = 0; y < size.y; y += 1) {
+          for (let x = 0; x < size.x; x += 1) {
+            let n = tileData[y*size.x+x];
+            let [r, g, b] = Shader.default(n, 200);
+            drawPixel(imgData, x, y, r, g, b, 255);
           }
         }
         tile.style.outline = '1px solid red';
@@ -75,8 +76,12 @@ function renderLeaflet() {
   });
   map.on({
     // TOOD: remove this callback, it fires render way too often
-    move: () => render(),
+    //move: () => render(),
     moveend: () => {
+      request(map);
+      render();
+    },
+    zoomend: () => {
       request(map);
       render();
     }
