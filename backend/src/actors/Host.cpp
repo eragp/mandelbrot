@@ -406,10 +406,10 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl, websocke
     
     {
         std::lock_guard<std::mutex> lock(current_big_tile_lock);
-        if (region == current_big_tile) {
-            std::cerr << "region has not changed" << std::endl;
-            return;
-        }
+//        if (region == current_big_tile) {
+//            std::cerr << "region has not changed" << std::endl;
+//            return;
+//        }
         current_big_tile = region;
     }
 

@@ -18,6 +18,27 @@ class Point {
       '}'
     );
   }
+
+  equals(otherPoint) {
+    if (otherPoint === null) {
+      return false;
+    }
+    let aProps = Object.getOwnPropertyNames(this);
+    let bProps = Object.getOwnPropertyNames(otherPoint);
+
+    if (aProps.length !== bProps.length) {
+      return false;
+    }
+    for (let i = 0; i < aProps.length; i++) {
+      let aName = aProps[i],
+        bName = bProps[i];
+      if (aName !== bName || this[aName] !== otherPoint[bName]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
 }
 
 export default Point;

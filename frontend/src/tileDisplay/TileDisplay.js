@@ -8,7 +8,8 @@ import './TileDisplay.css';
 import './Shader';
 import Shader from './Shader';
 import request from './RegionRequest';
-import { register, render } from './Callback';
+import { register, sendRequest } from './WSClient';
+import Point from '../misc/Point';
 
 // overwrite fetch to add timeout functionality
 // import fetch from '../misc/fetchTimeout';
@@ -29,8 +30,8 @@ function renderLeaflet() {
       var size = this.getTileSize();
       tile.width = size.x;
       tile.height = size.y;
+
       const drawTile = tileData => {
-        console.log(tileData);
         let ctx = tile.getContext('2d', { alpha: false });
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, tile.width, tile.height);
@@ -38,7 +39,7 @@ function renderLeaflet() {
         let imgData = ctx.createImageData(size.x, size.y);
         for (let y = 0; y < size.y; y += 1) {
           for (let x = 0; x < size.x; x += 1) {
-            let n = tileData[y*size.x+x];
+            let n = tileData[y * size.x + x];
             let [r, g, b] = Shader.default(n, 200);
             drawPixel(imgData, x, y, r, g, b, 255);
           }
@@ -48,7 +49,10 @@ function renderLeaflet() {
         ctx.putImageData(imgData, 0, 0);
         done(null, tile);
       };
-      register(coords, drawTile);
+
+      let point = new Point(coords.x, coords.y, map.getZoom());
+      console.log('requesting new tile at ' + point);
+      register(point, drawTile);
       return tile;
     }
   });
@@ -63,7 +67,7 @@ function renderLeaflet() {
   }
 
   // bounds have to be a power of two
-  let bounds = [[-256, -256], [256, 256]];
+  let bounds = [[-1024, -1024], [1024, 1024]];
   L.gridLayer.mandelBrotLayer = () =>
     new L.GridLayer.MandelbrotLayer({
       tileSize: 256, // in px
@@ -73,27 +77,21 @@ function renderLeaflet() {
 
   var map = L.map('viewer', {
     crs: L.CRS.Simple,
-    // otherwise we get precision errors.
-    maxZoom: 32,
+    // maxZoom: 32,
     zoom: 3
   });
   map.on({
-    // TOOD: remove this callback, it fires render way too often
-    //move: () => render(),
-    moveend : () => {
-      request(map);
-    },
-    zoomend : () => {
-      request(map);
-    }, 
-    resize : () => {
-      request(map);
+    moveend: () => {
+      let r = request(map);
+      if (r !== null) {
+        sendRequest(r);
+      }
     }
   });
   // add event listeners to the map for region requests
   let layer = L.gridLayer.mandelBrotLayer();
   // layer.on({
-  //   load: () => render()
+  //   tileload: () => sendRequest(request(map))
   // });
   map.addLayer(layer);
   map.setView([0, 0]);

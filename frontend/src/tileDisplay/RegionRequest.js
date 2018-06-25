@@ -1,75 +1,66 @@
-import 'leaflet/dist/leaflet.css';
 import Point from '../misc/Point';
-import socket from './Callback';
 
 const tileSize = 256;
 const balancer = 'naive';
 
-function regionRequest(map) {
+// making sure only new requests actually get sent
+var oldTl = null;
+var oldBr = null;
+/**
+ *  Sends a region request for the currently visible region
+ *
+ * If the region has not changed from the last request, null is returned.
+ * Otherwise the corresponding request for the backend is returned.
+ * @param {*} map current Leaflet map
+ */
+export function regionRequest(map) {
   let bounds = map.getPixelBounds();
   let zoom = map.getZoom();
   // aka top left
-  let tl = new Point(
+  let topLeft = new Point(
     Math.floor(bounds.min.x / tileSize),
     -Math.floor(bounds.min.y / tileSize),
     zoom
   );
   // aka bottom right
-  let br = new Point(
+  let botRight = new Point(
     Math.floor(bounds.max.x / tileSize),
     -Math.floor(bounds.max.y / tileSize),
     zoom
   );
-  console.log('region request from: ' + tl + ' to: ' + br);
-  console.log(
-    'complex plane: ' +
-      unproject(tl.x, tl.y, tl.z, 0, 0, tileSize) +
-      ' to: ' +
-      unproject(br.x, br.y, br.z, 0, 0, tileSize)
-  );
-  let region = {
-    "zoom": zoom,
-    "tlX": tl.x,
-    "tlY": tl.y,
-    "brX": br.x,
-    "brY": br.y-1,
-    "balancer": balancer,
-  };
-  //TODO implement on server side 
-  if(socket.readyState == socket.OPEN){
-    socket.send(JSON.stringify(region))
-  } else {
-    socket.onopen = () => {
-      socket.send(JSON.stringify(region))
-    }
+  if (topLeft.equals(oldTl) && botRight.equals(oldBr)) {
+    return null;
   }
-  /*let url =
-    'http://localhost:8080/region?' +
-    'zoom=' +
-    zoom +
-    '&topLeftX=' +
-    tl.x +
-    '&topLeftY=' +
-    tl.y +
-    '&bottomRightX=' +
-    br.x +
-    '&bottomRightY=' +
-    (br.y - 1) +
-    '&balancer=' +
-    balancer;
-  console.log(url);
-   fetch(url, {
-    method: 'GET',
-    mode: 'cors',
-    timeout: 1500
-  })
-    .then(response => response.json())
-    .then(json => {
-      console.log(json);
-    })
-    .catch(error => {
-      console.log(error);
-    });*/
+  oldTl = topLeft;
+  oldBr = botRight;
+
+  let min = unproject(topLeft.x, topLeft.y, topLeft.z, 0, 0, tileSize);
+  let max = unproject(botRight.x, botRight.y, botRight.z, 0, 0, tileSize);
+  // console.log(
+  //   'region Request on complex plane: ' +
+  //     unproject(topLeft.x, topLeft.y, topLeft.z, 0, 0, tileSize) +
+  //     ' -> ' +
+  //     unproject(botRight.x, botRight.y, botRight.z, 0, 0, tileSize)
+  // );
+  let region = {
+    zoom: zoom,
+    tlX: topLeft.x,
+    tlY: topLeft.y,
+    brX: botRight.x,
+    brY: botRight.y,
+    balancer: balancer
+  };
+  console.log('sending request: ');
+  console.log(region);
+  // let region = {
+  //   zoom: zoom,
+  //   minReal: min.x,
+  //   maxReal: max.x,
+  //   minImag: min.y,
+  //   maxImag: max.y,
+  //   balancer: balancer
+  // };
+  return region;
 }
 
 /**
