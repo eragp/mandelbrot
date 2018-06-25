@@ -13,7 +13,7 @@ var oldBr = null;
  * Otherwise the corresponding request for the backend is returned.
  * @param {*} map current Leaflet map
  */
-export function regionRequest(map) {
+export const request = map => {
   let bounds = map.getPixelBounds();
   let zoom = map.getZoom();
   // aka top left
@@ -36,12 +36,12 @@ export function regionRequest(map) {
 
   let min = unproject(topLeft.x, topLeft.y, topLeft.z, 0, 0, tileSize);
   let max = unproject(botRight.x, botRight.y, botRight.z, 0, 0, tileSize);
-  // console.log(
-  //   'region Request on complex plane: ' +
-  //     unproject(topLeft.x, topLeft.y, topLeft.z, 0, 0, tileSize) +
-  //     ' -> ' +
-  //     unproject(botRight.x, botRight.y, botRight.z, 0, 0, tileSize)
-  // );
+  console.log(
+    'region Request on complex plane: ' +
+      unproject(topLeft.x, topLeft.y, topLeft.z, 0, 0, tileSize) +
+      ' -> ' +
+      unproject(botRight.x, botRight.y, botRight.z, 0, 0, tileSize)
+  );
   let region = {
     zoom: zoom,
     tlX: topLeft.x,
@@ -50,8 +50,8 @@ export function regionRequest(map) {
     brY: botRight.y,
     balancer: balancer
   };
-  console.log('sending request: ');
-  console.log(region);
+  // console.log('sending request: ');
+  // console.log(region);
   // let region = {
   //   zoom: zoom,
   //   minReal: min.x,
@@ -61,7 +61,7 @@ export function regionRequest(map) {
   //   balancer: balancer
   // };
   return region;
-}
+};
 
 /**
  * This function unprojects leaflet tile coordinates to CRS Space
@@ -72,7 +72,7 @@ export function regionRequest(map) {
  * @param {*} localY pixel y within the tile in [0, size]
  * @param {*} size pixel dimensions of a tile (tiles have to be square)
  */
-function unproject(x, y, zoom, localX, localY, size) {
+export const unproject = (x, y, zoom, localX, localY, size) => {
   size = size || 1;
   // top left -> bottom right
   // bounds in the imaginary plane have to be symmetric
@@ -81,6 +81,4 @@ function unproject(x, y, zoom, localX, localY, size) {
   let tileX = (x * bounds[0] * size + localX * bounds[0]) / (tileCount * size),
     tileY = (y * bounds[1] * size + localY * bounds[1]) / (tileCount * size);
   return new Point(tileX, tileY);
-}
-
-export default regionRequest;
+};

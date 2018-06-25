@@ -22,6 +22,6 @@ long double Fractal::xToReal(long x, long zoom, long localX, long size) {
 }
 
 long double Fractal::yToImaginary(long y, long zoom, long localY, long size) {
-    return -unproject(y, zoom, boundY, localY, size);
+    return unproject(y, zoom, boundY, localY, size);
 }
 
