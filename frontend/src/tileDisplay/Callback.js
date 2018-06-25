@@ -19,12 +19,17 @@ socket.onmessage = function (event) {
       console.log(msg);
       let coords = new Point(msg.tile.x, msg.tile.y, msg.tile.zoom)
       let cb = callbacks.get(coordsToString(coords));
-      console.log(coordsToString(coords));
+      // console.log(coordsToString(coords));
       if (cb != null) {
         cb(msg.data);
       } else {
         data.set(coordsToString(coords), msg.data);
       }
+      break;
+    case 'regions':
+      // TODO
+    default:
+      console.log(msg);
       break;
   }
 }
@@ -52,7 +57,7 @@ export const register = (coords, draw) => {
   } else {
     callbacks.set(coordsToString(coords), render);
   }
-  console.log(coordsToString(coords));
+  // console.log(coordsToString(coords));
   return promise;
 };
 
