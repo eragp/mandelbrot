@@ -15,7 +15,7 @@ Region *IntegerBalancer::balanceLoad(Region region, const int nodeCount) {
         Region r{};
         regions[i] = r;
         regions[i].tlX = x;
-        regions[i].brX = (i == nodeCount - 1) ? region.brX : (x += columnWidth);
+        regions[i].brX = (i == nodeCount - 1) ? region.brX : (x + columnWidth);
         // just copying the unchanged values for each Region struct
         regions[i].tlY = region.tlY;
         regions[i].brY = region.brY;
@@ -23,6 +23,7 @@ Region *IntegerBalancer::balanceLoad(Region region, const int nodeCount) {
         regions[i].resX = region.resX;
         regions[i].resY = region.resY;
         regions[i].zoom = region.zoom;
+        x += columnWidth + 1;
     }
     return regions;
 }
