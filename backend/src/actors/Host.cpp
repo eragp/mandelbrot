@@ -441,21 +441,23 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl, websocke
     // All workers received their region
     MPI_Waitall(nodeCount, region_requests, region_status);
 
-    json::value reply = json::value();
-    for (int i = 0; i < nodeCount; i++) {
-        auto t = blocks[i];
-        reply[i] = json::value();
-        reply[i][U("nodeID")] = json::value(i);
-        reply[i][U("topLeftX")] = json::value(t.tlX);
-        reply[i][U("topLeftY")] = json::value(t.tlY);
-        reply[i][U("bottomRightX")] = json::value(t.brX);
-        reply[i][U("bottomRightY")] = json::value(t.brY);
-        reply[i][U("zoom")] = json::value(t.zoom);
-    }
+    json::value reply;
     std::cout << "2";
-    reply[U("type")] = json::value("regions");
+    reply[U("type")] = json::value::string(U("regions"));
     std::cout << "3";
-    reply[U("nnodes")] = json::value(nodeCount);
+    reply[U("nregions")] = json::value(nodeCount);
+    json::value regions;
+    for (int i = 0; i < nodeCount; i++) {
+        Region t = blocks[i];
+        regions[i] = json::value();
+        regions[i][U("nodeID")] = json::value(i);
+        regions[i][U("topLeftX")] = json::value(t.tlX);
+        regions[i][U("topLeftY")] = json::value(t.tlY);
+        regions[i][U("bottomRightX")] = json::value(t.brX);
+        regions[i][U("bottomRightY")] = json::value(t.brY);
+        regions[i][U("zoom")] = json::value(t.zoom);
+    }
+    reply[U("regions")] = regions;
     try{
         std::cout << "4";
         websocket_server.send(hdl, reply.serialize().c_str(), websocketpp::frame::opcode::text);
