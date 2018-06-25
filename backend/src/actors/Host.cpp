@@ -361,16 +361,110 @@ void Host::start_server(){
     //print_server.set_message_handler(&listener_region);
 
     websocket_server.init_asio();
+    websocket_server.start_perpetual();
     websocket_server.listen(9002);
     websocket_server.start_accept();
 
     websocket_server.set_open_handler(&register_client);
     websocket_server.set_close_handler(&deregister_client);
+    websocket_server.set_message_handler(&handle_region_request);
+
+    // How about not logging everything?
+    websocket_server.clear_access_channels(websocketpp::log::alevel::all);
+
     std::cout << "Listening for connections on to websocket server on 9002 \n";
     websocket_server.run();
 }
 
-void Host::register_client(websocketpp::connection_hdl hdl){
+void Host::handle_region_request(const websocketpp::connection_hdl hdl, websocketpp::server<websocketpp::config::asio>::message_ptr msg){
+    client = hdl;
+
+    std::string request_string = msg->get_payload();
+
+    std::error_code error;
+    json::value request = json::value::parse(request_string, error);
+    if(error.value() > 0){
+        std::cerr << "Error " << error.value() << "on parsing request: " << error.message() << "\n on " << request_string << std::endl;
+        return;
+    }
+
+    Region region{};
+    try{
+        utility::string_t balancer = request["balancer"].as_string();
+        region.tlX = request["tlX"].as_integer();
+        region.tlY = request["tlY"].as_integer();
+        region.brX = request["brX"].as_integer();
+        region.brY = request["brY"].as_integer();
+        region.zoom = request["zoom"].as_integer();
+        region.resX = default_res;
+        region.resY = default_res;
+        region.maxIteration = maxIteration;
+    } catch(std::out_of_range e){
+        std::cerr << "Inclompletely specified region requested: " << request_string;
+        return;
+    }
+    
+    {
+        std::lock_guard<std::mutex> lock(current_big_tile_lock);
+        if (region == current_big_tile) {
+            std::cerr << "region has not changed" << std::endl;
+            return;
+        }
+        current_big_tile = region;
+    }
+
+    // TODO increase by one as soon as host is invoked as worker too
+    int nodeCount = Host::world_size - 1;
+    // TODO make this based on balancer variable defined above (sounds like strategy pattern...)
+    Balancer *b = new IntegerBalancer();
+    Region *blocks = b->balanceLoad(region, nodeCount);  //Tiles is array with nodeCount members
+    // DEBUG
+    std::cout << "Balancer Output:" << std::endl;
+    for (int i = 0; i < nodeCount; i++) {
+        std::cout << "Region " << i << ": "
+                    << " TopLeft: (" << blocks[i].tlX << ", " << blocks[i].tlY << ", " << blocks[i].zoom << ") -> ("
+                    << blocks[i].brX << ", " << blocks[i].brY << ", " << blocks[i].zoom << ")" << std::endl;
+    }
+    // send regions to cores deterministically
+    MPI_Request region_requests[nodeCount];
+    MPI_Status region_status[nodeCount];
+    for (int i = 0; i < nodeCount; i++) {
+        Region region = blocks[i];
+        int rank_worker = i + 1; // TODO for now, see nodeCount
+        std::cout << "Invoking core " << rank_worker << std::endl;
+        // Tag for computation requests is 1
+        // Send new region
+        MPI_Isend((const void *) &region, sizeof(Region), MPI_BYTE, rank_worker, 1, MPI_COMM_WORLD,
+                    &region_requests[i]);
+        transmitted_regions[rank_worker] = region;
+    }
+    // All workers received their region
+    MPI_Waitall(nodeCount, region_requests, region_status);
+
+    json::value reply = json::value();
+    for (int i = 0; i < nodeCount; i++) {
+        auto t = blocks[i];
+        reply[i] = json::value();
+        reply[i][U("nodeID")] = json::value(i);
+        reply[i][U("topLeftX")] = json::value(t.tlX);
+        reply[i][U("topLeftY")] = json::value(t.tlY);
+        reply[i][U("bottomRightX")] = json::value(t.brX);
+        reply[i][U("bottomRightY")] = json::value(t.brY);
+        reply[i][U("zoom")] = json::value(t.zoom);
+    }
+    std::cout << "2";
+    reply[U("type")] = json::value("regions");
+    std::cout << "3";
+    reply[U("nnodes")] = json::value(nodeCount);
+    try{
+        std::cout << "4";
+        websocket_server.send(hdl, reply.serialize().c_str(), websocketpp::frame::opcode::text);
+    } catch(websocketpp::exception e){
+        std::cerr << "Bad connection to client, Refresh connection" << std::endl;
+    }
+}
+
+void Host::register_client(const websocketpp::connection_hdl hdl){
     // TODO frontend has to connect a second time during server
     // runtime for hdl not to be a BAD CONN
     // (this means to try the code one has to refresh fast or to set region fetching to manual)
@@ -441,10 +535,10 @@ void Host::init(int world_rank, int world_size) {
         // a few lines before when a new get request arrives
         // handle_get and handle_get_region are never called directly!
         // They can store requests in a dictionary which we can access later in the MPI_recv loop
-        listener_region
+        /*listener_region
                 .open()
                 .then([&listener_region]() { TRACE(U("\nlistening for HTTP Region Requests\n")); })
-                .wait();
+                .wait();*/
 
     } catch (std::exception const &e) {
         std::wcout << e.what() << std::endl;
@@ -499,9 +593,9 @@ void Host::init(int world_rank, int world_size) {
             std::cout << "Host: no longer interested in the rendered region" << std::endl;
             continue;
         }*/
-        std::cout << rendered_region.resX << ", " << rendered_region.resY << std::endl;
-        // TODO don't copy data here
-       std::vector<TileData> tile_data;
+        //std::cout << rendered_region.resX << ", " << rendered_region.resY << std::endl;
+
+        std::vector<TileData> tile_data;
         for (unsigned int i = 0;
              i < static_cast<unsigned int>(rendered_region.getWidth() * rendered_region.getHeight()); i++) {
             TileData data(worker_rank, rendered_region.resX * rendered_region.resY);

@@ -1,12 +1,17 @@
 import Point from "../misc/Point";
 
 /*
- * this map stores callbacks to render all the tiles requested for leaflet
+ * this map stores callbacks to render all the tiles requested for leaflet.
  */
 const callbacks = new Map();
+/**
+ * If callback is created after the data, the map stores data as well that
+ * is passed directly to the tile render function
+ */
+const data = new Map();
 // Web Socket setup
 const url = 'ws://localhost:9002';
-const socket = new WebSocket(url);//, 'mandelbrot');
+export const socket = new WebSocket(url); //, 'mandelbrot');
 socket.onmessage = function (event) {
   let msg = JSON.parse(event.data);
   switch (msg.type) {
@@ -15,7 +20,11 @@ socket.onmessage = function (event) {
       let coords = new Point(msg.tile.x, msg.tile.y, msg.tile.zoom)
       let cb = callbacks.get(coordsToString(coords));
       console.log(coordsToString(coords));
-      if(cb != null) cb(msg.data);
+      if (cb != null) {
+        cb(msg.data);
+      } else {
+        data.set(coordsToString(coords), msg.data);
+      }
       break;
   }
 }
@@ -37,7 +46,12 @@ export const register = (coords, draw) => {
       }
     });
   };
-  callbacks.set(coordsToString(coords), render);
+  let dt = data.get(coordsToString(coords));
+  if (dt != null) {
+    render(dt);
+  } else {
+    callbacks.set(coordsToString(coords), render);
+  }
   console.log(coordsToString(coords));
   return promise;
 };
@@ -51,3 +65,5 @@ export const close = () => {
 function coordsToString(coords) {
   return [coords.x, coords.y, coords.z].join(', ');
 }
+
+export default socket;

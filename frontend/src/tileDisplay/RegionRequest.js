@@ -1,5 +1,6 @@
 import 'leaflet/dist/leaflet.css';
 import Point from '../misc/Point';
+import socket from './Callback';
 
 const tileSize = 256;
 const balancer = 'naive';
@@ -26,7 +27,23 @@ function regionRequest(map) {
       ' to: ' +
       unproject(br.x, br.y, br.z, 0, 0, tileSize)
   );
-  let url =
+  let region = {
+    "zoom": zoom,
+    "tlX": tl.x,
+    "tlY": tl.y,
+    "brX": br.x,
+    "brY": br.y-1,
+    "balancer": balancer,
+  };
+  //TODO implement on server side 
+  if(socket.readyState == socket.OPEN){
+    socket.send(JSON.stringify(region))
+  } else {
+    socket.onopen = () => {
+      socket.send(JSON.stringify(region))
+    }
+  }
+  /*let url =
     'http://localhost:8080/region?' +
     'zoom=' +
     zoom +
@@ -52,7 +69,7 @@ function regionRequest(map) {
     })
     .catch(error => {
       console.log(error);
-    });
+    });*/
 }
 
 /**
