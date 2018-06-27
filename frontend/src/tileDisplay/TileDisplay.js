@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 // leaflet stuff
 import 'leaflet/dist/leaflet.css';
 import  L from 'leaflet/dist/leaflet-src.js';
@@ -13,6 +14,9 @@ import { request, unproject } from './RegionRequest';
 import { register, sendRequest } from '../connection/WSClient';
 import Point from '../misc/Point';
 
+//Custom component
+import NodeList from '../Node';
+
 class TileDisplay extends Component {
   componentDidMount() {
     renderLeaflet();
@@ -22,6 +26,7 @@ class TileDisplay extends Component {
     return <div id="viewer" />;
   }
 }
+
 
 L.GridLayer.MandelbrotLayer = L.GridLayer.extend({
   createTile: function(coords, done) {
@@ -125,6 +130,18 @@ function renderLeaflet() {
   let layer = L.gridLayer.mandelBrotLayer();
   map.addLayer(layer);
   map.setView([0, 0]);
+
+  var legend = L.control({position: 'topright'});
+
+  legend.onAdd = function (map) {
+      var container = L.DomUtil.create('div', 'nodeControl');
+      var div = ReactDOM.render(<NodeList />, container);
+      return container;
+  };
+  legend.addTo(map);
+
 }
+
+
 
 export default TileDisplay;

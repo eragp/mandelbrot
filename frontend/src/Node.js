@@ -1,39 +1,22 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import './Node.css';
+import { Progress } from 'reactstrap'
 
 function Node(props) {
   return (
     <li>
-      <table>
-        <tbody>
-          <tr>
-            <td className="Node-name">Node-{props.id}</td>
-            <td>
-              <div className="progress">
-                <div
-                  className="progress-bar"
-                  role="progressbar"
-                  style={{ width: props.usage + '%' }}
-                  aria-valuenow={props.usage}
-                  aria-valuemin="0"
-                  aria-valuemax="100"
-                />
-              </div>
-            </td>
-            <td>
-              Tile: ({props.tileX}, {props.tileY})
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div className="workerDiv">
+        <Progress animated={props.animated} value={props.usage} className="workerTime"> Worker {props.id} </Progress>
+      </div>
     </li>
   );
 }
 
 Node.propTypes = {
   id: PropTypes.number.isRequired,
-  usage: PropTypes.number.isRequired
+  usage: PropTypes.number.isRequired,
+  striped: PropTypes.string.isRequired
 };
 
 class NodeList extends Component {
@@ -46,14 +29,15 @@ class NodeList extends Component {
 
   getNodes() {
     let nodes = [];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 3; i++) {
+      let n = randomNumber(50, 100);
+      let active = n >= 90 ? false : true;
       nodes.push(
         <Node
           key={i}
           id={i}
-          usage={randomNumber(50, 101)}
-          tileX={randomNumber(0, 20)}
-          tileY={randomNumber(0, 20)}
+          usage={n}
+          animated={active}
         />
       );
     }
@@ -64,14 +48,13 @@ class NodeList extends Component {
   componentDidMount() {
     this.interval = setInterval(
       () => this.setState({ nodes: this.getNodes() }),
-      1000
+      5000
     );
   }
 
   render() {
     return (
       <div>
-        <h2>Workers</h2>
         <ul className="list-unstyled">{this.state.nodes}</ul>
       </div>
     );
