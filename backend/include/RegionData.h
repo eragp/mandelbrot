@@ -4,7 +4,6 @@
 /**
  * Contains data of a certain region.
  * Usually assembled at the Host and used to transfer data to frontend
-
  */
 struct RegionData{
 

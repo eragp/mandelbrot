@@ -47,5 +47,4 @@ struct Region {
      */
     int hOffset, vOffset;
 
-
 };

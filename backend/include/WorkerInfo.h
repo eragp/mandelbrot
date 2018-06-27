@@ -20,4 +20,5 @@ struct WorkerInfo {
      * The region that was computed.
      */
     Region region;
+    
 };
