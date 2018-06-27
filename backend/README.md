@@ -53,7 +53,7 @@ Parallely the host listens to incoming messages (on tag 2), converts the receive
 
 ### Useful structs
 
-The backend is intended to use three main structs for storing and passing information about the regions taht are to be computed. Those are `Region`, `WorkerInfo` and `RegionData`. The important parts of those structs are included below.
+The backend is intended to use three main structs for storing and passing information about the regions that are to be computed. Those are `Region`, `WorkerInfo` and `RegionData`. The important parts of those structs are included below.
 
 ```cpp
 /**
@@ -63,14 +63,14 @@ struct Region {
 
     /**
      * The coordinates for the top left corner of the region
-     * in real values. 
+     * in the complex plane. 
      * Included in the region.
      */
     long double minReal, maxImaginary;
 
     /**
      * The coordinates for the bottom right corner of the region
-     * in real values.
+     * in the complex plane.
      * Excluded from the region.
      */
     long double maxReal, minImaginary;
@@ -82,18 +82,19 @@ struct Region {
     unsigned int width, height;
 
     /**
-     * Maximum n value for iuteration in this region.
+     * Maximum n value for iteration in this region.
      */
     unsigned int maxIteration;
 
     /**
-     * Forntend specific information, identification/ validation value value, do not touch
+     * Frontend specific information, identification/validation value, do not touch
      * With leaflet frontend equivalent to zoomfactor.
      */
     int validation;
 
     /**
-     * Value for which it is guaranteed that widht and height are divisible by.
+     * Value for which it is guaranteed that width and height are divisible by.
+     * Same goes for hOffset and vOffset
      * Recursivley applies to all subregions
      */
     unsigned int guaranteedDivisor; 
