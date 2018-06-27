@@ -1,6 +1,6 @@
 #include "NaiveBalancer.h"
 #include <cmath>
-#include "Region.h"
+#include "RegionOld.h"
 
 //TileInfo* NaiveBalancer::balanceLoad(TileInfo tile, int nodeCount) {
 //    TileInfo* ret = new TileInfo[nodeCount];

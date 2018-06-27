@@ -5,7 +5,7 @@
 #include "Balancer.h"
 #include "Fractal.h"
 #include "IntegerBalancer.h"
-#include "Region.h"
+#include "RegionOld.h"
 #include "Tile.h"
 #include "TileData.h"
 
@@ -44,18 +44,18 @@ std::map<Tile, std::vector<web::http::http_request>> Host::request_dictionary;
 std::mutex Host::request_dictionary_lock;
 
 // Store for the current big tile
-Region Host::current_big_tile;
+RegionOld Host::current_big_tile;
 std::mutex Host::current_big_tile_lock;
 
 // And the subdivided regions
-// Region *Host::regions;
+// RegionOld *Host::regions;
 
 // Manage available cores
 std::queue<int> Host::avail_cores;
 std::mutex Host::avail_cores_lock;
 
 // Manage requests for regions
-std::queue<Region> Host::requested_regions;
+std::queue<RegionOld> Host::requested_regions;
 std::mutex Host::requested_regions_lock;
 
 // Manage available = already computed regions
@@ -63,7 +63,7 @@ std::map<Tile, TileData> Host::available_tiles;
 std::mutex Host::available_tiles_lock;
 
 // Store send MPI Requests
-std::map<int, Region> Host::transmitted_regions;
+std::map<int, RegionOld> Host::transmitted_regions;
 std::mutex Host::transmitted_regions_lock;
 
 // Websocket server
@@ -106,7 +106,7 @@ void answer_request_error(http_request request, std::string message) {
 /**
  * Answers all stored requests for the given region.
  */
-void Host::answer_requests(Region rendered_region) {
+void Host::answer_requests(RegionOld rendered_region) {
     // is the region still the requested one?
     bool inside_current_region;
     {
@@ -261,7 +261,7 @@ void Host::handle_get_region(http_request request) {
         if (it_balancer != data.end()) {
             balancer = data["balancer"];
         }
-        Region region{};
+        RegionOld region{};
         region.tlX = tlX;
         region.tlY = tlY;
         region.brX = brX;
@@ -282,7 +282,7 @@ void Host::handle_get_region(http_request request) {
         int nodeCount = Host::world_size - 1;
         // TODO make this based on balancer variable defined above (sounds like strategy pattern...)
         Balancer *b = new IntegerBalancer();
-        Region *blocks = b->balanceLoad(region, nodeCount);  //Tiles is array with nodeCount members
+        RegionOld *blocks = b->balanceLoad(region, nodeCount);  //Tiles is array with nodeCount members
         // DEBUG
         std::cout << "Balancer Output:" << std::endl;
         for (int i = 0; i < nodeCount; i++) {
@@ -294,12 +294,12 @@ void Host::handle_get_region(http_request request) {
         MPI_Request region_requests[nodeCount];
         MPI_Status region_status[nodeCount];
         for (int i = 0; i < nodeCount; i++) {
-            Region region = blocks[i];
+            RegionOld region = blocks[i];
             int rank_worker = i + 1; // TODO for now, see nodeCount
             std::cout << "Invoking core " << rank_worker << std::endl;
             // Tag for computation requests is 1
             // Send new region
-            MPI_Isend((const void *) &region, sizeof(Region), MPI_BYTE, rank_worker, 1, MPI_COMM_WORLD,
+            MPI_Isend((const void *) &region, sizeof(RegionOld), MPI_BYTE, rank_worker, 1, MPI_COMM_WORLD,
                       &region_requests[i]);
             transmitted_regions[rank_worker] = region;
         }
@@ -388,7 +388,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl, websocke
         return;
     }
 
-    Region region{};
+    RegionOld region{};
     try{
         utility::string_t balancer = request["balancer"].as_string();
         region.tlX = request["tlX"].as_integer();
@@ -417,7 +417,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl, websocke
     int nodeCount = Host::world_size - 1;
     // TODO make this based on balancer variable defined above (sounds like strategy pattern...)
     Balancer *b = new IntegerBalancer();
-    Region *blocks = b->balanceLoad(region, nodeCount);  //Tiles is array with nodeCount members
+    RegionOld *blocks = b->balanceLoad(region, nodeCount);  //Tiles is array with nodeCount members
     // DEBUG
     std::cout << "Balancer Output:" << std::endl;
     for (int i = 0; i < nodeCount; i++) {
@@ -429,12 +429,12 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl, websocke
     MPI_Request region_requests[nodeCount];
     MPI_Status region_status[nodeCount];
     for (int i = 0; i < nodeCount; i++) {
-        Region region = blocks[i];
+        RegionOld region = blocks[i];
         int rank_worker = i + 1; // TODO for now, see nodeCount
         std::cout << "Invoking core " << rank_worker << std::endl;
         // Tag for computation requests is 1
         // Send new region
-        MPI_Isend((const void *) &region, sizeof(Region), MPI_BYTE, rank_worker, 1, MPI_COMM_WORLD,
+        MPI_Isend((const void *) &region, sizeof(RegionOld), MPI_BYTE, rank_worker, 1, MPI_COMM_WORLD,
                     &region_requests[i]);
         transmitted_regions[rank_worker] = region;
     }
@@ -448,7 +448,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl, websocke
     reply[U("nregions")] = json::value(nodeCount);
     json::value regions;
     for (int i = 0; i < nodeCount; i++) {
-        Region t = blocks[i];
+        RegionOld t = blocks[i];
         regions[i] = json::value();
         regions[i][U("nodeID")] = json::value(i);
         regions[i][U("topLeftX")] = json::value(t.tlX);
@@ -570,7 +570,7 @@ void Host::init(int world_rank, int world_size) {
         int worker_rank;
         MPI_Recv((void *) &worker_rank, 1, MPI_INT, MPI_ANY_SOURCE, 3, MPI_COMM_WORLD,
                  MPI_STATUS_IGNORE);  // 3 is tag for world_rank of worker
-        Region rendered_region{};
+        RegionOld rendered_region{};
         {
             std::lock_guard<std::mutex> lock(transmitted_regions_lock);
             rendered_region = transmitted_regions[worker_rank];

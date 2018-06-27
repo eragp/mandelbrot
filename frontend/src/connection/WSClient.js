@@ -19,7 +19,7 @@ socket.onmessage = function(event) {
   switch (msg.type) {
     case 'tile':
       {
-        // console.log(msg);
+        console.log(msg);
         let coords = coordsToString(msg.tile.x, -msg.tile.y, msg.tile.zoom);
         let cb = callbacks.get(coords);
         if (cb != null) {
@@ -32,6 +32,7 @@ socket.onmessage = function(event) {
       break;
     case 'regions':
       {
+        console.log(msg);
         // TODO
       }
       break;

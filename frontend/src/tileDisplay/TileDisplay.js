@@ -60,7 +60,7 @@ L.GridLayer.MandelbrotLayer = L.GridLayer.extend({
   }
 });
 
-L.GridLayer.debugLayer = L.GridLayer.extend({
+L.GridLayer.DebugLayer = L.GridLayer.extend({
   createTile: function(coords, done) {
     let tile = document.createElement('div');
     let size = this.getTileSize();
@@ -72,20 +72,20 @@ L.GridLayer.debugLayer = L.GridLayer.extend({
 
     setTimeout(() => {
       let str = '';
-      for (let x = 0; x <= 2; x++) {
-        for (let y = 0; y <= 2; y++) {
-          str =
-            str +
-            ', (' +
-            x +
-            ', ' +
-            y +
-            ') -> ' +
-            unproject(p.x, p.y, zoom, (x * 256) / 2, (y * 256) / 2, 256);
-        }
-        str += '<br/>';
-      }
-      tile.innerHTML = '' + p + ', <br/>' + str;
+      // for (let x = 0; x <= 2; x++) {
+        // for (let y = 0; y <= 2; y++) {
+        //   str =
+        //     str +
+        //     ', (' +
+        //     x +
+        //     ', ' +
+        //     y +
+        //     ') -> ' +
+        //     unproject(p.x, p.y, zoom, (x * 256) / 2, (y * 256) / 2, 256);
+        // }
+        // str += '<br/>';
+      // }
+      tile.innerHTML = coords.x + ", " + coords.y + ", " + zoom;
       tile.style.outline = '1px solid red';
       done(null, tile);
     }, 100);
@@ -105,10 +105,16 @@ function drawPixel(imgData, x, y, r, g, b) {
 var map = null;
 function renderLeaflet() {
   // bounds have to be a power of two
-  let bounds = [[-1024, -1024], [1024, 1024]];
+  let bounds = [[-256, -256], [256,256]];
   L.gridLayer.mandelBrotLayer = () =>
     new L.GridLayer.MandelbrotLayer({
       tileSize: 256, // in px
+      bounds: bounds,
+      keepBuffer: 0
+    });
+  L.gridLayer.debugLayer = () => 
+    new L.GridLayer.DebugLayer({
+      tileSize: 256,
       bounds: bounds,
       keepBuffer: 0
     });

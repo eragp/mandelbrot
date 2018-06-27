@@ -8,7 +8,7 @@
 #include <vector>
 #include "Tile.h"
 
-struct Region {
+struct RegionOld {
     // tile Position
     // top left indices
     int tlX, tlY;
@@ -79,14 +79,14 @@ struct Region {
 
     // definition of operator< is required to use this struct as a
     // std::map key
-    bool const operator<(const Region &o) const {
+    bool const operator<(const RegionOld &o) const {
         return tlX < o.tlX
                || (tlX == o.tlX && tlY < o.tlY)
                || (tlX == o.tlX && tlY == o.tlY && brX < o.brX)
                || (tlX == o.tlX && tlY == o.tlY && brX == o.brX && brY < o.brY);
     }
 
-    bool const operator==(const Region &o) const {
+    bool const operator==(const RegionOld &o) const {
         return tlX == o.tlX && tlY == o.tlY
                && brX == o.brX && brY == o.brY
                && zoom == o.zoom
@@ -94,8 +94,8 @@ struct Region {
                && maxIteration == o.maxIteration;
     }
 
-//    std::ostream &operator<<(std::ostream os, const Region &r) {
-//        os << "Region: ";
+//    std::ostream &operator<<(std::ostream os, const RegionOld &r) {
+//        os << "RegionOld: ";
 //        return os;
 //    }
 };

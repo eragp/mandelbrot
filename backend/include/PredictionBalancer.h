@@ -2,14 +2,14 @@
 #ifndef PREDICTIONBALANCER_H	// Prevents multiple includes of this header
 #define PREDICTIONBALANCER_H
 #include "Balancer.h"
-#include "Region.h"
+#include "RegionOld.h"
 #include "Fractal.h"
 
 class PredictionBalancer : public Balancer {
 private:
 	Fractal * f;
 public:
-	Region* balanceLoad(Region tile, int nodeCount);
+	RegionOld* balanceLoad(RegionOld tile, int nodeCount);
 	static PredictionBalancer* create(Fractal* f);
 };
 

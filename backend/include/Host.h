@@ -10,7 +10,7 @@
 #include <vector>
 #include <mutex>
 
-#include "Region.h"
+#include "RegionOld.h"
 #include "Tile.h"
 #include "TileData.h"
 
@@ -26,7 +26,7 @@ private:
 
     static void handle_get_region(web::http::http_request request);
 
-    static void answer_requests(Region requested_tile);
+    static void answer_requests(RegionOld requested_tile);
 
     static int maxIteration;
     static int world_size;
@@ -35,7 +35,7 @@ private:
     static std::mutex request_dictionary_lock;
 
     // Store for the current big tile
-    static Region current_big_tile;
+    static RegionOld current_big_tile;
     static std::mutex current_big_tile_lock;
     // And for the split up regions
 
@@ -44,7 +44,7 @@ private:
     static std::mutex avail_cores_lock;
 
     // Store requests
-    static std::queue<Region> requested_regions;
+    static std::queue<RegionOld> requested_regions;
     static std::mutex requested_regions_lock;
 
     // And answers
@@ -52,7 +52,7 @@ private:
     static std::mutex available_tiles_lock;
 
     //Store send MPI Requests
-    static std::map<int, Region> transmitted_regions;
+    static std::map<int, RegionOld> transmitted_regions;
     static std::mutex transmitted_regions_lock;
 
     // Websocket server
