@@ -15,14 +15,17 @@ include_directories(${MPI_INCLUDE_PATH})
 
 target_link_libraries(mandelbrot PUBLIC cpprestsdk::cpprest ${MPI_LIBRARIES})
 set(CMAKE_CXX_STANDARD 11)
+# lib configs
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -lboost_system -lcrypto -lssl")
+# custom flags for dependencies
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_WEBSOCKETPP_CPP11_STL_")
 
-if(MPI_COMPILE_FLAGS)
-  set_target_properties(mandelbrot PROPERTIES
-    COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
-endif()
+if (MPI_COMPILE_FLAGS)
+    set_target_properties(mandelbrot PROPERTIES
+            COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
+endif ()
 
-if(MPI_LINK_FLAGS)
-  set_target_properties(mandelbrot PROPERTIES
-    LINK_FLAGS "${MPI_LINK_FLAGS}")
-endif()
+if (MPI_LINK_FLAGS)
+    set_target_properties(mandelbrot PROPERTIES
+            LINK_FLAGS "${MPI_LINK_FLAGS}")
+endif ()

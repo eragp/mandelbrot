@@ -4,9 +4,9 @@
 #include "Balancer.h"
 #include "RegionOld.h"
 
-class NaiveBalancer : public Balancer {
+class IntegerBalancer : public Balancer {
 	public:
-		RegionOld* balanceLoad(RegionOld tile, int nodeCount);
+		RegionOld* balanceLoad(RegionOld region, int nodeCount) override;
 };
 
 #endif

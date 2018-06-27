@@ -1,17 +1,27 @@
 #include "Fractal.h"
 
-double Fractal::xToReal(int x, double maxReal, double minReal, int width) {
-	return x * ((maxReal - minReal) / width) + minReal;
+const double boundX = 4;
+const double boundY = 4;
+
+/**
+ * unprojects from Tile coordinate space to the complex plane.
+ *
+ */
+long double unproject(long x, long zoom, double bound, long local, long size) {
+    if (size == 0) {
+        size = 1;
+    }
+    long long tile_count = static_cast<unsigned long long>(1) << static_cast<unsigned long long>(zoom);
+    return (long double) (x * bound * size + local * bound) /
+           (long double) (tile_count * size);
 }
 
-double Fractal::yToImaginary(int y, double maxImaginary, double minImaginary, int height) {
-	return y * ((maxImaginary - minImaginary) / height) + minImaginary;
+
+long double Fractal::xToReal(long x, long zoom, long localX, long size) {
+    return unproject(x, zoom, boundX, localX, size);
 }
 
-int Fractal::realToX(double real, double maxReal, double minReal, int width) {
-	return (int)((real - minReal) / ((maxReal - minReal) / width));
+long double Fractal::yToImaginary(long y, long zoom, long localY, long size) {
+    return unproject(y, zoom, boundY, localY, size);
 }
 
-int Fractal::imaginaryToY(double imaginary, double maxImaginary, double minImaginary, int height) {
-	return (int)((imaginary - minImaginary) / ((maxImaginary - minImaginary) / height));
-}
