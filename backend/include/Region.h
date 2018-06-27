@@ -31,6 +31,7 @@ struct Region {
 	/**
 	* Frontend specific information, identification/validation value, do not touch
 	* With leaflet frontend equivalent to zoomfactor.
+	* Used to decide whether the data is still needed.
 	*/
 	int validation;
 
@@ -42,7 +43,7 @@ struct Region {
 	unsigned int guaranteedDivisor;
 
 	/**
-	* Horizonatl and vertical offset respective to superregion.
+	* Horizontal and vertical offset respective to superregion.
 	* Equivalent to xOffset/yOffset.
 	* Should not become negative usually.
 	*/
