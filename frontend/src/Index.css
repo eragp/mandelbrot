@@ -6,14 +6,18 @@
 .nodeControl {
     background-color: rgba(255, 255, 255, 0.733);
     border-radius: 5px;
-    padding: 10px 10px 0px 5px;
+    padding-top: 12px;
+    padding-bottom: 0px;
+    padding-right: 10px;
+    padding-left: 10px;
 }
 
 .workerTime {
     margin-bottom: 5px;
-    width: 100%;
+    width: 80vw;
 }
 
-.workerDiv {
-    width: 500px;
+#viewer {
+    width: 100vw;
+    height: 100vh;
 }
