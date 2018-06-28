@@ -8,12 +8,8 @@
 struct RegionData{
 
     /**
-     * Information about which region was computed.
-     */
-    Region region;
-
-    /**
-     * Information about which worker computed the region and other metadata
+     * Information about which worker computed the region, 
+     * including the region itself, computation time and other metadata
      */
     WorkerInfo workerInfo;
 
