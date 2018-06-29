@@ -4,7 +4,7 @@
 #include <iostream>
 #include "Balancer.h"
 #include "Fractal.h"
-#include "IntegerBalancer.h"
+#include "ColumnBalancer.h"
 #include "RegionOld.h"
 #include "Tile.h"
 #include "TileData.h"

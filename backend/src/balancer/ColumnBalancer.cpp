@@ -1,4 +1,4 @@
-#include "IntegerBalancer.h"
+#include "ColumnBalancer.h"
 #include <cmath>
 #include "Region.h"
 
@@ -6,7 +6,7 @@
  * IntergerBalancer takes a region and separates it into #nodeCount
  * columns tile sets. (eg. region is split into #nodeCount columns)
  */
-Region* IntegerBalancer::balanceLoad(Region region, const int nodeCount) {
+Region* ColumnBalancer::balanceLoad(Region region, const int nodeCount) {
     auto regions = new Region[nodeCount];
     //int regionWidth = region.getWidth();
     //int columnWidth = regionWidth / nodeCount;
