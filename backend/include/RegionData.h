@@ -1,4 +1,5 @@
-#include "Region.h"
+#pragma once
+
 #include "WorkerInfo.h"
 
 /**

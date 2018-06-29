@@ -235,7 +235,8 @@ void Host::handle_get_tile(http_request request) {
  * TODO lock this method if necessary
  */
 void Host::handle_get_region(http_request request) {
-    std::cout << "handle GET region request" << std::endl;
+    /*
+	std::cout << "handle GET region request" << std::endl;
     // Expect coordinates from query
     auto data = uri::split_query(request.request_uri().query());
     auto it_zoom = data.find(U("zoom")),
@@ -277,7 +278,7 @@ void Host::handle_get_region(http_request request) {
             }
             current_big_tile = region;
         }
-
+		
         // TODO increase by one as soon as host is invoked as worker too
         int nodeCount = Host::world_size - 1;
         // TODO make this based on balancer variable defined above (sounds like strategy pattern...)
@@ -305,7 +306,7 @@ void Host::handle_get_region(http_request request) {
         }
         // All workers received their region
         MPI_Waitall(nodeCount, region_requests, region_status);
-
+		
         // Send region division to frontend
         auto response = http_response();
         response.set_status_code(status_codes::OK);
@@ -354,6 +355,7 @@ void Host::handle_get_region(http_request request) {
         std::cerr << "Host: Invalid region request: " << request.to_string()
                   << std::endl;
     }
+	*/
 }
 
 void Host::start_server(){
@@ -377,7 +379,8 @@ void Host::start_server(){
 }
 
 void Host::handle_region_request(const websocketpp::connection_hdl hdl, websocketpp::server<websocketpp::config::asio>::message_ptr msg){
-    client = hdl;
+    /*
+	client = hdl;
 
     std::string request_string = msg->get_payload();
 
@@ -464,6 +467,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl, websocke
     } catch(websocketpp::exception e){
         std::cerr << "Bad connection to client, Refresh connection" << std::endl;
     }
+	*/
 }
 
 void Host::register_client(const websocketpp::connection_hdl hdl){

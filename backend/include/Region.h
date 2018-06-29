@@ -1,3 +1,4 @@
+#pragma once
 /**
 * The new and up-to-date Region struct for view and subdivided regions
 */
