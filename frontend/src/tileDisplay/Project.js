@@ -1,9 +1,5 @@
 import Point from '../misc/Point';
-
-// (real, imaginary) bounds of the complex plane
-// x/-x and y/-y have to be the same (symmetric)
-const bounds = [4.0, 4.0];
-
+import { bounds } from './Constants';
 
 /**
  * This function projects leaflet tile coordinates to the complex plane
@@ -23,7 +19,7 @@ export const project = (tileX, tileY, zoom, pixelX, pixelY, pixelSize) => {
       (tileX * bounds[0] * pixelSize + pixelX * bounds[0]) /
       (tileCount * pixelSize),
     imag =
-      (tileY * bounds[1] * pixelSize + pixelY * bounds[1]) /
+      -(tileY * bounds[1] * pixelSize + pixelY * bounds[1]) /
       (tileCount * pixelSize);
   return new Point(real, imag);
 };
@@ -37,6 +33,6 @@ export const project = (tileX, tileY, zoom, pixelX, pixelY, pixelSize) => {
 export const unproject = (real, imag, zoom) => {
   let tileCount = Math.pow(2, zoom);
   let x = (tileCount * real) / bounds[0],
-    y = (tileCount * imag) / bounds[1];
+    y = -(tileCount * imag) / bounds[1];
   return new Point(Math.floor(x), Math.floor(y), zoom);
 };

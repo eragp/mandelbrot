@@ -20,11 +20,11 @@ socket.onmessage = function(event) {
       {
         console.log(msg);
         let tile = msg.tile;
-        let coords = coordsToString(msg.tile.x, -msg.tile.y, msg.tile.zoom);
+        let coords = coordsToString(msg.tile.x, msg.tile.y, msg.tile.zoom);
         let cb = callbacks.get(coords);
         if (cb != null) {
           cb(msg.data);
-          callbacks.delete(coords);
+          // callbacks.delete(coords);
         } else {
           console.log('request not found for tile: ' + coords);
         }

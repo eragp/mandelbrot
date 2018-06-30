@@ -12,6 +12,7 @@ import Shader from './Shader';
 import { project, unproject } from './Project';
 import { request } from './RegionRequest';
 import { register, sendRequest } from '../connection/WSClient';
+import { tileSize } from './Constants';
 import Point from '../misc/Point';
 
 class TileDisplay extends Component {
@@ -56,7 +57,7 @@ L.GridLayer.MandelbrotLayer = L.GridLayer.extend({
       'requesting new tile at ' +
         p +
         ' complex: ' +
-        project(p.x, p.y, zoom, 0, 0, 256)
+        project(p.x, p.y, zoom, 0, 0, tileSize)
     );
     register(p, drawTile);
     return tile;
@@ -82,7 +83,7 @@ L.GridLayer.DebugLayer = L.GridLayer.extend({
 
     let p = new Point(coords.x, coords.y, zoom);
 
-    let projected = project(coords.x, coords.y, zoom, 0, 0, 256);
+    let projected = project(coords.x, coords.y, zoom, 0, 0, tileSize);
     let unprojected = unproject(projected.x, projected.y, zoom);
     tile.innerHTML =
       'Leaflet tile: ' +
@@ -96,18 +97,19 @@ L.GridLayer.DebugLayer = L.GridLayer.extend({
   }
 });
 
-
 var map = null;
 function renderLeaflet() {
   // bounds have to be a power of two
+  // these bounds are chosen arbitrary and have nothing to do with 
+  // either leaflet space, nor the complex plane
   let bounds = [[-256, -256], [256, 256]];
   let mandelbrotLayer = new L.GridLayer.MandelbrotLayer({
-      tileSize: 256, // in px
+      tileSize: tileSize, // in px
       bounds: bounds,
       keepBuffer: 0
     }),
     debugLayer = new L.GridLayer.DebugLayer({
-      tileSize: 256,
+      tileSize: tileSize,
       bounds: bounds,
       keepBuffer: 0
     });
