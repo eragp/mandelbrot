@@ -10,7 +10,7 @@
 #include <vector>
 #include <mutex>
 
-#include "RegionOld.h"
+#include "Region.h"
 #include "Tile.h"
 #include "TileData.h"
 
@@ -24,13 +24,13 @@ private:
     static int maxIteration;
     static int world_size;
 
-    // Store for the current big tile
-    static RegionOld current_big_tile;
-    static std::mutex current_big_tile_lock;
+    // Store for the current big region
+    static Region current_big_region;
+    static std::mutex current_big_region_lock;
     // And for the split up regions
 
     //Store send MPI Requests
-    static std::map<int, RegionOld> transmitted_regions;
+    static std::map<int, Region> transmitted_regions;
     static std::mutex transmitted_regions_lock;
 
     // Websocket server

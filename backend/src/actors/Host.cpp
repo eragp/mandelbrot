@@ -6,6 +6,7 @@
 #include "Fractal.h"
 #include "ColumnBalancer.h"
 #include "RegionOld.h"
+#include "Region.h"
 #include "Tile.h"
 #include "TileData.h"
 
@@ -39,12 +40,12 @@ const int default_res = 256;
 int Host::maxIteration = 200;
 int Host::world_size = 0;
 
-// Store for the current big tile
-RegionOld Host::current_big_tile;
-std::mutex Host::current_big_tile_lock;
+// Store for the current big region
+Region Host::current_big_region;
+std::mutex Host::current_big_region_lock;
 
 // Store send MPI Requests
-std::map<int, RegionOld> Host::transmitted_regions;
+std::map<int, Region> Host::transmitted_regions;
 std::mutex Host::transmitted_regions_lock;
 
 // Websocket server
@@ -72,7 +73,6 @@ void Host::start_server(){
 }
 
 void Host::handle_region_request(const websocketpp::connection_hdl hdl, websocketpp::server<websocketpp::config::asio>::message_ptr msg){
-    /*
 	client = hdl;
 
     std::string request_string = msg->get_payload();
@@ -84,53 +84,69 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl, websocke
         return;
     }
 
-    RegionOld region{};
+	Region region;
     try{
         utility::string_t balancer = request["balancer"].as_string();
-        region.tlX = request["tlX"].as_integer();
+        /*region.tlX = request["tlX"].as_integer();
         region.tlY = request["tlY"].as_integer();
         region.brX = request["brX"].as_integer();
         region.brY = request["brY"].as_integer();
-        region.zoom = request["zoom"].as_integer();
-        region.resX = default_res;
-        region.resY = default_res;
-        region.maxIteration = maxIteration;
+        region.zoom = request["zoom"].as_integer();*/
+        
+        // TODO talk to Max about protocol for websocket communication
+        region.minReal = -1.5; // request["minReal"].as_double();
+        region.maxImaginary = 1.0; // request["maxImag"].as_double();
+        
+        region.maxReal = 0.7; // request["maxReal"].as_double();
+        region.minImaginary = -1.0; // request["minImag"].as_double();
+
+        region.width = default_res; // request["width"].as_integer();
+        region.height = default_res; // request["height"].as_integer();
+
+        region.hOffset = 0;
+        region.vOffset = 0;
+
+        region.maxIteration = maxIteration; // request["iterations"].as_integer();
+        region.validation = 0; // request["validation"].as_integer();
+        region.guaranteedDivisor = 8; // request["divisor"].as_integer();
     } catch(std::out_of_range e){
         std::cerr << "Inclompletely specified region requested: " << request_string;
         return;
     }
     
     {
-        std::lock_guard<std::mutex> lock(current_big_tile_lock);
-//        if (region == current_big_tile) {
+        std::lock_guard<std::mutex> lock(current_big_region_lock);
+//        if (region == current_big_region) {
 //            std::cerr << "region has not changed" << std::endl;
 //            return;
 //        }
-        current_big_tile = region;
+        current_big_region = region;
     }
 
     // TODO increase by one as soon as host is invoked as worker too
     int nodeCount = Host::world_size - 1;
-    // TODO make this based on balancer variable defined above (sounds like strategy pattern...)
-    Balancer *b = new IntegerBalancer();
-    RegionOld *blocks = b->balanceLoad(region, nodeCount);  //Tiles is array with nodeCount members
+    // TODO make this based on balancer variable defined above (sounds like strategy pattern...) --> That was the idea :)
+    Balancer *b = new ColumnBalancer();
+    Region *blocks = b->balanceLoad(region, nodeCount);  // Blocks is array with nodeCount members
     // DEBUG
     std::cout << "Balancer Output:" << std::endl;
     for (int i = 0; i < nodeCount; i++) {
         std::cout << "Region " << i << ": "
-                    << " TopLeft: (" << blocks[i].tlX << ", " << blocks[i].tlY << ", " << blocks[i].zoom << ") -> ("
-                    << blocks[i].brX << ", " << blocks[i].brY << ", " << blocks[i].zoom << ")" << std::endl;
+                    << " TopLeft: (" << blocks[i].minReal << ", " << blocks[i].maxImaginary << ") -> BottomRight: ("
+                    << blocks[i].maxReal << ", " << blocks[i].minImaginary << ") Resolution: ("
+                    << blocks[i].width << ", " << blocks[i].height << std::endl;
     }
     // send regions to cores deterministically
     MPI_Request region_requests[nodeCount];
     MPI_Status region_status[nodeCount];
     for (int i = 0; i < nodeCount; i++) {
-        RegionOld region = blocks[i];
+        Region region = blocks[i];
         int rank_worker = i + 1; // TODO for now, see nodeCount
         std::cout << "Invoking core " << rank_worker << std::endl;
         // Tag for computation requests is 1
         // Send new region
-        MPI_Isend((const void *) &region, sizeof(RegionOld), MPI_BYTE, rank_worker, 1, MPI_COMM_WORLD,
+        // TODO @Tobi you might want to look at this
+        MPI_Isend((const void *) &region, sizeof(Region), MPI_BYTE, rank_worker, 1, MPI_COMM_WORLD,
                     &region_requests[i]);
         transmitted_regions[rank_worker] = region;
     }
@@ -144,14 +160,31 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl, websocke
     reply[U("nregions")] = json::value(nodeCount);
     json::value regions;
     for (int i = 0; i < nodeCount; i++) {
-        RegionOld t = blocks[i];
+        Region t = blocks[i];
         regions[i] = json::value();
         regions[i][U("nodeID")] = json::value(i);
-        regions[i][U("topLeftX")] = json::value(t.tlX);
-        regions[i][U("topLeftY")] = json::value(t.tlY);
-        regions[i][U("bottomRightX")] = json::value(t.brX);
-        regions[i][U("bottomRightY")] = json::value(t.brY);
-        regions[i][U("zoom")] = json::value(t.zoom);
+        // regions[i][U("topLeftX")] = json::value(t.tlX);
+        // regions[i][U("topLeftY")] = json::value(t.tlY);
+        // regions[i][U("bottomRightX")] = json::value(t.brX);
+        // regions[i][U("bottomRightY")] = json::value(t.brY);
+        // regions[i][U("zoom")] = json::value(t.zoom);
+        
+        // TODO talk to Max about protocol for websocket communication
+        regions[i][U("minReal")] = json::value((double) t.minReal);
+        regions[i][U("maxImag")] = json::value((double) t.maxImaginary);
+
+        regions[i][U("maxReal")] = json::value((double) t.maxReal);
+        regions[i][U("minImag")] = json::value((double) t.minImaginary);
+
+        regions[i][U("width")] = json::value(t.width);
+        regions[i][U("height")] = json::value(t.height);
+
+        regions[i][U("hOffset")] = json::value(t.hOffset);
+        regions[i][U("vOffset")] = json::value(t.vOffset);
+
+        regions[i][U("iterations")] = json::value(t.maxIteration);
+        regions[i][U("validation")] = json::value(t.validation);
+        regions[i][U("divisor")] = json::value(t.guaranteedDivisor);
     }
     reply[U("regions")] = regions;
     try{
@@ -160,7 +193,6 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl, websocke
     } catch(websocketpp::exception e){
         std::cerr << "Bad connection to client, Refresh connection" << std::endl;
     }
-	*/
 }
 
 void Host::register_client(const websocketpp::connection_hdl hdl){
@@ -230,20 +262,23 @@ void Host::init(int world_rank, int world_size) {
         }
     }
 
+    // TODO @Tobi you might want to look at this    
     // MPI - receiving answers and answering requests
     while (true) {
+        /*
         // Listen for incoming complete computations from workers (MPI)
         // This accepts messages by the workers and answers requests that were stored before
         // TODO: asynchronous (maybe?)
         int worker_rank;
         MPI_Recv((void *) &worker_rank, 1, MPI_INT, MPI_ANY_SOURCE, 3, MPI_COMM_WORLD,
                  MPI_STATUS_IGNORE);  // 3 is tag for world_rank of worker
-        RegionOld rendered_region{};
+        Region rendered_region;
         {
             std::lock_guard<std::mutex> lock(transmitted_regions_lock);
             rendered_region = transmitted_regions[worker_rank];
             transmitted_regions.erase(worker_rank);
         }
+        
         unsigned int region_size = rendered_region.getBytes();
         std::vector<int> worker_data(region_size);
         std::cout << "Host: waiting for receive from " << worker_rank << std::endl;
@@ -253,8 +288,8 @@ void Host::init(int world_rank, int world_size) {
         // Check if this data is up to date requested data
         /*bool inside_current_region;
         {
-            std::lock_guard<std::mutex> lock(current_big_tile_lock);
-            inside_current_region = current_big_tile.contains(rendered_region.tlX, rendered_region.tlY,
+            std::lock_guard<std::mutex> lock(current_big_region_lock);
+            inside_current_region = current_big_region.contains(rendered_region.tlX, rendered_region.tlY,
                                                               rendered_region.brX, rendered_region.brY,
                                                               rendered_region.zoom);
 
@@ -262,7 +297,7 @@ void Host::init(int world_rank, int world_size) {
         if (!inside_current_region) {
             std::cout << "Host: no longer interested in the rendered region" << std::endl;
             continue;
-        }*/
+        }* /
         //std::cout << rendered_region.resX << ", " << rendered_region.resY << std::endl;
 
         std::vector<TileData> tile_data;
@@ -286,5 +321,11 @@ void Host::init(int world_rank, int world_size) {
             Tile t = tiles.at(i);
             Host::send(tile_data.at(i), t);
         }
+        */
+       
+       // Only to make the processor stay calm
+       // IMPORTANT: remove when above is finished
+       usleep(10000);
     }
+    
 }
