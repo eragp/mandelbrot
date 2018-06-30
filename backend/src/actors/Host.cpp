@@ -95,10 +95,10 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl, websocke
         
         // TODO talk to Max about protocol for websocket communication
         region.minReal = -1.5; // request["minReal"].as_double();
-        region.maxImaginary = 1.0; // request["maxImag"].as_double();
+        region.maxImaginary = 1.0; // request["maxImaginary"].as_double();
         
         region.maxReal = 0.7; // request["maxReal"].as_double();
-        region.minImaginary = -1.0; // request["minImag"].as_double();
+        region.minImaginary = -1.0; // request["minImaginary"].as_double();
 
         region.width = default_res; // request["width"].as_integer();
         region.height = default_res; // request["height"].as_integer();
@@ -106,9 +106,9 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl, websocke
         region.hOffset = 0;
         region.vOffset = 0;
 
-        region.maxIteration = maxIteration; // request["iterations"].as_integer();
+        region.maxIteration = maxIteration; // request["maxIteration"].as_integer();
         region.validation = 0; // request["validation"].as_integer();
-        region.guaranteedDivisor = 8; // request["divisor"].as_integer();
+        region.guaranteedDivisor = 8; // request["guaranteedDivisor"].as_integer();
     } catch(std::out_of_range e){
         std::cerr << "Inclompletely specified region requested: " << request_string;
         return;
@@ -171,10 +171,10 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl, websocke
         
         // TODO talk to Max about protocol for websocket communication
         regions[i][U("minReal")] = json::value((double) t.minReal);
-        regions[i][U("maxImag")] = json::value((double) t.maxImaginary);
+        regions[i][U("maxImaginary")] = json::value((double) t.maxImaginary);
 
         regions[i][U("maxReal")] = json::value((double) t.maxReal);
-        regions[i][U("minImag")] = json::value((double) t.minImaginary);
+        regions[i][U("minImaginary")] = json::value((double) t.minImaginary);
 
         regions[i][U("width")] = json::value(t.width);
         regions[i][U("height")] = json::value(t.height);
@@ -182,9 +182,9 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl, websocke
         regions[i][U("hOffset")] = json::value(t.hOffset);
         regions[i][U("vOffset")] = json::value(t.vOffset);
 
-        regions[i][U("iterations")] = json::value(t.maxIteration);
+        regions[i][U("maxIteration")] = json::value(t.maxIteration);
         regions[i][U("validation")] = json::value(t.validation);
-        regions[i][U("divisor")] = json::value(t.guaranteedDivisor);
+        regions[i][U("guaranteedDivisor")] = json::value(t.guaranteedDivisor);
     }
     reply[U("regions")] = regions;
     try{
