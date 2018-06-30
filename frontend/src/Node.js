@@ -23,15 +23,17 @@ class NodeList extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      nodes: this.getNodes()
+      numWorkers: 0,
+      active: new Array(this.numWorkers),
+      progress: new Array(this.numWorkers)
     };
   }
 
   getNodes() {
     let nodes = [];
-    for (let i = 0; i < 3; i++) {
-      let n = randomNumber(50, 100);
-      let active = n >= 90 ? false : true;
+    for (let i = 0; i < this.state.numWorkers; i++) {
+      let n = this.state.progress[i];
+      let active = this.state.active[i];
       nodes.push(
         <Node
           key={i}
@@ -47,15 +49,25 @@ class NodeList extends Component {
   // rerender the list of nodes every 2 seconds
   componentDidMount() {
     this.interval = setInterval(
-      () => this.setState({ nodes: this.getNodes() }),
-      5000
+      () => {      
+        this.setState((oldState) => {
+          for(let i = 0; i < oldState.numWorkers; i++){
+            if(oldState.active[i]){
+              oldState.progress[i] += 5;
+            }
+          }
+          return oldState;
+        });
+      },
+      500
     );
   }
 
   render() {
+    let nodes = this.getNodes()
     return (
       <div>
-        <ul className="list-unstyled">{this.state.nodes}</ul>
+        <ul className="list-unstyled">{nodes}</ul>
       </div>
     );
   }

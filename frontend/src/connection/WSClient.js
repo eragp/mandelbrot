@@ -4,6 +4,7 @@ import Point from '../misc/Point';
  * this map stores callbacks to render all the tiles requested for leaflet.
  */
 const callbacks = new Map();
+const regionCallback = new Array();
 
 // Web Socket setup
 const url = 'ws://localhost:9002';
@@ -33,7 +34,9 @@ socket.onmessage = function(event) {
     case 'regions':
       {
         console.log(msg);
-        // TODO
+        regionCallback.forEach(callback => {
+          callback(msg);
+        })
       }
       break;
     default:
@@ -62,6 +65,25 @@ export const register = (point, draw) => {
   callbacks.set(coords, render);
   return promise;
 };
+
+/**
+ * Registers a callback to call when the region subdivision is returned
+ */
+export const registerRegion = (fun) => {
+  let promise;
+  const render = (data) => {
+    promise = new Promise((resolve, error) => {
+      try {
+        fun(data);
+        resolve();
+      } catch (err) {
+        error(err);
+      }
+    });
+  };
+  regionCallback.push(render);
+  return promise;
+}
 
 export const close = () => {
   console.log('closing the WS connection');

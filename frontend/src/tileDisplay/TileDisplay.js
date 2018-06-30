@@ -11,7 +11,7 @@ import './TileDisplay.css';
 
 import Shader from './Shader';
 import { request, unproject } from './RegionRequest';
-import { register, sendRequest } from '../connection/WSClient';
+import { register, sendRequest, registerRegion } from '../connection/WSClient';
 import Point from '../misc/Point';
 
 //Custom component
@@ -132,13 +132,36 @@ function renderLeaflet() {
   map.setView([0, 0]);
 
   var legend = L.control({position: 'topright'});
+  let nodeList;
 
   legend.onAdd = function (map) {
-      var container = L.DomUtil.create('div', 'nodeControl');
-      var div = ReactDOM.render(<NodeList />, container);
+      let container = L.DomUtil.create('div', 'nodeControl');
+      ReactDOM.render(<NodeList ref={(component) => {nodeList = component;}}/>, container);;
       return container;
   };
   legend.addTo(map);
+
+  registerRegion((data) => {
+    // Draw node progress
+    let nworkers = data.nregions;
+    console.log(data)
+    let active = new Array(nworkers);
+    let progress = new Array(nworkers);
+    for(var i = 0; i < nworkers; i++){
+      active[i] = true;
+      progress[i] = 0;
+    }
+    nodeList.setState({
+      numWorkers: nworkers,
+      active: active,
+      progress: progress
+    });
+    // TODO draw regions
+  });
+
+  // TODO register workers at websocket client
+  // so that they are set inactive when the first tile/region
+  // by them comes in
 
 }
 
