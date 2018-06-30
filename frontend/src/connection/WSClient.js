@@ -1,5 +1,3 @@
-import Point from '../misc/Point';
-
 /*
  * this map stores callbacks to render all the tiles requested for leaflet.
  */
@@ -7,7 +5,8 @@ const callbacks = new Map();
 
 // Web Socket setup
 const url = 'ws://localhost:9002';
-export const socket = new WebSocket(url); //, 'mandelbrot');
+export const socket = new WebSocket(url);
+
 // Buffer of requests to be sent when the socket connects
 const regionRequests = [];
 socket.onopen = () => {
@@ -20,11 +19,12 @@ socket.onmessage = function(event) {
     case 'tile':
       {
         console.log(msg);
+        let tile = msg.tile;
         let coords = coordsToString(msg.tile.x, -msg.tile.y, msg.tile.zoom);
         let cb = callbacks.get(coords);
         if (cb != null) {
           cb(msg.data);
-          // callbacks.delete(coords);
+          callbacks.delete(coords);
         } else {
           console.log('request not found for tile: ' + coords);
         }
@@ -42,8 +42,9 @@ socket.onmessage = function(event) {
 };
 
 /**
- *  Registers the tile at coords to be drawn as soon as data is available.
- * @param {*} point coordinates on the tile to be registerd
+ * Registers the tile at coords to be drawn as soon as data is available.
+ * The return value of the draw function will be returned by the promise.
+ * @param {*} point leaflet coordinates on the tile to be registerd
  * @param {*} draw function expecting data that draws the tile @coords
  */
 export const register = (point, draw) => {
@@ -51,8 +52,7 @@ export const register = (point, draw) => {
   const render = data => {
     promise = new Promise((resolve, error) => {
       try {
-        draw(data);
-        resolve();
+        resolve(draw(data));
       } catch (err) {
         error(err);
       }
