@@ -170,6 +170,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl, websocke
         // regions[i][U("zoom")] = json::value(t.zoom);
         
         // TODO talk to Max about protocol for websocket communication
+        // Maybe put this into extra method
         regions[i][U("minReal")] = json::value((double) t.minReal);
         regions[i][U("maxImaginary")] = json::value((double) t.maxImaginary);
 
@@ -206,19 +207,48 @@ void Host::deregister_client(websocketpp::connection_hdl hdl){
     // TODO maybe mock client or sth similar
 }
 
-void Host::send(TileData data, Tile tile){
-    // TODO send data of this region to the client
+void Host::send(RegionData data){
+    // TODO talk to Max about protocol for websocket communication
+    WorkerInfo workerInfo = data.workerInfo;
+    Region region = workerInfo.region;
 
     // Create json value from returned
     json::value answer;
-    answer[U("rank")] = json::value(data.world_rank);
-    json::value tile_json = json::value();
-    for (unsigned int index = 0; index < (unsigned int) data.size; index++) {
-        tile_json[index] = data.n[index];
+    // answer[U("rank")] = json::value(data.world_rank);
+    json::value rawDataJSON = json::value();
+    for (unsigned int index = 0; index < (unsigned int) (data.workerInfo.region.width * data.workerInfo.region.height); index++) {
+        rawDataJSON[index] = data.data[index];
     }
-    answer[U("data")] = tile_json;
-    answer[U("type")] = json::value("tile");
+    
+    json::value workerInfoJSON = json::value();
+    workerInfoJSON[U("rank")] = json::value(workerInfo.rank);
+    workerInfoJSON[U("computationTime")] = json::value((long) workerInfo.computationTime);
 
+    // Maybe put this into extra method
+    json::value regionJSON = json::value();
+    regionJSON[U("minReal")] = json::value((double) region.minReal);
+    regionJSON[U("maxImaginary")] = json::value((double) region.maxImaginary);
+
+    regionJSON[U("maxReal")] = json::value((double) region.maxReal);
+    regionJSON[U("minImaginary")] = json::value((double) region.minImaginary);
+
+    regionJSON[U("width")] = json::value(region.width);
+    regionJSON[U("height")] = json::value(region.height);
+
+    regionJSON[U("hOffset")] = json::value(region.hOffset);
+    regionJSON[U("vOffset")] = json::value(region.vOffset);
+
+    regionJSON[U("maxIteration")] = json::value(region.maxIteration);
+    regionJSON[U("validation")] = json::value(region.validation);
+    regionJSON[U("guaranteedDivisor")] = json::value(region.guaranteedDivisor);
+
+    workerInfoJSON[U("region")] = regionJSON;
+
+    answer[U("workerInfo")] = workerInfoJSON;
+    answer[U("data")] = rawDataJSON;
+    answer[U("type")] = json::value("regionData");
+
+    /*
     // Include region
     json::value region_json = json::value();
     region_json[U("x")] = tile.x;
@@ -230,6 +260,7 @@ void Host::send(TileData data, Tile tile){
     region_json[U("zoom")] = tile.zoom;
     region_json[U("maxIteration")] = tile.maxIteration;
     answer[U("tile")] = region_json;
+    */
 
     utility::string_t data_string = answer.serialize();
 
@@ -286,7 +317,7 @@ void Host::init(int world_rank, int world_size) {
         std::cout << "Host: received from " << worker_rank << std::endl;
 
         // Check if this data is up to date requested data
-        /*bool inside_current_region;
+        /x*bool inside_current_region;
         {
             std::lock_guard<std::mutex> lock(current_big_region_lock);
             inside_current_region = current_big_region.contains(rendered_region.tlX, rendered_region.tlY,
@@ -297,7 +328,7 @@ void Host::init(int world_rank, int world_size) {
         if (!inside_current_region) {
             std::cout << "Host: no longer interested in the rendered region" << std::endl;
             continue;
-        }* /
+        }*x/
         //std::cout << rendered_region.resX << ", " << rendered_region.resY << std::endl;
 
         std::vector<TileData> tile_data;
@@ -324,7 +355,7 @@ void Host::init(int world_rank, int world_size) {
         */
        
        // Only to make the processor stay calm
-       // IMPORTANT: remove when above is finished
+       // IMPORTANT: remove when the above is finished
        usleep(10000);
     }
     

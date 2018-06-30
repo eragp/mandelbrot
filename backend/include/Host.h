@@ -11,8 +11,7 @@
 #include <mutex>
 
 #include "Region.h"
-#include "Tile.h"
-#include "TileData.h"
+#include "RegionData.h"
 
 class Host {
 public:
@@ -39,7 +38,7 @@ private:
     static websocketpp::connection_hdl client;
     static void register_client(websocketpp::connection_hdl conn);
     static void deregister_client(websocketpp::connection_hdl conn);
-    static void send(TileData data, Tile tile);
+    static void send(RegionData data);
     static void handle_region_request(websocketpp::connection_hdl hdl, websocketpp::server<websocketpp::config::asio>::message_ptr msg);
 };
 #endif
