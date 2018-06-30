@@ -13,7 +13,6 @@
 #include <mpi.h>
 
 // Cpp REST libraries
-#include <cpprest/http_listener.h>
 #include <cpprest/json.h>
 
 // Websockets
@@ -40,27 +39,9 @@ const int default_res = 256;
 int Host::maxIteration = 200;
 int Host::world_size = 0;
 
-std::map<Tile, std::vector<web::http::http_request>> Host::request_dictionary;
-std::mutex Host::request_dictionary_lock;
-
 // Store for the current big tile
 RegionOld Host::current_big_tile;
 std::mutex Host::current_big_tile_lock;
-
-// And the subdivided regions
-// RegionOld *Host::regions;
-
-// Manage available cores
-std::queue<int> Host::avail_cores;
-std::mutex Host::avail_cores_lock;
-
-// Manage requests for regions
-std::queue<RegionOld> Host::requested_regions;
-std::mutex Host::requested_regions_lock;
-
-// Manage available = already computed regions
-std::map<Tile, TileData> Host::available_tiles;
-std::mutex Host::available_tiles_lock;
 
 // Store send MPI Requests
 std::map<int, RegionOld> Host::transmitted_regions;
@@ -69,294 +50,6 @@ std::mutex Host::transmitted_regions_lock;
 // Websocket server
 websocketpp::server<websocketpp::config::asio> Host::websocket_server;
 websocketpp::connection_hdl Host::client;
-
-// Buffer for completed computations
-// int *Host::data_buffer;
-
-void answer_request(http_request request, Tile tile, TileData data) {
-    auto response = http_response();
-    response.set_status_code(status_codes::OK);
-    response.headers().add(U("Access-Control-Allow-Origin"), U("*"));
-    response.headers().add(U("Access-Control-Allow-Methods"), U("GET"));
-
-    // Create json value from returned
-    json::value answer;
-    answer[U("rank")] = json::value(data.world_rank);
-    json::value tile_json = json::value();
-    for (unsigned int y = 0; y < (unsigned int) tile.resY; y++) {
-        for (unsigned int x = 0; x < (unsigned int) tile.resX; x++) {
-            unsigned int index = y * tile.resX + x;
-            tile_json[index] = data.n[index];
-        }
-    }
-    answer[U("tile")] = tile_json;
-    response.set_body(answer);
-    request.reply(response);
-}
-
-void answer_request_error(http_request request, std::string message) {
-    auto response = http_response();
-    response.set_status_code(500);
-    response.headers().add(U("Access-Control-Allow-Origin"), U("*"));
-    response.headers().add(U("Access-Control-Allow-Methods"), U("GET"));
-    request.reply(response);
-}
-
-
-/**
- * Answers all stored requests for the given region.
- */
-void Host::answer_requests(RegionOld rendered_region) {
-    // is the region still the requested one?
-    bool inside_current_region;
-    {
-        std::lock_guard<std::mutex> lock(current_big_tile_lock);
-        inside_current_region = current_big_tile.contains(rendered_region.tlX, rendered_region.tlY,
-                                                          rendered_region.brX, rendered_region.brY,
-                                                          rendered_region.zoom);
-
-    }
-    if (!inside_current_region) {
-        std::cerr << "Host: region no longer needed" << std::endl;
-        return;
-    }
-    std::vector<Tile> tiles = rendered_region.getTiles();
-    std::lock_guard<std::mutex> lock1(request_dictionary_lock);
-    std::lock_guard<std::mutex> lock2(available_tiles_lock);
-    for (auto const &tile : tiles) {
-        TileData data = available_tiles[tile];
-        // iterate over all requests in the queue and check if they can be answered
-        // Because we remove elements from this vector in time it is important
-        // that we iterate backwards
-        auto it_tile = request_dictionary.find(tile);
-        if (it_tile == request_dictionary.end()) {
-            std::cerr << "Request not found for " << " x:" << tile.x
-                      << " y:" << tile.y
-                      << " z:" << tile.zoom
-                      << " size:" << tile.resX << std::endl;
-            continue;
-        }
-        std::vector<web::http::http_request> requests = request_dictionary[tile];
-        for (auto request : requests) {
-            std::cout << "Answering Request for"
-                      << " x:" << tile.x
-                      << " y:" << tile.y
-                      << " z:" << tile.zoom
-                      << " size:" << tile.resX << std::endl;
-            // reply with data
-            answer_request(request, tile, data);
-        }
-        request_dictionary.erase(tile);
-    }
-}
-
-/**
- * Handle a request for a new tile from client side
- * This method is responsible to create the identifier for the response. It's not about new computation requests.
- */
-void Host::handle_get_tile(http_request request) {
-    std::cout << "handle GET tile request" << std::endl;
-    // Expect coordinates from query
-    auto data = uri::split_query(request.request_uri().query());
-    auto it_x = data.find(U("x")),
-            it_y = data.find(U("y")),
-            it_z = data.find(U("z")),
-            it_size = data.find(U("size"));
-    // Returns either value at x/y or the whole array
-    if (it_x != data.end() && it_y != data.end() && it_z != data.end()) {
-        int x = stoi(data["x"]),
-                y = stoi(data["y"]),
-                z = stoi(data["z"]),
-                size = default_res;
-        if (it_size != data.end()) {
-            size = stoi(data["size"]);
-        }
-
-        Tile requested_tile{};
-        requested_tile.x = x;
-        requested_tile.y = y;
-        requested_tile.zoom = z;
-        requested_tile.resX = size;
-        requested_tile.resY = size;
-        requested_tile.maxIteration = Host::maxIteration;
-
-        std::cout << "Tile: (" << requested_tile.x << ", " << requested_tile.y << ", " << requested_tile.zoom << ")"
-                  << std::endl;
-
-        // Check if this tile is still going to be answered
-        /*bool inside_current_region;
-        {
-            std::lock_guard<std::mutex> lock(current_big_tile_lock);
-            inside_current_region = current_big_tile.contains(requested_tile.x, requested_tile.y,
-                                       requested_tile.x, requested_tile.y,
-                                       requested_tile.zoom);
-
-        }
-        if (!inside_current_region) {
-            std::cerr << "Host: Tile not in current region ("
-                      << requested_tile.x << ", " << requested_tile.y << ", " << requested_tile.zoom << ")"
-                      << std::endl;
-            answer_request_error(request, "Tile not in current reqion");
-            return;
-        }*/
-
-        // Store or answer requests
-        {
-            // Lock important data structures
-            // IMPORTANT: same order as everywhere else where we lock those two
-            std::lock_guard<std::mutex> lock1(request_dictionary_lock);
-            std::lock_guard<std::mutex> lock2(available_tiles_lock);
-            auto it_available = available_tiles.find(requested_tile);
-            bool answerable = !(it_available == available_tiles.end());
-            if (answerable) {
-//                std::cout << "answering " << requested_tile.x << ", " << requested_tile.y << ", "
-//                          << requested_tile.zoom << std::endl;
-                answer_request(request, requested_tile, available_tiles[requested_tile]);
-            } else {
-                std::cout << "tile not found in available tiles" << std::endl;
-                std::cout << "Storing Request at"
-                          << " x:" << x
-                          << " y:" << y
-                          << " z:" << z
-                          << " size:" << size << std::endl;
-
-                request_dictionary[requested_tile].push_back(request);
-            }
-        }
-
-    } else {
-        TRACE(U("Not enough arguments\n"));
-    }
-}
-
-/**
- * Accept the request for the computation of a complete region,
- * answer with the result of the loadbalancer
- * TODO lock this method if necessary
- */
-void Host::handle_get_region(http_request request) {
-    /*
-	std::cout << "handle GET region request" << std::endl;
-    // Expect coordinates from query
-    auto data = uri::split_query(request.request_uri().query());
-    auto it_zoom = data.find(U("zoom")),
-            it_tlX = data.find(U("topLeftX")),
-            it_tlY = data.find(U("topLeftY")),
-            it_brX = data.find(U("bottomRightX")),
-            it_brY = data.find(U("bottomRightY")),
-            it_balancer = data.find(U("balancer"));
-    // Returns either value at x/y or the whole array
-    if (it_zoom != data.end() && it_tlX != data.end() && it_tlY != data.end() && it_brX != data.end() &&
-        it_brY != data.end()) {
-        int zoom = stoi(data["zoom"]),
-                tlX = stoi(data["topLeftX"]),
-                tlY = stoi(data["topLeftY"]),
-                brX = stoi(data["bottomRightX"]),
-                brY = stoi(data["bottomRightY"]),
-                size = default_res;
-        // if (it_size != data.end()) {
-        //     size = stoi(data["size"]);
-        // }
-        // Additional option to define balancer in region
-        utility::string_t balancer = "naive";
-        if (it_balancer != data.end()) {
-            balancer = data["balancer"];
-        }
-        RegionOld region{};
-        region.tlX = tlX;
-        region.tlY = tlY;
-        region.brX = brX;
-        region.brY = brY;
-        region.zoom = zoom;
-        region.resX = size;
-        region.resY = size;
-        region.maxIteration = maxIteration;
-        {
-            std::lock_guard<std::mutex> lock(current_big_tile_lock);
-            if (region == current_big_tile) {
-                std::cout << "region has not changed" << std::endl;
-            }
-            current_big_tile = region;
-        }
-		
-        // TODO increase by one as soon as host is invoked as worker too
-        int nodeCount = Host::world_size - 1;
-        // TODO make this based on balancer variable defined above (sounds like strategy pattern...)
-        Balancer *b = new IntegerBalancer();
-        RegionOld *blocks = b->balanceLoad(region, nodeCount);  //Tiles is array with nodeCount members
-        // DEBUG
-        std::cout << "Balancer Output:" << std::endl;
-        for (int i = 0; i < nodeCount; i++) {
-            std::cout << "Region " << i << ": "
-                      << " TopLeft: (" << blocks[i].tlX << ", " << blocks[i].tlY << ", " << blocks[i].zoom << ") -> ("
-                      << blocks[i].brX << ", " << blocks[i].brY << ", " << blocks[i].zoom << ")" << std::endl;
-        }
-        // send regions to cores deterministically
-        MPI_Request region_requests[nodeCount];
-        MPI_Status region_status[nodeCount];
-        for (int i = 0; i < nodeCount; i++) {
-            RegionOld region = blocks[i];
-            int rank_worker = i + 1; // TODO for now, see nodeCount
-            std::cout << "Invoking core " << rank_worker << std::endl;
-            // Tag for computation requests is 1
-            // Send new region
-            MPI_Isend((const void *) &region, sizeof(RegionOld), MPI_BYTE, rank_worker, 1, MPI_COMM_WORLD,
-                      &region_requests[i]);
-            transmitted_regions[rank_worker] = region;
-        }
-        // All workers received their region
-        MPI_Waitall(nodeCount, region_requests, region_status);
-		
-        // Send region division to frontend
-        auto response = http_response();
-        response.set_status_code(status_codes::OK);
-        // CORs enabling
-        response.headers().add(U("Access-Control-Allow-Origin"), U("*"));
-        response.headers().add(U("Access-Control-Allow-Methods"), U("GET"));
-
-        auto reply = json::value();
-        for (int i = 0; i < nodeCount; i++) {
-            auto t = blocks[i];
-            reply[i] = json::value();
-            reply[i]["nodeID"] = i;
-            reply[i]["topLeftX"] = t.tlX;
-            reply[i]["topLeftY"] = t.tlY;
-            reply[i]["bottomRightX"] = t.brX;
-            reply[i]["bottomRightY"] = t.brY;
-            reply[i]["zoom"] = t.zoom;
-        }
-        response.set_body(reply);
-        request.reply(response);
-
-
-        // Throw away all requests inside requested_tiles, that are not inside this region
-        {
-            std::lock_guard<std::mutex> lock1(request_dictionary_lock);
-            std::lock_guard<std::mutex> lock2(current_big_tile_lock);
-            for (auto requested_tile = request_dictionary.begin();
-                 requested_tile != request_dictionary.end(); requested_tile++) {
-                Tile key = requested_tile->first;
-                bool inside_current_region = current_big_tile.contains(key.x, key.y,
-                                                                       key.x, key.y,
-                                                                       key.zoom);
-                if (!inside_current_region) {
-                    std::cerr << "Host: Tile not in current region ("
-                              << key.x << ", " << key.y << ", " << key.zoom << ")"
-                              << std::endl;
-                    auto requests = requested_tile->second;
-                    for (auto request : requests) {
-                        answer_request_error(request, "Tile not in current reqion");
-                    }
-                    request_dictionary.erase(key);
-                }
-            }
-        }
-    } else {
-        std::cerr << "Host: Invalid region request: " << request.to_string()
-                  << std::endl;
-    }
-	*/
-}
 
 void Host::start_server(){
 
@@ -521,35 +214,6 @@ void Host::init(int world_rank, int world_size) {
     int cores = world_size;
     std::cout << "Host init " << world_size << std::endl;
 
-    // REST
-    /*
-	* IMPORTANT: use the U() Makro for any strings passed to cpprest. This is required for Linux compilation
-	*/
-
-    // Tile GET requests are ansewered on http://localhost:80/mandelbrot
-    auto resturl = web::uri_builder();
-    resturl.set_host(U("0.0.0.0"));
-    resturl.set_scheme(U("http"));
-    resturl.set_port(U("80"));
-    resturl.set_path(U("region"));
-
-    http_listener listener_region(resturl.to_uri());
-    listener_region.support(methods::GET, handle_get_region);
-
-    try {
-        // These are listeners. They start a new thread that calls the methods given
-        // a few lines before when a new get request arrives
-        // handle_get and handle_get_region are never called directly!
-        // They can store requests in a dictionary which we can access later in the MPI_recv loop
-        /*listener_region
-                .open()
-                .then([&listener_region]() { TRACE(U("\nlistening for HTTP Region Requests\n")); })
-                .wait();*/
-
-    } catch (std::exception const &e) {
-        std::wcout << e.what() << std::endl;
-    }
-
     // Websockets
     // Start a thread that hosts the server
     std::thread websocket_server(start_server);
@@ -618,12 +282,9 @@ void Host::init(int world_rank, int world_size) {
         }
         // copy the tiles from worker to available_tiles
         auto tiles = rendered_region.getTiles();
-        {   
-            std::lock_guard<std::mutex> lock(available_tiles_lock);
-            for (std::vector<int>::size_type i = 0; i != tiles.size(); i++) {
-                Tile t = tiles.at(i);
-                Host::send(tile_data.at(i), t);
-            }
+        for (std::vector<int>::size_type i = 0; i != tiles.size(); i++) {
+            Tile t = tiles.at(i);
+            Host::send(tile_data.at(i), t);
         }
     }
 }
