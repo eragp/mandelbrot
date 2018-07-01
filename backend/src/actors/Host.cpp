@@ -320,9 +320,6 @@ void Host::init(int world_rank, int world_size) {
         region_data.workerInfo = worker_info;
 
         Host::send(region_data);
-        // Only to make the processor stay calm
-        // IMPORTANT: remove when the above is finished
-        usleep(10000);
     }
 
 }
