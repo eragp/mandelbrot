@@ -15,17 +15,22 @@ import Point from '../misc/Point';
  * this map stores callbacks to render all the tiles requested for leaflet.
  */
 const callbacks = new Map();
+/**
+ * These variables handle the current visible region bounds as points
+ */
 var topLeft;
 var bottomRight;
 
 const handleRegionData = msg => {
-  // TODO compute x/y coordinates based on region
-  // and invoke tile draw methods
+  // compute x/y coordinates based on region
+
   let tileSize = msg.workerInfo.region.guaranteedDivisor;
   let xStart = msg.workerInfo.region.hOffset / tileSize;
   let xEnd = xStart + msg.workerInfo.region.width / tileSize;
   let yStart = msg.workerInfo.region.vOffset / tileSize;
   let yEnd = yStart + msg.workerInfo.region.height / tileSize
+
+  // and invoke tile draw methods
   for (let y = yStart; y < yEnd; y++) {
     for (let x = xStart; x < xEnd; x++) {
       let tileX = topLeft.x + x;
@@ -130,8 +135,8 @@ class RegionOfInterest {
       console.log("Illegal access");
       return -1;
     }
-    let newX = this.topLeft.x + x;
-    let newY = this.topLeft.y + y;
-    return this.data[y * this.width + x];
+    let realX = this.topLeft.x + x;
+    let realY = this.topLeft.y + y;
+    return this.data[realY * this.width + realX];
   }
 }

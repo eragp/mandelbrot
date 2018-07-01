@@ -70,7 +70,6 @@ L.GridLayer.MandelbrotLayer = L.GridLayer.extend({
       let imgData = ctx.createImageData(size.x, size.y);
       for (let y = 0; y < size.y; y++) {
         for (let x = 0; x < size.x; x++) {
-          // TODO: investigate why this works, for now it's a dirty hack.
           let n = tileData.get(x, y);
           let [r, g, b] = Shader.default(n, 200);
           drawPixel(imgData, x, y, r, g, b, 255);
