@@ -4,8 +4,8 @@ import { tileSize, balancer } from './Constants';
 
 
 // making sure only new requests actually get sent
-var oldTl = null;
-var oldBr = null;
+var currentTopLeft = null;
+var currentBottomRight = null;
 /**
  *  Sends a region request for the currently visible region
  *
@@ -29,11 +29,11 @@ export const request = map => {
     zoom
   );
   // has the visible region changed?
-  if (topLeft.equals(oldTl) && botRight.equals(oldBr)) {
+  if (topLeft.equals(currentTopLeft) && botRight.equals(currentBottomRight)) {
     return null;
   }
-  oldTl = topLeft;
-  oldBr = botRight;
+  currentTopLeft = topLeft;
+  currentBottomRight = botRight;
 
   let tlComplex = project(topLeft.x, topLeft.y, topLeft.z, 0, 0, tileSize);
   let brComplex = project(

@@ -1,9 +1,8 @@
-import Point from '../misc/Point';
 /**
  * Callbacks for any methods interested in new region subdivisions or regionData (=result of one worker)
  */
-const regionCallback = new Array();
-const workerCallback = new Array();
+const regionCallback = [];
+const workerCallback = [];
 
 // Web Socket setup
 const url = 'ws://localhost:9002';
@@ -19,20 +18,16 @@ socket.onmessage = function(event) {
   console.log(msg);
   switch (msg.type) {
     case 'regionData':
-      {
-        // Notify regionData/worker observers
-        workerCallback.forEach(callback => {
-          callback(msg);
-        });
-      }
+      // Notify regionData/worker observers
+      workerCallback.forEach(callback => {
+        callback(msg);
+      });
       break;
     case 'regions':
-      {
-        // Notify region subdivision listeners
-        regionCallback.forEach(callback => {
-          callback(msg);
-        })
-      }
+      // Notify region subdivision listeners
+      regionCallback.forEach(callback => {
+        callback(msg);
+      })
       break;
     default:
       
@@ -44,7 +39,7 @@ socket.onmessage = function(event) {
  */
 export const registerRegion = (fun) => {
   registerCallback(regionCallback, fun);
-}
+};
 
 /**
  * Registers a callback to call when the region data is returned

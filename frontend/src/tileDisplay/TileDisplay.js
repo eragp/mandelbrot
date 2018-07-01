@@ -16,6 +16,28 @@ import { register } from './RegionDrawer';
 import { tileSize } from './Constants';
 import Point from '../misc/Point';
 
+/**
+ * Functions to call, when a new region is issued
+ */
+const newRegionObservers = [];
+
+const registerNewRegion = (callback) => {
+  let promise;
+  const fun = (data) => {
+    promise = new Promise((resolve, error) => {
+      try {
+        resolve(callback(data));
+      } catch (err) {
+        error(err);
+      }
+    });
+  };
+  newRegionObservers.push(fun);
+  return promise;
+};
+
+export {registerNewRegion};
+
 class TileDisplay extends Component {
   componentDidMount() {
     renderLeaflet();
@@ -36,6 +58,10 @@ L.GridLayer.MandelbrotLayer = L.GridLayer.extend({
     // convert wierd leaflet coordinates to something more sensible
     let p = new Point(coords.x, coords.y, zoom);
 
+    /**
+     * Draw tile callback, asserts tileData to be RegionOfInterest object
+     * (see RegionDrawer)
+     */
     const drawTile = tileData => {
       let ctx = tile.getContext('2d', { alpha: false });
       ctx.fillStyle = 'black';
@@ -45,7 +71,7 @@ L.GridLayer.MandelbrotLayer = L.GridLayer.extend({
       for (let y = 0; y < size.y; y++) {
         for (let x = 0; x < size.x; x++) {
           // TODO: investigate why this works, for now it's a dirty hack.
-          let n = tileData[tileData.length - (y + 1) * size.x + x];
+          let n = tileData.get(x, y);
           let [r, g, b] = Shader.default(n, 200);
           drawPixel(imgData, x, y, r, g, b, 255);
         }
@@ -119,14 +145,18 @@ function renderLeaflet() {
     // maxZoom: 32,
     zoom: 3
   });
-  const requestCallback = () => {
+
+  const requestCallback = (map) => {
     let r = request(map);
     if (r !== null) {
       sendRequest(r);
     }
   };
+  registerNewRegion(requestCallback);
+
+
   map.on({
-    moveend: requestCallback
+    moveend: () => {newRegionObservers.forEach(callback => callback(map))}
   });
 
   let baseLayer = {
