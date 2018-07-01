@@ -21,9 +21,9 @@ import Point from '../misc/Point';
  */
 const newRegionObservers = [];
 
-const registerNewRegion = (callback) => {
+const registerNewRegion = callback => {
   let promise;
-  const fun = (data) => {
+  const fun = data => {
     promise = new Promise((resolve, error) => {
       try {
         resolve(callback(data));
@@ -36,9 +36,7 @@ const registerNewRegion = (callback) => {
   return promise;
 };
 
-export {registerNewRegion};
-
-class TileDisplay extends Component {
+export default class TileDisplay extends Component {
   componentDidMount() {
     renderLeaflet();
   }
@@ -55,7 +53,6 @@ L.GridLayer.MandelbrotLayer = L.GridLayer.extend({
     let zoom = map.getZoom();
     tile.width = size.x;
     tile.height = size.y;
-    // convert wierd leaflet coordinates to something more sensible
     let p = new Point(coords.x, coords.y, zoom);
 
     /**
@@ -126,7 +123,7 @@ L.GridLayer.DebugLayer = L.GridLayer.extend({
 var map = null;
 function renderLeaflet() {
   // bounds have to be a power of two
-  // these bounds are chosen arbitrary and have nothing to do with 
+  // these bounds are chosen arbitrary and have nothing to do with
   // either leaflet space, nor the complex plane
   let bounds = [[-256, -256], [256, 256]];
   let mandelbrotLayer = new L.GridLayer.MandelbrotLayer({
@@ -145,7 +142,7 @@ function renderLeaflet() {
     zoom: 3
   });
 
-  const requestCallback = (map) => {
+  const requestCallback = map => {
     let r = request(map);
     if (r !== null) {
       sendRequest(r);
@@ -153,9 +150,11 @@ function renderLeaflet() {
   };
   registerNewRegion(requestCallback);
 
-
+  // add event listeners to the map for region requests
   map.on({
-    moveend: () => {newRegionObservers.forEach(callback => callback(map))}
+    moveend: () => {
+      newRegionObservers.forEach(callback => callback(map));
+    }
   });
 
   let baseLayer = {
@@ -164,11 +163,10 @@ function renderLeaflet() {
     overlayLayers = {
       'Debug Layer': debugLayer
     };
-  // add event listeners to the map for region requests
   map.addLayer(mandelbrotLayer);
   map.addLayer(debugLayer);
   L.control.layers(baseLayer, overlayLayers).addTo(map);
   map.setView([0, 0]);
 }
 
-export default TileDisplay;
+// export default TileDisplay;

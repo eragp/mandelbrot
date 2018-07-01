@@ -2,7 +2,6 @@ import Point from '../misc/Point';
 import { project } from './Project';
 import { tileSize, balancer } from './Constants';
 
-
 // making sure only new requests actually get sent
 var currentTopLeft = null;
 var currentBottomRight = null;

@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom';
 import 'bootstrap/dist/css/bootstrap.css';
 // Custom Components
 import NodeList from './Node';
-import TileDisplay from './tileDisplay/TileDisplay';
+import { TileDisplay } from './tileDisplay/TileDisplay';
 import registerServiceWorker from './registerServiceWorker';
 import './Index.css';
 
