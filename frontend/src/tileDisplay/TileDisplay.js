@@ -11,7 +11,7 @@ import './TileDisplay.css';
 
 import Shader from './Shader';
 import { request, unproject } from './RegionRequest';
-import { register, sendRequest, registerRegion } from '../connection/WSClient';
+import { register, sendRequest, registerRegion, registerWorker } from '../connection/WSClient';
 import Point from '../misc/Point';
 
 //Custom component
@@ -162,6 +162,17 @@ function renderLeaflet() {
   // TODO register workers at websocket client
   // so that they are set inactive when the first tile/region
   // by them comes in
+  registerWorker((data) => {
+    // Stop corresponding worker progress bar
+    // assume that regionData is passed here
+    let workerID = data.rank;
+    nodeList.setState((oldState) => {
+      // Pay attention here that ranks begin from 1 as long as the host does not send data on his own
+      oldState.active[workerID-1] = false;
+      // TODO insert correct µs time in node value
+      return oldState;
+    });
+  });
 
 }
 

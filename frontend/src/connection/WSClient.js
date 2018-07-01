@@ -4,7 +4,11 @@ import Point from '../misc/Point';
  * this map stores callbacks to render all the tiles requested for leaflet.
  */
 const callbacks = new Map();
+/**
+ * Callbacks for any methods interested in new region subdivisions or regionData (=result of one worker)
+ */
 const regionCallback = new Array();
+const workerCallback = new Array();
 
 // Web Socket setup
 const url = 'ws://localhost:9002';
@@ -20,6 +24,7 @@ socket.onmessage = function(event) {
   switch (msg.type) {
     case 'tile':
       {
+        // Notify tile listeners
         console.log(msg);
         let coords = coordsToString(msg.tile.x, -msg.tile.y, msg.tile.zoom);
         let cb = callbacks.get(coords);
@@ -29,10 +34,15 @@ socket.onmessage = function(event) {
         } else {
           console.log('request not found for tile: ' + coords);
         }
+        // Notify regionData/worker observers
+        workerCallback.forEach(callback => {
+          callback(msg);
+        });
       }
       break;
     case 'regions':
       {
+        // Notify region subdivision listeners
         console.log(msg);
         regionCallback.forEach(callback => {
           callback(msg);
@@ -70,20 +80,33 @@ export const register = (point, draw) => {
  * Registers a callback to call when the region subdivision is returned
  */
 export const registerRegion = (fun) => {
+  registerCallback(regionCallback, fun);
+}
+
+/**
+ * Registers a callback to call when the region subdivision is returned
+ */
+export const registerWorker = (fun) => {
+  registerCallback(workerCallback, fun);
+};
+
+/**
+ * Registers an observer to a list
+ */
+const registerCallback = (list, fun) => {
   let promise;
   const render = (data) => {
     promise = new Promise((resolve, error) => {
       try {
-        fun(data);
-        resolve();
+        resolve(fun(data));
       } catch (err) {
         error(err);
       }
     });
   };
-  regionCallback.push(render);
+  list.push(render);
   return promise;
-}
+};
 
 export const close = () => {
   console.log('closing the WS connection');

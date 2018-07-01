@@ -7,7 +7,7 @@ function Node(props) {
   return (
     <li>
       <div className="workerDiv">
-        <Progress animated={props.animated} value={props.usage} className="workerTime"> Worker {props.id} </Progress>
+        <Progress animated={props.animated} value={props.usage} className="workerTime"> Worker {props.id} - {props.time} µs </Progress>
       </div>
     </li>
   );
@@ -25,6 +25,7 @@ class NodeList extends Component {
     this.state = {
       numWorkers: 0,
       active: new Array(this.numWorkers),
+      // The computation time in microseconds
       progress: new Array(this.numWorkers)
     };
   }
@@ -32,14 +33,17 @@ class NodeList extends Component {
   getNodes() {
     let nodes = [];
     for (let i = 0; i < this.state.numWorkers; i++) {
-      let n = this.state.progress[i];
+      // TODO use a nice function for plotting milliseconds on progress
+      let n = this.state.progress[i] / 100000;
       let active = this.state.active[i];
+      let time = this.state.progress[i];
       nodes.push(
         <Node
           key={i}
           id={i}
           usage={n}
           animated={active}
+          time={time}
         />
       );
     }
@@ -48,18 +52,20 @@ class NodeList extends Component {
 
   // rerender the list of nodes every 2 seconds
   componentDidMount() {
+    // Interval in milliseconds
+    let interval = 250;
     this.interval = setInterval(
       () => {      
         this.setState((oldState) => {
           for(let i = 0; i < oldState.numWorkers; i++){
             if(oldState.active[i]){
-              oldState.progress[i] += 5;
+              oldState.progress[i] += interval * 1000;
             }
           }
           return oldState;
         });
       },
-      500
+      interval
     );
   }
 
