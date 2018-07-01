@@ -7,7 +7,7 @@ function Node(props) {
   return (
     <li>
       <div className="workerDiv">
-        <Progress animated={props.animated} value={props.usage} className="workerTime"> Worker {props.id} - {props.time} µs </Progress>
+        <Progress animated={props.animated} value={props.usage} className="workerTime"> Worker {props.id} - {props.time / 1000} ms </Progress>
       </div>
     </li>
   );
@@ -34,7 +34,7 @@ class NodeList extends Component {
     let nodes = [];
     for (let i = 0; i < this.state.numWorkers; i++) {
       // TODO use a nice function for plotting milliseconds on progress
-      let n = this.state.progress[i] / 100000;
+      let n = this.state.progress[i] / 50000;
       let active = this.state.active[i];
       let time = this.state.progress[i];
       nodes.push(
