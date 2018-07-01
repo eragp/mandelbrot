@@ -11,7 +11,8 @@ import './TileDisplay.css';
 import Shader from './Shader';
 import { project, unproject } from './Project';
 import { request } from './RegionRequest';
-import { register, sendRequest } from '../connection/WSClient';
+import { sendRequest } from '../connection/WSClient';
+import { register } from './RegionDrawer';
 import { tileSize } from './Constants';
 import Point from '../misc/Point';
 
