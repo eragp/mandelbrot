@@ -16,7 +16,7 @@ socket.onopen = () => {
 socket.onmessage = function(event) {
   let msg = JSON.parse(event.data);
   switch (msg.type) {
-    case 'tile':
+    case 'regionData':
       {
         console.log(msg);
         let tile = msg.tile;
@@ -30,7 +30,7 @@ socket.onmessage = function(event) {
         }
       }
       break;
-    case 'regions':
+    case 'region':
       {
         console.log(msg);
         // TODO

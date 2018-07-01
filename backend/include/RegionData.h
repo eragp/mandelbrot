@@ -6,7 +6,8 @@
  * Contains data of a certain region.
  * Usually assembled at the Host and used to transfer data to frontend
  */
-struct RegionData{
+struct RegionData {
+
 
     /**
      * Information about which worker computed the region, 
@@ -19,6 +20,7 @@ struct RegionData{
      * Size: region.width*region.height
      * Index: i (x,y) -> (region.width * y) + region.height
      */
-    int data[];
+    int *data;
+    int data_length;
 
 };
