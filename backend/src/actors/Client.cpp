@@ -58,8 +58,8 @@ void Client::init(int world_rank, int world_size) {
             
             int i = 0;
 
-            for (unsigned int y = 0; y < region.width && !loopFlag; y++) {
-                for (unsigned int x = 0; x < region.height && !loopFlag; x++) {
+            for (unsigned int y = 0; y < region.height && !loopFlag; y++) {
+                for (unsigned int x = 0; x < region.width && !loopFlag; x++) {
                     // Abort
                     MPI_Test(&request, &flag, &status);
                     if (flag != 0) {
