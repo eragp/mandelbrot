@@ -75,7 +75,7 @@ export default class extends Component {
          * Draw tile callback, asserts tileData to be RegionOfInterest object
          * (see RegionDrawer)
          */
-        const drawTile = tileData => {
+        var drawTile = tileData => {
           let ctx = tile.getContext('2d', { alpha: false });
           ctx.fillStyle = 'black';
           ctx.fillRect(0, 0, tile.width, tile.height);

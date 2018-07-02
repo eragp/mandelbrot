@@ -56,9 +56,15 @@ export default class {
           cb(roi);
         }
       }
+<<<<<<< HEAD
     };
 
     let handleNewRegion = map => {
+=======
+    }
+  
+    let handleNewView = map => {
+>>>>>>> b3630d925e035fe17448bfc8cd95ce8a3d129a46
       let bounds = map.getPixelBounds();
       let zoom = map.getZoom();
       let tileSize = tileSize;
@@ -83,7 +89,7 @@ export default class {
     /**
      * Also observe the current region
      */
-    tileDisplay.registerNewView(handleNewRegion);
+    tileDisplay.registerNewView(handleNewView);
   }
 
   /**
@@ -127,8 +133,13 @@ class RegionOfInterest {
     this.width = width;
     this.height = height;
 
+<<<<<<< HEAD
     this.ROIWidth = br.x - tl.x;
     this.ROIHeight = br.y - tl.y;
+=======
+    this.ROIWidth = Math.abs(tl.x - br.x);
+    this.ROIHeight = Math.abs(tl.y - br.y);
+>>>>>>> b3630d925e035fe17448bfc8cd95ce8a3d129a46
   }
 
   /**
@@ -137,7 +148,12 @@ class RegionOfInterest {
    */
   get(x, y) {
     if (x > this.ROIWidth || y > this.ROIHeight) {
+<<<<<<< HEAD
       return -1;
+=======
+       //console.log('Illegal access');
+       return -1;
+>>>>>>> b3630d925e035fe17448bfc8cd95ce8a3d129a46
     }
     let realX = this.topLeft.x + x;
     let realY = this.topLeft.y + y;
