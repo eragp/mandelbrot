@@ -53,7 +53,7 @@ export default class {
       }
     }
   
-    let handleNewRegion = map => {
+    let handleNewView = map => {
       let bounds = map.getPixelBounds();
       let zoom = map.getZoom();
       let tileSize = tileSize;
@@ -78,7 +78,7 @@ export default class {
     /**
      * Also observe the current region
      */
-    tileDisplay.registerNewView(handleNewRegion);
+    tileDisplay.registerNewView(handleNewView);
   }
   
 
@@ -124,8 +124,8 @@ class RegionOfInterest {
     this.width = width;
     this.height = height;
 
-    this.ROIWidth = tl.x - br.x;
-    this.ROIHeight = tl.y - br.y;
+    this.ROIWidth = Math.abs(tl.x - br.x);
+    this.ROIHeight = Math.abs(tl.y - br.y);
   }
 
   /**
@@ -134,7 +134,7 @@ class RegionOfInterest {
    */
   get(x, y) {
     if (x > this.ROIWidth || y > this.ROIHeight) {
-       console.log('Illegal access');
+       //console.log('Illegal access');
        return -1;
     }
     let realX = this.topLeft.x + x;
