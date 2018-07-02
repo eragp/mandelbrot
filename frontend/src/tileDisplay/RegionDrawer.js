@@ -133,10 +133,10 @@ class RegionOfInterest {
    * by wrapping x and y in the rectangle of topLeft, bottomRight.
    */
   get(x, y) {
-    /*if (x > this.ROIWidth || y > this.ROIHeight) {
-      console.log('Illegal access');
-      return -1;
-    }*/
+    if (x > this.ROIWidth || y > this.ROIHeight) {
+       console.log('Illegal access');
+       return -1;
+    }
     let realX = this.topLeft.x + x;
     let realY = this.topLeft.y + y;
     return this.data[realY * this.width + realX];

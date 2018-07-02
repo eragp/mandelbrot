@@ -5,6 +5,7 @@
 #include "Balancer.h"
 #include "Fractal.h"
 #include "ColumnBalancer.h"
+#include "NaiveBalancer.h"
 #include "RegionOld.h"
 #include "Region.h"
 #include "Tile.h"
@@ -119,7 +120,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     // TODO increase by one as soon as host is invoked as worker too
     int nodeCount = Host::world_size - 1;
     // TODO make this based on balancer variable defined above (sounds like strategy pattern...) --> That was the idea :)
-    Balancer *b = new ColumnBalancer();
+    Balancer *b = new NaiveBalancer();
     Region *blocks = b->balanceLoad(region, nodeCount);  // Blocks is array with nodeCount members
     // DEBUG
     std::cout << "Balancer Output:" << std::endl;
