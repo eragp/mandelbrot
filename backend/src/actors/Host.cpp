@@ -141,9 +141,12 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         // Tag for computation requests is 1
         // Send new region
         // TODO @Tobi you might want to look at this
-        MPI_Isend((const void *) &small_region, sizeof(Region), MPI_BYTE, rank_worker, 1, MPI_COMM_WORLD,
+        {
+            std::lock_guard<std::mutex> lock(transmitted_regions_lock);
+            transmitted_regions[rank_worker] = small_region;
+        }
+        MPI_Isend(&small_region, sizeof(Region), MPI_BYTE, rank_worker, 1, MPI_COMM_WORLD,
                   &region_requests[i]);
-        transmitted_regions[rank_worker] = small_region;
     }
     // All workers received their region
     MPI_Waitall(nodeCount, region_requests, region_status);
@@ -243,6 +246,8 @@ void Host::send(RegionData data) {
 }
 
 void Host::init(int world_rank, int world_size) {
+    MPI_Errhandler_set(MPI_COMM_WORLD,MPI_ERRORS_RETURN); /* return info about errors */
+
     Host::world_size = world_size;
     int cores = world_size;
     std::cout << "Host init " << world_size << std::endl;
@@ -270,19 +275,28 @@ void Host::init(int world_rank, int world_size) {
         // This accepts messages by the workers and answers requests that were stored before
         // TODO: asynchronous (maybe?)
         int worker_rank;
-        MPI_Recv((void *) &worker_rank, 1, MPI_INT, MPI_ANY_SOURCE, 3, MPI_COMM_WORLD,
+        MPI_Recv(&worker_rank, 1, MPI_INT, MPI_ANY_SOURCE, 3, MPI_COMM_WORLD,
                  MPI_STATUS_IGNORE);  // 3 is tag for world_rank of worker
         Region rendered_region{};
         {
             std::lock_guard<std::mutex> lock(transmitted_regions_lock);
             rendered_region = transmitted_regions[worker_rank];
-            transmitted_regions.erase(worker_rank);
         }
 
         unsigned int region_size = rendered_region.getPixelCount();
-        std::vector<int> worker_data(region_size);
-        std::cout << "Host: waiting for receive from " << worker_rank << std::endl;
-        MPI_Recv((void *) &worker_data[0], region_size, MPI_INT, worker_rank, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        int worker_data[region_size];
+        std::cout << "Host: waiting for receive from " << worker_rank << ": " << region_size << std::endl;
+        
+        int ierr = MPI_Recv(&worker_data, region_size, MPI_INT, worker_rank, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        if(ierr != MPI_SUCCESS){
+            std::cerr << "Error on receiving data from worker: " << std::endl;
+            char err_buffer[MPI_MAX_ERROR_STRING];
+            int resultlen;
+            MPI_Error_string(ierr,err_buffer,&resultlen);
+            fprintf(stderr,err_buffer);
+            continue;
+        }
+
         std::cout << "Host: received from " << worker_rank << std::endl;
 
         // Check if this data is up to date requested data
@@ -301,16 +315,16 @@ void Host::init(int world_rank, int world_size) {
         //std::cout << rendered_region.resX << ", " << rendered_region.resY << std::endl;
 
         // copy the received data from worker into regionData struct
-        auto *worker_array = new int[region_size];
+        /*auto *worker_array = new int[region_size];
         int i = 0;
         for (unsigned int y = 0; y < rendered_region.height; y++) {
             for (unsigned int x = 0; x < rendered_region.width; x++) {
-                worker_array[i] = worker_data.at(i);
+                worker_array[i] = worker_data[i];
                 i++;
             }
-        }
+        }*/
         RegionData region_data{};
-        region_data.data = worker_array;
+        region_data.data = worker_data;
         region_data.data_length = region_size;
 
         WorkerInfo worker_info{};
