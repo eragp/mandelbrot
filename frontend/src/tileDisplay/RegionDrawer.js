@@ -3,15 +3,14 @@ import { tileSize } from './Constants';
 import { unproject } from './Project';
 
 export default class {
-
-  constructor(tileDisplay, webSocketClient){
+  constructor(tileDisplay, webSocketClient) {
     /*
     * this map stores callbacks to render all the tiles requested for leaflet.
     */
     this.callbacks = new Map();
     /**
-      * These variables handle the current visible region bounds as points
-      */
+     * These variables handle the current visible region bounds as points
+     */
     this.topLeft;
     this.bottomRight;
 
@@ -24,7 +23,7 @@ export default class {
       let yEnd = region.height / tileSize;
 
       let topLeft = unproject(region.minReal, region.maxImag, zoom);
-  
+
       // and invoke tile draw methods
       for (let y = 0; y < yEnd; y++) {
         for (let x = 0; x < xEnd; x++) {
@@ -32,7 +31,9 @@ export default class {
           let tileY = topLeft.y + y;
           let cb = this.callbacks.get(coordsToString(tileX, tileY, zoom));
           if (cb === undefined || cb === null) {
-            console.log('Region not found for ' + new Point(tileX, tileY, zoom));
+            console.log(
+              'Region not found for ' + new Point(tileX, tileY, zoom)
+            );
             continue;
           }
           // only pass data of this region
@@ -41,18 +42,22 @@ export default class {
           let realY = y * tileSize;
           let tl = new Point(realX, realY);
           let br = new Point(realX + tileSize, realY + tileSize);
+
+          console.log('current tile ' + tileX + ', ' + tileY);
           let roi = new RegionOfInterest(
             tl,
             br,
             msg.data,
             region.width,
             region.height
+            // region.width,
+            // region.height
           );
           cb(roi);
         }
       }
-    }
-  
+    };
+
     let handleNewRegion = map => {
       let bounds = map.getPixelBounds();
       let zoom = map.getZoom();
@@ -80,14 +85,13 @@ export default class {
      */
     tileDisplay.registerNewView(handleNewRegion);
   }
-  
 
   /**
    * Registers the tile at coords to be drawn as soon as data is available.
    * @param {*} point coordinates on the tile to be registerd
    * @param {*} draw function expecting data that draws the tile @coords
    */
-  register(point, draw){
+  register(point, draw) {
     let promise;
     const render = data => {
       promise = new Promise((resolve, error) => {
@@ -102,8 +106,7 @@ export default class {
     let coords = coordsToString(point.x, point.y, point.z);
     this.callbacks.set(coords, render);
     return promise;
-  };
-
+  }
 }
 
 /**
@@ -124,8 +127,8 @@ class RegionOfInterest {
     this.width = width;
     this.height = height;
 
-    this.ROIWidth = tl.x - br.x;
-    this.ROIHeight = tl.y - br.y;
+    this.ROIWidth = br.x - tl.x;
+    this.ROIHeight = br.y - tl.y;
   }
 
   /**
@@ -134,8 +137,7 @@ class RegionOfInterest {
    */
   get(x, y) {
     if (x > this.ROIWidth || y > this.ROIHeight) {
-       console.log('Illegal access');
-       return -1;
+      return -1;
     }
     let realX = this.topLeft.x + x;
     let realY = this.topLeft.y + y;
