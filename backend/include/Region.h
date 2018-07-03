@@ -59,12 +59,12 @@ struct Region {
 
 
     long double projectReal(int pixelX) {
-        return (static_cast<long double>(pixelX)
+        return minReal + (static_cast<long double>(pixelX)
                 * (maxReal - minReal)) / width;
     }
 
     long double projectImag(int pixelY) {
-        return (static_cast<long double>(pixelY)
+        return minImaginary + (static_cast<long double>(pixelY)
                 * (maxImaginary - minImaginary)) / height;
     }
 };

@@ -66,10 +66,10 @@ void Client::init(int world_rank, int world_size) {
                         std::cout << "Worker " << world_rank << " abort." << std::endl;
                         loopFlag = true;
                     }
-
+                    int reverseY = region.height - y -1;
                     // Computations
                     data[i++] = f->calculateFractal(region.projectReal(x),
-                                                    region.projectImag(y),
+                                                    region.projectImag(reverseY),
                                                     region.maxIteration);
                 }
             }
