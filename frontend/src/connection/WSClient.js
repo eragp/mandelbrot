@@ -16,6 +16,17 @@ socket.onopen = () => {
   regionRequests.forEach(m => socket.send(m));
 };
 
+// Restart the socket connection on close (optional, as the frontend does not get a notification
+// that the connection failed on the first try)
+socket.onclose = () => {
+  setTimeout(
+    () => {
+      socket = new WebSocket(url)
+    }, 30000);
+    // TODO maybe in more beautiful, less annoying
+    //alert('Websocket connection failed, reconnecting in 30s')
+};
+
 socket.onmessage = function(event) {
   let msg = JSON.parse(event.data);
   switch (msg.type) {
