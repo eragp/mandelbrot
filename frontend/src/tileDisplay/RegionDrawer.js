@@ -22,8 +22,8 @@ export default class {
       let xEnd = region.width / tileSize;
       let yEnd = region.height / tileSize;
 
-      //let topLeft = new Point(this.topLeft.x + (region.hOffset / tileSize), this.topLeft.y + (region.vOffset / tileSize));
-      let topLeft = unproject(region.minReal, region.maxImag, zoom);
+      let topLeft = new Point(this.topLeft.x + (region.hOffset / tileSize), this.topLeft.y - (region.vOffset / tileSize), zoom);
+      //let topLeft = unproject(region.minReal, region.maxImag, zoom);
       topLeft.y = topLeft.y * -1;
       console.log(topLeft);
 
@@ -61,12 +61,9 @@ export default class {
 
     let handleNewView = map => {
       let bounds = map.getPixelBounds();
-      console.log(bounds);
       let zoom = map.getZoom();
       this.topLeft = getTopLeftPoint(bounds, tileSize, zoom);
-      console.log(this.topLeft);
       this.bottomRight = getBottomRightPoint(bounds, tileSize, zoom);
-      console.log(this.bottomRight);
     };
 
     /**
