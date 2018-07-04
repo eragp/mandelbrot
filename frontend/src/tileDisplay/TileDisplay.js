@@ -17,10 +17,6 @@ import { tileSize } from './Constants';
 import Point from '../misc/Point';
 import RegionDrawer from './RegionDrawer';
 
-
-
-
-
 export default class extends Component {
   componentDidMount() {
     this.map = null;
@@ -55,22 +51,34 @@ export default class extends Component {
     this.registerNewView(requestCallback);
 
     // add event listeners to the map for region requests
+
     map.on({
       moveend: () => {
         this.newViewObservers.forEach(callback => callback(map));
       }
     });
 
+    function drawPixel(imgData, x, y, r, g, b) {
+      let d = imgData.data;
+      let i = (x << 2) + ((y * imgData.width) << 2);
+      d[i] = r; // red
+      d[i + 1] = g; // green
+      d[i + 2] = b; // blue
+      d[i + 3] = 255; // alpha
+    }
+
     let regionDrawer = this.regionDrawer;
     L.GridLayer.MandelbrotLayer = L.GridLayer.extend({
       createTile: function(coords, done) {
         let tile = L.DomUtil.create('canvas', 'leaflet-tile');
         let size = this.getTileSize();
-        let zoom = map.getZoom();
+        // when zooming map.getZoom() is not up to date
+        // therefore the value has to read directly from the layer
+        let zoom = this._tileZoom;
         tile.width = size.x;
         tile.height = size.y;
         let p = new Point(coords.x, coords.y, zoom);
-    
+
         /**
          * Draw tile callback, asserts tileData to be RegionOfInterest object
          * (see RegionDrawer)
@@ -79,7 +87,7 @@ export default class extends Component {
           let ctx = tile.getContext('2d', { alpha: false });
           ctx.fillStyle = 'black';
           ctx.fillRect(0, 0, tile.width, tile.height);
-    
+
           let imgData = ctx.createImageData(size.x, size.y);
           for (let y = 0; y < size.y; y++) {
             for (let x = 0; x < size.x; x++) {
@@ -88,7 +96,7 @@ export default class extends Component {
               drawPixel(imgData, x, y, r, g, b, 255);
             }
           }
-    
+
           ctx.putImageData(imgData, 0, 0);
           done(null, tile);
         };
@@ -102,26 +110,17 @@ export default class extends Component {
         return tile;
       }
     });
-    
-    function drawPixel(imgData, x, y, r, g, b) {
-      let d = imgData.data;
-      let i = (x << 2) + ((y * imgData.width) << 2);
-      d[i] = r; // red
-      d[i + 1] = g; // green
-      d[i + 2] = b; // blue
-      d[i + 3] = 255; // alpha
-    }
-    
+
     L.GridLayer.DebugLayer = L.GridLayer.extend({
       createTile: function(coords) {
         let tile = document.createElement('div');
         let size = this.getTileSize();
-        let zoom = map.getZoom();
+        let zoom = this._tileZoom;
         tile.width = size.x;
         tile.height = size.y;
-    
+
         let p = new Point(coords.x, coords.y, zoom);
-    
+
         let projected = project(coords.x, coords.y, zoom, 0, 0, tileSize);
         let unprojected = unproject(projected.x, projected.y, zoom);
         tile.innerHTML =
@@ -137,23 +136,24 @@ export default class extends Component {
     });
 
     let mandelbrotLayer = new L.GridLayer.MandelbrotLayer({
-      tileSize: tileSize, // in px
-      bounds: bounds,
-      keepBuffer: 0
-    }),
-    debugLayer = new L.GridLayer.DebugLayer({
-      tileSize: tileSize,
-      bounds: bounds,
-      keepBuffer: 0
-    });
+        tileSize: tileSize, // in px
+        bounds: bounds,
+        keepBuffer: 0
+      }),
+      debugLayer = new L.GridLayer.DebugLayer({
+        tileSize: tileSize,
+        bounds: bounds,
+        keepBuffer: 0
+      });
     let baseLayer = {
-      'Mandelbrot Layer': mandelbrotLayer
-    },
-    overlayLayers = {
-      'Debug Layer': debugLayer
-    };
+        'Mandelbrot Layer': mandelbrotLayer
+      },
+      overlayLayers = {
+        'Debug Layer': debugLayer
+      };
     map.addLayer(mandelbrotLayer);
     map.addLayer(debugLayer);
+
     L.control.layers(baseLayer, overlayLayers).addTo(map);
     map.setView([0, 0]);
     this.map = map;
@@ -162,7 +162,7 @@ export default class extends Component {
   /**
    * Invoke the given callback, when the view of the map has changed
    */
-  registerNewView(callback){
+  registerNewView(callback) {
     let promise;
     const fun = data => {
       promise = new Promise((resolve, error) => {
@@ -175,13 +175,9 @@ export default class extends Component {
     };
     this.newViewObservers.push(fun);
     return promise;
-  };
+  }
 
   render() {
     return <div id="viewer" />;
   }
 }
-
-
-
-
