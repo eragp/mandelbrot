@@ -44,7 +44,7 @@ export const unproject = (real, imag, zoom) => {
  * @param {*} zoom zoom factor
  */
 export const getTopLeftPoint = (bounds, tileSize, zoom) => {
-  return toPoint(bounds.min, tileSize, zoom);
+  return toPoint(bounds.min, tileSize, zoom, true);
 };
 
 /**
@@ -54,20 +54,22 @@ export const getTopLeftPoint = (bounds, tileSize, zoom) => {
  * @param {*} zoom zoom factor
  */
 export const getBottomRightPoint = (bounds, tileSize, zoom) => {
-  return toPoint(bounds.max, tileSize, zoom);
+  return toPoint(bounds.max, tileSize, zoom, false);
 };
 
-function toPoint(bound, tileSize, zoom) {
+function toPoint(bound, tileSize, zoom, topleft) {
   let x, y;
-  if (bound.x < 0) {
-    x = Math.sign(bound.x) * Math.ceil(Math.abs(bound.x / tileSize));
-  } else {
-    x = Math.sign(bound.x) * Math.floor(Math.abs(bound.x / tileSize));
+  if(topleft){
+    x = Math.floor(bound.x / tileSize);
   }
-  if (bound.y < 0) {
-    y = Math.sign(bound.y) * Math.ceil(Math.abs(bound.y / tileSize));
-  } else {
-    y = Math.sign(bound.y) * Math.floor(Math.abs(bound.y / tileSize));
+  else {
+    x = Math.ceil(bound.x / tileSize);
+  }
+  if(topleft){
+    y = Math.floor(bound.y / tileSize);
+  }
+  else{
+    y = Math.ceil(bound.y / tileSize);
   }
   return new Point(x, -y, zoom);
 

@@ -28,8 +28,8 @@ export const request = map => {
   let tlComplex = project(topLeft.x, topLeft.y, topLeft.z, 0, 0, tileSize);
   let brComplex = project(botRight.x, botRight.y, botRight.z, 0, 0, tileSize);
   let [sizeX, sizeY] = [
-    (Math.abs(botRight.x - topLeft.x) + 1) * tileSize,
-    (Math.abs(topLeft.y - botRight.y) + 1) * tileSize
+    (Math.abs(botRight.x - topLeft.x)) * tileSize,
+    (Math.abs(topLeft.y - botRight.y)) * tileSize
   ];
   let region = {
     // point top left
