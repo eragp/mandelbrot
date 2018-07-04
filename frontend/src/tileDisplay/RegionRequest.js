@@ -17,14 +17,14 @@ export const request = map => {
   let zoom = map.getZoom();
   // aka top left
   let topLeft = new Point(
-    Math.floor(bounds.min.x / tileSize),
-    -Math.floor(bounds.min.y / tileSize),
+    Math.sign(bounds.min.x) * Math.floor(Math.abs(bounds.min.x / tileSize)),
+    -Math.sign(bounds.min.y) * Math.floor(Math.abs(bounds.min.y / tileSize)),
     zoom
   );
   // aka bottom right
   let botRight = new Point(
-    Math.floor(bounds.max.x / tileSize),
-    -Math.floor(bounds.max.y / tileSize),
+    Math.sign(bounds.max.x) * Math.ceil(Math.abs(bounds.max.x / tileSize)),
+    -Math.sign(bounds.max.y) * Math.ceil(Math.abs(bounds.max.y / tileSize)),
     zoom
   );
   // has the visible region changed?

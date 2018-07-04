@@ -22,7 +22,11 @@ export default class {
       let xEnd = region.width / tileSize;
       let yEnd = region.height / tileSize;
 
+      
+      //let topLeft = new Point(this.topLeft.x + (region.hOffset / tileSize), this.topLeft.y + (region.vOffset / tileSize));
       let topLeft = unproject(region.minReal, region.maxImag, zoom);
+      topLeft.y = topLeft.y * -1;
+      console.log(topLeft);
 
       // and invoke tile draw methods
       for (let y = 0; y < yEnd; y++) {
@@ -60,21 +64,25 @@ export default class {
   
     let handleNewView = map => {
       let bounds = map.getPixelBounds();
+      console.log(bounds);
       let zoom = map.getZoom();
-      let tileSize = tileSize;
+      console.log(tileSize);
       // aka top left
       this.topLeft = new Point(
-        Math.floor(bounds.min.x / tileSize),
-        -Math.floor(bounds.min.y / tileSize),
+        Math.floor(bounds.min.x /tileSize),
+        Math.floor(bounds.min.y / tileSize),
         zoom
       );
+      console.log(this.topLeft);
       // aka bottom right
       this.bottomRight = new Point(
-        Math.floor(bounds.max.x / tileSize),
-        -Math.floor(bounds.max.y / tileSize),
+        Math.ceil(bounds.max.x / tileSize),
+        Math.ceil(bounds.max.y / tileSize),
         zoom
       );
+      console.log(this.bottomRight)
     };
+    
     /**
      * Register yourself at WSClient as regionData observer
      */
