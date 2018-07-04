@@ -7,9 +7,17 @@ const callbacks = new Map();
 
 // Web Socket setup
 const url = 'ws://localhost:9002';
-let socket = new WebSocket(url); //, 'mandelbrot');
+let socket;
 // Necessary due to a backend bug
-socket = new WebSocket(url);
+{
+  let s = new WebSocket(url);
+  s.onclose(() => {
+    socket = new WebSocket(url); //, 'mandelbrot');
+  })
+  s.onopen(()=> {
+    s.close();
+  })
+}
 // Buffer of requests to be sent when the socket connects
 const regionRequests = [];
 socket.onopen = () => {
