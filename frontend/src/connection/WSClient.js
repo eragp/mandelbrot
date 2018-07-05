@@ -1,85 +1,90 @@
-/*
- * this map stores callbacks to render all the tiles requested for leaflet.
- */
-const callbacks = new Map();
+export default class {
+  constructor(){
+    /**
+     * Callbacks for any methods interested in new region subdivisions or regionData (=result of one worker)
+     */
+    this.regionCallback = [];
+    let regionCallback = this.regionCallback;
+    this.workerCallback = [];
+    let workerCallback = this.workerCallback;
 
-// Web Socket setup
-const url = 'ws://localhost:9002';
-export const socket = new WebSocket(url);
+    // Web Socket setup
+    let url = 'ws://localhost:9002';
+    let socket = new WebSocket(url); //, 'mandelbrot');
+    // Buffer of requests to be sent when the socket connects
+    this.regionRequests = [];
+    let regionRequests = this.regionRequests;
+    socket.onopen = () => {
+      regionRequests.forEach(m => socket.send(m));
+    };
 
-// Buffer of requests to be sent when the socket connects
-const regionRequests = [];
-socket.onopen = () => {
-  regionRequests.forEach(m => socket.send(m));
-};
-
-socket.onmessage = function(event) {
-  let msg = JSON.parse(event.data);
-  switch (msg.type) {
-    case 'regionData':
-      {
-        console.log(msg);
-        let tile = msg.tile;
-        let coords = coordsToString(msg.tile.x, msg.tile.y, msg.tile.zoom);
-        let cb = callbacks.get(coords);
-        if (cb != null) {
-          cb(msg.data);
-          // callbacks.delete(coords);
-        } else {
-          console.log('request not found for tile: ' + coords);
-        }
-      }
-      break;
-    case 'region':
-      {
-        console.log(msg);
-        // TODO
-      }
-      break;
-    default:
+    socket.onmessage = function(event) {
+      let msg = JSON.parse(event.data);
       console.log(msg);
-  }
-};
-
-/**
- * Registers the tile at coords to be drawn as soon as data is available.
- * The return value of the draw function will be returned by the promise.
- * @param {*} point leaflet coordinates on the tile to be registerd
- * @param {*} draw function expecting data that draws the tile @coords
- */
-export const register = (point, draw) => {
-  let promise;
-  const render = data => {
-    promise = new Promise((resolve, error) => {
-      try {
-        resolve(draw(data));
-      } catch (err) {
-        error(err);
+      switch (msg.type) {
+        case 'regionData':
+          // Notify regionData/worker observers
+          workerCallback.forEach(callback => {
+            callback(msg);
+          });
+          break;
+        case 'regions':
+          // Notify region subdivision listeners
+          regionCallback.forEach(callback => {
+            callback(msg);
+          });
+          break;
+        default:
       }
-    });
-  };
-  let coords = coordsToString(point.x, point.y, point.z);
-  callbacks.set(coords, render);
-  return promise;
-};
+    };
 
-export const close = () => {
-  console.log('closing the WS connection');
-  socket.close();
-  callbacks.clear();
-};
-
-export const sendRequest = request => {
-  let message = JSON.stringify(request);
-  if (socket.readyState === socket.OPEN) {
-    socket.send(message);
-  } else {
-    regionRequests.push(message);
+    this.socket = socket;
   }
-};
 
-function coordsToString(x, y, z) {
-  return [x, y, z].join(', ');
+  /**
+   * Registers a callback to call when the region subdivision is returned
+   */
+  registerRegion(fun){
+    this.registerCallback(this.regionCallback, fun);
+  }
+
+  /**
+   * Registers a callback to call when the region data is returned
+   */
+  registerWorker(fun){
+    this.registerCallback(this.workerCallback, fun);
+  }
+
+  /**
+   * Registers an observer to a list
+   */
+  registerCallback(list, fun){
+    let promise;
+    const render = data => {
+      promise = new Promise((resolve, error) => {
+        try {
+          resolve(fun(data));
+        } catch (err) {
+          error(err);
+        }
+      });
+    };
+    list.push(render);
+    return promise;
+  }
+
+  close(){
+    console.log('closing the WS connection');
+    this.socket.close();
+  }
+
+  sendRequest(request){
+    let message = JSON.stringify(request);
+    if (this.socket.readyState === this.socket.OPEN) {
+      this.socket.send(message);
+    } else {
+      this.regionRequests.push(message);
+    }
+  }
+
 }
-
-export default socket;

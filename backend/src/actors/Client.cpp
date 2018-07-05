@@ -19,7 +19,7 @@ void Client::init(int world_rank, int world_size) {
     // Initial test if this core is ready
     int test;
     MPI_Recv(&test, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    MPI_Send((const void *) &test, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+    MPI_Send((void *) &test, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
 
     bool loopFlag = false;
     Region region, newRegion;
@@ -28,13 +28,13 @@ void Client::init(int world_rank, int world_size) {
     MPI_Status status;
     // Recieve instructions for computation
     std::cout << "Worker " << world_rank << " is ready to receive Data." << std::endl;
-    MPI_Irecv(&region, sizeof(Region), MPI_BYTE, 0, 1, MPI_COMM_WORLD, &request); // Listen for a region asynchronously
+    MPI_Irecv(&newRegion, sizeof(Region), MPI_BYTE, 0, 1, MPI_COMM_WORLD, &request); // Listen for a region asynchronously
     // Start with actual work of this worker
     while (true) {
         MPI_Test(&request, &flag, &status);
         if (flag != 0) {
 //            // Set current region to newRegion, copy value explicitly (solve more beautiful if you want to)
-//            std::memcpy(&region, &newRegion, sizeof(RegionOld));
+            std::memcpy(&region, &newRegion, sizeof(Region));
             // Debug Output
             std::cout << "Worker " << world_rank
                       << " received data: "
@@ -53,29 +53,30 @@ void Client::init(int world_rank, int world_size) {
                       &request); // Listen for a region asynchronously => store inside newRegion
 
             // Execute computations
-            const int data_len = region.getPixelCount();
-            std::vector<int> data(static_cast<unsigned long> (data_len));
+            const unsigned int data_len = region.getPixelCount();
+            int data[data_len];
+            
             int i = 0;
 
-            for (unsigned int y = 0; y < region.width && !loopFlag; y++) {
-                for (unsigned int x = 0; x < region.height && !loopFlag; x++) {
+            for (unsigned int y = 0; y < region.height && !loopFlag; y++) {
+                for (unsigned int x = 0; x < region.width && !loopFlag; x++) {
                     // Abort
                     MPI_Test(&request, &flag, &status);
                     if (flag != 0) {
                         std::cout << "Worker " << world_rank << " abort." << std::endl;
                         loopFlag = true;
                     }
-
+                    int reverseY = region.height - y -1;
                     // Computations
                     data[i++] = f->calculateFractal(region.projectReal(x),
-                                                    region.projectImag(y),
+                                                    region.projectImag(reverseY),
                                                     region.maxIteration);
                 }
             }
             if (!loopFlag) {
-                std::cout << "Worker " << world_rank << " is sending the data" << std::endl;
-                MPI_Send((const void *) &world_rank, 1, MPI_INT, 0, 3, MPI_COMM_WORLD);
-                MPI_Send((const void *) &data[0], data_len, MPI_INT, 0, 2, MPI_COMM_WORLD);
+                std::cout << "Worker " << world_rank << " is sending the data: " << data_len << std::endl;
+                MPI_Send(&world_rank, 1, MPI_INT, 0, 3, MPI_COMM_WORLD);
+                MPI_Send(&data, data_len, MPI_INT, 0, 2, MPI_COMM_WORLD);
             }
         }
     }
