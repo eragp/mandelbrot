@@ -46,7 +46,7 @@ export const request = map => {
     // Divisor for width and height. Will be used to perform load balancing
     guaranteedDivisor: tileSize,
     balancer: balancer,
-    maxIteration: 200
+    maxIteration: 256,
   };
   console.log('sending Region request: ');
   console.log(region);

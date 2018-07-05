@@ -1,6 +1,6 @@
 import Point from '../misc/Point';
 import { tileSize } from './Constants';
-import { getBottomRightPoint, getTopLeftPoint, unproject } from './Project';
+import { getBottomRightPoint, getTopLeftPoint } from './Project';
 
 export default class {
   constructor(tileDisplay, webSocketClient) {
@@ -22,7 +22,11 @@ export default class {
       let xEnd = region.width / tileSize;
       let yEnd = region.height / tileSize;
 
-      let topLeft = new Point(this.topLeft.x + (region.hOffset / tileSize), this.topLeft.y - (region.vOffset / tileSize), zoom);
+      let topLeft = new Point(
+        this.topLeft.x + region.hOffset / tileSize,
+        this.topLeft.y - region.vOffset / tileSize,
+        zoom
+      );
       //let topLeft = unproject(region.minReal, region.maxImag, zoom);
       topLeft.y = topLeft.y * -1;
       console.log(topLeft);
@@ -40,13 +44,11 @@ export default class {
             continue;
           }
           // only pass data of this region
-          // TODO test
           let realX = x * tileSize;
           let realY = y * tileSize;
           let tl = new Point(realX, realY);
           let br = new Point(realX + tileSize, realY + tileSize);
 
-          console.log('current tile ' + tileX + ', ' + tileY);
           let roi = new RegionOfInterest(
             tl,
             br,
