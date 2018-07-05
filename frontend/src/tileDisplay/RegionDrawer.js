@@ -1,6 +1,6 @@
 import Point from '../misc/Point';
 import { tileSize } from './Constants';
-import { unproject } from './Project';
+import { getBottomRightPoint, getTopLeftPoint } from './Project';
 
 export default class {
   constructor(tileDisplay, webSocketClient) {
@@ -22,7 +22,14 @@ export default class {
       let xEnd = region.width / tileSize;
       let yEnd = region.height / tileSize;
 
-      let topLeft = unproject(region.minReal, region.maxImag, zoom);
+      let topLeft = new Point(
+        this.topLeft.x + region.hOffset / tileSize,
+        this.topLeft.y - region.vOffset / tileSize,
+        zoom
+      );
+      //let topLeft = unproject(region.minReal, region.maxImag, zoom);
+      topLeft.y = topLeft.y * -1;
+      console.log(topLeft);
 
       // and invoke tile draw methods
       for (let y = 0; y < yEnd; y++) {
@@ -37,44 +44,30 @@ export default class {
             continue;
           }
           // only pass data of this region
-          // TODO test
           let realX = x * tileSize;
           let realY = y * tileSize;
           let tl = new Point(realX, realY);
           let br = new Point(realX + tileSize, realY + tileSize);
 
-          console.log('current tile ' + tileX + ', ' + tileY);
           let roi = new RegionOfInterest(
             tl,
             br,
             msg.data,
             region.width,
             region.height
-            // region.width,
-            // region.height
           );
           cb(roi);
         }
       }
-    }
-  
+    };
+
     let handleNewView = map => {
       let bounds = map.getPixelBounds();
       let zoom = map.getZoom();
-      let tileSize = tileSize;
-      // aka top left
-      this.topLeft = new Point(
-        Math.floor(bounds.min.x / tileSize),
-        -Math.floor(bounds.min.y / tileSize),
-        zoom
-      );
-      // aka bottom right
-      this.bottomRight = new Point(
-        Math.floor(bounds.max.x / tileSize),
-        -Math.floor(bounds.max.y / tileSize),
-        zoom
-      );
+      this.topLeft = getTopLeftPoint(bounds, tileSize, zoom);
+      this.bottomRight = getBottomRightPoint(bounds, tileSize, zoom);
     };
+
     /**
      * Register yourself at WSClient as regionData observer
      */
