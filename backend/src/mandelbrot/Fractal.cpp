@@ -1,7 +1,16 @@
 #include "Fractal.h"
 
-const double boundX = 4;
-const double boundY = 4;
+const long double boundX = 4;
+const long double boundY = 4;
+
+double Fractal::deltaReal(double maxReal, double minReal, int xRes) {
+    return (maxReal - minReal) / xRes;
+}
+
+double Fractal::deltaImaginary(double maxImaginary, double minImaginary, int yRes) {
+    return (maxImaginary - minImaginary) / yRes;
+}
+
 
 /**
  * unprojects from Tile coordinate space to the complex plane.
