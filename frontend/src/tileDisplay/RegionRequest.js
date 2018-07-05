@@ -1,7 +1,7 @@
 import Point from '../misc/Point';
+import { project } from './Project';
+import { tileSize, balancer } from './Constants';
 
-const tileSize = 256;
-const balancer = 'naive';
 
 // making sure only new requests actually get sent
 var oldTl = null;
@@ -28,57 +28,44 @@ export const request = map => {
     -Math.floor(bounds.max.y / tileSize),
     zoom
   );
+  // has the visible region changed?
   if (topLeft.equals(oldTl) && botRight.equals(oldBr)) {
     return null;
   }
   oldTl = topLeft;
   oldBr = botRight;
 
-  let min = unproject(topLeft.x, topLeft.y, topLeft.z, 0, 0, tileSize);
-  let max = unproject(botRight.x, botRight.y, botRight.z, 0, 0, tileSize);
-  console.log(
-    'region Request on complex plane: ' +
-      unproject(topLeft.x, topLeft.y, topLeft.z, 0, 0, tileSize) +
-      ' -> ' +
-      unproject(botRight.x, botRight.y, botRight.z, 0, 0, tileSize)
+  let tlComplex = project(topLeft.x, topLeft.y, topLeft.z, 0, 0, tileSize);
+  let brComplex = project(
+    botRight.x + 1,
+    botRight.y - 1,
+    botRight.z,
+    0,
+    0,
+    tileSize
+  );
+  let size = new Point(
+    (Math.abs(botRight.x - topLeft.x) + 1) * tileSize,
+    (Math.abs(topLeft.y - botRight.y) + 1) * tileSize
   );
   let region = {
-    zoom: zoom,
-    tlX: topLeft.x,
-    tlY: topLeft.y,
-    brX: botRight.x,
-    brY: botRight.y,
-    balancer: balancer
+    // point top left
+    minReal: tlComplex.x,
+    maxImag: brComplex.y,
+    // point top right
+    maxReal: brComplex.x,
+    minImag: tlComplex.y,
+    // computed region size
+    width: size.x,
+    height: size.y,
+    // region identification via zoom factor
+    validation: zoom,
+    // Divisor for width and height. Will be used to perform load balancing
+    guaranteedDivisor: tileSize,
+    balancer: balancer,
+    maxIteration: 100
   };
-  // console.log('sending request: ');
-  // console.log(region);
-  // let region = {
-  //   zoom: zoom,
-  //   minReal: min.x,
-  //   maxReal: max.x,
-  //   minImag: min.y,
-  //   maxImag: max.y,
-  //   balancer: balancer
-  // };
+  console.log('sending Region request: ');
+  console.log(region);
   return region;
-};
-
-/**
- * This function unprojects leaflet tile coordinates to CRS Space
- * @param {*} x tile x position
- * @param {*} y tile y position
- * @param {*} zoom current zoom factor
- * @param {*} localX pixel x within the tile in [0, size]
- * @param {*} localY pixel y within the tile in [0, size]
- * @param {*} size pixel dimensions of a tile (tiles have to be square)
- */
-export const unproject = (x, y, zoom, localX, localY, size) => {
-  size = size || 1;
-  // top left -> bottom right
-  // bounds in the imaginary plane have to be symmetric
-  let bounds = [4, 4];
-  let tileCount = Math.pow(2, zoom);
-  let tileX = (x * bounds[0] * size + localX * bounds[0]) / (tileCount * size),
-    tileY = (y * bounds[1] * size + localY * bounds[1]) / (tileCount * size);
-  return new Point(tileX, tileY);
 };

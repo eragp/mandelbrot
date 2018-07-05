@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Region.h"
 
 /**
@@ -14,7 +16,7 @@ struct WorkerInfo {
     /**
      * The time that computation has taken in nanoseconds
      */
-    long long computationTime;
+    long computationTime;
 
     /**
      * The region that was computed.

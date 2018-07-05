@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 // leaflet stuff
 import 'leaflet/dist/leaflet.css';
-import  L from 'leaflet/dist/leaflet-src.js';
+import L from 'leaflet/dist/leaflet-src.js';
 import 'leaflet-zoombox';
 import 'leaflet-zoombox/L.Control.ZoomBox.css';
 
@@ -9,8 +9,10 @@ import 'leaflet-zoombox/L.Control.ZoomBox.css';
 import './TileDisplay.css';
 
 import Shader from './Shader';
-import { request, unproject } from './RegionRequest';
+import { project, unproject } from './Project';
+import { request } from './RegionRequest';
 import { register, sendRequest } from '../connection/WSClient';
+import { tileSize } from './Constants';
 import Point from '../misc/Point';
 
 class TileDisplay extends Component {
@@ -41,14 +43,13 @@ L.GridLayer.MandelbrotLayer = L.GridLayer.extend({
       let imgData = ctx.createImageData(size.x, size.y);
       for (let y = 0; y < size.y; y++) {
         for (let x = 0; x < size.x; x++) {
-          // TODO: investigate why this works for now it's a dirty hack.
+          // TODO: investigate why this works, for now it's a dirty hack.
           let n = tileData[tileData.length - (y + 1) * size.x + x];
           let [r, g, b] = Shader.default(n, 200);
           drawPixel(imgData, x, y, r, g, b, 255);
         }
       }
 
-      // tile.style.outline = '1px solid red';
       ctx.putImageData(imgData, 0, 0);
       done(null, tile);
     };
@@ -56,28 +57,9 @@ L.GridLayer.MandelbrotLayer = L.GridLayer.extend({
       'requesting new tile at ' +
         p +
         ' complex: ' +
-        unproject(p.x, p.y, zoom, 0, 0, 256)
+        project(p.x, p.y, zoom, 0, 0, tileSize)
     );
     register(p, drawTile);
-    return tile;
-  }
-});
-
-L.GridLayer.DebugLayer = L.GridLayer.extend({
-  createTile: function(coords, done) {
-    let tile = document.createElement('div');
-    let size = this.getTileSize();
-    let zoom = map.getZoom();
-    tile.width = size.x;
-    tile.height = size.y;
-    // convert wierd leaflet coordinates to something more sensible
-    let p = new Point(coords.x, coords.y, zoom);
-
-    setTimeout(() => {
-      tile.innerHTML = p.toString;
-      tile.style.outline = '1px solid red';
-      done(null, tile);
-    }, 100);
     return tile;
   }
 });
@@ -91,19 +73,43 @@ function drawPixel(imgData, x, y, r, g, b) {
   d[i + 3] = 255; // alpha
 }
 
+L.GridLayer.DebugLayer = L.GridLayer.extend({
+  createTile: function(coords) {
+    let tile = document.createElement('div');
+    let size = this.getTileSize();
+    let zoom = map.getZoom();
+    tile.width = size.x;
+    tile.height = size.y;
+
+    let p = new Point(coords.x, coords.y, zoom);
+
+    let projected = project(coords.x, coords.y, zoom, 0, 0, tileSize);
+    let unprojected = unproject(projected.x, projected.y, zoom);
+    tile.innerHTML =
+      'Leaflet tile: ' +
+      p.toString() +
+      '</br>Projected: ' +
+      projected +
+      '</br>Unprojected: ' +
+      unprojected;
+    tile.style.outline = '1px solid red';
+    return tile;
+  }
+});
+
 var map = null;
 function renderLeaflet() {
   // bounds have to be a power of two
-  let bounds = [[-256, -256], [256,256]];
-  L.gridLayer.mandelBrotLayer = () =>
-    new L.GridLayer.MandelbrotLayer({
-      tileSize: 256, // in px
+  // these bounds are chosen arbitrary and have nothing to do with 
+  // either leaflet space, nor the complex plane
+  let bounds = [[-256, -256], [256, 256]];
+  let mandelbrotLayer = new L.GridLayer.MandelbrotLayer({
+      tileSize: tileSize, // in px
       bounds: bounds,
       keepBuffer: 0
-    });
-  L.gridLayer.debugLayer = () => 
-    new L.GridLayer.DebugLayer({
-      tileSize: 256,
+    }),
+    debugLayer = new L.GridLayer.DebugLayer({
+      tileSize: tileSize,
       bounds: bounds,
       keepBuffer: 0
     });
@@ -121,9 +127,17 @@ function renderLeaflet() {
   map.on({
     moveend: requestCallback
   });
+
+  let baseLayer = {
+      'Mandelbrot Layer': mandelbrotLayer
+    },
+    overlayLayers = {
+      'Debug Layer': debugLayer
+    };
   // add event listeners to the map for region requests
-  let layer = L.gridLayer.mandelBrotLayer();
-  map.addLayer(layer);
+  map.addLayer(mandelbrotLayer);
+  map.addLayer(debugLayer);
+  L.control.layers(baseLayer, overlayLayers).addTo(map);
   map.setView([0, 0]);
 }
 
