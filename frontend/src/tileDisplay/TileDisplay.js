@@ -156,6 +156,12 @@ export default class extends Component {
 
     L.control.layers(baseLayer, overlayLayers).addTo(map);
     map.setView([0, 0]);
+
+    map.addControl(L.control.zoomBox({
+      modal: true,
+      title: "Box area zoom"
+    }));
+
     this.map = map;
   }
 
