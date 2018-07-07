@@ -1,5 +1,5 @@
 export default class {
-  constructor(){
+  constructor() {
     /**
      * Callbacks for any methods interested in new region subdivisions or regionData (=result of one worker)
      */
@@ -10,32 +10,28 @@ export default class {
 
     // Web Socket setup
     let url = 'ws://localhost:9002';
-    let socket;
-    // Necessary due to a backend bug
+    // Necessary due to a backend bug 
+    // TODO: remove this as it's a dirty hack
     {
       let s = new WebSocket(url);
-      s.onclose(() => {
-        socket = new WebSocket(url); //, 'mandelbrot');
-      })
-      s.onopen(()=> {
-        s.close();
-      })
+      s.onopen = () => setTimeout(1, () => s.close());
     }
+
+    let socket = new WebSocket(url);
     // Buffer of requests to be sent when the socket connects
-    const regionRequests = [];
+    this.regionRequests = [];
     socket.onopen = () => {
-      regionRequests.forEach(m => socket.send(m));
+      this.regionRequests.forEach(m => socket.send(m));
     };
 
     // Restart the socket connection on close (optional, as the frontend does not get a notification
     // that the connection failed on the first try)
     socket.onclose = () => {
-      setTimeout(
-        () => {
-          socket = new WebSocket(url)
-        }, 30000);
-        // TODO maybe in more beautiful, less annoying
-        //alert('Websocket connection failed, reconnecting in 30s')
+      setTimeout(() => {
+        socket = new WebSocket(url);
+      }, 30000);
+      // TODO maybe in more beautiful, less annoying
+      //alert('Websocket connection failed, reconnecting in 30s')
     };
 
     socket.onmessage = function(event) {
@@ -64,21 +60,21 @@ export default class {
   /**
    * Registers a callback to call when the region subdivision is returned
    */
-  registerRegion(fun){
+  registerRegion(fun) {
     this.registerCallback(this.regionCallback, fun);
   }
 
   /**
    * Registers a callback to call when the region data is returned
    */
-  registerWorker(fun){
+  registerWorker(fun) {
     this.registerCallback(this.workerCallback, fun);
   }
 
   /**
    * Registers an observer to a list
    */
-  registerCallback(list, fun){
+  registerCallback(list, fun) {
     let promise;
     const render = data => {
       promise = new Promise((resolve, error) => {
@@ -93,12 +89,12 @@ export default class {
     return promise;
   }
 
-  close(){
+  close() {
     console.log('closing the WS connection');
     this.socket.close();
   }
 
-  sendRequest(request){
+  sendRequest(request) {
     let message = JSON.stringify(request);
     if (this.socket.readyState === this.socket.OPEN) {
       this.socket.send(message);
@@ -106,5 +102,4 @@ export default class {
       this.regionRequests.push(message);
     }
   }
-
 }
