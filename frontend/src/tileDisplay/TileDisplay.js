@@ -113,25 +113,26 @@ export default class extends Component {
 
     L.GridLayer.DebugLayer = L.GridLayer.extend({
       createTile: function(coords) {
-        let tile = document.createElement('div');
+        let div = document.createElement('div');
         let size = this.getTileSize();
         let zoom = this._tileZoom;
-        tile.width = size.x;
-        tile.height = size.y;
+        div.width = size.x;
+        div.height = size.y;
 
         let p = new Point(coords.x, coords.y, zoom);
 
         let projected = project(coords.x, coords.y, zoom, 0, 0, tileSize);
         let unprojected = unproject(projected.x, projected.y, zoom);
-        tile.innerHTML =
+
+        div.classList.add('debugLayer');
+        div.innerHTML =
           'Leaflet tile: ' +
           p.toString() +
           '</br>Projected: ' +
           projected +
           '</br>Unprojected: ' +
           unprojected;
-        tile.style.outline = '1px solid red';
-        return tile;
+        return div;
       }
     });
 
@@ -152,15 +153,16 @@ export default class extends Component {
         'Debug Layer': debugLayer
       };
     map.addLayer(mandelbrotLayer);
-    map.addLayer(debugLayer);
 
     L.control.layers(baseLayer, overlayLayers).addTo(map);
     map.setView([0, 0]);
 
-    map.addControl(L.control.zoomBox({
-      modal: true,
-      title: "Box area zoom"
-    }));
+    map.addControl(
+      L.control.zoomBox({
+        modal: true,
+        title: 'Box area zoom'
+      })
+    );
 
     this.map = map;
   }
