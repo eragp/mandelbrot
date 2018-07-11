@@ -1,13 +1,4 @@
-#nodeList {
-    width: 10px;
-    height: 10px;
-}
-
-.nodeControl {
-    background-color: rgba(255, 255, 255, 0.733);
-    border-radius: 5px;
-    padding-top: 12px;
-    padding-bottom: 0px;
-    padding-right: 10px;
-    padding-left: 10px;
+.nodeProgress {
+    height: 25vh;
+    position: relative;
 }
