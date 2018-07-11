@@ -6,12 +6,17 @@ import 'bootstrap/dist/css/bootstrap.css';
 import TileDisplay from './tileDisplay/TileDisplay';
 import registerServiceWorker from './registerServiceWorker';
 import './Index.css';
+import NodeProgress from './visualization/NodeProgress';
+import WebSocketClient from './connection/WSClient';
 
 class App extends Component {
   render() {
+    let websocketclient = new WebSocketClient();
+
     return (
       <div>
-        <TileDisplay />
+        <TileDisplay wsclient={websocketclient}/>
+        <NodeProgress wsclient={websocketclient}/>
       </div>
     );
   }

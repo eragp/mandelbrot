@@ -12,14 +12,10 @@ import './TileDisplay.css';
 import Shader from './Shader';
 import { project, unproject } from './Project';
 import { request as requestRegion } from './RegionRequest';
-import WebSocketClient from '../connection/WSClient';
 
 import { tileSize } from './Constants';
 import Point from '../misc/Point';
 import RegionDrawer from './RegionDrawer';
-
-//Custom component
-import NodeList from '../Node';
 
 
 export default class extends Component {
@@ -29,7 +25,7 @@ export default class extends Component {
      * Functions to call, when a new region is issued
      */
     this.newViewObservers = [];
-    this.websocketClient = new WebSocketClient();
+    this.websocketClient = this.props.wsclient;
     this.regionDrawer = new RegionDrawer(this, this.websocketClient);
     this.renderLeaflet();
   }
@@ -161,53 +157,7 @@ export default class extends Component {
     map.addLayer(mandelbrotLayer);
 
     L.control.layers(baseLayer, overlayLayers).addTo(map);
-    map.setView([0, 0]);
-
-    // Add node progress
-
-    var legend = L.control({position: 'bottomleft'});
-    let nodeList;
-  
-    legend.onAdd = function (map) {
-        let container = L.DomUtil.create('div', 'nodeControl');
-        ReactDOM.render(<NodeList ref={(component) => {nodeList = component;}}/>, container);;
-        return container;
-    };
-    legend.addTo(map);
-
-    // TODO move outside => into NodeList?
-
-    // register workers at websocket client
-    // so that they are set inactive when the first tile/region
-    // by them comes in
-    websocketClient.registerWorker((data) => {
-      // Stop corresponding worker progress bar
-      // assume that regionData is passed here
-      let workerID = data.workerInfo.rank;
-      nodeList.setState((oldState) => {
-        // Pay attention here that ranks begin from 1 as long as the host does not send data on his own
-        oldState.active[workerID-1] = false;
-        // TODO insert correct µs time in node value
-        return oldState;
-      });
-    });
-  
-    websocketClient.registerRegion((data) => {
-      // Draw node progress
-      let nworkers = data.regionCount;
-      let active = new Array(nworkers);
-      let progress = new Array(nworkers);
-      for(var i = 0; i < nworkers; i++){
-        active[i] = true;
-        progress[i] = 0;
-      }
-      nodeList.setState({
-        numWorkers: nworkers,
-        active: active,
-        progress: progress
-      });
-      // TODO draw regions
-    });
+    map.setView([0, 0]);    
   
     map.addControl(
       L.control.zoomBox({
