@@ -1,5 +1,5 @@
 export const tileSize = 256;
-export const maxIteration = 1024;
+export const maxIteration = 512;
 export const balancer = 'naive';
 
 // (real, imaginary) bounds of the complex plane
