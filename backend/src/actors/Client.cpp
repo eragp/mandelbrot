@@ -54,7 +54,7 @@ void Client::init(int world_rank, int world_size) {
 
             // Execute computations
             const unsigned int data_len = region.getPixelCount();
-            int data[data_len];
+            int* data = new int[data_len];
             
             int i = 0;
 
@@ -76,8 +76,9 @@ void Client::init(int world_rank, int world_size) {
             if (!loopFlag) {
                 std::cout << "Worker " << world_rank << " is sending the data: " << data_len << std::endl;
                 MPI_Send(&world_rank, 1, MPI_INT, 0, 3, MPI_COMM_WORLD);
-                MPI_Send(&data, data_len, MPI_INT, 0, 2, MPI_COMM_WORLD);
+                MPI_Send(data, data_len, MPI_INT, 0, 2, MPI_COMM_WORLD);
             }
+            delete[] data;
         }
     }
 }
