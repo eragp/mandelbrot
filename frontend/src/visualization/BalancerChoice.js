@@ -1,4 +1,6 @@
-import React, { Component } from 'react';
+import React, {
+    Component
+} from 'react';
 
 export default class extends Component {
 
@@ -31,34 +33,33 @@ export default class extends Component {
         });
     }
 
-    render(){
-        let itemList = [];
-        for(let i in this.state.items){
-            let item = this.state.items[i];
-            let active = item.key == this.state.active;
-            let handler = item.disabled ? () => false : () => this.handleBalancerChoice(item.key);
+    render() {
+        const itemList = [];
+        for (let item of this.state.items) {
+            const active = item.key == this.state.active;
+            const handler = item.disabled ? () => false : () => this.handleBalancerChoice(item.key);
             itemList.push(
                 <BalancerItem title={item.title} active={active} disabled={item.disabled} handleClick={handler}/>
             )
         }
 
         return (
-        <div class="list-group balancerChoice">
-            {itemList}
-        </div>);
+            <div class="list-group balancerChoice">
+        {itemList}
+    </div>);
     }
 
-    
+
 }
 
 class BalancerItem extends Component {
 
     render() {
         let classList = "list-group-item list-group-item-action";
-        if(this.props.active){
+        if (this.props.active) {
             classList += " active";
         }
-        if(this.props.disabled){
+        if (this.props.disabled) {
             classList += " disabled";
         }
         return <a href="#" class={classList} onClick={this.props.handleClick} >{this.props.title}</a>;

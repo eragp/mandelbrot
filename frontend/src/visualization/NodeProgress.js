@@ -42,7 +42,7 @@ export default class extends Component {
 
     componentDidMount() {
         
-        var ctx = document.getElementById("nodeProgress");
+        const ctx = document.getElementById("nodeProgress");
         this.chart = new Chart(ctx, {
             type: 'doughnut',
             data: [],
@@ -52,7 +52,7 @@ export default class extends Component {
                 tooltips: {
                     callbacks: {
                         label: function(tooltipItem, data) {
-                            var label = data.labels[tooltipItem.index];
+                            let label = data.labels[tooltipItem.index];
         
                             if (label) {
                                 label += ': ';
@@ -75,7 +75,7 @@ export default class extends Component {
 
         this.initNodeProgress();
 
-        let _this = this;
+        const _this = this;
         // register workers at websocket client
         // so that they are set inactive when the first tile/region
         // by them comes in
@@ -100,7 +100,7 @@ export default class extends Component {
 
             let animationDuration = 1000;
 
-            for(var i = 0; i < nworkers; i++){
+            for(let i = 0; i < nworkers; i++){
                 active[i] = true;
                 progress[i] = animationDuration * 1000;
             }
@@ -120,12 +120,12 @@ export default class extends Component {
     }
 
     updateChart(animationDuration){
-        let progress = this.chartState.progress;
-        let labels = [];
+        const progress = this.chartState.progress;
+        const labels = [];
         for(let i = 0; i < progress.length; i++){
             labels.push("Worker " + i);
         }
-        let data = {
+        const data = {
             labels: labels,
             datasets: [{
                 data: progress,
@@ -150,8 +150,8 @@ export default class extends Component {
      */
     initNodeProgress(){
         // Interval in milliseconds
-        let interval = 50;
-        let _this = this;
+        const interval = 50;
+        const _this = this;
         this.interval = setInterval(
             (state) => { 
                 let update = false;
