@@ -30,17 +30,22 @@ export default class extends Component {
         });
 
         // Interval in milliseconds
-        let interval = 250;
+        let interval = 50;
         let _this = this;
         this.interval = setInterval(
             () => { 
                 let state = _this.chartState;
+                let update = false;
                 for(let i = 0; i < state.progress.length; i++){
                     if(state.active[i]){
                         state.progress[i] += interval * 1000;
+                        update = true;
                     }
                 }
-                _this.updateChart();
+                if(update){
+                    // Animation duration of 0 for fluent redrawing
+                    _this.updateChart(0);
+                }
             },
             interval
         );
@@ -56,7 +61,7 @@ export default class extends Component {
             _this.chartState.active[workerID-1] = false;
             // TODO insert correct µs time in node value
 
-            _this.updateChart();
+            _this.updateChart(0);
         });
         
         this.websocketClient.registerRegion((data) => {
@@ -65,7 +70,7 @@ export default class extends Component {
             let active = new Array(nworkers);
             let progress = new Array(nworkers);
             for(var i = 0; i < nworkers; i++){
-                active[i] = true;
+                active[i] = false;
                 progress[i] = 0;
             }
             _this.chartState = {
@@ -81,7 +86,7 @@ export default class extends Component {
         return (<canvas id={"nodeProgress"}></canvas>);
     }
 
-    updateChart(){
+    updateChart(animationDuration){
         let progress = this.chartState.progress;
         let labels = [];
         for(let i = 0; i < progress.length; i++){
@@ -92,9 +97,10 @@ export default class extends Component {
             datasets: [{
                 data: progress
             }]
+            // TODO include nice colors
         };
         this.chart.data = data;
-        this.chart.update(0);
+        this.chart.update(animationDuration);
     }
     
 }
