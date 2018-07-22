@@ -1,37 +1,46 @@
 import React, { Component } from 'react';
-import { Doughnut } from 'react-chartjs-2';
+import { Chart } from 'chart.js';
 
 export default class extends Component {
 
     constructor(props){
         super(props);
         this.websocketClient = props.wsclient;
+        this.chartState;
     }
 
     componentWillMount() {
-        this.setState({
+        this.chartState ={
             numWorkers: 0,
             active: [false],
             // The computation time in microseconds
             progress: [1]
-          });
+          };
     }
 
     componentDidMount() {
-        console.log(this.refs.chart.chart_instance);
+        
+        var ctx = document.getElementById("nodeProgress");
+        this.chart = new Chart(ctx, {
+            type: 'doughnut',
+            data: [],
+            options: {
+                responsive: false
+            }
+        });
+
         // Interval in milliseconds
-        let interval = 500;
+        let interval = 250;
         let _this = this;
         this.interval = setInterval(
-            () => {      
-                _this.setState((oldState) => {
-                    for(let i = 0; i < oldState.progress.length; i++){
-                        if(oldState.active[i]){
-                            oldState.progress[i] += interval * 1000;
-                        }
+            () => { 
+                let state = _this.chartState;
+                for(let i = 0; i < state.progress.length; i++){
+                    if(state.active[i]){
+                        state.progress[i] += interval * 1000;
                     }
-                    return oldState;
-                });
+                }
+                _this.updateChart();
             },
             interval
         );
@@ -43,12 +52,11 @@ export default class extends Component {
             // Stop corresponding worker progress bar
             // assume that regionData is passed here
             let workerID = data.workerInfo.rank;
-            this.setState((oldState) => {
-                // Pay attention here that ranks begin from 1 as long as the host does not send data on his own
-                oldState.active[workerID-1] = false;
-                // TODO insert correct µs time in node value
-                return oldState;
-            });
+            // Pay attention here that ranks begin from 1 as long as the host does not send data on his own
+            _this.chartState.active[workerID-1] = false;
+            // TODO insert correct µs time in node value
+
+            _this.updateChart();
         });
         
         this.websocketClient.registerRegion((data) => {
@@ -60,16 +68,21 @@ export default class extends Component {
                 active[i] = true;
                 progress[i] = 0;
             }
-            this.setState({
+            _this.chartState = {
                 numWorkers: nworkers,
                 active: active,
                 progress: progress
-            });
+            };
+            _this.updateChart();
         });
     }
 
     render(){
-        let progress = this.state.progress;
+        return (<canvas id={"nodeProgress"}></canvas>);
+    }
+
+    updateChart(){
+        let progress = this.chartState.progress;
         let labels = [];
         for(let i = 0; i < progress.length; i++){
             labels.push("Worker " + i);
@@ -80,12 +93,8 @@ export default class extends Component {
                 data: progress
             }]
         };
-        let options = {
-            responsive: false
-        };
-        console.log(data);
-        this.reference = null;
-        return (<div><Doughnut ref='chart' data={data} options={options}/></div>);
+        this.chart.data = data;
+        this.chart.update(0);
     }
     
 }
