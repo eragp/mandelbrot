@@ -4,10 +4,10 @@ export default class extends Component {
 
     componentWillMount() {
         this.setState({
+            active: 'naive',
             items: [{
                     key: 'naive',
-                    title: "Naive Balancer",
-                    active: true
+                    title: "Naive Balancer"
                 },
                 {
                     key: 'column',
@@ -24,16 +24,10 @@ export default class extends Component {
 
     handleBalancerChoice(balancer) {
         this.props.balancerPolicy.setBalancer(balancer);
-        this.setState((oldState) => {
-            for(let i in oldState.items){
-                let item = oldState.items[i];
-                if(item.key == balancer){
-                    item.active = true;
-                } else {
-                    item.active = false;
-                }
-            }
-            return oldState;
+
+        this.setState((state) => {
+            state.active = this.props.balancerPolicy.getBalancer();
+            return state;
         });
     }
 
@@ -41,9 +35,10 @@ export default class extends Component {
         let itemList = [];
         for(let i in this.state.items){
             let item = this.state.items[i];
-            let handler = item.disabled ? ()=>false : () => this.handleBalancerChoice(item.key);
+            let active = item.key == this.state.active;
+            let handler = item.disabled ? () => false : () => this.handleBalancerChoice(item.key);
             itemList.push(
-                <BalancerItem title={item.title} active={item.active} disabled={item.disabled} handleClick={handler}/>
+                <BalancerItem title={item.title} active={active} disabled={item.disabled} handleClick={handler}/>
             )
         }
 
