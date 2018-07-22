@@ -11,7 +11,7 @@ var currentBottomRight = null;
  * Otherwise the corresponding request for the backend is returned.
  * @param {*} map current Leaflet map
  */
-export const request = map => {
+export const request = (map, balancerPolicy) => {
   let bounds = map.getPixelBounds();
   let zoom = map.getZoom();
 
@@ -45,7 +45,7 @@ export const request = map => {
     validation: zoom,
     // Divisor for width and height. Will be used to perform load balancing
     guaranteedDivisor: tileSize,
-    balancer: balancer,
+    balancer: balancerPolicy.getBalancer(),
     maxIteration: 256,
   };
   console.log('sending Region request: ');

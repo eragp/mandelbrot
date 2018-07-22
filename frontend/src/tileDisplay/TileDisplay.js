@@ -19,6 +19,7 @@ import RegionDrawer from './RegionDrawer';
 
 
 export default class extends Component {
+
   componentDidMount() {
     this.map = null;
     /**
@@ -26,6 +27,7 @@ export default class extends Component {
      */
     this.newViewObservers = [];
     this.websocketClient = this.props.wsclient;
+    this.balancerPolicy = this.props.balancerPolicy;
     this.regionDrawer = new RegionDrawer(this, this.websocketClient);
     this.renderLeaflet();
   }
@@ -44,8 +46,9 @@ export default class extends Component {
     });
 
     // Request a new region subdivision via websocket on view change
+    let balancerPolicy = this.balancerPolicy;
     let requestCallback = map => {
-      let r = requestRegion(map);
+      let r = requestRegion(map, balancerPolicy);
       if (r !== null) {
         websocketClient.sendRequest(r);
       }

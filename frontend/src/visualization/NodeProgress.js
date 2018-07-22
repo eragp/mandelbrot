@@ -28,7 +28,7 @@ export default class extends Component {
     constructor(props){
         super(props);
         this.websocketClient = props.wsclient;
-        this.chartState;
+        this.chartState = {};
     }
 
     componentWillMount() {
