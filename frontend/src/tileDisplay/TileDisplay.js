@@ -157,8 +157,8 @@ export default class extends Component {
     map.addLayer(mandelbrotLayer);
 
     L.control.layers(baseLayer, overlayLayers).addTo(map);
-    map.setView([0, 0]);    
-  
+    map.setView([0, 0]);
+
     map.addControl(
       L.control.zoomBox({
         modal: true,
