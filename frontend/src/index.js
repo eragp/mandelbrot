@@ -8,6 +8,7 @@ import registerServiceWorker from './registerServiceWorker';
 import './Index.css';
 import NodeProgress from './visualization/NodeProgress';
 import WebSocketClient from './connection/WSClient';
+import BalancerChoice from './visualization/BalancerChoice';
 
 class App extends Component {
   render() {
@@ -15,8 +16,19 @@ class App extends Component {
 
     return (
       <div>
-        <TileDisplay wsclient={websocketclient}/>
-        <NodeProgress wsclient={websocketclient}/>
+        <div class="mainTop">
+          <TileDisplay wsclient={websocketclient}/>
+        </div> <div class="mainBottom row">
+          <div class="col-3">
+            <BalancerChoice />
+          </div>
+          <div class="col-6">
+            <span />
+          </div>
+          <div class="col-3">
+            <NodeProgress wsclient={websocketclient}/>
+          </div>
+        </div>
       </div>
     );
   }

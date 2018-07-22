@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Chart } from 'chart.js';
+import './NodeProgress.css';
 
 /**
  * Colors for the workers
@@ -62,27 +63,9 @@ export default class extends Component {
         });
         this.updateChart();
 
-        // Interval in milliseconds
-        let interval = 50;
-        let _this = this;
-        this.interval = setInterval(
-            () => { 
-                let state = _this.chartState;
-                let update = false;
-                for(let i = 0; i < state.progress.length; i++){
-                    if(state.active[i]){
-                        state.progress[i] += interval * 1000;
-                        update = true;
-                    }
-                }
-                if(update){
-                    // Animation duration of 0 for fluent redrawing
-                    _this.updateChart(0);
-                }
-            },
-            interval
-        );
+        this.initNodeProgress();
 
+        let _this = this;
         // register workers at websocket client
         // so that they are set inactive when the first tile/region
         // by them comes in
@@ -98,20 +81,27 @@ export default class extends Component {
         });
         
         this.websocketClient.registerRegion((data) => {
-            // Draw node progress
+            // Stop redrawing
+            _this.stopNodeProgress();
+            // Reset node progress
             let nworkers = data.regionCount;
             let active = new Array(nworkers);
             let progress = new Array(nworkers);
+
+            let animationDuration = 1000;
+
             for(var i = 0; i < nworkers; i++){
                 active[i] = true;
-                progress[i] = 0;
+                progress[i] = animationDuration * 1000;
             }
             _this.chartState = {
                 numWorkers: nworkers,
                 active: active,
                 progress: progress
             };
-            _this.updateChart();
+            _this.updateChart(animationDuration);
+            // Start redrawing as soon as animation has finished
+            setTimeout(() => {_this.initNodeProgress()}, animationDuration);
         });
     }
 
@@ -136,6 +126,39 @@ export default class extends Component {
         };
         this.chart.data = data;
         this.chart.update(animationDuration);
+    }
+
+    /**
+     * Start redrawing the current node computation time every 50 milliseconds
+     */
+    initNodeProgress(){
+        // Interval in milliseconds
+        let interval = 50;
+        let _this = this;
+        this.interval = setInterval(
+            (state) => { 
+                let update = false;
+                for(let i = 0; i < state.progress.length; i++){
+                    if(state.active[i]){
+                        state.progress[i] += interval * 1000;
+                        update = true;
+                    }
+                }
+                if(update){
+                    // Animation duration of 0 for fluent redrawing
+                    _this.updateChart(0);
+                }
+            },
+            interval,
+            this.chartState
+        );
+    }
+
+    /**
+     * Stop redrawing the node progress every 50 milliseconds
+     */
+    stopNodeProgress(){
+        clearInterval(this.interval);
     }
     
 }
