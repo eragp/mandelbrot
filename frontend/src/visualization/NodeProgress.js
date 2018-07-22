@@ -1,6 +1,23 @@
 import React, { Component } from 'react';
 import { Chart } from 'chart.js';
 
+/**
+ * Colors for the workers
+ * TODO replace with nice colorset (i.e. theme)
+ */
+const colorSet =  [
+    '#4661EE',
+    '#EC5657',
+    '#1BCDD1',
+    '#8FAABB',
+    '#B08BEB',
+    '#3EA0DD',
+    '#F5A52A',
+    '#23BFAA',
+    '#FAA586',
+    '#EB8CC6',
+];
+
 export default class extends Component {
 
     constructor(props){
@@ -11,7 +28,7 @@ export default class extends Component {
 
     componentWillMount() {
         this.chartState ={
-            numWorkers: 0,
+            numWorkers: 1,
             active: [false],
             // The computation time in microseconds
             progress: [1]
@@ -25,9 +42,25 @@ export default class extends Component {
             type: 'doughnut',
             data: [],
             options: {
-                responsive: false
+                responsive: false,
+                tooltips: {
+                    callbacks: {
+                        label: function(tooltipItem, data) {
+                            var label = data.labels[tooltipItem.index];
+        
+                            if (label) {
+                                label += ': ';
+                            } else {
+                                label = '';
+                            }
+                            label += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index] + ' µs';
+                            return label;
+                        }
+                    }
+                }
             }
         });
+        this.updateChart();
 
         // Interval in milliseconds
         let interval = 50;
@@ -70,7 +103,7 @@ export default class extends Component {
             let active = new Array(nworkers);
             let progress = new Array(nworkers);
             for(var i = 0; i < nworkers; i++){
-                active[i] = false;
+                active[i] = true;
                 progress[i] = 0;
             }
             _this.chartState = {
@@ -95,7 +128,9 @@ export default class extends Component {
         let data = {
             labels: labels,
             datasets: [{
-                data: progress
+                data: progress,
+                backgroundColor: colorSet
+               
             }]
             // TODO include nice colors
         };
