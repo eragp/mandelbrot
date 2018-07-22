@@ -19,6 +19,10 @@ const colorSet =  [
     '#EB8CC6',
 ];
 
+/**
+ * Shows the computation time of invoked workers
+ * Additional documentation on the type of used chart: https://www.chartjs.org/docs/latest/
+ */
 export default class extends Component {
 
     constructor(props){
@@ -43,7 +47,8 @@ export default class extends Component {
             type: 'doughnut',
             data: [],
             options: {
-                responsive: false,
+                responsive: true,
+                maintainAspectRatio: false,
                 tooltips: {
                     callbacks: {
                         label: function(tooltipItem, data) {
@@ -58,6 +63,11 @@ export default class extends Component {
                             return label;
                         }
                     }
+                },
+                title: {
+                    display: true,
+                    position: 'bottom',
+                    text: ["Total node computation time:", "0 µs"]
                 }
             }
         });
@@ -106,7 +116,7 @@ export default class extends Component {
     }
 
     render(){
-        return (<canvas id={"nodeProgress"}></canvas>);
+        return (<div class="nodeProgress"><canvas id="nodeProgress"></canvas></div>);
     }
 
     updateChart(animationDuration){
@@ -125,6 +135,13 @@ export default class extends Component {
             // TODO include nice colors
         };
         this.chart.data = data;
+
+        let computationTime = 0;
+        for(let i = 0; i < progress.length; i++){
+            computationTime += progress[i];
+        }
+        this.chart.options.title.text[1] = computationTime + " µs";
+
         this.chart.update(animationDuration);
     }
 
