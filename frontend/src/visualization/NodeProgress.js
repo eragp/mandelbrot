@@ -1,5 +1,9 @@
-import React, { Component } from 'react';
-import { Chart } from 'chart.js';
+import React, {
+    Component
+} from 'react';
+import {
+    Chart
+} from 'chart.js';
 import WebSocketClient from '../connection/WSClient';
 
 import './NodeProgress.css';
@@ -8,7 +12,7 @@ import './NodeProgress.css';
  * Colors for the workers
  * TODO replace with nice colorset (i.e. theme)
  */
-const colorSet =  [
+const colorSet = [
     '#4661EE',
     '#EC5657',
     '#1BCDD1',
@@ -27,22 +31,34 @@ const colorSet =  [
  */
 export default class NodeProgress extends Component {
 
-    constructor(props){
+    constructor(props) {
         super(props);
         this.websocketClient = props.wsclient;
         this.chartState = {};
 
-        this.chartState ={
+        this.chartState = {
             numWorkers: 1,
             active: [false],
             // The computation time in microseconds
             progress: [1]
-          };
+        };
     }
 
     componentDidMount() {
-        
+
         const ctx = document.getElementById("nodeProgress");
+        const customLabel = (tooltipItem, data) => {
+            let label = data.labels[tooltipItem.index];
+
+            if (label) {
+                label += ': ';
+            } else {
+                label = '';
+            }
+            label += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index] + ' µs';
+            return label;
+        }
+
         this.chart = new Chart(ctx, {
             type: 'doughnut',
             data: [],
@@ -51,17 +67,7 @@ export default class NodeProgress extends Component {
                 maintainAspectRatio: false,
                 tooltips: {
                     callbacks: {
-                        label: function(tooltipItem, data) {
-                            let label = data.labels[tooltipItem.index];
-        
-                            if (label) {
-                                label += ': ';
-                            } else {
-                                label = '';
-                            }
-                            label += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index] + ' µs';
-                            return label;
-                        }
+                        label: customLabel
                     }
                 },
                 title: {
@@ -82,25 +88,25 @@ export default class NodeProgress extends Component {
         this.websocketClient.registerWorker((data) => {
             // Stop corresponding worker progress bar
             // assume that regionData is passed here
-            let workerID = data.workerInfo.rank;
+            const workerID = data.workerInfo.rank;
             // Pay attention here that ranks begin from 1 as long as the host does not send data on his own
-            _this.chartState.active[workerID-1] = false;
+            _this.chartState.active[workerID - 1] = false;
             // TODO insert correct µs time in node value
 
             _this.updateChart(0);
         });
-        
+
         this.websocketClient.registerRegion((data) => {
             // Stop redrawing
             _this.stopNodeProgress();
             // Reset node progress
-            let nworkers = data.regionCount;
-            let active = new Array(nworkers);
-            let progress = new Array(nworkers);
+            const nworkers = data.regionCount;
+            const active = new Array(nworkers);
+            const progress = new Array(nworkers);
 
             let animationDuration = 1000;
 
-            for(let i = 0; i < nworkers; i++){
+            for (let i = 0; i < nworkers; i++) {
                 active[i] = true;
                 progress[i] = animationDuration * 1000;
             }
@@ -111,18 +117,20 @@ export default class NodeProgress extends Component {
             };
             _this.updateChart(animationDuration);
             // Start redrawing as soon as animation has finished
-            setTimeout(() => {_this.initNodeProgress()}, animationDuration);
+            setTimeout(() => {
+                _this.initNodeProgress()
+            }, animationDuration);
         });
     }
 
-    render(){
+    render() {
         return (<div className="nodeProgress"><canvas id="nodeProgress"></canvas></div>);
     }
 
-    updateChart(animationDuration){
+    updateChart(animationDuration) {
         const progress = this.chartState.progress;
         const labels = [];
-        for(let i = 0; i < progress.length; i++){
+        for (let i = 0; i < progress.length; i++) {
             labels.push("Worker " + i);
         }
         const data = {
@@ -130,14 +138,14 @@ export default class NodeProgress extends Component {
             datasets: [{
                 data: progress,
                 backgroundColor: colorSet
-               
+
             }]
             // TODO include nice colors
         };
         this.chart.data = data;
 
         let computationTime = 0;
-        for(let i = 0; i < progress.length; i++){
+        for (let i = 0; i < progress.length; i++) {
             computationTime += progress[i];
         }
         this.chart.options.title.text[1] = computationTime + " µs";
@@ -148,20 +156,20 @@ export default class NodeProgress extends Component {
     /**
      * Start redrawing the current node computation time every 50 milliseconds
      */
-    initNodeProgress(){
+    initNodeProgress() {
         // Interval in milliseconds
         const interval = 50;
         const _this = this;
         this.interval = setInterval(
-            (state) => { 
+            (state) => {
                 let update = false;
-                for(let i = 0; i < state.progress.length; i++){
-                    if(state.active[i]){
+                for (let i = 0; i < state.progress.length; i++) {
+                    if (state.active[i]) {
                         state.progress[i] += interval * 1000;
                         update = true;
                     }
                 }
-                if(update){
+                if (update) {
                     // Animation duration of 0 for fluent redrawing
                     _this.updateChart(0);
                 }
@@ -174,10 +182,10 @@ export default class NodeProgress extends Component {
     /**
      * Stop redrawing the node progress every 50 milliseconds
      */
-    stopNodeProgress(){
+    stopNodeProgress() {
         clearInterval(this.interval);
     }
-    
+
 }
 
 NodeProgress.propTypes = {
