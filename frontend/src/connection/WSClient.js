@@ -1,4 +1,4 @@
-export default class {
+export default class WebSocketClient {
   constructor() {
     /**
      * Callbacks for any methods interested in new region subdivisions or regionData (=result of one worker)

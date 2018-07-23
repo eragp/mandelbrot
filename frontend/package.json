@@ -6,6 +6,7 @@
     "ajv": "^6.5.2",
     "bootstrap": "^4.1.0",
     "chart.js": "^2.7.2",
+    "eslint-plugin-promise": "^3.8.0",
     "install": "^0.11.2",
     "jquery": "^3.3.1",
     "jsdom": "^11.9.0",
@@ -13,7 +14,6 @@
     "leaflet-zoombox": "^0.5.1",
     "npm": "^6.1.0",
     "react": "^16.4.1",
-    "react-chartjs-2": "^2.7.2",
     "react-dom": "^16.4.1",
     "react-scripts": "1.1.4",
     "reactstrap": "^5.0.0-beta.3"

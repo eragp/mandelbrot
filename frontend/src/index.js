@@ -20,16 +20,16 @@ class App extends Component {
 
     return (
       <div>
-        <div class="mainTop">
+        <div className="mainTop">
           <TileDisplay wsclient={websocketclient} balancerPolicy={balancerPolicy}/>
-        </div> <div class="mainBottom row">
-          <div class="col-3">
+        </div> <div className="mainBottom row">
+          <div className="col-3">
             <BalancerChoice balancerPolicy={balancerPolicy}/>
           </div>
-          <div class="col-6">
+          <div className="col-6">
             <span />
           </div>
-          <div class="col-3">
+          <div className="col-3">
             <NodeProgress wsclient={websocketclient}/>
           </div>
         </div>

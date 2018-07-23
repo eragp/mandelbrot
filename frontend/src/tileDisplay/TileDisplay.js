@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import ReactDOM from 'react-dom';
 // leaflet stuff
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet/dist/leaflet-src.js';
@@ -16,9 +15,11 @@ import { request as requestRegion } from './RegionRequest';
 import { tileSize } from './Constants';
 import Point from '../misc/Point';
 import RegionDrawer from './RegionDrawer';
+import BalancerPolicy from '../misc/BalancerPolicy';
+import WebSocketClient from '../connection/WSClient';
 
 
-export default class extends Component {
+export default class TileDisplay extends Component {
 
   componentDidMount() {
     this.map = null;
@@ -193,4 +194,9 @@ export default class extends Component {
   render() {
     return <div id="viewer" />;
   }
+}
+
+TileDisplay.propTypes = {
+  wsclient: WebSocketClient,
+  balancerPolicy: BalancerPolicy
 }

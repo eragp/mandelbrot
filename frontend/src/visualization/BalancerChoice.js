@@ -1,11 +1,14 @@
 import React, {
     Component
 } from 'react';
+import BalancerPolicy from '../misc/BalancerPolicy';
+import PropTypes from 'prop-types';
 
-export default class extends Component {
+export default class BalancerChoice extends Component {
 
-    componentWillMount() {
-        this.setState({
+    constructor(props) {
+        super(props);
+        this.state = {
             active: 'naive',
             items: [{
                     key: 'naive',
@@ -21,7 +24,7 @@ export default class extends Component {
                     disabled: true
                 },
             ]
-        });
+        };
     }
 
     handleBalancerChoice(balancer) {
@@ -44,13 +47,16 @@ export default class extends Component {
         }
 
         return (
-            <div class="list-group balancerChoice">
+            <div className="list-group balancerChoice">
         {itemList}
     </div>);
     }
 
-
 }
+
+BalancerChoice.propTypes = {
+    balancerPolicy: BalancerPolicy
+};
 
 class BalancerItem extends Component {
 
@@ -62,7 +68,14 @@ class BalancerItem extends Component {
         if (this.props.disabled) {
             classList += " disabled";
         }
-        return <a href="#" class={classList} onClick={this.props.handleClick} >{this.props.title}</a>;
+        return <a href="#" className={classList} onClick={this.props.handleClick} >{this.props.title}</a>;
     }
 
 }
+
+BalancerItem.propTypes = {
+    active: PropTypes.boolean,
+    disabled: PropTypes.boolean,
+    handleClick: PropTypes.func,
+    title: PropTypes.string
+};

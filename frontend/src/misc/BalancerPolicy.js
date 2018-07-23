@@ -11,7 +11,7 @@ export const BALANCERS = [
 /**
  * Object returning the currently chosen balancing strategy
  */
-export default class {
+export default class BalancerPolicy {
 
     constructor(){
         this.balancer = 'naive';

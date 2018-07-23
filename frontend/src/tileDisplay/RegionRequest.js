@@ -1,5 +1,5 @@
 import { getBottomRightPoint, getTopLeftPoint, project } from './Project';
-import { tileSize, balancer } from './Constants';
+import { tileSize } from './Constants';
 
 // making sure only new requests actually get sent
 var currentTopLeft = null;

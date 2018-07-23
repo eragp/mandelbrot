@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import { Chart } from 'chart.js';
+import WebSocketClient from '../connection/WSClient';
+
 import './NodeProgress.css';
 
 /**
@@ -23,15 +25,13 @@ const colorSet =  [
  * Shows the computation time of invoked workers
  * Additional documentation on the type of used chart: https://www.chartjs.org/docs/latest/
  */
-export default class extends Component {
+export default class NodeProgress extends Component {
 
     constructor(props){
         super(props);
         this.websocketClient = props.wsclient;
         this.chartState = {};
-    }
 
-    componentWillMount() {
         this.chartState ={
             numWorkers: 1,
             active: [false],
@@ -116,7 +116,7 @@ export default class extends Component {
     }
 
     render(){
-        return (<div class="nodeProgress"><canvas id="nodeProgress"></canvas></div>);
+        return (<div className="nodeProgress"><canvas id="nodeProgress"></canvas></div>);
     }
 
     updateChart(animationDuration){
@@ -179,3 +179,7 @@ export default class extends Component {
     }
     
 }
+
+NodeProgress.propTypes = {
+    wsclient: WebSocketClient
+};
