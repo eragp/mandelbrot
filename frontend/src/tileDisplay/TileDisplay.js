@@ -34,34 +34,36 @@ export default class TileDisplay extends Component {
   }
 
   renderLeaflet() {
-    let websocketClient = this.websocketClient;
-    let regionDrawer = this.regionDrawer;
     // bounds have to be a power of two
     // these bounds are chosen arbitrary and have nothing to do with
     // either leaflet space, nor the complex plane
     let bounds = [[-256, -256], [256, 256]];
-    let map = L.map('viewer', {
+    this.map = L.map('viewer', {
       crs: L.CRS.Simple,
       // maxZoom: 32,
       zoom: 3
     });
 
+    const map = this.map;
+    const websocketClient = this.websocketClient;
+    const regionDrawer = this.regionDrawer;
+
     // Request a new region subdivision via websocket on view change
-    let balancerPolicy = this.balancerPolicy;
-    let requestCallback = map => {
-      let r = requestRegion(map, balancerPolicy);
+    this.registerNewView(map => {
+      let r = requestRegion(map, this.balancerPolicy.getBalancer());
       if (r !== null) {
         websocketClient.sendRequest(r);
       }
-    };
-    this.registerNewView(requestCallback);
+    });
+
+    // Handle balancer change as view change 
+    //  => update all view subscribers about a policy change as if the view had changed
+    this.balancerPolicy.subscribe(() => this.updateAllNewView());
 
     // add event listeners to the map for region requests
 
     map.on({
-      moveend: () => {
-        this.newViewObservers.forEach(callback => callback(map));
-      }
+      moveend: () => this.updateAllNewView()
     });
 
     function drawPixel(imgData, x, y, r, g, b) {
@@ -170,7 +172,6 @@ export default class TileDisplay extends Component {
       })
     );
 
-    this.map = map;
   }
 
   /**
@@ -189,6 +190,10 @@ export default class TileDisplay extends Component {
     };
     this.newViewObservers.push(fun);
     return promise;
+  }
+
+  updateAllNewView(){
+    this.newViewObservers.forEach(callback => callback(this.map));
   }
 
   render() {

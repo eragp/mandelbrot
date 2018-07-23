@@ -4,6 +4,7 @@ import { tileSize } from './Constants';
 // making sure only new requests actually get sent
 var currentTopLeft = null;
 var currentBottomRight = null;
+var currentBalancer = null;
 /**
  *  Sends a region request for the currently visible region
  *
@@ -11,7 +12,7 @@ var currentBottomRight = null;
  * Otherwise the corresponding request for the backend is returned.
  * @param {*} map current Leaflet map
  */
-export const request = (map, balancerPolicy) => {
+export const request = (map, balancer) => {
   let bounds = map.getPixelBounds();
   let zoom = map.getZoom();
 
@@ -19,7 +20,7 @@ export const request = (map, balancerPolicy) => {
   let botRight = getBottomRightPoint(bounds, tileSize, zoom);
 
   // has the visible region changed?
-  if (topLeft.equals(currentTopLeft) && botRight.equals(currentBottomRight)) {
+  if (topLeft.equals(currentTopLeft) && botRight.equals(currentBottomRight) && currentBalancer === balancer) {
     return null;
   }
   currentTopLeft = topLeft;
@@ -45,7 +46,7 @@ export const request = (map, balancerPolicy) => {
     validation: zoom,
     // Divisor for width and height. Will be used to perform load balancing
     guaranteedDivisor: tileSize,
-    balancer: balancerPolicy.getBalancer(),
+    balancer: balancer,
     maxIteration: 256,
   };
   console.log('sending Region request: ');

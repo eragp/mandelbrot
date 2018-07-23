@@ -13,19 +13,40 @@ export const BALANCERS = [
  */
 export default class BalancerPolicy {
 
-    constructor(){
+    constructor() {
         this.balancer = 'naive';
+        this.callbacks = [];
     }
 
-    getBalancer(){
+    getBalancer() {
         return this.balancer;
     }
 
-    setBalancer(balancer){
-        if(!BALANCERS.includes(balancer)){
-            throw "Invalid balancer type: " + balancer; 
+    setBalancer(balancer) {
+        if (!BALANCERS.includes(balancer)) {
+            throw "Invalid balancer type: " + balancer;
         }
         this.balancer = balancer;
+        this.updateAll();
+    }
+
+    updateAll() {
+        this.callbacks.forEach(cb => cb(this.balancer))
+    }
+
+    subscribe(callback) {
+        let promise;
+        const fun = data => {
+            promise = new Promise((resolve, error) => {
+                try {
+                    resolve(callback(data));
+                } catch (err) {
+                    error(err);
+                }
+            });
+        };
+        this.callbacks.push(fun);
+        return promise;
     }
 
 }

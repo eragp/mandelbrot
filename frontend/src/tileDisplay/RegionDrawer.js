@@ -2,7 +2,7 @@ import Point from '../misc/Point';
 import { tileSize } from './Constants';
 import { getBottomRightPoint, getTopLeftPoint } from './Project';
 
-export default class {
+export default class RegionDrawer {
   constructor(tileDisplay, webSocketClient) {
     /*
     * this map stores callbacks to render all the tiles requested for leaflet.
