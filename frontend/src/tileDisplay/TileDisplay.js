@@ -17,6 +17,7 @@ import Point from '../misc/Point';
 import RegionDrawer from './RegionDrawer';
 import BalancerPolicy from '../misc/BalancerPolicy';
 import WebSocketClient from '../connection/WSClient';
+import PropTypes from 'prop-types';
 
 
 export default class TileDisplay extends Component {
@@ -108,12 +109,12 @@ export default class TileDisplay extends Component {
           ctx.putImageData(imgData, 0, 0);
           done(null, tile);
         };
-        console.log(
+        /*console.log(
           'requesting new tile at ' +
             p +
             ' complex: ' +
             project(p.x, p.y, zoom, 0, 0, tileSize)
-        );
+        );*/
         regionDrawer.register(p, drawTile);
         return tile;
       }
@@ -202,6 +203,6 @@ export default class TileDisplay extends Component {
 }
 
 TileDisplay.propTypes = {
-  wsclient: WebSocketClient,
-  balancerPolicy: BalancerPolicy
+  wsclient: PropTypes.instanceOf(WebSocketClient),
+  balancerPolicy: PropTypes.instanceOf(BalancerPolicy)
 }

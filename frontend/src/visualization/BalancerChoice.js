@@ -42,20 +42,20 @@ export default class BalancerChoice extends Component {
             const active = item.key == this.state.active;
             const handler = item.disabled ? () => false : () => this.handleBalancerChoice(item.key);
             itemList.push(
-                <BalancerItem title={item.title} active={active} disabled={item.disabled} handleClick={handler}/>
+                <BalancerItem key={item.key} title={item.title} active={active} disabled={item.disabled} handleClick={handler}/>
             )
         }
 
         return (
             <div className="list-group balancerChoice">
-        {itemList}
-    </div>);
+                {itemList}
+            </div>);
     }
 
 }
 
 BalancerChoice.propTypes = {
-    balancerPolicy: BalancerPolicy
+    balancerPolicy: PropTypes.instanceOf(BalancerPolicy)
 };
 
 class BalancerItem extends Component {
@@ -74,8 +74,14 @@ class BalancerItem extends Component {
 }
 
 BalancerItem.propTypes = {
-    active: PropTypes.boolean,
-    disabled: PropTypes.boolean,
+    active: PropTypes.bool,
+    disabled: PropTypes.bool,
     handleClick: PropTypes.func,
-    title: PropTypes.string
+    title: PropTypes.string.isRequired
 };
+
+BalancerItem.defaultProps = {
+    active: false,
+    disabled: false,
+    handleClick: () => {}
+}

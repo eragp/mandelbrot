@@ -1,4 +1,4 @@
-export const tileSize = 256;
+export const tileSize = 64;
 export const maxIteration = 512;
 export const balancer = 'naive';
 

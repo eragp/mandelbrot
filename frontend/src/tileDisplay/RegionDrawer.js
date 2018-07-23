@@ -29,7 +29,7 @@ export default class RegionDrawer {
       );
       //let topLeft = unproject(region.minReal, region.maxImag, zoom);
       topLeft.y = topLeft.y * -1;
-      console.log(topLeft);
+      //console.log(topLeft);
 
       // and invoke tile draw methods
       for (let y = 0; y < yEnd; y++) {
@@ -38,9 +38,9 @@ export default class RegionDrawer {
           let tileY = topLeft.y + y;
           let cb = this.callbacks.get(coordsToString(tileX, tileY, zoom));
           if (cb === undefined || cb === null) {
-            console.log(
+            /*console.log(
               'Region not found for ' + new Point(tileX, tileY, zoom)
-            );
+            );*/
             continue;
           }
           // only pass data of this region

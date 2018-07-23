@@ -5,6 +5,7 @@ import {
     Chart
 } from 'chart.js';
 import WebSocketClient from '../connection/WSClient';
+import PropTypes from 'prop-types';
 
 import './NodeProgress.css';
 
@@ -68,7 +69,8 @@ export default class NodeProgress extends Component {
                 tooltips: {
                     callbacks: {
                         label: customLabel
-                    }
+                    },
+                    intersect: false
                 },
                 title: {
                     display: true,
@@ -81,44 +83,43 @@ export default class NodeProgress extends Component {
 
         this.initNodeProgress();
 
-        const _this = this;
         // register workers at websocket client
         // so that they are set inactive when the first tile/region
         // by them comes in
-        this.websocketClient.registerWorker((data) => {
+        this.websocketClient.registerWorker(data => {
             // Stop corresponding worker progress bar
             // assume that regionData is passed here
             const workerID = data.workerInfo.rank;
             // Pay attention here that ranks begin from 1 as long as the host does not send data on his own
-            _this.chartState.active[workerID - 1] = false;
+            this.chartState.active[workerID - 1] = false;
             // TODO insert correct µs time in node value
 
-            _this.updateChart(0);
+            this.updateChart(0);
         });
 
-        this.websocketClient.registerRegion((data) => {
+        this.websocketClient.registerRegion(data => {
             // Stop redrawing
-            _this.stopNodeProgress();
+            this.stopNodeProgress();
             // Reset node progress
             const nworkers = data.regionCount;
             const active = new Array(nworkers);
             const progress = new Array(nworkers);
 
-            let animationDuration = 1000;
+            let animationDuration = 750;
 
             for (let i = 0; i < nworkers; i++) {
                 active[i] = true;
                 progress[i] = animationDuration * 1000;
             }
-            _this.chartState = {
+            this.chartState = {
                 numWorkers: nworkers,
                 active: active,
                 progress: progress
             };
-            _this.updateChart(animationDuration);
+            this.updateChart(animationDuration);
             // Start redrawing as soon as animation has finished
             setTimeout(() => {
-                _this.initNodeProgress()
+                this.initNodeProgress()
             }, animationDuration);
         });
     }
@@ -159,9 +160,8 @@ export default class NodeProgress extends Component {
     initNodeProgress() {
         // Interval in milliseconds
         const interval = 50;
-        const _this = this;
         this.interval = setInterval(
-            (state) => {
+            state => {
                 let update = false;
                 for (let i = 0; i < state.progress.length; i++) {
                     if (state.active[i]) {
@@ -171,7 +171,7 @@ export default class NodeProgress extends Component {
                 }
                 if (update) {
                     // Animation duration of 0 for fluent redrawing
-                    _this.updateChart(0);
+                    this.updateChart(0);
                 }
             },
             interval,
@@ -189,5 +189,5 @@ export default class NodeProgress extends Component {
 }
 
 NodeProgress.propTypes = {
-    wsclient: WebSocketClient
+    wsclient: PropTypes.instanceOf(WebSocketClient)
 };

@@ -36,7 +36,7 @@ export default class WebSocketClient {
 
     socket.onmessage = function(event) {
       let msg = JSON.parse(event.data);
-      console.log(msg);
+      //console.log(msg);
       switch (msg.type) {
         case 'regionData':
           // Notify regionData/worker observers
