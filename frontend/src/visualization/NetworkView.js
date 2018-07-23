@@ -10,7 +10,9 @@ import {
 } from 'vis';
 
 import './NetworkView.css';
-
+import workerSVG from './img/worker.svg';
+import serverSVG from './img/server.svg';
+import applicationSVG from './img/application.svg';
 
 export default class NetworkView extends Component {
 
@@ -35,13 +37,19 @@ export default class NetworkView extends Component {
 
         let fakeNodes = new DataSet([{
             id: 0,
-            label: 'Frontend'
+            label: 'Frontend',
+            image: applicationSVG,
+            shape: 'image'
         }, {
             id: 1,
-            label: 'Backend-Host'
+            label: 'Backend-Host',
+            image: serverSVG,
+            shape: 'image'
         }, {
             id: 2,
-            label: 'Worker 0'
+            label: 'Worker 0',
+            image: workerSVG,
+            shape: 'image'
         }]);
 
         let fakeEdges = new DataSet([{
@@ -67,11 +75,15 @@ export default class NetworkView extends Component {
 
             nodes.push({
                 id: 0,
-                label: 'Frontend'
+                label: 'Frontend',
+                image: applicationSVG,
+                shape: 'image'
             })
             nodes.push({
                 id: 1,
-                label: 'Backend-Host'
+                label: 'Backend-Host',
+                image: serverSVG,
+                shape: 'image'
             })
 
             let edges = [];
@@ -82,7 +94,9 @@ export default class NetworkView extends Component {
             for (let region of data.regions) {
                 nodes.push({
                     id: region.nodeID + 2,
-                    label: `Worker ${region.nodeID}`
+                    label: `Worker ${region.nodeID}`,
+                    image: workerSVG,
+                    shape: 'image'
                 })
                 edges.push({
                     from: 1,
