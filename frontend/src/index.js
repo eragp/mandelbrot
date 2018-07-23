@@ -9,6 +9,7 @@ import NodeProgress from './visualization/NodeProgress';
 import WebSocketClient from './connection/WSClient';
 import BalancerChoice from './visualization/BalancerChoice';
 import BalancerPolicy from './misc/BalancerPolicy';
+import NetworkView from './visualization/NetworkView';
 
 // CSS
 import './Index.css';
@@ -27,7 +28,7 @@ class App extends Component {
             <BalancerChoice balancerPolicy={balancerPolicy}/>
           </div>
           <div className="col-6">
-            <span />
+            <NetworkView wsclient={websocketclient} />
           </div>
           <div className="col-3">
             <NodeProgress wsclient={websocketclient}/>
