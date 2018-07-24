@@ -1,5 +1,5 @@
 import { getBottomRightPoint, getTopLeftPoint, project } from './Project';
-import { tileSize } from './Constants';
+import { tileSize, maxIteration } from './Constants';
 
 // making sure only new requests actually get sent
 var currentTopLeft = null;
@@ -47,7 +47,7 @@ export const request = (map, balancer) => {
     // Divisor for width and height. Will be used to perform load balancing
     guaranteedDivisor: tileSize,
     balancer: balancer,
-    maxIteration: 256,
+    maxIteration: maxIteration,
   };
   console.log('sending Region request: ');
   console.log(region);

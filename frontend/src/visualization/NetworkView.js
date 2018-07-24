@@ -10,6 +10,8 @@ import {
 } from 'vis';
 
 import './NetworkView.css';
+// TODO include material design icon copyright notice
+// TODO add white filled circle behind the icons so that edges don't collide with them (effectively get covered)
 import workerSVG from './img/worker.svg';
 import serverSVG from './img/server.svg';
 import applicationSVG from './img/application.svg';
@@ -25,6 +27,9 @@ export default class NetworkView extends Component {
             edges: {
               smooth: {
                 enabled: false
+              },
+              color: {
+                  color: 'black'
               }
             },
             layout: {
@@ -32,46 +37,43 @@ export default class NetworkView extends Component {
                 enabled: true,
                 direction: 'LR'
               }
+            },
+            interaction: {
+                dragNodes: false,
+                dragView: false,
+                hover: true,
             }
         };
 
-        let fakeNodes = new DataSet([{
-            id: 0,
-            label: 'Frontend',
-            image: applicationSVG,
-            shape: 'image'
-        }, {
-            id: 1,
-            label: 'Backend-Host',
-            image: serverSVG,
-            shape: 'image'
-        }, {
-            id: 2,
-            label: 'Worker 0',
-            image: workerSVG,
-            shape: 'image'
-        }]);
-
-        let fakeEdges = new DataSet([{
-            from: 0,
-            to: 1
-        }, {
-            from: 1,
-            to: 2
-        }]);
-
         this.network = new Network(
             document.getElementById("nodeNetwork"), {
-                nodes: fakeNodes,
-                edges: fakeEdges
+                nodes: new DataSet(),
+                edges: new DataSet()
             }, options
         );
+
+        this.networkState = {
+            numWorkers: 1
+        };
+        this.renderNetwork();
 
         /**
          * Redraw graph when information about backend becomes available
          */
         this.props.wsclient.registerRegion(data => {
-            let nodes = [];
+            const newWorkers = data.numWorkers;
+            if(this.networkState.numWorkers !== newWorkers){
+                this.networkState.numWorkers === newWorkers;
+                this.renderNetwork();
+            }
+        });
+    }
+
+    /**
+     * Updates the Dataset of the network according to the received number of workers
+     */
+    renderNetwork(){
+        let nodes = [];
 
             nodes.push({
                 id: 0,
@@ -91,16 +93,16 @@ export default class NetworkView extends Component {
                 from: 0,
                 to: 1
             })
-            for (let region of data.regions) {
+            for (let id = 0; id < this.networkState.numWorkers; id += 1) {
                 nodes.push({
-                    id: region.nodeID + 2,
-                    label: `Worker ${region.nodeID}`,
+                    id: id + 2,
+                    label: `Worker ${id}`,
                     image: workerSVG,
                     shape: 'image'
                 })
                 edges.push({
                     from: 1,
-                    to: region.nodeID + 2
+                    to: id + 2
                 })
             }
 
@@ -108,7 +110,6 @@ export default class NetworkView extends Component {
               nodes: new DataSet(nodes),
               edges: new DataSet(edges)
             });
-        });
     }
 
     render() {
