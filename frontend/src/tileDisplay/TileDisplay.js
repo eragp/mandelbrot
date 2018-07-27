@@ -135,6 +135,8 @@ export default class TileDisplay extends Component {
           projected +
           '</br>Unprojected: ' +
           unprojected;
+
+        
         return div;
       }
     });
@@ -149,7 +151,10 @@ export default class TileDisplay extends Component {
         bounds: bounds,
         keepBuffer: 0
       });
-    const workerLayer = new WorkerLayer(websocketClient);
+    const workerLayer = new WorkerLayer(
+      websocketClient,
+      map.unproject.bind(map)
+    );
     const baseLayer = {
         'Mandelbrot Layer': mandelbrotLayer
       };

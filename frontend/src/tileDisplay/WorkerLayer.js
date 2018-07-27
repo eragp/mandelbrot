@@ -1,5 +1,6 @@
 import L from 'leaflet/dist/leaflet-src.js';
 import {unproject} from './Project';
+import { tileSize } from './Constants';
 
 /**
 {
@@ -42,13 +43,26 @@ const colorSet = [
 ];
 
 
-function toGeoJSON(regions){
+/**
+ * 
+ * @param {Array} regions 
+ * @param {Function} pixelToLatLng 
+ */
+function toGeoJSON(regions, pixelToLatLng){
   const featureCollection = {
     type: "FeatureCollection",
     features: []
   }
 
+  const toLatLngArray = (real, imag, zoom) => {
+    const tl = unproject(real, imag, zoom);
+    const pixelCoords = L.point(tl.x * tileSize, -tl.y * tileSize);
+    const latLng = pixelToLatLng(pixelCoords);
+    return [latLng.lng, latLng.lat];
+  };
+
   for(const region of regions){
+
     featureCollection.features.push(
       {
         type: "Feature",
@@ -57,10 +71,10 @@ function toGeoJSON(regions){
           coordinates: [
             [
               // TODO correct coordinates (as arrays! lat, lon)
-              unproject(region.minReal, region.maxImaginary, region.validation),
-              unproject(region.maxReal, region.maxImaginary, region.validation),
-              unproject(region.maxReal, region.minImaginary, region.validation),
-              unproject(region.minReal, region.minImaginary, region.validation)
+              toLatLngArray(region.minReal, region.maxImag, region.validation),
+              toLatLngArray(region.maxReal, region.maxImag, region.validation),
+              toLatLngArray(region.maxReal, region.minImag, region.validation),
+              toLatLngArray(region.minReal, region.minImag, region.validation)
             ]
           ]
         },
@@ -88,15 +102,13 @@ function style(feature) {
 
 export default class WorkerLayer extends L.GeoJSON {
 
-  constructor(wsclient){
+  constructor(wsclient, pixelToLatLng){
     super(null, {
       style: style
     });
-    this.wsclient = wsclient;
     wsclient.registerRegion(data => {
-      const regions = toGeoJSON(data.regions);
-      console.log(regions, this);
       this.clearLayers();
+      const regions = toGeoJSON(data.regions, pixelToLatLng);
       this.addData(regions);
     });
   }
