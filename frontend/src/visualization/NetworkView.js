@@ -12,9 +12,9 @@ import {
 import './NetworkView.css';
 // TODO include material design icon copyright notice
 // TODO add white filled circle behind the icons so that edges don't collide with them (effectively get covered)
-import workerSVG from './img/worker.svg';
-import serverSVG from './img/server.svg';
-import applicationSVG from './img/application.svg';
+import workerImage from './img/worker.backgroundCircle.svg';
+import serverImage from './img/server.backgroundCircle.svg';
+import applicationImage from './img/application.backgroundCircle.svg';
 
 export default class NetworkView extends Component {
 
@@ -61,9 +61,9 @@ export default class NetworkView extends Component {
          * Redraw graph when information about backend becomes available
          */
         this.props.wsclient.registerRegion(data => {
-            const newWorkers = data.numWorkers;
+            const newWorkers = data.regionCount;
             if(this.networkState.numWorkers !== newWorkers){
-                this.networkState.numWorkers === newWorkers;
+                this.networkState.numWorkers = newWorkers;
                 this.renderNetwork();
             }
         });
@@ -78,13 +78,13 @@ export default class NetworkView extends Component {
             nodes.push({
                 id: 0,
                 label: 'Frontend',
-                image: applicationSVG,
+                image: applicationImage,
                 shape: 'image'
             })
             nodes.push({
                 id: 1,
                 label: 'Backend-Host',
-                image: serverSVG,
+                image: serverImage,
                 shape: 'image'
             })
 
@@ -97,7 +97,7 @@ export default class NetworkView extends Component {
                 nodes.push({
                     id: id + 2,
                     label: `Worker ${id}`,
-                    image: workerSVG,
+                    image: workerImage,
                     shape: 'image'
                 })
                 edges.push({
