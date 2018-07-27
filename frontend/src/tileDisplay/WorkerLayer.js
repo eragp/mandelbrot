@@ -91,9 +91,9 @@ function toGeoJSON(regions, pixelToLatLng){
 
 function style(feature) {
   return {
-      weight: 2,
-      opacity: 0.7,
-      color: colorSet[feature.properties.node],
+      weight: 1,
+      opacity: 1,
+      color: 'black',
       fillColor: colorSet[feature.properties.node],
       dashArray: '3',
       fillOpacity: 0.3,
