@@ -15,15 +15,21 @@ Balancer* BalancerPolicy::chooseBalancer(std::string balancerName, Fractal* frac
     // C++ doesn't like string in switch :(
     if (balancerName == NaiveBalancer::NAME) {
         std::cout << "Chose naive balancer" << std::endl;
+        // TODO: Fractal is not needed --> delete? depends on implementation in Host
+        delete fractal;
         return new NaiveBalancer();
     } else if (balancerName == ColumnBalancer::NAME) {
         std::cout << "Chose column balancer" << std::endl;
+        // TODO: Fractal is not needed --> delete? depends on implementation in Host
+        delete fractal;
         return new ColumnBalancer();
     } else if (balancerName == PredictionBalancer::NAME) {
         std::cout << "Chose prediction balancer" << std::endl;
         return PredictionBalancer::create(fractal, predictionAccuracy);
     } else {
         std::cerr << "Unknown balancer name, returning NaiveBalancer" << std::endl;
+        // TODO: Fractal is not needed --> delete? depends on implementation in Host
+        delete fractal;
         return new NaiveBalancer();
     }
 }
