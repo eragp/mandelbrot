@@ -4,7 +4,7 @@
 #include <cmath>
 #include <string>
 
-static const std::string NAME = "naive";
+const std::string NaiveBalancer::NAME = "naive";
 
 Region* NaiveBalancer::balanceLoad(Region region, int nodeCount)
 {

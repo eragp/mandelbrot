@@ -4,12 +4,9 @@
 
 #include "Region.h"
 
-#include <string>
-
 class Balancer {
 	public:
 		virtual Region* balanceLoad(Region region, int nodeCount) = 0;
-		static const std::string NAME;
 };
 
 #endif

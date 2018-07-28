@@ -5,7 +5,7 @@
 #include <cmath>
 #include <string>
 
-static const std::string NAME = "column";
+const std::string ColumnBalancer::NAME = "column";
 
 /**
  * IntergerBalancer takes a region and separates it into #nodeCount

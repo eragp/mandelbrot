@@ -7,7 +7,7 @@
 #include <cmath>
 #include <string>
 
-static const std::string NAME = "prediction";
+const std::string PredictionBalancer::NAME = "prediction";
 
 // Worst case scenario: Prediction changes suddenly from small to big values
 Region* PredictionBalancer::balanceLoad(Region region, int nodeCount) {
