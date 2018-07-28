@@ -11,11 +11,12 @@ import {
 
 import './NetworkView.css';
 // TODO include material design icon copyright notice
-// TODO add white filled circle behind the icons so that edges don't collide with them (effectively get covered)
 import workerImage from './img/worker.backgroundCircle.svg';
 import serverImage from './img/server.backgroundCircle.svg';
 import applicationImage from './img/application.backgroundCircle.svg';
 import WorkerContext from '../misc/WorkerContext';
+
+// TODO highlight node on workercontext active worker change
 
 export default class NetworkView extends Component {
 
@@ -44,7 +45,7 @@ export default class NetworkView extends Component {
                 dragNodes: false,
                 dragView: false,
                 hover: true,
-                zoomView: false
+                zoomView: false,
             }
         };
 
@@ -53,6 +54,21 @@ export default class NetworkView extends Component {
                 nodes: new DataSet(),
                 edges: new DataSet()
             }, options
+        );
+
+        this.network.on('hoverNode',
+             (node) => {
+                if(node.node >= 2){
+                    this.props.workerContext.setActiveWorker(node.node - 2);
+                }
+             }
+        );
+        this.network.on('blurNode',
+            (node) => {
+                if(node.node >= 2){
+                    this.props.workerContext.setActiveWorker(undefined);
+                }
+            }
         );
 
         this.networkState = {

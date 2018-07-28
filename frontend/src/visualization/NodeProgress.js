@@ -51,15 +51,19 @@ export default class NodeProgress extends Component {
                 responsive: true,
                 maintainAspectRatio: false,
                 tooltips: {
+                    // TODO show the current workercontext active worker on change
                     callbacks: {
                         label: customLabel
-                    },
-                    intersect: false
+                    }
                 },
                 title: {
                     display: true,
                     position: 'bottom',
                     text: ["Total node computation time:", "0 µs"]
+                },
+                onHover: (event) => {
+                    // TODO change workercontext active worker on hover
+                    console.log(event);
                 }
             }
         });

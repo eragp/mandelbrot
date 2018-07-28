@@ -49,12 +49,15 @@ export default class WorkerContext {
    * @returns {Boolean} Successfully changed active worker
    */
   setActiveWorker(nodeID){
-    if(!((nodeID instanceof Number && nodeID >= 0) || nodeID === undefined)){
+    console.log(`New active worker: ${nodeID}`);
+    if(!((nodeID >= 0) || nodeID === undefined)){
       console.error(`Invalid nodeID: ${nodeID}`);
       return false;
     }
-    this.activeWorker = nodeID;
-    this.updateAll();
+    if(this.activeWorker !== nodeID){
+      this.activeWorker = nodeID;
+      this.updateAll();
+    }
     return true;
   }
 
