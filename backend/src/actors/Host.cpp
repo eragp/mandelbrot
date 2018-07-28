@@ -284,10 +284,10 @@ void Host::init(int world_rank, int world_size) {
         }
 
         unsigned int region_size = rendered_region.getPixelCount();
-        int worker_data[region_size];
+        int* worker_data = new int[region_size];
         std::cout << "Host: waiting for receive from " << worker_rank << ": " << region_size << std::endl;
         
-        int ierr = MPI_Recv(&worker_data, region_size, MPI_INT, worker_rank, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        int ierr = MPI_Recv(worker_data, region_size, MPI_INT, worker_rank, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         if(ierr != MPI_SUCCESS){
             std::cerr << "Error on receiving data from worker: " << std::endl;
             char err_buffer[MPI_MAX_ERROR_STRING];
@@ -335,6 +335,7 @@ void Host::init(int world_rank, int world_size) {
         region_data.workerInfo = worker_info;
 
         Host::send(region_data);
+        delete[] worker_data;
     }
 
 }
