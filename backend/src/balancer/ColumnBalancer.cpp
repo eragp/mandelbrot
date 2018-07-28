@@ -1,7 +1,11 @@
 #include "ColumnBalancer.h"
-#include <cmath>
 #include "Region.h"
 #include "Fractal.h"
+
+#include <cmath>
+#include <string>
+
+static const std::string NAME = "column";
 
 /**
  * IntergerBalancer takes a region and separates it into #nodeCount

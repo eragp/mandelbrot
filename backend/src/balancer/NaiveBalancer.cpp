@@ -1,6 +1,10 @@
-#include <cmath>
 #include "NaiveBalancer.h"
 #include "Region.h"
+
+#include <cmath>
+#include <string>
+
+static const std::string NAME = "naive";
 
 Region* NaiveBalancer::balanceLoad(Region region, int nodeCount)
 {
