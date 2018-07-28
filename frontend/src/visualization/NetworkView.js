@@ -91,8 +91,13 @@ export default class NetworkView extends Component {
         /**
          * Register for changing active worker
          */
-        this.props.workerContext.register(activeNode => {
-            this.network.selectNodes([activeNode]);
+        this.props.workerContext.subscribe(activeNode => {
+            if(activeNode !== undefined){
+                this.network.selectNodes([activeNode + 2]);
+            }
+            else {
+                this.network.unselectAll();
+            }
         })
     }
 
