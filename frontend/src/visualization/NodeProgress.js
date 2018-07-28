@@ -63,7 +63,7 @@ export default class NodeProgress extends Component {
                 },
                 onHover: (event) => {
                     // TODO change workercontext active worker on hover
-                    console.log(event);
+                   // console.log(event);
                 }
             }
         });

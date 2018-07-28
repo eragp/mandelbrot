@@ -11,6 +11,7 @@ import {
 
 import './NetworkView.css';
 // TODO include material design icon copyright notice
+// TODO find a way to color nodes
 import workerImage from './img/worker.backgroundCircle.svg';
 import serverImage from './img/server.backgroundCircle.svg';
 import applicationImage from './img/application.backgroundCircle.svg';
@@ -86,6 +87,13 @@ export default class NetworkView extends Component {
                 this.renderNetwork();
             }
         });
+
+        /**
+         * Register for changing active worker
+         */
+        this.props.workerContext.register(activeNode => {
+            this.network.selectNodes([activeNode]);
+        })
     }
 
     /**
