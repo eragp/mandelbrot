@@ -8,11 +8,14 @@ export default class BalancerChoice extends Component {
 
     constructor(props) {
         super(props);
+
+        this.props.balancerPolicy.setBalancer('column');
+
         this.state = {
-            active: 'naive',
+            active: this.props.balancerPolicy.getBalancer(),
             items: [{
                     key: 'naive',
-                    title: "Naive Balancer"
+                    title: "Row Balancer"
                 },
                 {
                     key: 'column',
@@ -20,8 +23,7 @@ export default class BalancerChoice extends Component {
                 },
                 {
                     key: 'prediction',
-                    title: "Prediction Balancer",
-                    disabled: true
+                    title: "Prediction Balancer"
                 },
             ]
         };

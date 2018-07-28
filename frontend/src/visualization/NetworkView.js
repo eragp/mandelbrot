@@ -35,7 +35,8 @@ export default class NetworkView extends Component {
             layout: {
               hierarchical: {
                 enabled: true,
-                direction: 'LR'
+                direction: 'LR',
+                sortMethod: 'directed'
               }
             },
             interaction: {
@@ -110,6 +111,8 @@ export default class NetworkView extends Component {
               nodes: new DataSet(nodes),
               edges: new DataSet(edges)
             });
+
+            this.network.fit();
     }
 
     render() {
