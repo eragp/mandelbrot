@@ -9,6 +9,7 @@ import NodeProgress from './visualization/NodeProgress';
 import WebSocketClient from './connection/WSClient';
 import BalancerChoice from './visualization/BalancerChoice';
 import BalancerPolicy from './misc/BalancerPolicy';
+import WorkerContext from './misc/WorkerContext';
 import NetworkView from './visualization/NetworkView';
 
 // CSS
@@ -16,8 +17,9 @@ import './Index.css';
 
 class App extends Component {
   render() {
-    let websocketclient = new WebSocketClient();
-    let balancerPolicy = new BalancerPolicy();
+    const websocketclient = new WebSocketClient();
+    const balancerPolicy = new BalancerPolicy();
+    const workerContext = new WorkerContext();
 
     return (
       <div>
@@ -28,10 +30,10 @@ class App extends Component {
             <BalancerChoice balancerPolicy={balancerPolicy}/>
           </div>
           <div className="col-6">
-            <NetworkView wsclient={websocketclient} />
+            <NetworkView workerContext={workerContext} wsclient={websocketclient} />
           </div>
           <div className="col-3">
-            <NodeProgress wsclient={websocketclient}/>
+            <NodeProgress workerContext={workerContext} wsclient={websocketclient}/>
           </div>
         </div>
       </div>

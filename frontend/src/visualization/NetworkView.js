@@ -15,6 +15,7 @@ import './NetworkView.css';
 import workerImage from './img/worker.backgroundCircle.svg';
 import serverImage from './img/server.backgroundCircle.svg';
 import applicationImage from './img/application.backgroundCircle.svg';
+import WorkerContext from '../misc/WorkerContext';
 
 export default class NetworkView extends Component {
 
@@ -43,6 +44,7 @@ export default class NetworkView extends Component {
                 dragNodes: false,
                 dragView: false,
                 hover: true,
+                zoomView: false
             }
         };
 
@@ -80,13 +82,15 @@ export default class NetworkView extends Component {
                 id: 0,
                 label: 'Frontend',
                 image: applicationImage,
-                shape: 'image'
+                shape: 'image',
+                level: 0
             })
             nodes.push({
                 id: 1,
                 label: 'Backend-Host',
                 image: serverImage,
-                shape: 'image'
+                shape: 'image',
+                level: 1
             })
 
             let edges = [];
@@ -95,15 +99,28 @@ export default class NetworkView extends Component {
                 to: 1
             })
             for (let id = 0; id < this.networkState.numWorkers; id += 1) {
+                const color = this.props.workerContext.getWorkerColor(id)
+                const level = Math.floor(id / 2) + 2;
                 nodes.push({
                     id: id + 2,
                     label: `Worker ${id}`,
                     image: workerImage,
-                    shape: 'image'
+                    shape: 'image',
+                    color: color,
+                    font: {
+                        color: color
+                    },
+                    level: level
                 })
                 edges.push({
                     from: 1,
-                    to: id + 2
+                    to: id + 2,
+                    color: {
+                        color: color,
+                        hover: color,
+                        highlight: color
+                    },
+                    level: level
                 })
             }
 
@@ -121,5 +138,6 @@ export default class NetworkView extends Component {
 }
 
 NetworkView.propTypes = {
-    wsclient: PropTypes.instanceOf(WebSocketClient)
+    wsclient: PropTypes.instanceOf(WebSocketClient),
+    workerContext: PropTypes.instanceOf(WorkerContext)
 }

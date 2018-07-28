@@ -1,0 +1,84 @@
+/**
+ * Colors for the workers
+ * TODO replace with nice colorset (i.e. theme)
+ */
+const colorSet = [
+  '#4661EE',
+  '#EC5657',
+  '#1BCDD1',
+  '#8FAABB',
+  '#B08BEB',
+  '#3EA0DD',
+  '#F5A52A',
+  '#23BFAA',
+  '#FAA586',
+  '#EB8CC6',
+];
+
+/**
+ * Class to store which worker to focus on.
+ * Offers subscription to changing focus.
+ * Also provides the colors for each node based on ID
+ */
+export default class WorkerContext {
+
+  constructor(){
+    this.activeWorker = undefined;
+    this.callbacks = [];
+    this.colorSet = colorSet;
+  }
+
+  /**
+   * Returns the worker color scheme for a given worker (identified by node ID)
+   * @param {Number} nodeID 
+   */
+  getWorkerColor(nodeID){
+    return this.colorSet[nodeID];
+  }
+
+  /**
+   * @returns {Number} the currently focused/hovered worker. May be undefined
+   */
+  getActiveWorker(){
+    return this.activeWorker;
+  }
+
+  /**
+   * Change the currently active/focused/hovered worker
+   * @param {Number} nodeID Current worker. May be undefined
+   * @returns {Boolean} Successfully changed active worker
+   */
+  setActiveWorker(nodeID){
+    if(!((nodeID instanceof Number && nodeID >= 0) || nodeID === undefined)){
+      console.error(`Invalid nodeID: ${nodeID}`);
+      return false;
+    }
+    this.activeWorker = nodeID;
+    this.updateAll();
+    return true;
+  }
+
+  updateAll() {
+    this.callbacks.forEach(cb => cb(this.activeWorker))
+  }
+
+  /**
+   * Subscribe to changes to the active (hovered, focused) node
+   * @param {Function} callback 
+   */
+  subscribe(callback) {
+    let promise;
+    const fun = data => {
+        promise = new Promise((resolve, error) => {
+            try {
+                resolve(callback(data));
+            } catch (err) {
+                error(err);
+            }
+        });
+    };
+    this.callbacks.push(fun);
+    return promise;
+  }
+
+}

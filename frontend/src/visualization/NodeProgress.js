@@ -8,23 +8,7 @@ import WebSocketClient from '../connection/WSClient';
 import PropTypes from 'prop-types';
 
 import './NodeProgress.css';
-
-/**
- * Colors for the workers
- * TODO replace with nice colorset (i.e. theme)
- */
-const colorSet = [
-    '#4661EE',
-    '#EC5657',
-    '#1BCDD1',
-    '#8FAABB',
-    '#B08BEB',
-    '#3EA0DD',
-    '#F5A52A',
-    '#23BFAA',
-    '#FAA586',
-    '#EB8CC6',
-];
+import WorkerContext from '../misc/WorkerContext';
 
 /**
  * Shows the computation time of invoked workers
@@ -131,9 +115,12 @@ export default class NodeProgress extends Component {
     updateChart(animationDuration) {
         const progress = this.chartState.progress;
         const labels = [];
+        const colorSet = [];
         for (let i = 0; i < progress.length; i++) {
             labels.push("Worker " + i);
+            colorSet.push(this.props.workerContext.getWorkerColor(i))
         }
+        
         const data = {
             labels: labels,
             datasets: [{
@@ -189,5 +176,6 @@ export default class NodeProgress extends Component {
 }
 
 NodeProgress.propTypes = {
-    wsclient: PropTypes.instanceOf(WebSocketClient)
+    wsclient: PropTypes.instanceOf(WebSocketClient),
+    workerContext: PropTypes.instanceOf(WorkerContext)
 };

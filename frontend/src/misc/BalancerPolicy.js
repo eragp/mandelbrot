@@ -24,7 +24,8 @@ export default class BalancerPolicy {
 
     setBalancer(balancer) {
         if (!BALANCERS.includes(balancer)) {
-            throw "Invalid balancer type: " + balancer;
+            console.error(`Invalid balancer type: ${balancer}`);
+            return;
         }
         this.balancer = balancer;
         this.updateAll();
