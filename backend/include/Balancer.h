@@ -7,6 +7,7 @@
 class Balancer {
 	public:
 		virtual Region* balanceLoad(Region region, int nodeCount) = 0;
+		virtual ~Balancer();
 };
 
 #endif

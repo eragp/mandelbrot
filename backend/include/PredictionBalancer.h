@@ -18,7 +18,9 @@ private:
 	Region* splitCol(Region col, int parts, int nSum, std::vector<int> n, double deltaImaginary);
 public:
 	static const std::string NAME;
+
 	Region* balanceLoad(Region region, int nodeCount);
+	~PredictionBalancer();
 	static PredictionBalancer* create(Fractal* f, int predictionAccuracy);
 };
 

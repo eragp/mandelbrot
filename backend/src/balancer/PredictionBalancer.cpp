@@ -9,6 +9,10 @@
 
 const std::string PredictionBalancer::NAME = "prediction";
 
+PredictionBalancer::~PredictionBalancer() {
+	delete f;
+}
+
 // Worst case scenario: Prediction changes suddenly from small to big values
 Region* PredictionBalancer::balanceLoad(Region region, int nodeCount) {
 	Region lowRes = region;
