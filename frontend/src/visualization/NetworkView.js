@@ -47,6 +47,7 @@ export default class NetworkView extends Component {
                 dragView: false,
                 hover: true,
                 zoomView: false,
+                selectable: false
             }
         };
 
@@ -111,59 +112,59 @@ export default class NetworkView extends Component {
      */
     renderNetwork(){
         let nodes = [];
+        
+        nodes.push({
+            id: 0,
+            label: 'Frontend',
+            image: applicationImage,
+            shape: 'image',
+            level: 0
+        })
+        nodes.push({
+            id: 1,
+            label: `Backend-Host`,
+            image: serverImage,
+            shape: 'image',
+            level: 1
+        })
 
+        let edges = [];
+        edges.push({
+            from: 0,
+            to: 1
+        })
+        this.networkState.nodes.forEach((rank, i) => {
+            const color = this.props.workerContext.getWorkerColor(rank)
+            const level = Math.floor(i / 2) + 2;
             nodes.push({
-                id: 0,
-                label: 'Frontend',
-                image: applicationImage,
+                id: i + 2,
+                label: `Worker ${rank}`,
+                image: workerImage,
                 shape: 'image',
-                level: 0
+                color: color,
+                font: {
+                    color: color
+                },
+                level: level
             })
-            nodes.push({
-                id: 1,
-                label: 'Backend-Host',
-                image: serverImage,
-                shape: 'image',
-                level: 1
-            })
-
-            let edges = [];
             edges.push({
-                from: 0,
-                to: 1
-            })
-            this.networkState.nodes.forEach((rank, i) => {
-                const color = this.props.workerContext.getWorkerColor(rank)
-                const level = Math.floor(i / 2) + 2;
-                nodes.push({
-                    id: i + 2,
-                    label: `Worker ${rank}`,
-                    image: workerImage,
-                    shape: 'image',
+                from: 1,
+                to: i + 2,
+                color: {
                     color: color,
-                    font: {
-                        color: color
-                    },
-                    level: level
-                })
-                edges.push({
-                    from: 1,
-                    to: i + 2,
-                    color: {
-                        color: color,
-                        hover: color,
-                        highlight: color
-                    },
-                    level: level
-                })
-            });
+                    hover: color,
+                    highlight: color
+                },
+                level: level
+            })
+        });
 
-            this.network.setData({
-              nodes: new DataSet(nodes),
-              edges: new DataSet(edges)
-            });
+        this.network.setData({
+            nodes: new DataSet(nodes),
+            edges: new DataSet(edges)
+        });
 
-            this.network.fit();
+        this.network.fit();
     }
 
     render() {
