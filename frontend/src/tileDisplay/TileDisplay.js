@@ -18,6 +18,7 @@ import RegionDrawer from './RegionDrawer';
 import BalancerPolicy from '../misc/BalancerPolicy';
 import WebSocketClient from '../connection/WSClient';
 import PropTypes from 'prop-types';
+import WorkerLayer from './WorkerLayer';
 
 
 export default class TileDisplay extends Component {
@@ -141,6 +142,8 @@ export default class TileDisplay extends Component {
           projected +
           '</br>Unprojected: ' +
           unprojected;
+
+        
         return div;
       }
     });
@@ -149,19 +152,25 @@ export default class TileDisplay extends Component {
         tileSize: tileSize, // in px
         bounds: bounds,
         keepBuffer: 0
-      }),
-      debugLayer = new L.GridLayer.DebugLayer({
+      });
+    let debugLayer = new L.GridLayer.DebugLayer({
         tileSize: tileSize,
         bounds: bounds,
         keepBuffer: 0
       });
-    let baseLayer = {
+    const workerLayer = new WorkerLayer(
+      websocketClient,
+      map.unproject.bind(map)
+    );
+    const baseLayer = {
         'Mandelbrot Layer': mandelbrotLayer
-      },
-      overlayLayers = {
-        'Debug Layer': debugLayer
+      };
+    const overlayLayers = {
+        'Debug Layer': debugLayer,
+        'Worker Layer': workerLayer
       };
     map.addLayer(mandelbrotLayer);
+    map.addLayer(workerLayer);
 
     L.control.layers(baseLayer, overlayLayers).addTo(map);
     map.setView([0, 0]);

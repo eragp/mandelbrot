@@ -38,9 +38,9 @@ export default class RegionDrawer {
           let tileY = topLeft.y + y;
           let cb = this.callbacks.get(coordsToString(tileX, tileY, zoom));
           if (cb === undefined || cb === null) {
-            /*console.log(
+            console.error(
               'Region not found for ' + new Point(tileX, tileY, zoom)
-            );*/
+            );
             continue;
           }
           // only pass data of this region
