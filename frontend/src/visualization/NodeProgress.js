@@ -51,7 +51,6 @@ export default class NodeProgress extends Component {
                 responsive: true,
                 maintainAspectRatio: false,
                 tooltips: {
-                    // TODO show the current workercontext active worker on change
                     callbacks: {
                         label: customLabel
                     }
@@ -124,15 +123,15 @@ export default class NodeProgress extends Component {
         this.props.workerContext.subscribe(activeWorker => {
             // Activate new tooltip if necessary
             if(activeWorker !== undefined){
-                const activeSegment = this.chart.data.datasets[0]._meta[0].data[activeWorker];
+                const activeSegment = this.chart.data.datasets[0]._meta[1].data[activeWorker];
                 this.chart.tooltip.initialize();
                 this.chart.tooltip._active = [activeSegment];
-                this.chart.data.datasets[0]._meta[0].controller.setHoverStyle(activeSegment);
+                this.chart.data.datasets[0]._meta[1].controller.setHoverStyle(activeSegment);
                 this._hoveredSegment = activeSegment;
                 
             } else {
                 // Remove tooltip
-                this.chart.data.datasets[0]._meta[0].controller.removeHoverStyle(this._hoveredSegment);
+                this.chart.data.datasets[0]._meta[1].controller.removeHoverStyle(this._hoveredSegment);
                 this.chart.tooltip._active = [];
             }
             // Update chart
@@ -160,9 +159,7 @@ export default class NodeProgress extends Component {
             datasets: [{
                 data: progress,
                 backgroundColor: colorSet
-
             }]
-            // TODO include nice colors
         };
         this.chart.data = data;
 
