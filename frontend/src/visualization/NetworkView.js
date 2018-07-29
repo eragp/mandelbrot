@@ -47,6 +47,7 @@ export default class NetworkView extends Component {
                 dragView: false,
                 hover: true,
                 zoomView: false,
+                selectable: false
             }
         };
 
@@ -60,7 +61,7 @@ export default class NetworkView extends Component {
         this.network.on('hoverNode',
              (node) => {
                 if(node.node >= 2){
-                    this.props.workerContext.setActiveWorker(node.node - 2);
+                    this.props.workerContext.setActiveWorker(this.networkState.nodes[node.node - 2]);
                 }
              }
         );
@@ -73,7 +74,7 @@ export default class NetworkView extends Component {
         );
 
         this.networkState = {
-            numWorkers: 1
+            nodes: [0]
         };
         this.renderNetwork();
 
@@ -81,9 +82,12 @@ export default class NetworkView extends Component {
          * Redraw graph when information about backend becomes available
          */
         this.props.wsclient.registerRegion(data => {
-            const newWorkers = data.regionCount;
-            if(this.networkState.numWorkers !== newWorkers){
-                this.networkState.numWorkers = newWorkers;
+            const nodes = [];
+            for(let region of data.regions){
+                nodes.push(region.nodeID);
+            }
+            if(this.networkState.nodes != nodes){
+                this.networkState.nodes = nodes;
                 this.renderNetwork();
             }
         });
@@ -93,7 +97,9 @@ export default class NetworkView extends Component {
          */
         this.props.workerContext.subscribe(activeNode => {
             if(activeNode !== undefined){
-                this.network.selectNodes([activeNode + 2]);
+                this.network.selectNodes([
+                    this.networkState.nodes.indexOf(activeNode) + 2
+                ]);
             }
             else {
                 this.network.unselectAll();
@@ -106,59 +112,59 @@ export default class NetworkView extends Component {
      */
     renderNetwork(){
         let nodes = [];
+        
+        nodes.push({
+            id: 0,
+            label: 'Frontend',
+            image: applicationImage,
+            shape: 'image',
+            level: 0
+        })
+        nodes.push({
+            id: 1,
+            label: `Backend-Host`,
+            image: serverImage,
+            shape: 'image',
+            level: 1
+        })
 
+        let edges = [];
+        edges.push({
+            from: 0,
+            to: 1
+        })
+        this.networkState.nodes.forEach((rank, i) => {
+            const color = this.props.workerContext.getWorkerColor(rank)
+            const level = Math.floor(i / 2) + 2;
             nodes.push({
-                id: 0,
-                label: 'Frontend',
-                image: applicationImage,
+                id: i + 2,
+                label: `Worker ${rank}`,
+                image: workerImage,
                 shape: 'image',
-                level: 0
+                color: color,
+                font: {
+                    color: color
+                },
+                level: level
             })
-            nodes.push({
-                id: 1,
-                label: 'Backend-Host',
-                image: serverImage,
-                shape: 'image',
-                level: 1
-            })
-
-            let edges = [];
             edges.push({
-                from: 0,
-                to: 1
-            })
-            for (let id = 0; id < this.networkState.numWorkers; id += 1) {
-                const color = this.props.workerContext.getWorkerColor(id)
-                const level = Math.floor(id / 2) + 2;
-                nodes.push({
-                    id: id + 2,
-                    label: `Worker ${id}`,
-                    image: workerImage,
-                    shape: 'image',
+                from: 1,
+                to: i + 2,
+                color: {
                     color: color,
-                    font: {
-                        color: color
-                    },
-                    level: level
-                })
-                edges.push({
-                    from: 1,
-                    to: id + 2,
-                    color: {
-                        color: color,
-                        hover: color,
-                        highlight: color
-                    },
-                    level: level
-                })
-            }
+                    hover: color,
+                    highlight: color
+                },
+                level: level
+            })
+        });
 
-            this.network.setData({
-              nodes: new DataSet(nodes),
-              edges: new DataSet(edges)
-            });
+        this.network.setData({
+            nodes: new DataSet(nodes),
+            edges: new DataSet(edges)
+        });
 
-            this.network.fit();
+        this.network.fit();
     }
 
     render() {

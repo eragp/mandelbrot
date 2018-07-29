@@ -3,11 +3,10 @@
  * TODO replace with nice colorset (i.e. theme)
  */
 const colorSet = [
+  '#B08BEB',
   '#4661EE',
   '#EC5657',
   '#1BCDD1',
-  '#8FAABB',
-  '#B08BEB',
   '#3EA0DD',
   '#F5A52A',
   '#23BFAA',

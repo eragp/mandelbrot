@@ -161,7 +161,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     for (int i = 0; i < nodeCount; i++) {
         Region t = blocks[i];
         regions[i] = json::value();
-        regions[i][U("nodeID")] = json::value(i);
+        regions[i][U("nodeID")] = json::value(i+1);
 
         regions[i][U("minReal")] = json::value((double) t.minReal);
         regions[i][U("maxImag")] = json::value((double) t.maxImaginary);
