@@ -62,10 +62,10 @@ export default class NodeProgress extends Component {
                     text: ["Total node computation time:", "0 µs"]
                 },
                 onHover: (event) => {
-                    // TODO change workercontext active worker on hover
+                    // change workercontext active worker on hover
                     const data = this.chart.getElementsAtEvent(event)[0];
                     if(data){
-                        this.props.workerContext.setActiveWorker(data._datasetIndex);
+                        this.props.workerContext.setActiveWorker(data._index);
                         this._hoveredItem = data;
                     }
                     else if(this._hoveredItem){
@@ -122,18 +122,21 @@ export default class NodeProgress extends Component {
         // Highlight segement on active worker change
         // Inspired by https://github.com/chartjs/Chart.js/issues/1768
         this.props.workerContext.subscribe(activeWorker => {
+            // Activate new tooltip if necessary
             if(activeWorker !== undefined){
                 const activeSegment = this.chart.data.datasets[0]._meta[0].data[activeWorker];
                 this.chart.tooltip.initialize();
                 this.chart.tooltip._active = [activeSegment];
-                this.chart.tooltip.update(true);
                 this.chart.data.datasets[0]._meta[0].controller.setHoverStyle(activeSegment);
                 this._hoveredSegment = activeSegment;
+                
             } else {
+                // Remove tooltip
                 this.chart.data.datasets[0]._meta[0].controller.removeHoverStyle(this._hoveredSegment);
                 this.chart.tooltip._active = [];
-                this.chart.tooltip.update(true);
             }
+            // Update chart
+            this.chart.tooltip.update(true);
             this.chart.render(this.chart.options.hover.animationDuration, false);
                 
         });

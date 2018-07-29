@@ -126,11 +126,10 @@ export default class WorkerLayer extends L.GeoJSON {
     });
 
     workerContext.subscribe(worker => {
-      if(worker === undefined){
-        this.nodeToLayer.forEach(layer => {
-          this.resetStyle(layer);
-        })
-      } else {
+      this.nodeToLayer.forEach(layer => {
+        this.resetStyle(layer);
+      })
+      if(worker !== undefined) {
         const layer = this.nodeToLayer.get(worker);
         if(layer){
           layer.setStyle({
