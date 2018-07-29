@@ -4,6 +4,7 @@
 #include "Mandelbrot.h"
 #include "Region.h"
 #include "Tile.h"
+#include "WorkerInfo.h"
 
 #include <mpi.h>
 
@@ -13,6 +14,7 @@
 #include <string>
 #include <vector>
 #include <cstring>
+#include <chrono>
 
 void Client::init(int world_rank, int world_size) {
     Fractal *f = new Mandelbrot();
@@ -42,7 +44,7 @@ void Client::init(int world_rank, int world_size) {
                       << ") ->  bottomRight: (" << region.maxReal << ", " << region.minImaginary << ", "
                       << region.validation
                       << ") maxIteration: " << region.maxIteration
-                      << " width: " << region.width << "height: " << region.height << std::endl;
+                      << " width: " << region.width << " height: " << region.height << std::endl;
 
             // Reset loop flag
             loopFlag = false;
@@ -58,6 +60,9 @@ void Client::init(int world_rank, int world_size) {
             
             int i = 0;
 
+            // The real computation starts here --> start time measurement here
+            auto startTime = std::chrono::high_resolution_clock::now();
+
             for (unsigned int y = 0; y < region.height && !loopFlag; y++) {
                 for (unsigned int x = 0; x < region.width && !loopFlag; x++) {
                     // Abort
@@ -66,16 +71,30 @@ void Client::init(int world_rank, int world_size) {
                         std::cout << "Worker " << world_rank << " abort." << std::endl;
                         loopFlag = true;
                     }
-                    int reverseY = region.height - y -1;
+                    int reverseY = region.height - y - 1;
                     // Computations
                     data[i++] = f->calculateFractal(region.projectReal(x),
                                                     region.projectImag(reverseY),
                                                     region.maxIteration);
                 }
             }
+
+            // Computation ends here --> stop the clock
+            auto endTime = std::chrono::high_resolution_clock::now();
+
             if (!loopFlag) {
+                // We measure time in microseconds
+                unsigned long elapsedTime = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
+                std::cout << "Worker " << world_rank << " elapsed time: " << elapsedTime << std::endl;
+
+                // Create WorkerInfo
+                WorkerInfo workerInfo;
+				workerInfo.rank = world_rank;
+				workerInfo.computationTime = elapsedTime;
+				workerInfo.region = region;
+
                 std::cout << "Worker " << world_rank << " is sending the data: " << data_len << std::endl;
-                MPI_Send(&world_rank, 1, MPI_INT, 0, 3, MPI_COMM_WORLD);
+                MPI_Send(&workerInfo, sizeof(WorkerInfo), MPI_BYTE, 0, 3, MPI_COMM_WORLD);
                 MPI_Send(data, data_len, MPI_INT, 0, 2, MPI_COMM_WORLD);
             }
             delete[] data;
