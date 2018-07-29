@@ -49,7 +49,6 @@ export default class WorkerContext {
    * @returns {Boolean} Successfully changed active worker
    */
   setActiveWorker(nodeID){
-    console.log(`New active worker: ${nodeID}`);
     if(!((nodeID >= 0) || nodeID === undefined)){
       console.error(`Invalid nodeID: ${nodeID}`);
       return false;

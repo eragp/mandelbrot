@@ -118,6 +118,25 @@ export default class NodeProgress extends Component {
                 this.initNodeProgress()
             }, animationDuration);
         });
+
+        // Highlight segement on active worker change
+        // Inspired by https://github.com/chartjs/Chart.js/issues/1768
+        this.props.workerContext.subscribe(activeWorker => {
+            if(activeWorker !== undefined){
+                const activeSegment = this.chart.data.datasets[0]._meta[0].data[activeWorker];
+                this.chart.tooltip.initialize();
+                this.chart.tooltip._active = [activeSegment];
+                this.chart.tooltip.update(true);
+                this.chart.data.datasets[0]._meta[0].controller.setHoverStyle(activeSegment);
+                this._hoveredSegment = activeSegment;
+            } else {
+                this.chart.data.datasets[0]._meta[0].controller.removeHoverStyle(this._hoveredSegment);
+                this.chart.tooltip._active = [];
+                this.chart.tooltip.update(true);
+            }
+            this.chart.render(this.chart.options.hover.animationDuration, false);
+                
+        });
     }
 
     render() {
