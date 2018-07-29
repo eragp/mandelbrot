@@ -21,17 +21,18 @@ void Client::init(int world_rank, int world_size) {
     Fractal *f = new Mandelbrot();
     // Initial test if this core is ready
     int test;
-    MPI_Recv(&test, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    MPI_Send((void *) &test, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+    MPI_Status status;
+    MPI_Recv(&test, 1, MPI_INT, MPI_ANY_SOURCE, 10, MPI_COMM_WORLD, &status);
+    MPI_Send((void *) &test, 1, MPI_INT, status.MPI_SOURCE, 11, MPI_COMM_WORLD);
+    int host_rank = status.MPI_SOURCE;
 
     bool loopFlag = false;
     Region region, newRegion;
     MPI_Request request;
     int flag;
-    MPI_Status status;
     // Recieve instructions for computation
     std::cout << "Worker " << world_rank << " is ready to receive Data." << std::endl;
-    MPI_Irecv(&newRegion, sizeof(Region), MPI_BYTE, 0, 1, MPI_COMM_WORLD, &request); // Listen for a region asynchronously
+    MPI_Irecv(&newRegion, sizeof(Region), MPI_BYTE, host_rank, 1, MPI_COMM_WORLD, &request); // Listen for a region asynchronously
     // Start with actual work of this worker
     while (true) {
         MPI_Test(&request, &flag, &status);
@@ -52,7 +53,7 @@ void Client::init(int world_rank, int world_size) {
 
             // Recieve instructions for computation
             std::cout << "Worker " << world_rank << " is listening during computation." << std::endl;
-            MPI_Irecv(&newRegion, sizeof(Region), MPI_BYTE, 0, 1, MPI_COMM_WORLD,
+            MPI_Irecv(&newRegion, sizeof(Region), MPI_BYTE, host_rank, 1, MPI_COMM_WORLD,
                       &request); // Listen for a region asynchronously => store inside newRegion
 
             // Execute computations
@@ -95,8 +96,8 @@ void Client::init(int world_rank, int world_size) {
 				workerInfo.region = region;
 
                 std::cout << "Worker " << world_rank << " is sending the data: " << data_len << std::endl;
-                MPI_Send(&workerInfo, sizeof(WorkerInfo), MPI_BYTE, 0, 3, MPI_COMM_WORLD);
-                MPI_Send(data, data_len, MPI_INT, 0, 2, MPI_COMM_WORLD);
+                MPI_Send(&workerInfo, sizeof(WorkerInfo), MPI_BYTE, host_rank, 3, MPI_COMM_WORLD);
+                MPI_Send(data, data_len, MPI_INT, host_rank, 2, MPI_COMM_WORLD);
             }
             delete[] data;
         } else {
