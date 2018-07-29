@@ -24,9 +24,8 @@ export default class IdleTime extends Component {
       this.chartState = {
           numWorkers: 1,
           active: [false],
-          // The computation time in microseconds
-          progress: [0],
-          IDlastActive: 0
+          // The computation time in microseconds (µs)
+          progress: [0]
       };
   }
 
@@ -78,15 +77,13 @@ export default class IdleTime extends Component {
                   }
               },
               scales: {
-                xAxes: [{ stacked: true }],
                 yAxes: [{
                   type: 'linear',
                   stacked: true,
                   ticks: {
                     beginAtZero: true,
                     min: 0,
-                    suggestedMax: 10000,
-                    //stepSize: 1000
+                    suggestedMax: 10000
                   },
                   scaleLabel: {
                     display: true,
@@ -111,18 +108,6 @@ export default class IdleTime extends Component {
 
           // Note that it is not active anymore
           this.chartState.active[workerID] = false;
-          if(this.chartState.IDlastActive === workerID){
-            let anotherActive;
-            // Find someone else who is active, if none is => stay the same
-            this.chartState.active.forEach((active, rank) => {
-              if(active){
-                anotherActive = rank;
-              }
-            })
-            if(anotherActive !== undefined){
-              this.chartState.IDlastActive = anotherActive;
-            }
-          }
           // insert correct µs time in node value
           this.chartState.progress[workerID] = data.workerInfo.computationTime;
           this.updateChart(0);
@@ -145,8 +130,7 @@ export default class IdleTime extends Component {
           this.chartState = {
               numWorkers: nworkers,
               active: active,
-              progress: progress,
-              IDlastActive: 0
+              progress: progress
           };
           this.updateChart(animationDuration);
           // Start redrawing as soon as animation has finished
@@ -185,8 +169,14 @@ export default class IdleTime extends Component {
   updateChart(animationDuration) {
       const progress = this.chartState.progress;
       const dataset = [];
+      let maxComputationTime = 0;
+      this.chartState.progress.forEach(time => {
+        if(time > maxComputationTime){
+          maxComputationTime = time;
+        }
+      })
       for (let i = 0; i < progress.length; i++) {
-        let idleTime = progress[this.chartState.IDlastActive] - progress[i];
+        let idleTime = maxComputationTime - progress[i];
         idleTime = idleTime / 1000;
         dataset.push({
           label: "Worker " + i,
