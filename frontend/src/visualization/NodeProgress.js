@@ -22,10 +22,10 @@ export default class NodeProgress extends Component {
         this.chartState = {};
 
         this.chartState = {
-            numWorkers: 1,
-            active: [false],
+            nodes: [0],
+            active: new Map([[0, false]]),
             // The computation time in microseconds
-            progress: [1]
+            progress: new Map([[0, 1]])
         };
     }
 
@@ -51,7 +51,6 @@ export default class NodeProgress extends Component {
                 responsive: true,
                 maintainAspectRatio: false,
                 tooltips: {
-                    // TODO show the current workercontext active worker on change
                     callbacks: {
                         label: customLabel
                     }
@@ -87,9 +86,9 @@ export default class NodeProgress extends Component {
             // assume that regionData is passed here
             const workerID = data.workerInfo.rank;
             // Pay attention here that ranks begin from 1 as long as the host does not send data on his own
-            this.chartState.active[workerID - 1] = false;
+            this.chartState.active.set(workerID, false);
             // insert correct µs time in node value
-            this.chartState.progress[workerID - 1] = data.workerInfo.computationTime;
+            this.chartState.progress.set(workerID, data.workerInfo.computationTime);
             this.updateChart(0);
         });
 
@@ -97,18 +96,18 @@ export default class NodeProgress extends Component {
             // Stop redrawing
             this.stopNodeProgress();
             // Reset node progress
-            const nworkers = data.regionCount;
-            const active = new Array(nworkers);
-            const progress = new Array(nworkers);
+            const nodes = [];
+            const active = new Map();
+            const progress = new Map();
 
             let animationDuration = 750;
-
-            for (let i = 0; i < nworkers; i++) {
-                active[i] = true;
-                progress[i] = animationDuration * 1000;
+            for(let region of data.regions){
+                nodes.push(region.nodeID);
+                active.set(region.nodeID, true);
+                progress.set(region.nodeID, animationDuration * 1000);
             }
             this.chartState = {
-                numWorkers: nworkers,
+                nodes: nodes,
                 active: active,
                 progress: progress
             };
@@ -124,7 +123,8 @@ export default class NodeProgress extends Component {
         this.props.workerContext.subscribe(activeWorker => {
             // Activate new tooltip if necessary
             if(activeWorker !== undefined){
-                const activeSegment = this.chart.data.datasets[0]._meta[0].data[activeWorker];
+                const workerIndex = this.chartState.nodes.indexOf(activeWorker);
+                const activeSegment = this.chart.data.datasets[0]._meta[0].data[workerIndex];
                 this.chart.tooltip.initialize();
                 this.chart.tooltip._active = [activeSegment];
                 this.chart.data.datasets[0]._meta[0].controller.setHoverStyle(activeSegment);
@@ -147,29 +147,30 @@ export default class NodeProgress extends Component {
     }
 
     updateChart(animationDuration) {
-        const progress = this.chartState.progress;
         const labels = [];
+        const values = [];
         const colorSet = [];
-        for (let i = 0; i < progress.length; i++) {
-            labels.push("Worker " + i);
-            colorSet.push(this.props.workerContext.getWorkerColor(i))
-        }
+        // => Label/ value index is the index of the rank in the node array
+        this.chartState.nodes.forEach((rank) => {
+            labels.push("Worker " + rank);
+            colorSet.push(this.props.workerContext.getWorkerColor(rank))
+            values.push(this.chartState.progress.get(rank));
+        });
         
         const data = {
             labels: labels,
             datasets: [{
-                data: progress,
+                data: values,
                 backgroundColor: colorSet
 
             }]
-            // TODO include nice colors
         };
         this.chart.data = data;
 
         let computationTime = 0;
-        for (let i = 0; i < progress.length; i++) {
-            computationTime += progress[i];
-        }
+        this.chartState.progress.forEach(value => {
+            computationTime += value;
+        });
         this.chart.options.title.text[1] = computationTime + " µs";
 
         this.chart.update(animationDuration);
@@ -180,22 +181,22 @@ export default class NodeProgress extends Component {
      */
     initNodeProgress() {
         // Interval in milliseconds
-        const interval = 50;
+        const intervalRate = 50;
         this.interval = setInterval(
             state => {
                 let update = false;
-                for (let i = 0; i < state.progress.length; i++) {
-                    if (state.active[i]) {
-                        state.progress[i] += interval * 1000;
+                state.progress.forEach((value, rank) => {
+                    if (state.active.get(rank)) {
+                        state.progress.set(rank, value + intervalRate * 1000);
                         update = true;
                     }
-                }
+                });
                 if (update) {
                     // Animation duration of 0 for fluent redrawing
                     this.updateChart(0);
                 }
             },
-            interval,
+            intervalRate,
             this.chartState
         );
     }
