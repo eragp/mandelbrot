@@ -13,6 +13,8 @@
 #include <string>
 #include <vector>
 #include <cstring>
+#include <thread>
+#include <chrono>
 
 void Client::init(int world_rank, int world_size) {
     Fractal *f = new Mandelbrot();
@@ -79,6 +81,9 @@ void Client::init(int world_rank, int world_size) {
                 MPI_Send(data, data_len, MPI_INT, 0, 2, MPI_COMM_WORLD);
             }
             delete[] data;
+        } else {
+            // Reduce processor usage on idle
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
     }
 }
