@@ -2,6 +2,9 @@
 
 #include "Region.h"
 
+// @Tobi: What is this for? Included it because you had it in your branch
+#pragma pack(push, 1)
+
 /**
  * Information sent by Worker when done with computing data.
  * Contains constant amount of metadata.
@@ -24,3 +27,6 @@ struct WorkerInfo {
     Region region;
     
 };
+
+// @Tobi: Same as above
+#pragma pack(pop)

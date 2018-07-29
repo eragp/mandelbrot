@@ -4,6 +4,7 @@
 #include "Mandelbrot.h"
 #include "Region.h"
 #include "Tile.h"
+#include "WorkerInfo.h"
 
 #include <mpi.h>
 
@@ -42,7 +43,7 @@ void Client::init(int world_rank, int world_size) {
                       << ") ->  bottomRight: (" << region.maxReal << ", " << region.minImaginary << ", "
                       << region.validation
                       << ") maxIteration: " << region.maxIteration
-                      << " width: " << region.width << "height: " << region.height << std::endl;
+                      << " width: " << region.width << " height: " << region.height << std::endl;
 
             // Reset loop flag
             loopFlag = false;
@@ -66,7 +67,7 @@ void Client::init(int world_rank, int world_size) {
                         std::cout << "Worker " << world_rank << " abort." << std::endl;
                         loopFlag = true;
                     }
-                    int reverseY = region.height - y -1;
+                    int reverseY = region.height - y - 1;
                     // Computations
                     data[i++] = f->calculateFractal(region.projectReal(x),
                                                     region.projectImag(reverseY),
@@ -74,8 +75,15 @@ void Client::init(int world_rank, int world_size) {
                 }
             }
             if (!loopFlag) {
+                
+                // Create WorkerInfo
+                WorkerInfo workerInfo;
+				workerInfo.rank = world_rank;
+				workerInfo.computationTime = 0; // TODO Measure time and put it here
+				workerInfo.region = region;
+
                 std::cout << "Worker " << world_rank << " is sending the data: " << data_len << std::endl;
-                MPI_Send(&world_rank, 1, MPI_INT, 0, 3, MPI_COMM_WORLD);
+                MPI_Send(&workerInfo, sizeof(WorkerInfo), MPI_BYTE, 0, 3, MPI_COMM_WORLD);
                 MPI_Send(data, data_len, MPI_INT, 0, 2, MPI_COMM_WORLD);
             }
             delete[] data;

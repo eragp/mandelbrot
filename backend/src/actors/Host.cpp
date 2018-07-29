@@ -10,6 +10,7 @@
 #include "Region.h"
 #include "Tile.h"
 #include "TileData.h"
+#include "WorkerInfo.h"
 
 // MPI Libraries
 #include <mpi.h>
@@ -274,20 +275,19 @@ void Host::init(int world_rank, int world_size) {
         // Listen for incoming complete computations from workers (MPI)
         // This accepts messages by the workers and answers requests that were stored before
         // TODO: asynchronous (maybe?)
-        int worker_rank;
-        MPI_Recv(&worker_rank, 1, MPI_INT, MPI_ANY_SOURCE, 3, MPI_COMM_WORLD,
-                 MPI_STATUS_IGNORE);  // 3 is tag for world_rank of worker
+        WorkerInfo workerInfo;
+        MPI_Recv((void *) &workerInfo, sizeof(WorkerInfo), MPI_BYTE, MPI_ANY_SOURCE, 3, MPI_COMM_WORLD, MPI_STATUS_IGNORE);  // 3 is tag for WorkerInfo
         Region rendered_region{};
         {
             std::lock_guard<std::mutex> lock(transmitted_regions_lock);
-            rendered_region = transmitted_regions[worker_rank];
+            rendered_region = transmitted_regions[workerInfo.rank];
         }
 
         unsigned int region_size = rendered_region.getPixelCount();
         int* worker_data = new int[region_size];
-        std::cout << "Host: waiting for receive from " << worker_rank << ": " << region_size << std::endl;
+        std::cout << "Host: waiting for receive from " << workerInfo.rank << ": " << region_size << std::endl;
         
-        int ierr = MPI_Recv(worker_data, region_size, MPI_INT, worker_rank, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        int ierr = MPI_Recv(worker_data, region_size, MPI_INT, workerInfo.rank, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE); // 2 is tag for raw data
         if(ierr != MPI_SUCCESS){
             std::cerr << "Error on receiving data from worker: " << std::endl;
             char err_buffer[MPI_MAX_ERROR_STRING];
@@ -297,7 +297,7 @@ void Host::init(int world_rank, int world_size) {
             continue;
         }
 
-        std::cout << "Host: received from " << worker_rank << std::endl;
+        std::cout << "Host: received from " << workerInfo.rank << std::endl;
 
         // Check if this data is up to date requested data
         /*bool inside_current_region;
@@ -326,13 +326,7 @@ void Host::init(int world_rank, int world_size) {
         RegionData region_data{};
         region_data.data = worker_data;
         region_data.data_length = region_size;
-
-        WorkerInfo worker_info{};
-        worker_info.computationTime = 1234;
-        worker_info.rank = worker_rank;
-        worker_info.region = rendered_region;
-
-        region_data.workerInfo = worker_info;
+        region_data.workerInfo = workerInfo;
 
         Host::send(region_data);
         delete[] worker_data;
