@@ -1,5 +1,6 @@
 import Point from '../misc/Point';
 import { bounds } from './Constants';
+import Bounds from 'leaflet';
 
 /**
  * This function projects leaflet tile coordinates to the complex plane
@@ -26,9 +27,10 @@ export const project = (tileX, tileY, zoom, pixelX, pixelY, tileSize) => {
 
 /**
  * Unprojects from the complex plane to leaflet tile coordinates
- * @param {*} real Real part of the complex coordinate
- * @param {*} imag Imaginary part of the complex coordinate
- * @param {*} zoom current zoom factor in leaflet space
+ * @param {Number} real Real part of the complex coordinate
+ * @param {Number} imag Imaginary part of the complex coordinate
+ * @param {Number} zoom current zoom factor in leaflet space
+ * @returns {Point} Leaflet tile coordinate corresponding to real/imag coordinate
  */
 export const unproject = (real, imag, zoom) => {
   let tileCount = Math.pow(2, zoom);
@@ -39,9 +41,9 @@ export const unproject = (real, imag, zoom) => {
 
 /**
  * calculates the TopLeft point in leaflet coordinates from the given bounds
- * @param {*} bounds pixel bounds of the current view
- * @param {*} tileSize leaflet tile size
- * @param {*} zoom zoom factor
+ * @param {Bounds} bounds pixel bounds of the current view
+ * @param {Number} tileSize leaflet tile size
+ * @param {Number} zoom zoom factor
  */
 export const getTopLeftPoint = (bounds, tileSize, zoom) => {
   return toPoint(bounds.min, tileSize, zoom, true);
@@ -49,14 +51,21 @@ export const getTopLeftPoint = (bounds, tileSize, zoom) => {
 
 /**
  * calculates the TopLeft point in leaflet coordinates from the given bounds
- * @param {*} bounds pixel bounds of the current view
- * @param {*} tileSize leaflet tile size
- * @param {*} zoom zoom factor
+ * @param {Bounds} bounds pixel bounds of the current view
+ * @param {Number} tileSize leaflet tile size
+ * @param {Number} zoom zoom factor
  */
 export const getBottomRightPoint = (bounds, tileSize, zoom) => {
   return toPoint(bounds.max, tileSize, zoom, false);
 };
 
+/**
+ * 
+ * @param {Bounds} bound 
+ * @param {Number} tileSize 
+ * @param {Number} zoom 
+ * @param {Boolean} topleft 
+ */
 function toPoint(bound, tileSize, zoom, topleft) {
   let x, y;
   if (topleft) {
