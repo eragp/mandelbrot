@@ -19,13 +19,12 @@ export default class IdleTime extends Component {
   constructor(props) {
       super(props);
       this.websocketClient = props.wsclient;
-      this.chartState = {};
 
       this.chartState = {
-          numWorkers: 1,
-          active: [false],
-          // The computation time in microseconds (µs)
-          progress: [0]
+        nodes: [0],
+        active: new Map([[0, false]]),
+        // The computation time in microseconds
+        progress: new Map([[0, 1]])
       };
   }
 
@@ -33,16 +32,16 @@ export default class IdleTime extends Component {
 
       const ctx = document.getElementById("idleTime");
       const customLabel = (tooltipItem, data) => {
-          let label = data.datasets[tooltipItem.datasetIndex].label;
+        let label = data.datasets[tooltipItem.datasetIndex].label;
 
-          if (label) {
-              label += ': ';
-          } else {
-              label = '';
-          }
-          label += this.chartState.progress[tooltipItem.datasetIndex];
-          label += ' µs';
-          return label;
+        if (label) {
+            label += ': ';
+        } else {
+            label = '';
+        }
+        label += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+        label += ' ms';
+        return label;
       }
 
       this.chart = new Chart(ctx, {
@@ -68,12 +67,14 @@ export default class IdleTime extends Component {
                   // change workercontext active worker on hover
                   const data = this.chart.getDatasetAtEvent(event)[0];
                   if(data){
-                      this.props.workerContext.setActiveWorker(data._datasetIndex);
-                      this._hoveredItem = data;
+                    this.props.workerContext.setActiveWorker(
+                        this.chartState.nodes[data._datasetIndex]
+                    );
+                    this._hoveredItem = data;
                   }
                   else if(this._hoveredItem){
-                      this.props.workerContext.setActiveWorker(undefined);
-                      this._hoveredItem = undefined;
+                    this.props.workerContext.setActiveWorker(undefined);
+                    this._hoveredItem = undefined;
                   }
               },
               scales: {
@@ -104,12 +105,12 @@ export default class IdleTime extends Component {
           // Stop corresponding worker progress bar
           // assume that regionData is passed here
           // Pay attention here that ranks begin from 1 as long as the host does not send data on his own
-          const workerID = data.workerInfo.rank -1;
+          const workerID = data.workerInfo.rank;
 
           // Note that it is not active anymore
-          this.chartState.active[workerID] = false;
+          this.chartState.active.set(workerID, false);
           // insert correct µs time in node value
-          this.chartState.progress[workerID] = data.workerInfo.computationTime;
+          this.chartState.progress.set(workerID, data.workerInfo.computationTime);
           this.updateChart(0);
       });
 
@@ -117,18 +118,19 @@ export default class IdleTime extends Component {
           // Stop redrawing
           this.stopNodeProgress();
           // Reset node progress
-          const nworkers = data.regionCount;
-          const active = new Array(nworkers);
-          const progress = new Array(nworkers);
+          const nodes = [];
+          const active = new Map();
+          const progress = new Map();
 
           let animationDuration = 750;
 
-          for (let i = 0; i < nworkers; i++) {
-              active[i] = true;
-              progress[i] = animationDuration * 1000;
+          for (let region of data.regions) {
+              nodes.push(region.nodeID);
+              active.set(region.nodeID, true);
+              progress.set(region.nodeID, animationDuration * 1000);
           }
           this.chartState = {
-              numWorkers: nworkers,
+              nodes: nodes,
               active: active,
               progress: progress
           };
@@ -144,11 +146,12 @@ export default class IdleTime extends Component {
       this.props.workerContext.subscribe(activeWorker => {
           // Activate new tooltip if necessary
           if(activeWorker !== undefined){
-              const activeSegment = this.chart.data.datasets[activeWorker]._meta[0].data[0];
-              this.chart.tooltip.initialize();
-              this.chart.tooltip._active = [activeSegment];
-              this.chart.data.datasets[activeWorker]._meta[0].controller.setHoverStyle(activeSegment);
-              this._hoveredSegment = activeSegment;
+            const workerIndex = this.chartState.nodes.indexOf(activeWorker);
+            const activeSegment = this.chart.data.datasets[workerIndex]._meta[0].data[0];
+            this.chart.tooltip.initialize();
+            this.chart.tooltip._active = [activeSegment];
+            this.chart.data.datasets[workerIndex]._meta[0].controller.setHoverStyle(activeSegment);
+            this._hoveredSegment = activeSegment;
               
           } else {
               // Remove tooltip
@@ -167,7 +170,6 @@ export default class IdleTime extends Component {
   }
 
   updateChart(animationDuration) {
-      const progress = this.chartState.progress;
       const dataset = [];
       let maxComputationTime = 0;
       this.chartState.progress.forEach(time => {
@@ -175,16 +177,17 @@ export default class IdleTime extends Component {
           maxComputationTime = time;
         }
       })
-      for (let i = 0; i < progress.length; i++) {
-        let idleTime = maxComputationTime - progress[i];
+      // Ensure that the order from the nodes array is kept for the datasets
+      this.chartState.nodes.forEach(rank => {
+        let idleTime = maxComputationTime - this.chartState.progress.get(rank);
         idleTime = idleTime / 1000;
         dataset.push({
-          label: "Worker " + i,
+          label: "Worker " + rank,
           data: [idleTime],
-          backgroundColor: this.props.workerContext.getWorkerColor(i),
+          backgroundColor: this.props.workerContext.getWorkerColor(rank),
           stack: 'idle-time'
         });
-      }
+      });
       
       const data = {
           labels: ['Idle time'],
@@ -204,12 +207,12 @@ export default class IdleTime extends Component {
       this.interval = setInterval(
           state => {
               let update = false;
-              for (let i = 0; i < state.progress.length; i++) {
-                  if (state.active[i]) {
-                      state.progress[i] += interval * 1000;
+              state.progress.forEach((value, rank) => {
+                  if (state.active.get(rank)) {
+                      state.progress.set(rank, value + interval * 1000);
                       update = true;
                   }
-              }
+              });
               if (update) {
                   // Animation duration of 0 for fluent redrawing
                   this.updateChart(0);
