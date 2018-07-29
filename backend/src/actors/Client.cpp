@@ -14,6 +14,7 @@
 #include <string>
 #include <vector>
 #include <cstring>
+#include <chrono>
 
 void Client::init(int world_rank, int world_size) {
     Fractal *f = new Mandelbrot();
@@ -59,6 +60,9 @@ void Client::init(int world_rank, int world_size) {
             
             int i = 0;
 
+            // The real computation starts here --> start time measurement here
+            auto startTime = std::chrono::high_resolution_clock::now();
+
             for (unsigned int y = 0; y < region.height && !loopFlag; y++) {
                 for (unsigned int x = 0; x < region.width && !loopFlag; x++) {
                     // Abort
@@ -74,12 +78,19 @@ void Client::init(int world_rank, int world_size) {
                                                     region.maxIteration);
                 }
             }
+
+            // Computation ends here --> stop the clock
+            auto endTime = std::chrono::high_resolution_clock::now();
+
             if (!loopFlag) {
-                
+                // We measure time in microseconds
+                unsigned long elapsedTime = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
+                std::cout << "Worker " << world_rank << " elapsed time: " << elapsedTime << std::endl;
+
                 // Create WorkerInfo
                 WorkerInfo workerInfo;
 				workerInfo.rank = world_rank;
-				workerInfo.computationTime = 0; // TODO Measure time and put it here
+				workerInfo.computationTime = elapsedTime;
 				workerInfo.region = region;
 
                 std::cout << "Worker " << world_rank << " is sending the data: " << data_len << std::endl;

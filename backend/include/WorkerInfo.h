@@ -17,9 +17,9 @@ struct WorkerInfo {
     int rank;
 
     /**
-     * The time that computation has taken in nanoseconds
+     * The time that computation has taken in microseconds
      */
-    long computationTime;
+    unsigned long computationTime;
 
     /**
      * The region that was computed.
