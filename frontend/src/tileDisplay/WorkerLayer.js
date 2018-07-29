@@ -89,28 +89,56 @@ function toGeoJSON(regions, pixelToLatLng){
   return featureCollection;
 }
 
-function style(feature) {
-  return {
-      weight: 1,
-      opacity: 1,
-      color: 'black',
-      fillColor: colorSet[feature.properties.node],
-      dashArray: '3',
-      fillOpacity: 0.3,
-  };
-}
-
 export default class WorkerLayer extends L.GeoJSON {
 
-  constructor(wsclient, pixelToLatLng){
+  constructor(wsclient, pixelToLatLng, workerContext){
+
+    const style = feature => {
+      return {
+          weight: 1,
+          opacity: 1,
+          color: 'black',
+          fillColor: workerContext.getWorkerColor(feature.properties.node),
+          dashArray: '3',
+          fillOpacity: 0.3,
+      };
+    };
+
+    const onEachFeature = (feature, layer) => {
+      layer.on({
+        mouseover: () => workerContext.setActiveWorker(feature.properties.node),
+        mouseout: () => workerContext.setActiveWorker(undefined)
+      });
+      this.nodeToLayer.set(feature.properties.node, layer);
+    };
+
     super(null, {
-      style: style
+      style: style,
+      onEachFeature: onEachFeature
     });
+
+    this.nodeToLayer = new Map();
+
     wsclient.registerRegion(data => {
       this.clearLayers();
       const regions = toGeoJSON(data.regions, pixelToLatLng);
       this.addData(regions);
     });
+
+    workerContext.subscribe(worker => {
+      if(worker === undefined){
+        this.nodeToLayer.forEach(layer => {
+          this.resetStyle(layer);
+        })
+      } else {
+        const layer = this.nodeToLayer.get(worker);
+        if(layer){
+          layer.setStyle({
+            fillOpacity: 0.7
+          });
+        }
+      }
+    })
   }
 
 }

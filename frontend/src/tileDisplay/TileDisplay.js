@@ -19,6 +19,7 @@ import BalancerPolicy from '../misc/BalancerPolicy';
 import WebSocketClient from '../connection/WSClient';
 import PropTypes from 'prop-types';
 import WorkerLayer from './WorkerLayer';
+import WorkerContext from '../misc/WorkerContext';
 
 
 export default class TileDisplay extends Component {
@@ -31,6 +32,7 @@ export default class TileDisplay extends Component {
     this.newViewObservers = [];
     this.websocketClient = this.props.wsclient;
     this.balancerPolicy = this.props.balancerPolicy;
+    this.workerContext = this.props.workerContext;
     this.regionDrawer = new RegionDrawer(this, this.websocketClient);
     this.renderLeaflet();
   }
@@ -148,19 +150,20 @@ export default class TileDisplay extends Component {
       }
     });
 
-    let mandelbrotLayer = new L.GridLayer.MandelbrotLayer({
+    const mandelbrotLayer = new L.GridLayer.MandelbrotLayer({
         tileSize: tileSize, // in px
         bounds: bounds,
         keepBuffer: 0
       });
-    let debugLayer = new L.GridLayer.DebugLayer({
+    const debugLayer = new L.GridLayer.DebugLayer({
         tileSize: tileSize,
         bounds: bounds,
         keepBuffer: 0
       });
     const workerLayer = new WorkerLayer(
       websocketClient,
-      map.unproject.bind(map)
+      map.unproject.bind(map),
+      this.workerContext
     );
     const baseLayer = {
         'Mandelbrot Layer': mandelbrotLayer
@@ -213,5 +216,6 @@ export default class TileDisplay extends Component {
 
 TileDisplay.propTypes = {
   wsclient: PropTypes.instanceOf(WebSocketClient),
-  balancerPolicy: PropTypes.instanceOf(BalancerPolicy)
+  balancerPolicy: PropTypes.instanceOf(BalancerPolicy),
+  workerContext: PropTypes.instanceOf(WorkerContext)
 }

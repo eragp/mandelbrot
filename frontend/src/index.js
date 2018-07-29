@@ -24,7 +24,7 @@ class App extends Component {
     return (
       <div>
         <div className="mainTop">
-          <TileDisplay wsclient={websocketclient} balancerPolicy={balancerPolicy}/>
+          <TileDisplay workerContext={workerContext} wsclient={websocketclient} balancerPolicy={balancerPolicy}/>
         </div> <div className="mainBottom row">
           <div className="col-3">
             <BalancerChoice balancerPolicy={balancerPolicy}/>
