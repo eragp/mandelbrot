@@ -26,7 +26,7 @@ export default class IdleTime extends Component {
           active: [false],
           // The computation time in microseconds
           progress: [0],
-          IDfirst: undefined
+          IDlastActive: 0
       };
   }
 
@@ -34,7 +34,7 @@ export default class IdleTime extends Component {
 
       const ctx = document.getElementById("idleTime");
       const customLabel = (tooltipItem, data) => {
-          let label = data.labels[tooltipItem.index];
+          let label = data.datasets[tooltipItem.datasetIndex].label;
 
           if (label) {
               label += ': ';
@@ -62,9 +62,9 @@ export default class IdleTime extends Component {
               },
               onHover: (event) => {
                   // change workercontext active worker on hover
-                  const data = this.chart.getElementsAtEvent(event)[0];
+                  const data = this.chart.getDatasetAtEvent(event)[0];
                   if(data){
-                      this.props.workerContext.setActiveWorker(data._index);
+                      this.props.workerContext.setActiveWorker(data._datasetIndex);
                       this._hoveredItem = data;
                   }
                   else if(this._hoveredItem){
@@ -75,7 +75,15 @@ export default class IdleTime extends Component {
               options: {
                 scales: {
                   xAxes: [{ stacked: true }],
-                  yAxes: [{ stacked: true }]
+                  yAxes: [{ 
+                    type: 'logarithmic',
+                    id: 'idle-time-axis',
+                    stacked: true,
+                    ticks: {
+                      min: 0,
+                      max: 10000000
+                    }
+                  }]
                 }
               }
           }
@@ -89,16 +97,26 @@ export default class IdleTime extends Component {
       // by them comes in
       this.websocketClient.registerWorker(data => {
           // Stop corresponding worker progress bar
-          // Note that it is the first to finish if true
-          if(this.chartState.IDfirst === undefined){
-            this.chartState.IDfirst = data.workerInfo.rank;
-          }
           // assume that regionData is passed here
-          const workerID = data.workerInfo.rank;
           // Pay attention here that ranks begin from 1 as long as the host does not send data on his own
-          this.chartState.active[workerID - 1] = false;
+          const workerID = data.workerInfo.rank -1;
+
+          // Note that it is not active anymore
+          this.chartState.active[workerID] = false;
+          if(this.chartState.IDlastActive === workerID){
+            let anotherActive;
+            // Find someone else who is active, if none is => stay the same
+            this.chartState.active.forEach((active, rank) => {
+              if(active){
+                anotherActive = rank;
+              }
+            })
+            if(anotherActive !== undefined){
+              this.chartState.IDlastActive = anotherActive;
+            }
+          }
           // insert correct µs time in node value
-          this.chartState.progress[workerID - 1] = data.workerInfo.computationTime;
+          this.chartState.progress[workerID] = data.workerInfo.computationTime;
           this.updateChart(0);
       });
 
@@ -120,7 +138,7 @@ export default class IdleTime extends Component {
               numWorkers: nworkers,
               active: active,
               progress: progress,
-              IDfirst: undefined
+              IDlastActive: 0
           };
           this.updateChart(animationDuration);
           // Start redrawing as soon as animation has finished
@@ -134,10 +152,10 @@ export default class IdleTime extends Component {
       this.props.workerContext.subscribe(activeWorker => {
           // Activate new tooltip if necessary
           if(activeWorker !== undefined){
-              const activeSegment = this.chart.data.datasets[0]._meta[0].data[activeWorker];
+              const activeSegment = this.chart.data.datasets[activeWorker]._meta[0].data[0];
               this.chart.tooltip.initialize();
               this.chart.tooltip._active = [activeSegment];
-              this.chart.data.datasets[0]._meta[0].controller.setHoverStyle(activeSegment);
+              this.chart.data.datasets[activeWorker]._meta[0].controller.setHoverStyle(activeSegment);
               this._hoveredSegment = activeSegment;
               
           } else {
@@ -160,10 +178,7 @@ export default class IdleTime extends Component {
       const progress = this.chartState.progress;
       const dataset = [];
       for (let i = 0; i < progress.length; i++) {
-        let idleTime = 0;
-        if(this.chartState.IDfirst !== undefined){
-          idleTime = progress[this.chartState.IDfirst] - progress[i];
-        }
+        let idleTime = progress[this.chartState.IDlastActive] - progress[i];
         dataset.push({
           label: "Worker " + i,
           data: [idleTime],
