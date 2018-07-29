@@ -41,7 +41,8 @@ export default class IdleTime extends Component {
           } else {
               label = '';
           }
-          label += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index] + ' µs';
+          label += this.chartState.progress[tooltipItem.datasetIndex];
+          label += ' µs';
           return label;
       }
 
@@ -54,8 +55,12 @@ export default class IdleTime extends Component {
               legend: {
                 display: false
               },
+              layout: {
+                padding: {
+                  top: 10
+                }
+              },
               tooltips: {
-                  // TODO show the current workercontext active worker on change
                   callbacks: {
                       label: customLabel
                   }
@@ -72,19 +77,22 @@ export default class IdleTime extends Component {
                       this._hoveredItem = undefined;
                   }
               },
-              options: {
-                scales: {
-                  xAxes: [{ stacked: true }],
-                  yAxes: [{ 
-                    type: 'logarithmic',
-                    id: 'idle-time-axis',
-                    stacked: true,
-                    ticks: {
-                      min: 0,
-                      max: 10000000
-                    }
-                  }]
-                }
+              scales: {
+                xAxes: [{ stacked: true }],
+                yAxes: [{
+                  type: 'linear',
+                  stacked: true,
+                  ticks: {
+                    beginAtZero: true,
+                    min: 0,
+                    suggestedMax: 10000,
+                    //stepSize: 1000
+                  },
+                  scaleLabel: {
+                    display: true,
+                    labelString: 'ms'
+                  }
+                }]
               }
           }
       });
@@ -179,6 +187,7 @@ export default class IdleTime extends Component {
       const dataset = [];
       for (let i = 0; i < progress.length; i++) {
         let idleTime = progress[this.chartState.IDlastActive] - progress[i];
+        idleTime = idleTime / 1000;
         dataset.push({
           label: "Worker " + i,
           data: [idleTime],
