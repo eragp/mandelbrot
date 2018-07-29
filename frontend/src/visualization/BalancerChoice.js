@@ -15,7 +15,7 @@ export default class BalancerChoice extends Component {
             active: this.props.balancerPolicy.getBalancer(),
             items: [{
                     key: 'naive',
-                    title: "Row Balancer"
+                    title: "Naive Balancer"
                 },
                 {
                     key: 'column',
