@@ -9,7 +9,7 @@ export default class BalancerChoice extends Component {
     constructor(props) {
         super(props);
 
-        this.props.balancerPolicy.setBalancer('column');
+        this.props.balancerPolicy.setBalancer('naive');
 
         this.state = {
             active: this.props.balancerPolicy.getBalancer(),

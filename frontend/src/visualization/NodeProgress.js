@@ -88,8 +88,8 @@ export default class NodeProgress extends Component {
             const workerID = data.workerInfo.rank;
             // Pay attention here that ranks begin from 1 as long as the host does not send data on his own
             this.chartState.active[workerID - 1] = false;
-            // TODO insert correct µs time in node value
-
+            // insert correct µs time in node value
+            this.chartState.progress[workerID - 1] = data.workerInfo.computationTime;
             this.updateChart(0);
         });
 
