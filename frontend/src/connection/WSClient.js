@@ -44,7 +44,7 @@ export default class {
             callback(msg);
           });
           break;
-        case 'regions':
+        case 'region':
           // Notify region subdivision listeners
           regionCallback.forEach(callback => {
             callback(msg);
