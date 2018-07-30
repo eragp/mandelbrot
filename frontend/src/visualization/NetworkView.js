@@ -25,7 +25,11 @@ export default class NetworkView extends Component {
         const options = {
             autoResize: true,
             physics: {
-              enabled: false
+              enabled: true,
+              hierarchicalRepulsion: {
+                solver: 'forceAtlas2Based',
+                centralGravity: 10
+              }
             },
             edges: {
               smooth: {
@@ -118,14 +122,16 @@ export default class NetworkView extends Component {
             label: 'Frontend',
             image: applicationImage,
             shape: 'image',
-            level: 0
+            level: 0,
+            fixed: true
         })
         nodes.push({
             id: 1,
             label: `Backend-Host`,
             image: serverImage,
             shape: 'image',
-            level: 1
+            level: 1,
+            fixed: true
         })
 
         let edges = [];
