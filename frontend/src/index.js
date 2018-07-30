@@ -11,6 +11,7 @@ import BalancerChoice from './visualization/BalancerChoice';
 import BalancerPolicy from './misc/BalancerPolicy';
 import WorkerContext from './misc/WorkerContext';
 import NetworkView from './visualization/NetworkView';
+import IdleTime from './visualization/IdleTime';
 
 // CSS
 import './Index.css';
@@ -29,8 +30,11 @@ class App extends Component {
           <div className="col-3">
             <BalancerChoice balancerPolicy={balancerPolicy}/>
           </div>
-          <div className="col-6">
+          <div className="col-5">
             <NetworkView workerContext={workerContext} wsclient={websocketclient} />
+          </div>
+          <div className="col-1">
+            <IdleTime workerContext={workerContext} wsclient={websocketclient} />
           </div>
           <div className="col-3">
             <NodeProgress workerContext={workerContext} wsclient={websocketclient}/>
