@@ -6,14 +6,17 @@ project(Mandelbrot)
 include_directories(include)
 # load all the *.cpp files
 file(GLOB_RECURSE SOURCES "src/*.cpp")
-set(TARGET_NAME mandelbrot)
-add_executable(mandelbrot ${SOURCES})
+list(FILTER SOURCES EXCLUDE REGEX ".*main\.cpp")
+#set(TARGET_NAME mandelbrot)
+add_executable(host "src/host.main.cpp" ${SOURCES})
+add_executable(worker "src/worker.main.cpp" ${SOURCES})
 # load libraries
 find_package(cpprestsdk REQUIRED)
 find_package(MPI REQUIRED)
 include_directories(${MPI_INCLUDE_PATH})
 
-target_link_libraries(mandelbrot PUBLIC cpprestsdk::cpprest ${MPI_LIBRARIES})
+target_link_libraries(host PUBLIC cpprestsdk::cpprest ${MPI_LIBRARIES})
+target_link_libraries(worker PUBLIC cpprestsdk::cpprest ${MPI_LIBRARIES})
 set(CMAKE_CXX_STANDARD 11)
 # lib configs
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -lboost_system -lcrypto -lssl")
@@ -21,11 +24,11 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -lboost_system -lcrypto -lssl")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_WEBSOCKETPP_CPP11_STL_")
 
 if (MPI_COMPILE_FLAGS)
-    set_target_properties(mandelbrot PROPERTIES
+    set_target_properties(host worker PROPERTIES
             COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
 endif ()
 
 if (MPI_LINK_FLAGS)
-    set_target_properties(mandelbrot PROPERTIES
+    set_target_properties(host worker PROPERTIES
             LINK_FLAGS "${MPI_LINK_FLAGS}")
 endif ()
