@@ -29,6 +29,7 @@
 #include <set>
 #include <string>
 #include <algorithm>
+#include <vector>
 
 using namespace web;
 using namespace web::http;
@@ -38,6 +39,7 @@ const int default_res = 256;
 // Init values with some arbitrary value
 int Host::maxIteration = 200;
 int Host::world_size = 0;
+std::vector<int> Host::activeNodes;
 
 // Store for the current big region
 Region Host::current_big_region;
@@ -119,7 +121,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     }
 
     // TODO increase by one as soon as host is invoked as worker too
-    int nodeCount = Host::world_size - 1;
+    int nodeCount = activeNodes.size();
     // TODO make this based on balancer variable defined above (sounds like strategy pattern...) --> That was the idea :)
     Balancer *b = new NaiveBalancer();
     Region *blocks = b->balanceLoad(region, nodeCount);  // Blocks is array with nodeCount members
@@ -137,7 +139,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     MPI_Status region_status[nodeCount];
     for (int i = 0; i < nodeCount; i++) {
         Region small_region = blocks[i];
-        int rank_worker = i + 1; // TODO for now, see nodeCount
+        int rank_worker = activeNodes.at(i);
         std::cout << "Invoking core " << rank_worker << std::endl;
         // Tag for computation requests is 1
         // Send new region
@@ -159,7 +161,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     for (int i = 0; i < nodeCount; i++) {
         Region t = blocks[i];
         regions[i] = json::value();
-        regions[i][U("nodeID")] = json::value(i);
+        regions[i][U("nodeID")] = json::value(activeNodes.at(i));
 
         regions[i][U("minReal")] = json::value((double) t.minReal);
         regions[i][U("maxImag")] = json::value((double) t.maxImaginary);
@@ -179,7 +181,6 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     }
     reply[U("regions")] = regions;
     try {
-        std::cout << "4";
         websocket_server.send(hdl, reply.serialize().c_str(), websocketpp::frame::opcode::text);
     } catch (websocketpp::exception &e) {
         std::cerr << "Bad connection to client, Refresh connection" << std::endl;
@@ -251,6 +252,7 @@ void Host::init(int world_rank, int world_size) {
 
     Host::world_size = world_size;
     int cores = world_size;
+    int my_rank = world_rank;
     std::cout << "Host init " << world_size << std::endl;
 
     // Websockets
@@ -259,13 +261,17 @@ void Host::init(int world_rank, int world_size) {
 
     // Test if all cores are available
     // We assume from programs side that all cores *are* available, this is merely debug
-    for (int i = 1; i < cores; i++) {
-        int testSend = i;
-        MPI_Send((const void *) &testSend, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
-        int testReceive;
-        MPI_Recv(&testReceive, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        if (testSend == testReceive) {
-            std::cout << "Core " << i << " ready!" << std::endl;
+    activeNodes = std::vector<int>();
+    for (int i = 0; i < cores; i++) {
+        if(i != my_rank){
+            int testSend = i;
+            MPI_Send((const void *) &testSend, 1, MPI_INT, i, 10, MPI_COMM_WORLD);
+            int testReceive;
+            MPI_Recv(&testReceive, 1, MPI_INT, i, 11, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            if (testSend == testReceive) {
+                std::cout << "Core " << i << " ready!" << std::endl;
+            }
+            activeNodes.push_back(i);
         }
     }
 
