@@ -1,4 +1,4 @@
 #nodeNetwork {
-    width: 100%;
-    height: 100%;
+    /* This value should be approx. equivalent to mainBottom height */
+    height: 23vh; 
 }
