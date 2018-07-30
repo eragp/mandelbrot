@@ -126,15 +126,15 @@ export default class NodeProgress extends Component {
             // Activate new tooltip if necessary
             if(activeWorker !== undefined){
                 const workerIndex = this.chartState.nodes.indexOf(activeWorker);
-                const activeSegment = this.chart.data.datasets[0]._meta[0].data[workerIndex];
+                const activeSegment = this.chart.data.datasets[0]._meta[1].data[workerIndex];
                 this.chart.tooltip.initialize();
                 this.chart.tooltip._active = [activeSegment];
-                this.chart.data.datasets[0]._meta[0].controller.setHoverStyle(activeSegment);
+                this.chart.data.datasets[0]._meta[1].controller.setHoverStyle(activeSegment);
                 this._hoveredSegment = activeSegment;
                 
             } else {
                 // Remove tooltip
-                this.chart.data.datasets[0]._meta[0].controller.removeHoverStyle(this._hoveredSegment);
+                this.chart.data.datasets[0]._meta[1].controller.removeHoverStyle(this._hoveredSegment);
                 this.chart.tooltip._active = [];
             }
             // Update chart
@@ -164,7 +164,6 @@ export default class NodeProgress extends Component {
             datasets: [{
                 data: values,
                 backgroundColor: colorSet
-
             }]
         };
         this.chart.data = data;
