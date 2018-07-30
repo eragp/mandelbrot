@@ -64,7 +64,9 @@ export default class NodeProgress extends Component {
                     // change workercontext active worker on hover
                     const data = this.chart.getElementsAtEvent(event)[0];
                     if(data){
-                        this.props.workerContext.setActiveWorker(data._index);
+                        this.props.workerContext.setActiveWorker(
+                            this.chartState.nodes[data._index]
+                        );
                         this._hoveredItem = data;
                     }
                     else if(this._hoveredItem){
