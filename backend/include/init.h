@@ -1,0 +1,1 @@
+int init(int argc, char **argv, bool host);

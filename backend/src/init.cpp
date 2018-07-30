@@ -14,20 +14,28 @@
 // Attention: default_res should divide 2048! Square of default_res*default_res will be returned
 const int default_res = 256;
 
-int main(int argc, char** argv) {
+int init(int argc, char **argv, bool host) {
+    const char* type = host ? "Host" : "Client";
+
     MPI_Init(&argc, &argv);
     int world_rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
     int world_size;
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-	std::cout << "Process " << world_rank << " of " << world_size << std::endl;
+    // Retreive the processor name to check if host and
+    // worker share a node
+    char* proc_name = new char[MPI_MAX_PROCESSOR_NAME];
+    int proc_name_length;
+    MPI_Get_processor_name(proc_name, &proc_name_length);
+	std::cout << type << ": " << world_rank << " of " << world_size <<
+        "on node " << proc_name << std::endl;
 
     if (world_size == 1) {
        std:: cerr << "need at least 2 processes to run. Currently have " << world_size << std::endl;
         MPI_Finalize();
         return -1;  // return with error
     }
-    if (world_rank == 0) {
+    if (host == true) {
         Host::init(world_rank, world_size);
     } else {
         Client::init(world_rank, world_size);

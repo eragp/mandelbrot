@@ -22,6 +22,7 @@ private:
 
     static int maxIteration;
     static int world_size;
+    static std::vector<int> activeNodes;
 
     // Store for the current big region
     static Region current_big_region;
