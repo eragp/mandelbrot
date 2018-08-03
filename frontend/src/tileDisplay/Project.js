@@ -1,6 +1,6 @@
-import Point from '../misc/Point';
-import { bounds } from './Constants';
-import Bounds from 'leaflet';
+import Point from "../misc/Point";
+import { bounds } from "./Constants";
+import Bounds from "leaflet";
 
 /**
  * This function projects leaflet tile coordinates to the complex plane
@@ -16,8 +16,12 @@ export const project = (tileX, tileY, zoom, pixelX, pixelY, tileSize) => {
   // top left -> bottom right
   // bounds in the imaginary plane have to be symmetric
   let tileCount = Math.pow(2, zoom);
-  let real = (tileX * bounds[0] * tileSize + pixelX * bounds[0]) / (tileCount * tileSize),
-    imag = (tileY * bounds[1] * tileSize + pixelY * bounds[1]) / (tileCount * tileSize);
+  let real =
+      (tileX * bounds[0] * tileSize + pixelX * bounds[0]) /
+      (tileCount * tileSize),
+    imag =
+      (tileY * bounds[1] * tileSize + pixelY * bounds[1]) /
+      (tileCount * tileSize);
   return new Point(real, imag);
 };
 
@@ -33,6 +37,14 @@ export const unproject = (real, imag, zoom) => {
   let x = (tileCount * real) / bounds[0],
     y = (tileCount * imag) / bounds[1];
   return new Point(Math.floor(x), Math.floor(y), zoom);
+};
+
+export const complexToLeaflet = (real, imag, zoom) => {
+  return new Point(imag * 256, real * 256, zoom);
+};
+
+export const leafletToComplex = (lat, lng, zoom) => {
+  return new Point(lat / 256, lng / 256, zoom);
 };
 
 /**
@@ -56,10 +68,10 @@ export const getBottomRightPoint = (bounds, tileSize, zoom) => {
 };
 
 /**
- * 
- * @param {Bounds} bound 
- * @param {Number} tileSize 
- * @param {Number} zoom 
+ *
+ * @param {Bounds} bound
+ * @param {Number} tileSize
+ * @param {Number} zoom
  * @param {Boolean} topLeft
  */
 function toPoint(bound, tileSize, zoom, topLeft) {
