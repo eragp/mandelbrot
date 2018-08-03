@@ -42,10 +42,7 @@ export default class TileDisplay extends Component {
     // bounds have to be a power of two
     // these bounds are chosen arbitrary and have nothing to do with
     // either leaflet space, nor the complex plane
-    let bounds = [
-      [-leafletBound, -leafletBound],
-      [leafletBound, leafletBound]
-    ];
+    let bounds = [[-leafletBound, -leafletBound], [leafletBound, leafletBound]];
     this.map = L.map("viewer", {
       crs: L.CRS.Simple,
       // maxZoom: 32,
@@ -68,7 +65,8 @@ export default class TileDisplay extends Component {
     this.registerNewView(map => {
       let center = map.getCenter();
       let zoom = map.getZoom();
-      setURLParams(new Point(center.lat, center.lng, zoom));
+      this.viewCenter = new Point(center.lat, center.lng, zoom);
+      setURLParams(this.viewCenter);
     });
 
     // Handle balancer change as view change

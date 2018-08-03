@@ -13,18 +13,17 @@ export const getURLParams = () => {
 };
 
 export const setURLParams = point => {
-  console.log(`input: ${point}`);
-  point = leafletToComplex(point.x, point.y, point.z);
-  console.log(`output: ${point}`);
+  let complex = leafletToComplex(point.x, point.y, point.z);
 
   let params = new URLSearchParams(document.location.search);
-  params.set("real", point.x);
-  params.set("imag", point.y);
-  params.set("zoom", point.z);
+  params.set("real", complex.x);
+  params.set("imag", complex.y);
+  params.set("zoom", complex.z);
   // replace old url params
   window.history.replaceState(
     {},
     "",
     `${document.location.pathname}?${params}`
   );
+  return complex;
 };
