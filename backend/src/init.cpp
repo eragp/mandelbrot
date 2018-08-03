@@ -1,6 +1,6 @@
 #include <fstream>
 #include <iostream>
-#include "Client.h"
+#include "Worker.h"
 #include "Host.h"
 
 // MPI Libraries
@@ -15,7 +15,7 @@
 const int default_res = 256;
 
 int init(int argc, char **argv, bool host) {
-    const char* type = host ? "Host" : "Client";
+    const char* type = host ? "Host" : "Worker";
 
     MPI_Init(&argc, &argv);
     int world_rank;
@@ -28,17 +28,20 @@ int init(int argc, char **argv, bool host) {
     int proc_name_length;
     MPI_Get_processor_name(proc_name, &proc_name_length);
 	std::cout << type << ": " << world_rank << " of " << world_size <<
-        "on node " << proc_name << std::endl;
+        " on node " << proc_name << std::endl;
 
-    if (world_size == 1) {
-       std:: cerr << "need at least 2 processes to run. Currently have " << world_size << std::endl;
+    if (world_size < 2) {
+       std:: cerr << "Need at least 2 processes to run. Currently have " << world_size << std::endl;
         MPI_Finalize();
         return -1;  // return with error
     }
     if (host == true) {
         Host::init(world_rank, world_size);
     } else {
-        Client::init(world_rank, world_size);
+        Worker::init(world_rank, world_size);
     }
+
+    MPI_Finalize();
+
     return 0;
 }

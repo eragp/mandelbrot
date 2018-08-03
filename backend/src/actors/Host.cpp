@@ -260,7 +260,7 @@ void Host::init(int world_rank, int world_size) {
     std::thread websocket_server(start_server);
 
     // Test if all cores are available
-    // We assume from programs side that all cores *are* available, this is merely debug
+    // We assume from programs side that all cores *are* available, this allows Workers to get the Host rank
     activeNodes = std::vector<int>();
     for (int i = 0; i < cores; i++) {
         if(i != my_rank){

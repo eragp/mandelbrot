@@ -1,4 +1,4 @@
-#include "Client.h"
+#include "Worker.h"
 
 #include "Fractal.h"
 #include "Mandelbrot.h"
@@ -17,7 +17,7 @@
 #include <thread>
 #include <chrono>
 
-void Client::init(int world_rank, int world_size) {
+void Worker::init(int world_rank, int world_size) {
     Fractal *f = new Mandelbrot();
     // Initial test if this core is ready
     int test;
