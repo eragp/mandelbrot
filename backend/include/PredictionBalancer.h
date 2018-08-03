@@ -8,8 +8,7 @@
 
 class PredictionBalancer : public Balancer {
 private:
-	// The lower, the better; predictionAccuracy = 1 means that the Fractal is calculated in full resolution for prediction
-	// predictionAccuracy has to divide guaranteedDivisor of passed region
+	// The higher, the better; a part of size guaranteedDivisor * guaranteedDivisor is represented by predictionAccuracy * predictionAccuracy pixels in the prediction
 	int predictionAccuracy;
 	Fractal* f;
 	Region* splitCol(Region col, int parts, int nSum, std::vector<int> n, double deltaImaginary);

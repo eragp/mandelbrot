@@ -8,14 +8,14 @@
 // Worst case scenario: Prediction changes suddenly from small to big values
 Region* PredictionBalancer::balanceLoad(Region region, int nodeCount) {
 	Region lowRes = region;
-	lowRes.width = region.width / predictionAccuracy;
-	lowRes.height = region.height / predictionAccuracy;
+	lowRes.width = (region.width / region.guaranteedDivisor) * predictionAccuracy;
+	lowRes.height = (region.height / region.guaranteedDivisor) * predictionAccuracy;
 
 	int predictionLengthX = region.width / region.guaranteedDivisor;
 	int predictionLengthY = region.height / region.guaranteedDivisor;
 	// Prediction per part with width and height == guaranteedDivisor
-	std::vector<std::vector<int>> n(predictionLengthX, std::vector<int>(predictionLengthY));	// length1: lowRes.width, length2: lowRes.height
-	std::vector<int> nColSums(predictionLengthX);	// length: lowRes.width
+	std::vector<std::vector<int>> n(predictionLengthX, std::vector<int>(predictionLengthY));
+	std::vector<int> nColSums(predictionLengthX);
 	int nSum = 0;
 
 	double deltaReal = Fractal::deltaReal(lowRes.maxReal, lowRes.minReal, lowRes.width);
@@ -24,17 +24,17 @@ Region* PredictionBalancer::balanceLoad(Region region, int nodeCount) {
 	for (unsigned int x = 0; x < lowRes.width; x++) {
 		for (unsigned int y = 0; y < lowRes.height; y++) {
 			int iterationCount = f->calculateFractal(lowRes.minReal + x * deltaReal, lowRes.maxImaginary - y * deltaImaginary, lowRes.maxIteration);
-			n[x * predictionAccuracy / region.guaranteedDivisor][y * predictionAccuracy / region.guaranteedDivisor] += iterationCount;
+			n[x / predictionAccuracy][y / predictionAccuracy] += iterationCount;
 			// Sum over expected iteration per column
-			nColSums[x * predictionAccuracy / region.guaranteedDivisor] += iterationCount;
+			nColSums[x / predictionAccuracy] += iterationCount;
 			// Sum over all expected iterations
 			nSum += iterationCount;
 		}
 	}
 
 	// Set deltas to represent delta per prediction piece
-	deltaReal *= region.guaranteedDivisor / predictionAccuracy;
-	deltaImaginary *= region.guaranteedDivisor / predictionAccuracy;
+	deltaReal *= predictionAccuracy;
+	deltaImaginary *= predictionAccuracy;
 
 	// Debug
 	std::cout << "nSum: " << nSum << std::endl;
