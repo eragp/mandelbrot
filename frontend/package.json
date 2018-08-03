@@ -3,16 +3,21 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "bootstrap": "^4.1.0",
-    "install": "^0.11.0",
+    "ajv": "^6.5.2",
+    "bootstrap": "^4.1.2",
+    "chart.js": "^2.7.2",
+    "eslint-plugin-promise": "^3.8.0",
+    "install": "^0.11.2",
+    "jquery": "^3.3.1",
     "jsdom": "^11.9.0",
     "leaflet": "github:nielstron/Leaflet#fixed-ratio-selection-rectangle-build",
     "leaflet-zoombox": "^0.5.1",
-    "npm": "^6.1.0",
-    "react": "^16.3.1",
-    "react-dom": "^16.3.1",
+    "npm": "^6.2.0",
+    "react": "^16.4.1",
+    "react-dom": "^16.4.1",
     "react-scripts": "1.1.4",
-    "reactstrap": "^5.0.0-beta.3"
+    "reactstrap": "^5.0.0-beta.3",
+    "vis": "^4.21.0"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -22,6 +27,6 @@
   },
   "devDependencies": {
     "eslint": "^4.19.1",
-    "eslint-plugin-react": "^7.7.0"
+    "eslint-plugin-react": "^7.10.0"
   }
 }

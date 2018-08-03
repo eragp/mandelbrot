@@ -1,7 +1,11 @@
 #include "ColumnBalancer.h"
-#include <cmath>
 #include "Region.h"
 #include "Fractal.h"
+
+#include <cmath>
+#include <string>
+
+const std::string ColumnBalancer::NAME = "column";
 
 /**
  * IntergerBalancer takes a region and separates it into #nodeCount
@@ -11,7 +15,7 @@ Region* ColumnBalancer::balanceLoad(Region region, const int nodeCount) {
     Region* regions = new Region[nodeCount];
 
     int columnWidth = (region.width / (region.guaranteedDivisor * nodeCount)) * region.guaranteedDivisor;
-    int xDelta = Fractal::deltaReal(region.maxReal, region.minReal, region.width) * columnWidth;
+    double xDelta = Fractal::deltaReal(region.maxReal, region.minReal, region.width) * columnWidth;
 
     Region tmp;
 	// These stay the same over all iterations
@@ -34,7 +38,8 @@ Region* ColumnBalancer::balanceLoad(Region region, const int nodeCount) {
 		   tmp.width = region.width - columnWidth * i;
            regions[i] = tmp;
        } else {
-           tmp.maxReal = tmp.minReal + xDelta;
+           // We don't want inaccuracy from repeatedly adding doubles
+           tmp.maxReal = region.minReal + (i + 1) * xDelta;
            tmp.width = columnWidth;
 
            regions[i] = tmp;

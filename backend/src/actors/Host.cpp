@@ -1,12 +1,11 @@
 #include "Host.h"
 
-#include <fstream>
-#include <iostream>
 #include "Balancer.h"
+#include "BalancerPolicy.h"
+
 #include "Fractal.h"
-#include "ColumnBalancer.h"
-#include "NaiveBalancer.h"
-#include "RegionOld.h"
+#include "Mandelbrot.h"
+
 #include "Region.h"
 #include "Tile.h"
 #include "TileData.h"
@@ -23,6 +22,7 @@
 #include <websocketpp/server.hpp>
 
 // Utils
+#include <iostream>
 #include <map>
 #include <mutex>
 #include <queue>
@@ -88,8 +88,9 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     }
 
     Region region{};
+    utility::string_t balancer;
     try {
-        utility::string_t balancer = request["balancer"].as_string();
+        balancer = request["balancer"].as_string();
 
         region.minReal = request["minReal"].as_double();
         region.maxImaginary = request["maxImag"].as_double();
@@ -122,8 +123,9 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
 
     // TODO increase by one as soon as host is invoked as worker too
     int nodeCount = activeNodes.size();
-    // TODO make this based on balancer variable defined above (sounds like strategy pattern...) --> That was the idea :)
-    Balancer *b = new NaiveBalancer();
+    // make this based on balancer variable defined above (sounds like strategy pattern...) --> That was the idea :)
+    // TODO let frontend choose fractal similar to balancer
+    Balancer *b = BalancerPolicy::chooseBalancer(balancer, new Mandelbrot());
     Region *blocks = b->balanceLoad(region, nodeCount);  // Blocks is array with nodeCount members
     // DEBUG
     std::cout << "Balancer Output:" << std::endl;
