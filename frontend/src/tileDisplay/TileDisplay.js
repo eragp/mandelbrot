@@ -12,7 +12,7 @@ import Shader from "./Shader";
 import { project, unproject } from "./Project";
 import { request as requestRegion } from "./RegionRequest";
 
-import { tileSize } from "./Constants";
+import { tileSize, leafletBound } from "./Constants";
 import Point from "../misc/Point";
 import MatrixView from "./MatrixView";
 import BalancerPolicy from "../misc/BalancerPolicy";
@@ -42,7 +42,10 @@ export default class TileDisplay extends Component {
     // bounds have to be a power of two
     // these bounds are chosen arbitrary and have nothing to do with
     // either leaflet space, nor the complex plane
-    let bounds = [[-256, -256], [256, 256]];
+    let bounds = [
+      [-leafletBound, -leafletBound],
+      [leafletBound, leafletBound]
+    ];
     this.map = L.map("viewer", {
       crs: L.CRS.Simple,
       // maxZoom: 32,
@@ -65,7 +68,7 @@ export default class TileDisplay extends Component {
     this.registerNewView(map => {
       let center = map.getCenter();
       let zoom = map.getZoom();
-      setURLParams(new Point(center.lng, center.lat, zoom));
+      setURLParams(new Point(center.lat, center.lng, zoom));
     });
 
     // Handle balancer change as view change
