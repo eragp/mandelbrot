@@ -1,20 +1,20 @@
-import React, { Component } from 'react';
-import ReactDOM from 'react-dom';
+import React, { Component } from "react";
+import ReactDOM from "react-dom";
 // Bootstrap
-import 'bootstrap/dist/css/bootstrap.css';
+import "bootstrap/dist/css/bootstrap.css";
 // Custom Components
-import TileDisplay from './tileDisplay/TileDisplay';
-import registerServiceWorker from './registerServiceWorker';
-import NodeProgress from './visualization/NodeProgress';
-import WebSocketClient from './connection/WSClient';
-import BalancerChoice from './visualization/BalancerChoice';
-import BalancerPolicy from './misc/BalancerPolicy';
-import WorkerContext from './misc/WorkerContext';
-import NetworkView from './visualization/NetworkView';
-import IdleTime from './visualization/IdleTime';
+import TileDisplay from "./tileDisplay/TileDisplay";
+import registerServiceWorker from "./registerServiceWorker";
+import NodeProgress from "./visualization/NodeProgress";
+import WebSocketClient from "./connection/WSClient";
+import BalancerChoice from "./visualization/BalancerChoice";
+import BalancerPolicy from "./misc/BalancerPolicy";
+import WorkerContext from "./misc/WorkerContext";
+import NetworkView from "./visualization/NetworkView";
+import IdleTime from "./visualization/IdleTime";
 
 // CSS
-import './Index.css';
+import "./Index.css";
 
 class App extends Component {
   render() {
@@ -25,10 +25,15 @@ class App extends Component {
     return (
       <div>
         <div className="mainTop">
-          <TileDisplay workerContext={workerContext} wsclient={websocketclient} balancerPolicy={balancerPolicy}/>
-        </div> <div className="mainBottom row">
+          <TileDisplay
+            workerContext={workerContext}
+            wsclient={websocketclient}
+            balancerPolicy={balancerPolicy}
+          />
+        </div>
+        <div className="mainBottom row">
           <div className="col-3">
-            <BalancerChoice balancerPolicy={balancerPolicy}/>
+            <BalancerChoice balancerPolicy={balancerPolicy} />
           </div>
           <div className="col-5">
             <NetworkView workerContext={workerContext} wsclient={websocketclient} />
@@ -37,7 +42,7 @@ class App extends Component {
             <IdleTime workerContext={workerContext} wsclient={websocketclient} />
           </div>
           <div className="col-3">
-            <NodeProgress workerContext={workerContext} wsclient={websocketclient}/>
+            <NodeProgress workerContext={workerContext} wsclient={websocketclient} />
           </div>
         </div>
       </div>
@@ -45,5 +50,5 @@ class App extends Component {
   }
 }
 
-ReactDOM.render(<App />, document.getElementById('root'));
+ReactDOM.render(<App />, document.getElementById("root"));
 registerServiceWorker();

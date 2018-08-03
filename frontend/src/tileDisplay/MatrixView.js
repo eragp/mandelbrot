@@ -2,7 +2,7 @@ import Point from '../misc/Point';
 import { tileSize } from './Constants';
 import { getBottomRightPoint, getTopLeftPoint } from './Project';
 
-export default class RegionDrawer {
+export default class MatrixView {
   constructor(tileDisplay, webSocketClient) {
     /*
     * this map stores callbacks to render all the tiles requested for leaflet.
@@ -17,6 +17,7 @@ export default class RegionDrawer {
     let handleRegionData = msg => {
       let region = msg.workerInfo.region;
       let zoom = region.validation;
+      
       // compute x/y coordinates based on region
       let tileSize = region.guaranteedDivisor;
       let xEnd = region.width / tileSize;
@@ -27,17 +28,15 @@ export default class RegionDrawer {
         this.topLeft.y - region.vOffset / tileSize,
         zoom
       );
-      //let topLeft = unproject(region.minReal, region.maxImag, zoom);
-      topLeft.y = topLeft.y * -1;
-      //console.log(topLeft);
+      topLeft.y *= -1;
 
       // and invoke tile draw methods
       for (let y = 0; y < yEnd; y++) {
         for (let x = 0; x < xEnd; x++) {
           let tileX = topLeft.x + x;
           let tileY = topLeft.y + y;
-          let cb = this.callbacks.get(coordsToString(tileX, tileY, zoom));
-          if (cb === undefined || cb === null) {
+          let render = this.callbacks.get(coordsToString(tileX, tileY, zoom));
+          if (render === undefined || render === null) {
             console.error(
               'Region not found for ' + new Point(tileX, tileY, zoom)
             );
@@ -56,7 +55,7 @@ export default class RegionDrawer {
             region.width,
             region.height
           );
-          cb(roi);
+          render(roi);
         }
       }
     };
@@ -64,7 +63,7 @@ export default class RegionDrawer {
     /**
      * Register yourself at WSClient as regionData observer
      */
-    webSocketClient.registerWorker(handleRegionData);
+    webSocketClient.registerRegionData(handleRegionData);
 
     let handleNewView = map => {
       let bounds = map.getPixelBounds();
@@ -81,10 +80,10 @@ export default class RegionDrawer {
 
   /**
    * Registers the tile at coords to be drawn as soon as data is available.
-   * @param {*} point coordinates on the tile to be registerd
+   * @param {Point} origin coordinates on the tile to be registerd
    * @param {*} draw function expecting data that draws the tile @coords
    */
-  register(point, draw) {
+  registerTile(origin, draw) {
     let promise;
     const render = data => {
       promise = new Promise((resolve, error) => {
@@ -96,7 +95,7 @@ export default class RegionDrawer {
         }
       });
     };
-    let coords = coordsToString(point.x, point.y, point.z);
+    let coords = coordsToString(origin.x, origin.y, origin.z);
     this.callbacks.set(coords, render);
     return promise;
   }
@@ -107,11 +106,11 @@ export default class RegionDrawer {
  */
 class RegionOfInterest {
   /**
-   * @param {*} tl TopLeft Point
-   * @param {*} br BottomRight Point
+   * @param {Point} tl TopLeft Point
+   * @param {Point} br BottomRight Point
    * @param {*} data data for super region
-   * @param {*} width width of the super region
-   * @param {*} height height of the super region
+   * @param {Number} width width of the super region
+   * @param {Number} height height of the super region
    */
   constructor(tl, br, data, width, height) {
     this.topLeft = tl;
@@ -127,6 +126,8 @@ class RegionOfInterest {
   /**
    * Returns the correct value of the underlying data array
    * by wrapping x and y in the rectangle of topLeft, bottomRight.
+   * @param {Number} x pixel x coordinate of the tile
+   * @param {Number} y pixel y coordinate of the tile
    */
   get(x, y) {
     if (x > this.ROIWidth || y > this.ROIHeight) {

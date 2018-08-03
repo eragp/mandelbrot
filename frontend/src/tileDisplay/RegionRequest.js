@@ -1,5 +1,5 @@
-import { getBottomRightPoint, getTopLeftPoint, project } from './Project';
-import { tileSize, maxIteration } from './Constants';
+import { getBottomRightPoint, getTopLeftPoint, project } from "./Project";
+import { tileSize, maxIteration } from "./Constants";
 
 // making sure only new requests actually get sent
 var currentTopLeft = null;
@@ -20,7 +20,11 @@ export const request = (map, balancer) => {
   let botRight = getBottomRightPoint(bounds, tileSize, zoom);
 
   // has the visible region changed?
-  if (topLeft.equals(currentTopLeft) && botRight.equals(currentBottomRight) && currentBalancer === balancer) {
+  if (
+    topLeft.equals(currentTopLeft) &&
+    botRight.equals(currentBottomRight) &&
+    currentBalancer === balancer
+  ) {
     return null;
   }
   currentTopLeft = topLeft;
@@ -29,8 +33,8 @@ export const request = (map, balancer) => {
   let tlComplex = project(topLeft.x, topLeft.y, topLeft.z, 0, 0, tileSize);
   let brComplex = project(botRight.x, botRight.y, botRight.z, 0, 0, tileSize);
   let [sizeX, sizeY] = [
-    (Math.abs(botRight.x - topLeft.x)) * tileSize,
-    (Math.abs(topLeft.y - botRight.y)) * tileSize
+    Math.abs(botRight.x - topLeft.x) * tileSize,
+    Math.abs(topLeft.y - botRight.y) * tileSize
   ];
   let region = {
     // point top left
@@ -47,9 +51,9 @@ export const request = (map, balancer) => {
     // Divisor for width and height. Will be used to perform load balancing
     guaranteedDivisor: tileSize,
     balancer: balancer,
-    maxIteration: maxIteration,
+    maxIteration: maxIteration
   };
-  console.log('sending Region request: ');
+  console.log("sending Region request: ");
   console.log(region);
   return region;
 };

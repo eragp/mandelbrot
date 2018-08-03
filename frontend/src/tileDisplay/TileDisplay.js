@@ -1,29 +1,27 @@
-import React, { Component } from 'react';
+import React, { Component } from "react";
 // leaflet stuff
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet/dist/leaflet-src.js';
-import 'leaflet-zoombox';
-import 'leaflet-zoombox/L.Control.ZoomBox.css';
+import "leaflet/dist/leaflet.css";
+import L from "leaflet/dist/leaflet-src.js";
+import "leaflet-zoombox";
+import "leaflet-zoombox/L.Control.ZoomBox.css";
 
 // custom stylesheet
-import './TileDisplay.css';
+import "./TileDisplay.css";
 
-import Shader from './Shader';
-import { project, unproject } from './Project';
-import { request as requestRegion } from './RegionRequest';
+import Shader from "./Shader";
+import { project, unproject } from "./Project";
+import { request as requestRegion } from "./RegionRequest";
 
-import { tileSize } from './Constants';
-import Point from '../misc/Point';
-import RegionDrawer from './RegionDrawer';
-import BalancerPolicy from '../misc/BalancerPolicy';
-import WebSocketClient from '../connection/WSClient';
-import PropTypes from 'prop-types';
-import WorkerLayer from './WorkerLayer';
-import WorkerContext from '../misc/WorkerContext';
-
+import { tileSize } from "./Constants";
+import Point from "../misc/Point";
+import MatrixView from "./MatrixView";
+import BalancerPolicy from "../misc/BalancerPolicy";
+import WebSocketClient from "../connection/WSClient";
+import PropTypes from "prop-types";
+import WorkerLayer from "./WorkerLayer";
+import WorkerContext from "../misc/WorkerContext";
 
 export default class TileDisplay extends Component {
-
   componentDidMount() {
     this.map = null;
     /**
@@ -33,7 +31,7 @@ export default class TileDisplay extends Component {
     this.websocketClient = this.props.wsclient;
     this.balancerPolicy = this.props.balancerPolicy;
     this.workerContext = this.props.workerContext;
-    this.regionDrawer = new RegionDrawer(this, this.websocketClient);
+    this.regionDrawer = new MatrixView(this, this.websocketClient);
     this.renderLeaflet();
   }
 
@@ -42,15 +40,15 @@ export default class TileDisplay extends Component {
     // these bounds are chosen arbitrary and have nothing to do with
     // either leaflet space, nor the complex plane
     let bounds = [[-256, -256], [256, 256]];
-    this.map = L.map('viewer', {
+    this.map = L.map("viewer", {
       crs: L.CRS.Simple,
       // maxZoom: 32,
       zoom: 3
     });
 
-    const map = this.map;
-    const websocketClient = this.websocketClient;
-    const regionDrawer = this.regionDrawer;
+    let map = this.map;
+    let websocketClient = this.websocketClient;
+    let regionDrawer = this.regionDrawer;
 
     // Request a new region subdivision via websocket on view change
     this.registerNewView(map => {
@@ -60,14 +58,14 @@ export default class TileDisplay extends Component {
       }
     });
 
-    // Handle balancer change as view change 
+    // Handle balancer change as view change
     //  => update all view subscribers about a policy change as if the view had changed
-    this.balancerPolicy.subscribe(() => this.updateAllNewView());
+    this.balancerPolicy.subscribe(() => this._updateAllViews());
 
     // add event listeners to the map for region requests
 
     map.on({
-      moveend: () => this.updateAllNewView()
+      moveend: () => this._updateAllViews()
     });
 
     function drawPixel(imgData, x, y, r, g, b) {
@@ -79,13 +77,12 @@ export default class TileDisplay extends Component {
       d[i + 3] = 255; // alpha
     }
 
- 
     L.GridLayer.MandelbrotLayer = L.GridLayer.extend({
       createTile: function(coords, done) {
-        let tile = L.DomUtil.create('canvas', 'leaflet-tile');
+        let tile = L.DomUtil.create("canvas", "leaflet-tile");
         let size = this.getTileSize();
         // when zooming map.getZoom() is not up to date
-        // therefore the value has to read directly from the layer
+        // therefore the value has to be read directly from the layer
         let zoom = this._tileZoom;
         tile.width = size.x;
         tile.height = size.y;
@@ -96,8 +93,8 @@ export default class TileDisplay extends Component {
          * (see RegionDrawer)
          */
         var drawTile = tileData => {
-          let ctx = tile.getContext('2d', { alpha: false });
-          ctx.fillStyle = 'black';
+          let ctx = tile.getContext("2d", { alpha: false });
+          ctx.fillStyle = "black";
           ctx.fillRect(0, 0, tile.width, tile.height);
 
           let imgData = ctx.createImageData(size.x, size.y);
@@ -112,20 +109,14 @@ export default class TileDisplay extends Component {
           ctx.putImageData(imgData, 0, 0);
           done(null, tile);
         };
-        /*console.log(
-          'requesting new tile at ' +
-            p +
-            ' complex: ' +
-            project(p.x, p.y, zoom, 0, 0, tileSize)
-        );*/
-        regionDrawer.register(p, drawTile);
+        regionDrawer.registerTile(p, drawTile);
         return tile;
       }
     });
 
     L.GridLayer.DebugLayer = L.GridLayer.extend({
       createTile: function(coords) {
-        let div = document.createElement('div');
+        let div = document.createElement("div");
         let size = this.getTileSize();
         let zoom = this._tileZoom;
         div.width = size.x;
@@ -136,42 +127,41 @@ export default class TileDisplay extends Component {
         let projected = project(coords.x, coords.y, zoom, 0, 0, tileSize);
         let unprojected = unproject(projected.x, projected.y, zoom);
 
-        div.classList.add('debugLayer');
+        div.classList.add("debugLayer");
         div.innerHTML =
-          'Leaflet tile: ' +
+          "Leaflet tile: " +
           p.toString() +
-          '</br>Projected: ' +
+          "</br>Projected: " +
           projected +
-          '</br>Unprojected: ' +
+          "</br>Unprojected: " +
           unprojected;
 
-        
         return div;
       }
     });
 
     const mandelbrotLayer = new L.GridLayer.MandelbrotLayer({
-        tileSize: tileSize, // in px
-        bounds: bounds,
-        keepBuffer: 0
-      });
+      tileSize: tileSize, // in px
+      bounds: bounds,
+      keepBuffer: 0
+    });
     const debugLayer = new L.GridLayer.DebugLayer({
-        tileSize: tileSize,
-        bounds: bounds,
-        keepBuffer: 0
-      });
+      tileSize: tileSize,
+      bounds: bounds,
+      keepBuffer: 0
+    });
     const workerLayer = new WorkerLayer(
       websocketClient,
       map.unproject.bind(map),
       this.workerContext
     );
     const baseLayer = {
-        'Mandelbrot Layer': mandelbrotLayer
-      };
+      "Mandelbrot Layer": mandelbrotLayer
+    };
     const overlayLayers = {
-        'Debug Layer': debugLayer,
-        'Worker Layer': workerLayer
-      };
+      "Debug Layer": debugLayer,
+      "Worker Layer": workerLayer
+    };
     map.addLayer(mandelbrotLayer);
     map.addLayer(workerLayer);
 
@@ -181,10 +171,9 @@ export default class TileDisplay extends Component {
     map.addControl(
       L.control.zoomBox({
         modal: true,
-        title: 'Box area zoom'
+        title: "Box area zoom"
       })
     );
-
   }
 
   /**
@@ -205,7 +194,7 @@ export default class TileDisplay extends Component {
     return promise;
   }
 
-  updateAllNewView(){
+  _updateAllViews() {
     this.newViewObservers.forEach(callback => callback(this.map));
   }
 
@@ -218,4 +207,4 @@ TileDisplay.propTypes = {
   wsclient: PropTypes.instanceOf(WebSocketClient),
   balancerPolicy: PropTypes.instanceOf(BalancerPolicy),
   workerContext: PropTypes.instanceOf(WorkerContext)
-}
+};
