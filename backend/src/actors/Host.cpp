@@ -87,26 +87,31 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         return;
     }
 
+    if(request["type"].as_string() != "regionRequest"){
+        return;
+    }
+
     Region region{};
     utility::string_t balancer;
     try {
         balancer = request["balancer"].as_string();
 
-        region.minReal = request["minReal"].as_double();
-        region.maxImaginary = request["maxImag"].as_double();
+        json::value regionObject = request["region"];
+        region.minReal = regionObject["minReal"].as_double();
+        region.maxImaginary = regionObject["maxImag"].as_double();
 
-        region.maxReal = request["maxReal"].as_double();
-        region.minImaginary = request["minImag"].as_double();
+        region.maxReal = regionObject["maxReal"].as_double();
+        region.minImaginary = regionObject["minImag"].as_double();
 
-        region.width = static_cast<unsigned int >(request["width"].as_integer());
-        region.height = static_cast<unsigned int >(request["height"].as_integer());
+        region.width = static_cast<unsigned int >(regionObject["width"].as_integer());
+        region.height = static_cast<unsigned int >(regionObject["height"].as_integer());
 
         region.hOffset = 0;
         region.vOffset = 0;
 
-        region.maxIteration = static_cast<unsigned int >(request["maxIteration"].as_integer());
-        region.validation = request["validation"].as_integer();
-        region.guaranteedDivisor = static_cast<unsigned int >(request["guaranteedDivisor"].as_integer());
+        region.maxIteration = static_cast<unsigned int >(regionObject["maxIteration"].as_integer());
+        region.validation = regionObject["validation"].as_integer();
+        region.guaranteedDivisor = static_cast<unsigned int >(regionObject["guaranteedDivisor"].as_integer());
     } catch (std::out_of_range &e) {
         std::cerr << "Inclompletely specified region requested: " << request_string;
         return;
