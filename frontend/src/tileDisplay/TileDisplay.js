@@ -42,7 +42,7 @@ export default class TileDisplay extends Component {
     let bounds = [[-256, -256], [256, 256]];
     this.map = L.map("viewer", {
       crs: L.CRS.Simple,
-      // maxZoom: 32,
+      maxZoom: 50,
       zoom: 3
     });
 

@@ -31,7 +31,8 @@ function toGeoJSON(regions, pixelToLatLng) {
             toLatLngArray(region.minReal, region.maxImag, region.validation),
             toLatLngArray(region.maxReal, region.maxImag, region.validation),
             toLatLngArray(region.maxReal, region.minImag, region.validation),
-            toLatLngArray(region.minReal, region.minImag, region.validation)
+            toLatLngArray(region.minReal, region.minImag, region.validation),
+            toLatLngArray(region.minReal, region.maxImag, region.validation)
           ]
         ]
       },
