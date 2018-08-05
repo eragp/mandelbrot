@@ -37,21 +37,27 @@ export const request = (map, balancer) => {
     Math.abs(topLeft.y - botRight.y) * tileSize
   ];
   let region = {
-    // point top left
-    minReal: tlComplex.x,
-    maxImag: tlComplex.y,
-    // point top right
-    maxReal: brComplex.x,
-    minImag: brComplex.y,
-    // computed region size
-    width: sizeX,
-    height: sizeY,
-    // region identification via zoom factor
-    validation: zoom,
-    // Divisor for width and height. Will be used to perform load balancing
-    guaranteedDivisor: tileSize,
-    balancer: balancer,
-    maxIteration: maxIteration
+    region: {
+      // point top left
+      minReal: tlComplex.x,
+      maxImag: tlComplex.y,
+      // point top right
+      maxReal: brComplex.x,
+      minImag: brComplex.y,
+      // computed region size
+      width: sizeX,
+      height: sizeY,
+      // Super region => no offset
+      hOffset: 0,
+      vOffset: 0,
+      // region identification via zoom factor
+      validation: zoom,
+      // Divisor for width and height. Will be used to perform load balancing
+      guaranteedDivisor: tileSize,
+      maxIteration: maxIteration
+    },
+    type: "regionRequest",
+    balancer: balancer
   };
   console.log("sending Region request: ");
   console.log(region);

@@ -20,7 +20,8 @@ function toGeoJSON(regions, pixelToLatLng) {
     return [latLng.lng, latLng.lat];
   };
 
-  for (const region of regions) {
+  for (const worker of regions) {
+    const region = worker.region;
     featureCollection.features.push({
       type: "Feature",
       geometry: {
@@ -37,7 +38,7 @@ function toGeoJSON(regions, pixelToLatLng) {
         ]
       },
       properties: {
-        node: region.nodeID,
+        node: worker.rank,
         zoom: region.validation
       }
     });

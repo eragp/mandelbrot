@@ -87,26 +87,31 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         return;
     }
 
+    if(request["type"].as_string() != "regionRequest"){
+        return;
+    }
+
     Region region{};
     utility::string_t balancer;
     try {
         balancer = request["balancer"].as_string();
 
-        region.minReal = request["minReal"].as_double();
-        region.maxImaginary = request["maxImag"].as_double();
+        json::value regionObject = request["region"];
+        region.minReal = regionObject["minReal"].as_double();
+        region.maxImaginary = regionObject["maxImag"].as_double();
 
-        region.maxReal = request["maxReal"].as_double();
-        region.minImaginary = request["minImag"].as_double();
+        region.maxReal = regionObject["maxReal"].as_double();
+        region.minImaginary = regionObject["minImag"].as_double();
 
-        region.width = static_cast<unsigned int >(request["width"].as_integer());
-        region.height = static_cast<unsigned int >(request["height"].as_integer());
+        region.width = static_cast<unsigned int >(regionObject["width"].as_integer());
+        region.height = static_cast<unsigned int >(regionObject["height"].as_integer());
 
         region.hOffset = 0;
         region.vOffset = 0;
 
-        region.maxIteration = static_cast<unsigned int >(request["maxIteration"].as_integer());
-        region.validation = request["validation"].as_integer();
-        region.guaranteedDivisor = static_cast<unsigned int >(request["guaranteedDivisor"].as_integer());
+        region.maxIteration = static_cast<unsigned int >(regionObject["maxIteration"].as_integer());
+        region.validation = regionObject["validation"].as_integer();
+        region.guaranteedDivisor = static_cast<unsigned int >(regionObject["guaranteedDivisor"].as_integer());
     } catch (std::out_of_range &e) {
         std::cerr << "Inclompletely specified region requested: " << request_string;
         return;
@@ -159,29 +164,33 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     json::value reply;
     reply[U("type")] = json::value::string(U("region"));
     reply[U("regionCount")] = json::value(nodeCount);
-    json::value regions;
+    json::value workers;
     for (int i = 0; i < nodeCount; i++) {
         Region t = blocks[i];
-        regions[i] = json::value();
-        regions[i][U("nodeID")] = json::value(activeNodes.at(i));
 
-        regions[i][U("minReal")] = json::value((double) t.minReal);
-        regions[i][U("maxImag")] = json::value((double) t.maxImaginary);
+        json::value region;
+        region[U("minReal")] = json::value((double) t.minReal);
+        region[U("maxImag")] = json::value((double) t.maxImaginary);
 
-        regions[i][U("maxReal")] = json::value((double) t.maxReal);
-        regions[i][U("minImag")] = json::value((double) t.minImaginary);
+        region[U("maxReal")] = json::value((double) t.maxReal);
+        region[U("minImag")] = json::value((double) t.minImaginary);
 
-        regions[i][U("width")] = json::value(t.width);
-        regions[i][U("height")] = json::value(t.height);
+        region[U("width")] = json::value(t.width);
+        region[U("height")] = json::value(t.height);
 
-        regions[i][U("hOffset")] = json::value(t.hOffset);
-        regions[i][U("vOffset")] = json::value(t.vOffset);
+        region[U("hOffset")] = json::value(t.hOffset);
+        region[U("vOffset")] = json::value(t.vOffset);
 
-        regions[i][U("maxIteration")] = json::value(t.maxIteration);
-        regions[i][U("validation")] = json::value(t.validation);
-        regions[i][U("guaranteedDivisor")] = json::value(t.guaranteedDivisor);
+        region[U("maxIteration")] = json::value(t.maxIteration);
+        region[U("validation")] = json::value(t.validation);
+        region[U("guaranteedDivisor")] = json::value(t.guaranteedDivisor);
+
+        workers[i] = json::value();
+        workers[i][U("rank")] = json::value(activeNodes.at(i));
+        workers[i][U("computationTime")] = json::value(0);
+        workers[i][U("region")] = region;
     }
-    reply[U("regions")] = regions;
+    reply[U("regions")] = workers;
     try {
         websocket_server.send(hdl, reply.serialize().c_str(), websocketpp::frame::opcode::text);
     } catch (websocketpp::exception &e) {
