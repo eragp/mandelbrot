@@ -1,0 +1,5 @@
+{
+    "extends": ["google"],
+    "printWidth" : 100,
+    "parser": "flow"
+}

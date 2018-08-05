@@ -1,5 +1,6 @@
 import Point from '../misc/Point';
 import { bounds } from './Constants';
+import Bounds from 'leaflet';
 
 /**
  * This function projects leaflet tile coordinates to the complex plane
@@ -15,20 +16,17 @@ export const project = (tileX, tileY, zoom, pixelX, pixelY, tileSize) => {
   // top left -> bottom right
   // bounds in the imaginary plane have to be symmetric
   let tileCount = Math.pow(2, zoom);
-  let real =
-      (tileX * bounds[0] * tileSize + pixelX * bounds[0]) /
-      (tileCount * tileSize),
-    imag =
-      (tileY * bounds[1] * tileSize + pixelY * bounds[1]) /
-      (tileCount * tileSize);
+  let real = (tileX * bounds[0] * tileSize + pixelX * bounds[0]) / (tileCount * tileSize),
+    imag = (tileY * bounds[1] * tileSize + pixelY * bounds[1]) / (tileCount * tileSize);
   return new Point(real, imag);
 };
 
 /**
  * Unprojects from the complex plane to leaflet tile coordinates
- * @param {*} real Real part of the complex coordinate
- * @param {*} imag Imaginary part of the complex coordinate
- * @param {*} zoom current zoom factor in leaflet space
+ * @param {Number} real Real part of the complex coordinate
+ * @param {Number} imag Imaginary part of the complex coordinate
+ * @param {Number} zoom current zoom factor in leaflet space
+ * @returns {Point} Leaflet tile coordinate corresponding to real/imag coordinate
  */
 export const unproject = (real, imag, zoom) => {
   let tileCount = Math.pow(2, zoom);
@@ -39,9 +37,9 @@ export const unproject = (real, imag, zoom) => {
 
 /**
  * calculates the TopLeft point in leaflet coordinates from the given bounds
- * @param {*} bounds pixel bounds of the current view
- * @param {*} tileSize leaflet tile size
- * @param {*} zoom zoom factor
+ * @param {Bounds} bounds pixel bounds of the current view
+ * @param {Number} tileSize leaflet tile size
+ * @param {Number} zoom zoom factor
  */
 export const getTopLeftPoint = (bounds, tileSize, zoom) => {
   return toPoint(bounds.min, tileSize, zoom, true);
@@ -49,22 +47,29 @@ export const getTopLeftPoint = (bounds, tileSize, zoom) => {
 
 /**
  * calculates the TopLeft point in leaflet coordinates from the given bounds
- * @param {*} bounds pixel bounds of the current view
- * @param {*} tileSize leaflet tile size
- * @param {*} zoom zoom factor
+ * @param {Bounds} bounds pixel bounds of the current view
+ * @param {Number} tileSize leaflet tile size
+ * @param {Number} zoom zoom factor
  */
 export const getBottomRightPoint = (bounds, tileSize, zoom) => {
   return toPoint(bounds.max, tileSize, zoom, false);
 };
 
-function toPoint(bound, tileSize, zoom, topleft) {
+/**
+ * 
+ * @param {Bounds} bound 
+ * @param {Number} tileSize 
+ * @param {Number} zoom 
+ * @param {Boolean} topLeft
+ */
+function toPoint(bound, tileSize, zoom, topLeft) {
   let x, y;
-  if (topleft) {
+  if (topLeft) {
     x = Math.floor(bound.x / tileSize);
   } else {
     x = Math.ceil(bound.x / tileSize);
   }
-  if (topleft) {
+  if (topLeft) {
     y = Math.floor(bound.y / tileSize);
   } else {
     y = Math.ceil(bound.y / tileSize);

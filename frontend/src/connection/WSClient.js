@@ -1,4 +1,6 @@
-export default class {
+const url =  "ws://localhost:9002";
+
+export default class WebSocketClient {
   constructor() {
     /**
      * Callbacks for any methods interested in new region subdivisions or regionData (=result of one worker)
@@ -9,8 +11,7 @@ export default class {
     let workerCallback = this.workerCallback;
 
     // Web Socket setup
-    let url = 'ws://localhost:9002';
-    // Necessary due to a backend bug 
+    // Necessary due to a backend bug
     // TODO: remove this as it's a dirty hack
     {
       let s = new WebSocket(url);
@@ -30,25 +31,21 @@ export default class {
       setTimeout(() => {
         socket = new WebSocket(url);
       }, 30000);
-      // TODO maybe in more beautiful, less annoying
+      // TODO: maybe in more beautiful, less annoying
       //alert('Websocket connection failed, reconnecting in 30s')
     };
 
-    socket.onmessage = function(event) {
+    socket.onmessage = event => {
       let msg = JSON.parse(event.data);
-      console.log(msg);
+      //console.log(msg);
       switch (msg.type) {
-        case 'regionData':
+        case "regionData":
           // Notify regionData/worker observers
-          workerCallback.forEach(callback => {
-            callback(msg);
-          });
+          workerCallback.forEach(callback => callback(msg));
           break;
-        case 'regions':
+        case "region":
           // Notify region subdivision listeners
-          regionCallback.forEach(callback => {
-            callback(msg);
-          });
+          regionCallback.forEach(callback => callback(msg));
           break;
         default:
       }
@@ -61,20 +58,20 @@ export default class {
    * Registers a callback to call when the region subdivision is returned
    */
   registerRegion(fun) {
-    this.registerCallback(this.regionCallback, fun);
+    this._registerCallback(this.regionCallback, fun);
   }
 
   /**
    * Registers a callback to call when the region data is returned
    */
-  registerWorker(fun) {
-    this.registerCallback(this.workerCallback, fun);
+  registerRegionData(fun) {
+    this._registerCallback(this.workerCallback, fun);
   }
 
   /**
    * Registers an observer to a list
    */
-  registerCallback(list, fun) {
+  _registerCallback(list, fun) {
     let promise;
     const render = data => {
       promise = new Promise((resolve, error) => {
@@ -90,7 +87,7 @@ export default class {
   }
 
   close() {
-    console.log('closing the WS connection');
+    console.log("closing the WS connection");
     this.socket.close();
   }
 

@@ -1,4 +1,9 @@
-#nodeList {
-    width: 10px;
-    height: 10px;
+.mainTop {
+    height: 75vh;
+    width: 100vw;
+}
+
+.mainBottom {
+    height: 25vh;
+    width: 100vw;
 }
