@@ -3,6 +3,8 @@
 const long double boundX = 4;
 const long double boundY = 4;
 
+Fractal::~Fractal() {}
+
 double Fractal::deltaReal(double maxReal, double minReal, int xRes) {
     return (maxReal - minReal) / xRes;
 }

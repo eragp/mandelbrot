@@ -2,6 +2,7 @@
 class Fractal {
    public:
     virtual int calculateFractal(long double cReal, long double cImaginary, int maxIteration) = 0;
+    virtual ~Fractal();
 
     //TODO is this still necessary? -> Yes, except xToReal und yToReal in the future. (@Florian uses them in a Balancer; He will change that)
     static double deltaReal(double maxReal, double minReal, int xRes);

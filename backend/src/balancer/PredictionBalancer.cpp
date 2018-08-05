@@ -1,9 +1,17 @@
-#include <iostream>
 #include "PredictionBalancer.h"
 #include "Region.h"
 #include "Fractal.h"
+
+#include <iostream>
 #include <vector>
 #include <cmath>
+#include <string>
+
+const std::string PredictionBalancer::NAME = "prediction";
+
+PredictionBalancer::~PredictionBalancer() {
+	delete f;
+}
 
 // Worst case scenario: Prediction changes suddenly from small to big values
 Region* PredictionBalancer::balanceLoad(Region region, int nodeCount) {

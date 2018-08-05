@@ -16,12 +16,8 @@ export const project = (tileX, tileY, zoom, pixelX, pixelY, tileSize) => {
   // top left -> bottom right
   // bounds in the imaginary plane have to be symmetric
   let tileCount = Math.pow(2, zoom);
-  let real =
-      (tileX * bounds[0] * tileSize + pixelX * bounds[0]) /
-      (tileCount * tileSize),
-    imag =
-      (tileY * bounds[1] * tileSize + pixelY * bounds[1]) /
-      (tileCount * tileSize);
+  let real = (tileX * bounds[0] * tileSize + pixelX * bounds[0]) / (tileCount * tileSize),
+    imag = (tileY * bounds[1] * tileSize + pixelY * bounds[1]) / (tileCount * tileSize);
   return new Point(real, imag);
 };
 
@@ -64,16 +60,16 @@ export const getBottomRightPoint = (bounds, tileSize, zoom) => {
  * @param {Bounds} bound 
  * @param {Number} tileSize 
  * @param {Number} zoom 
- * @param {Boolean} topleft 
+ * @param {Boolean} topLeft
  */
-function toPoint(bound, tileSize, zoom, topleft) {
+function toPoint(bound, tileSize, zoom, topLeft) {
   let x, y;
-  if (topleft) {
+  if (topLeft) {
     x = Math.floor(bound.x / tileSize);
   } else {
     x = Math.ceil(bound.x / tileSize);
   }
-  if (topleft) {
+  if (topLeft) {
     y = Math.floor(bound.y / tileSize);
   } else {
     y = Math.ceil(bound.y / tileSize);
