@@ -79,8 +79,8 @@ export default class NetworkView extends Component {
      */
     this.props.wsclient.registerRegion(data => {
       const nodes = [];
-      for (let region of data.regions) {
-        nodes.push(region.nodeID);
+      for (const worker of data.regions) {
+        nodes.push(worker.rank);
       }
       if (this.networkState.nodes !== nodes) {
         this.networkState.nodes = nodes;

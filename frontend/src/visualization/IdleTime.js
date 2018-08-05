@@ -119,10 +119,10 @@ export default class IdleTime extends Component {
 
       let animationDuration = 750;
 
-      for (let region of data.regions) {
-        nodes.push(region.nodeID);
-        active.set(region.nodeID, true);
-        progress.set(region.nodeID, animationDuration * 1000);
+      for (let worker of data.regions) {
+        nodes.push(worker.rank);
+        active.set(worker.rank, true);
+        progress.set(worker.rank, animationDuration * 1000);
       }
       this.chartState = {
         nodes: nodes,

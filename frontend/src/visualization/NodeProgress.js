@@ -93,11 +93,11 @@ export default class NodeProgress extends Component {
       const active = new Map();
       const progress = new Map();
 
-      let animationDuration = 750;
-      for (let region of data.regions) {
-        nodes.push(region.nodeID);
-        active.set(region.nodeID, true);
-        progress.set(region.nodeID, animationDuration * 1000);
+      const animationDuration = 750;
+      for (const worker of data.regions) {
+        nodes.push(worker.rank);
+        active.set(worker.rank, true);
+        progress.set(worker.rank, animationDuration * 1000);
       }
       this.chartState = {
         nodes: nodes,
