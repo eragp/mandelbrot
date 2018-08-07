@@ -14,35 +14,90 @@ PredictionBalancer::~PredictionBalancer() {
 }
 
 // Worst case scenario: Prediction changes suddenly from small to big values
-Region* PredictionBalancer::balanceLoad(Region region, int nodeCount) {
-	Region lowRes = region;
-	lowRes.width = (region.width / region.guaranteedDivisor) * predictionAccuracy;
-	lowRes.height = (region.height / region.guaranteedDivisor) * predictionAccuracy;
-
+Region* PredictionBalancer::balanceLoad(Region region, int nodeCount) {	
 	int predictionLengthX = region.width / region.guaranteedDivisor;
 	int predictionLengthY = region.height / region.guaranteedDivisor;
+
+	// Declare all variables used by both if branches
+	Region lowRes = region;
+
 	// Prediction per part with width and height == guaranteedDivisor
 	std::vector<std::vector<int>> n(predictionLengthX, std::vector<int>(predictionLengthY));
 	std::vector<int> nColSums(predictionLengthX);
 	int nSum = 0;
 
-	double deltaReal = Fractal::deltaReal(lowRes.maxReal, lowRes.minReal, lowRes.width);
-	double deltaImaginary = Fractal::deltaImaginary(lowRes.maxImaginary, lowRes.minImaginary, lowRes.height);
+	double deltaReal = 0.0;
+	double deltaImaginary = 0.0;
 
-	for (unsigned int x = 0; x < lowRes.width; x++) {
-		for (unsigned int y = 0; y < lowRes.height; y++) {
-			int iterationCount = f->calculateFractal(lowRes.minReal + x * deltaReal, lowRes.maxImaginary - y * deltaImaginary, lowRes.maxIteration);
-			n[x / predictionAccuracy][y / predictionAccuracy] += iterationCount;
-			// Sum over expected iteration per column
-			nColSums[x / predictionAccuracy] += iterationCount;
-			// Sum over all expected iterations
-			nSum += iterationCount;
+	if (predictionAccuracy > 0) {
+		lowRes.width = (region.width / region.guaranteedDivisor) * predictionAccuracy;
+		lowRes.height = (region.height / region.guaranteedDivisor) * predictionAccuracy;
+
+		deltaReal = Fractal::deltaReal(lowRes.maxReal, lowRes.minReal, lowRes.width);
+		deltaImaginary = Fractal::deltaImaginary(lowRes.maxImaginary, lowRes.minImaginary, lowRes.height);
+
+		for (unsigned int x = 0; x < lowRes.width; x++) {
+			for (unsigned int y = 0; y < lowRes.height; y++) {
+				int iterationCount = f->calculateFractal(lowRes.minReal + x * deltaReal, lowRes.maxImaginary - y * deltaImaginary, lowRes.maxIteration);
+				n[x / predictionAccuracy][y / predictionAccuracy] += iterationCount;
+				// Sum over expected iteration per column
+				nColSums[x / predictionAccuracy] += iterationCount;
+				// Sum over all expected iterations
+				nSum += iterationCount;
+			}
 		}
-	}
 
-	// Set deltas to represent delta per prediction piece
-	deltaReal *= predictionAccuracy;
-	deltaImaginary *= predictionAccuracy;
+		// Set deltas to represent delta per prediction piece
+		deltaReal *= predictionAccuracy;
+		deltaImaginary *= predictionAccuracy;
+
+	} else if (predictionAccuracy < 0) {
+		// Make predictionAccuracy positive, sign just determines the operation internally predictionAccuracy is always positive
+		predictionAccuracy = -predictionAccuracy;
+
+		lowRes.width = predictionLengthX / predictionAccuracy;
+		lowRes.height = predictionLengthY / predictionAccuracy;
+
+		// calculate also a prediction for overlaying parts of size guaranteedDivisor * guaranteedDivisor
+		if (predictionLengthX % predictionAccuracy != 0) {
+			lowRes.width += 1;
+		}
+		if (predictionLengthY % predictionAccuracy != 0) {
+			lowRes.height += 1;
+		}
+
+		deltaReal = Fractal::deltaReal(lowRes.maxReal, lowRes.minReal, lowRes.width);
+		deltaImaginary = Fractal::deltaImaginary(lowRes.maxImaginary, lowRes.minImaginary, lowRes.height);
+
+		for (unsigned int x = 0; x < lowRes.width; x++) {
+			for (unsigned int y = 0; y < lowRes.height; y++) {
+				int iterationCount = f->calculateFractal(lowRes.minReal + x * deltaReal, lowRes.maxImaginary - y * deltaImaginary, lowRes.maxIteration);
+				
+				// Put iterationCount in every entry which belongs to this prediction part
+				int xStartIndex = x * predictionAccuracy;
+				int yStartIndex = y * predictionAccuracy;
+				for (int i = 0; i < predictionAccuracy; i++) {
+					for (int j = 0; j < predictionAccuracy; j++) {
+						if (xStartIndex + i < predictionLengthX && yStartIndex + j < predictionLengthY) {
+							n[xStartIndex + i][yStartIndex + j] += iterationCount;
+							nColSums[xStartIndex + i] += iterationCount;
+							nSum += iterationCount;
+						}
+					}
+				}
+			}
+		}
+
+		// Set deltas to represent delta per prediction piece
+		deltaReal /= predictionAccuracy;
+		deltaImaginary /= predictionAccuracy;
+
+		// Make predictionAccuracy negative again, so that next call has same conditions
+		predictionAccuracy = -predictionAccuracy;
+	} else {
+		std::cerr << "predictionAccuracy mustn't be 0." << std::endl;
+		return nullptr;
+	}
 
 	// Debug
 	std::cout << "nSum: " << nSum << std::endl;
