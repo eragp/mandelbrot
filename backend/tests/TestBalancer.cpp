@@ -107,7 +107,8 @@ int main(int argc, char** argv) {
 
 	Balancer* column = new ColumnBalancer();
 	Balancer* naive = new NaiveBalancer();
-	Balancer* prediction = PredictionBalancer::create(new Mandelbrot(), 16);
+	Balancer* prediction = PredictionBalancer::create(new Mandelbrot(), 4);
+	Balancer* predictionNeg = PredictionBalancer::create(new Mandelbrot(), -4);
 
 	std::cout << "Column: " << std::endl;
 	testBalancer(column, test, nodes);
@@ -118,9 +119,13 @@ int main(int argc, char** argv) {
 	std::cout << "Prediction: " << std::endl;
 	testBalancer(prediction, test, nodes);
 
+	std::cout << "PredictionNegative: " << std::endl;
+	testBalancer(predictionNeg, test, nodes);
+
 	delete column;
 	delete naive;
 	delete prediction;
+	delete predictionNeg;
 
 	std::cin.get();
 	return 0;
