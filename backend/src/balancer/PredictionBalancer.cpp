@@ -60,9 +60,11 @@ Region* PredictionBalancer::balanceLoad(Region region, int nodeCount) {
 
 		// calculate also a prediction for overlaying parts of size guaranteedDivisor * guaranteedDivisor
 		if (predictionLengthX % predictionAccuracy != 0) {
+			lowRes.maxReal += (predictionAccuracy - predictionLengthX % predictionAccuracy) * region.guaranteedDivisor * Fractal::deltaReal(region.maxReal, region.minReal, region.width);
 			lowRes.width += 1;
 		}
 		if (predictionLengthY % predictionAccuracy != 0) {
+			lowRes.minImaginary -= (predictionAccuracy - predictionLengthY % predictionAccuracy) * region.guaranteedDivisor * Fractal::deltaImaginary(region.maxImaginary, region.minImaginary, region.height);
 			lowRes.height += 1;
 		}
 

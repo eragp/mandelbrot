@@ -13,7 +13,7 @@ class PredictionBalancer : public Balancer {
 private:
 	// The higher, the better; a part of size guaranteedDivisor * guaranteedDivisor is represented by predictionAccuracy * predictionAccuracy pixels in the prediction
 	// Negative accuracy means that a pixel in the prediction represents predictionAccuracy * predictionAccuracy parts of size guaranteedDivisor * guaranteedDivisor
-	// Please note: If negative predictionAccuracy has to divide (region.width / region.guaranteedDivisor) and (region.height / region.guaranteedDivisor)
+	// Please note: predictionAccuracy should never be 0
 	int predictionAccuracy;
 	Fractal* f;
 	Region* splitCol(Region col, int parts, int nSum, std::vector<int> n, double deltaImaginary);
