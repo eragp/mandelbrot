@@ -19,6 +19,22 @@ void printRegion(Region region) {
 		") ; (GuaranteedDivisor -> " << region.guaranteedDivisor << ")" << std::endl;
 }
 
+bool testDivisor(Region fullRegion, Region part) {
+	bool divisorEqual = fullRegion.guaranteedDivisor == part.guaranteedDivisor;
+	if (!divisorEqual) {
+		std::cout << "guaranteedDivisor: expected -> " << fullRegion.guaranteedDivisor << " observed -> " << part.guaranteedDivisor << std::endl;
+	}
+	bool dividesWidth = part.width % part.guaranteedDivisor == 0;
+	if (!dividesWidth) {
+		std::cout << "guaranteedDivisor doesn't divide width: expected -> 0 observed -> " << part.width % part.guaranteedDivisor << std::endl;
+	}
+	bool dividesHeight = part.height % part.guaranteedDivisor == 0;
+	if (!dividesHeight) {
+		std::cout << "guaranteedDivisor doesn't divide height: expected -> 0 observed -> " << part.height % part.guaranteedDivisor << std::endl;
+	}
+	return divisorEqual && dividesWidth && dividesHeight;
+}
+
 bool testRatio(Region fullRegion, Region part) {
 	// We need to define a range for the values, since doubles are never exact
 	double epsilon = 0.000000001; // Checks if the values vary in the 8 visible digits
