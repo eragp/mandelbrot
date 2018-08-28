@@ -1,21 +1,26 @@
-import React, { Component } from 'react';
-import { Chart } from 'chart.js';
-import WebSocketClient from '../connection/WSClient';
-import PropTypes from 'prop-types';
+import * as React from "react";
+import { Chart } from "chart.js";
+import WebSocketClient from "../connection/WSClient";
 
 import "./NodeProgress.css";
 import WorkerContext from "../misc/WorkerContext";
 
+export interface NodeProgressProps {
+  workerContext: WorkerContext;
+  wsClient: WebSocketClient;
+}
 /**
  * Shows the computation time of invoked workers
  * Additional documentation on the type of used chart: https://www.chartjs.org/docs/latest/
  */
-export default class NodeProgress extends Component {
-  constructor(props) {
-    super(props);
-    this.websocketClient = props.wsclient;
-    this.chartState = {};
+export default class NodeProgress extends React.Component<NodeProgressProps, {}> {
+  private websocketClient: WebSocketClient;
+  private chartState: any;
 
+  constructor(props: NodeProgressProps) {
+    super(props);
+    this.websocketClient = props.wsClient;
+    console.log(props);
     this.chartState = {
       nodes: [0],
       active: new Map([[0, false]]),
@@ -204,8 +209,3 @@ export default class NodeProgress extends Component {
     clearInterval(this.interval);
   }
 }
-
-NodeProgress.propTypes = {
-  wsclient: PropTypes.instanceOf(WebSocketClient),
-  workerContext: PropTypes.instanceOf(WorkerContext)
-};

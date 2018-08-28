@@ -1,6 +1,6 @@
 /**
  * Colors for the workers
- * TODO replace with nice colorset (i.e. theme)
+ * TODO replace with nice colorSet (i.e. theme)
  */
 const colorSet = [
   "#B08BEB",
@@ -20,9 +20,12 @@ const colorSet = [
  * Also provides the colors for each node based on ID
  */
 export default class WorkerContext {
+  private callbacks: any[] = [];
+  private colorSet: string[] = [];
+  private activeWorker: number;
+
   constructor() {
     // this.activeWorker = undefined;
-    this.callbacks = [];
     this.colorSet = colorSet;
   }
 
@@ -30,14 +33,14 @@ export default class WorkerContext {
    * Returns the worker color scheme for a given worker (identified by node ID)
    * @param {Number} nodeID
    */
-  getWorkerColor(nodeID) {
+  getWorkerColor(nodeID: number): string {
     return this.colorSet[nodeID % this.colorSet.length];
   }
 
   /**
    * @returns {Number} the currently focused/hovered worker. May be undefined
    */
-  getActiveWorker() {
+  getActiveWorker(): number {
     return this.activeWorker;
   }
 
@@ -46,19 +49,19 @@ export default class WorkerContext {
    * @param {Number} nodeID Current worker. May be undefined
    * @returns {Boolean} Successfully changed active worker
    */
-  setActiveWorker(nodeID) {
+  setActiveWorker(nodeID: number): boolean {
     if (nodeID < 0 || nodeID === undefined) {
       console.error(`Invalid nodeID: ${nodeID}`);
       return false;
     }
     if (this.activeWorker !== nodeID) {
       this.activeWorker = nodeID;
-      this._updateAll();
+      this.updateAll();
     }
     return true;
   }
 
-  _updateAll() {
+  private updateAll() {
     this.callbacks.forEach(cb => cb(this.activeWorker));
   }
 
@@ -66,9 +69,9 @@ export default class WorkerContext {
    * Subscribe to changes to the active (hovered, focused) node
    * @param {Function} callback
    */
-  subscribe(callback) {
+  subscribe(callback: (data: any) => any) {
     let promise;
-    const fun = data => {
+    const fun = (data: any) => {
       promise = new Promise((resolve, error) => {
         try {
           resolve(callback(data));

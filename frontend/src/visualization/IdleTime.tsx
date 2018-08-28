@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { Chart } from 'chart.js';
 import WebSocketClient from '../connection/WSClient';
-import PropTypes from 'prop-types';
 
 import './IdleTime.css';
 import WorkerContext from '../misc/WorkerContext';
@@ -232,8 +231,3 @@ export default class IdleTime extends Component {
     clearInterval(this.interval);
   }
 }
-
-IdleTime.propTypes = {
-  wsclient: PropTypes.instanceOf(WebSocketClient),
-  workerContext: PropTypes.instanceOf(WorkerContext)
-};
