@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import PropTypes from "prop-types";
 import WebSocketClient from "../connection/WSClient";
 
 import { DataSet, Network } from "vis";
@@ -163,11 +162,6 @@ export default class NetworkView extends Component {
   }
 
   render() {
-    return <div id="nodeNetwork" />;
+  return <div id="nodeNetwork" />;
   }
 }
-
-NetworkView.propTypes = {
-  wsclient: PropTypes.instanceOf(WebSocketClient),
-  workerContext: PropTypes.instanceOf(WorkerContext)
-};

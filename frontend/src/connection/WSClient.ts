@@ -1,13 +1,18 @@
-const url =  "ws://localhost:9002";
+import { RegionData, Region, Request } from "./WSClientTypes";
+
+const url = "ws://localhost:9002";
 
 export default class WebSocketClient {
+  private regionCallback: ((data: RegionData) => void)[] = [];
+  private workerCallback: ((data: Region) => void)[] = [];
+  private regionRequests: string[];
+  private socket: WebSocket;
+
   constructor() {
     /**
      * Callbacks for any methods interested in new region subdivisions or regionData (=result of one worker)
      */
-    this.regionCallback = [];
     let regionCallback = this.regionCallback;
-    this.workerCallback = [];
     let workerCallback = this.workerCallback;
 
     // Web Socket setup
@@ -22,7 +27,7 @@ export default class WebSocketClient {
     // Buffer of requests to be sent when the socket connects
     this.regionRequests = [];
     socket.onopen = () => {
-      this.regionRequests.forEach(m => socket.send(m));
+      this.regionRequests.forEach(message => socket.send(message));
     };
 
     // Restart the socket connection on close (optional, as the frontend does not get a notification
@@ -40,39 +45,38 @@ export default class WebSocketClient {
       switch (msg.type) {
         case "regionData":
           // Notify regionData/worker observers
-          workerCallback.forEach(callback => callback(msg));
+          workerCallback.forEach(callback => callback(<RegionData>msg));
           break;
         case "region":
           // Notify region subdivision listeners
-          regionCallback.forEach(callback => callback(msg));
+          regionCallback.forEach(callback => callback(<Region>msg));
           break;
         default:
       }
     };
-
     this.socket = socket;
   }
 
   /**
    * Registers a callback to call when the region subdivision is returned
    */
-  registerRegion(fun) {
-    this._registerCallback(this.regionCallback, fun);
+  registerRegion(fun: (data: any) => void) {
+    this.registerCallback(this.regionCallback, fun);
   }
 
   /**
    * Registers a callback to call when the region data is returned
    */
-  registerRegionData(fun) {
-    this._registerCallback(this.workerCallback, fun);
+  registerRegionData(fun: (data: any) => void) {
+    this.registerCallback(this.workerCallback, fun);
   }
 
   /**
    * Registers an observer to a list
    */
-  _registerCallback(list, fun) {
-    let promise;
-    const render = data => {
+  private registerCallback(list: any, fun: (data: any) => any) {
+    let promise: any;
+    const render = (data: any) => {
       promise = new Promise((resolve, error) => {
         try {
           resolve(fun(data));
@@ -90,7 +94,7 @@ export default class WebSocketClient {
     this.socket.close();
   }
 
-  sendRequest(request) {
+  sendRequest(request: Request) {
     let message = JSON.stringify(request);
     if (this.socket.readyState === this.socket.OPEN) {
       this.socket.send(message);
