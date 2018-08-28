@@ -12,7 +12,7 @@ import Shader from "./Shader";
 import { project, unproject } from "./Project";
 import { request as requestRegion } from "./RegionRequest";
 
-import { tileSize } from "./Constants";
+import { tileSize, leafletBound } from "./Constants";
 import Point from "../misc/Point";
 import MatrixView from "./MatrixView";
 import BalancerPolicy from "../misc/BalancerPolicy";
@@ -20,6 +20,7 @@ import WebSocketClient from "../connection/WSClient";
 import PropTypes from "prop-types";
 import WorkerLayer from "./WorkerLayer";
 import WorkerContext from "../misc/WorkerContext";
+import { setURLParams } from "../misc/URLParams";
 
 export default class TileDisplay extends Component {
   componentDidMount() {
@@ -32,6 +33,8 @@ export default class TileDisplay extends Component {
     this.balancerPolicy = this.props.balancerPolicy;
     this.workerContext = this.props.workerContext;
     this.regionDrawer = new MatrixView(this, this.websocketClient);
+    this.viewCenter = this.props.viewCenter;
+
     this.renderLeaflet();
   }
 
@@ -39,7 +42,7 @@ export default class TileDisplay extends Component {
     // bounds have to be a power of two
     // these bounds are chosen arbitrary and have nothing to do with
     // either leaflet space, nor the complex plane
-    let bounds = [[-256, -256], [256, 256]];
+    let bounds = [[-leafletBound, -leafletBound], [leafletBound, leafletBound]];
     this.map = L.map("viewer", {
       crs: L.CRS.Simple,
       maxZoom: 50,
@@ -56,6 +59,14 @@ export default class TileDisplay extends Component {
       if (r !== null) {
         websocketClient.sendRequest(r);
       }
+    });
+
+    // change URL params when region changes
+    this.registerNewView(map => {
+      let center = map.getCenter();
+      let zoom = map.getZoom();
+      this.viewCenter = new Point(center.lat, center.lng, zoom);
+      setURLParams(this.viewCenter);
     });
 
     // Handle balancer change as view change
@@ -142,13 +153,11 @@ export default class TileDisplay extends Component {
 
     const mandelbrotLayer = new L.GridLayer.MandelbrotLayer({
       tileSize: tileSize, // in px
-      bounds: bounds,
-      keepBuffer: 0
+      bounds: bounds
     });
     const debugLayer = new L.GridLayer.DebugLayer({
       tileSize: tileSize,
-      bounds: bounds,
-      keepBuffer: 0
+      bounds: bounds
     });
     const workerLayer = new WorkerLayer(
       websocketClient,
@@ -166,7 +175,9 @@ export default class TileDisplay extends Component {
     map.addLayer(workerLayer);
 
     L.control.layers(baseLayer, overlayLayers).addTo(map);
-    map.setView([0, 0]);
+
+    map.setView([this.viewCenter.x, this.viewCenter.y]);
+    map.setZoom(this.viewCenter.z);
 
     map.addControl(
       L.control.zoomBox({

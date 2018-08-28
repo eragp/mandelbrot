@@ -9,13 +9,13 @@ class Point {
   }
   toString() {
     return (
-      'Point{' +
+      "Point{" +
       this.x.toString() +
-      ', ' +
+      ", " +
       this.y.toString() +
-      ', ' +
+      ", " +
       this.z.toString() +
-      '}'
+      "}"
     );
   }
 
@@ -38,7 +38,6 @@ class Point {
     }
     return true;
   }
-
 }
 
 export default Point;
