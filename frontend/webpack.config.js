@@ -6,11 +6,12 @@ const OpenBrowserPlugin = require("open-browser-webpack-plugin");
 const tsImportPluginFactory = require("ts-import-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
+const DevServerPort = 3000;
 module.exports = {
   mode: "development",
   context: resolve(__dirname, "src"),
   entry: [
-    "webpack-dev-server/client?http://localhost:8080",
+    "webpack-dev-server/client?http://localhost:" + DevServerPort,
     // bundle the client for webpack-dev-server
     // and connect to the provided endpoint
     "webpack/hot/only-dev-server",
@@ -32,10 +33,10 @@ module.exports = {
     extensions: [".ts", ".tsx", ".js", "jsx", ".json"]
   },
   devServer: {
-    port: "8080",
     // Change it if other port needs to be used
-    hot: true,
+    port: DevServerPort.toString(),
     // enable HMR on the server
+    hot: true,
     noInfo: true,
     quiet: false,
     // minimize the output to terminal.
@@ -113,6 +114,6 @@ module.exports = {
     // prints more readable module names in the browser console on HMR updates
     new HtmlWebpackPlugin({ template: resolve(__dirname, "public/index.html") }),
     // inject <script> in html file.
-    new OpenBrowserPlugin({ url: "http://localhost:8080" })
+    new OpenBrowserPlugin({ url: "http://localhost:" + DevServerPort })
   ]
 };
