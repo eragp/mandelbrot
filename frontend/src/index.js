@@ -17,7 +17,7 @@ import IdleTime from "./visualization/IdleTime";
 import NodeProgress from "./visualization/NodeProgress";
 
 // CSS
-import "./Index.css";
+import "./index.css";
 
 class App extends Component {
   render() {
