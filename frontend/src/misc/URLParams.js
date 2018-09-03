@@ -7,7 +7,7 @@ export const getURLParams = () => {
     imag = parseFloat(params.get("imag")),
     zoom = parseFloat(params.get("zoom"));
   if (real === undefined || imag === undefined || zoom === undefined) {
-    return new Point(0, 0, 3);
+    return new Point(0, 0, 0);
   }
   return complexToLeaflet(real, imag, zoom);
 };

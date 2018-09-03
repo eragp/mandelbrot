@@ -12,10 +12,10 @@
     "jsdom": "^11.9.0",
     "leaflet": "github:nielstron/Leaflet#fixed-ratio-selection-rectangle-build",
     "leaflet-zoombox": "^0.5.1",
-    "npm": "^6.2.0",
+    "npm": "^6.4.1",
     "react": "^16.4.1",
     "react-dom": "^16.4.1",
-    "react-scripts": "1.1.4",
+    "react-scripts": "^1.1.5",
     "reactstrap": "^5.0.0-beta.3",
     "vis": "^4.21.0"
   },

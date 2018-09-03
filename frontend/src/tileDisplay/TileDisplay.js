@@ -46,7 +46,7 @@ export default class TileDisplay extends Component {
     this.map = L.map("viewer", {
       crs: L.CRS.Simple,
       maxZoom: 50,
-      zoom: 3
+      zoom:0 
     });
 
     let map = this.map;
