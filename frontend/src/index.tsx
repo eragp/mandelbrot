@@ -7,11 +7,11 @@ import TileDisplay from "./tileDisplay/TileDisplay.jsx";
 import registerServiceWorker from "./registerServiceWorker";
 import NodeProgress from "./visualization/NodeProgress";
 import WebSocketClient from "./connection/WSClient";
-import BalancerChoice from "./visualization/BalancerChoice";
+import BalancerChoice from "./visualization/BalancerChoice.jsx";
 import BalancerPolicy from "./misc/BalancerPolicy";
 import WorkerContext from "./misc/WorkerContext";
-import NetworkView from "./visualization/NetworkView";
-import IdleTime from "./visualization/IdleTime";
+import NetworkView from "./visualization/NetworkView.jsx";
+import IdleTime from "./visualization/IdleTime.jsx";
 
 // CSS
 import "./index.css";
