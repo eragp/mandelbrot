@@ -13,14 +13,14 @@ import { project, unproject } from "./Project";
 import { request as requestRegion } from "./RegionRequest";
 
 import { tileSize, leafletBound } from "./Constants";
-import Point from "../misc/Point";
+import Point from "../misc/Point.ts";
 import MatrixView from "./MatrixView";
 import BalancerPolicy from "../misc/BalancerPolicy";
 import WebSocketClient from "../connection/WSClient";
 import PropTypes from "prop-types";
 import WorkerLayer from "./WorkerLayer";
 import WorkerContext from "../misc/WorkerContext";
-import { setURLParams } from "../misc/URLParams";
+import { setURLParams } from "../misc/URLParams.ts";
 
 export default class TileDisplay extends Component {
   componentDidMount() {
@@ -61,13 +61,6 @@ export default class TileDisplay extends Component {
       }
     });
 
-    // change URL params when region changes
-    this.registerNewView(map => {
-      let center = map.getCenter();
-      let zoom = map.getZoom();
-      this.viewCenter = new Point(center.lat, center.lng, zoom);
-      setURLParams(this.viewCenter);
-    });
 
     // Handle balancer change as view change
     //  => update all view subscribers about a policy change as if the view had changed
@@ -178,6 +171,13 @@ export default class TileDisplay extends Component {
 
     map.setView([this.viewCenter.x, this.viewCenter.y]);
     map.setZoom(this.viewCenter.z);
+    // change URL params when region changes
+    this.registerNewView(map => {
+      let center = map.getCenter();
+      let zoom = map.getZoom();
+      this.viewCenter = new Point(center.lat, center.lng, zoom);
+      setURLParams(this.viewCenter);
+    });
 
     map.addControl(
       L.control.zoomBox({

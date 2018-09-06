@@ -1,7 +1,7 @@
 const url = "ws://localhost:9002";
 
 export default class WebSocketClient {
-  private regionCallback: Array<((data: Region) => void)> = [];
+  private regionCallback: Array<((data: Regions) => void)> = [];
   private workerCallback: Array<((data: RegionData) => void)> = [];
   private regionRequests: string[];
   private socket: WebSocket;
@@ -47,7 +47,7 @@ export default class WebSocketClient {
           break;
         case "region":
           // Notify region subdivision listeners
-          regionCallback.forEach(callback => callback(<Region>msg));
+          regionCallback.forEach(callback => callback(<Regions>msg));
           break;
         default:
       }
@@ -58,7 +58,7 @@ export default class WebSocketClient {
   /**
    * Registers a callback to call when the region subdivision is returned
    */
-  registerRegion(fun: (data: Region) => any) {
+  registerRegion(fun: (data: Regions) => any) {
     this.registerCallback(this.regionCallback, fun);
   }
 
@@ -108,7 +108,12 @@ export interface RegionData {
   workerInfo: WorkerInfo;
 }
 
-export interface WorkerInfo {
+export interface Regions {
+  type: string;
+  regions: WorkerInfo[];
+}
+
+interface WorkerInfo {
   rank: number;
   computationTime: number;
   region: Region;
