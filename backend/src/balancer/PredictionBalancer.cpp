@@ -29,6 +29,7 @@ Region* PredictionBalancer::balanceLoad(Region region, int nodeCount) {
 	double deltaReal = 0.0;
 	double deltaImaginary = 0.0;
 
+	// predicitionAccuracy > 0: (predicitionAccuracy^2) pixel samples in each (divisor^2)-Block
 	if (predictionAccuracy > 0) {
 		lowRes.width = (region.width / region.guaranteedDivisor) * predictionAccuracy;
 		lowRes.height = (region.height / region.guaranteedDivisor) * predictionAccuracy;
@@ -51,6 +52,7 @@ Region* PredictionBalancer::balanceLoad(Region region, int nodeCount) {
 		deltaReal *= predictionAccuracy;
 		deltaImaginary *= predictionAccuracy;
 
+	// predicitionAccuracy < 0: (predicitionAccuracy^2) (divisor^2)-Blocks in each pixel sample
 	} else if (predictionAccuracy < 0) {
 		// Make predictionAccuracy positive, sign just determines the operation internally predictionAccuracy is always positive
 		predictionAccuracy = -predictionAccuracy;
