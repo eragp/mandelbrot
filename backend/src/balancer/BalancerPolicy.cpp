@@ -10,7 +10,7 @@
 
 // TODO: Maybe make this method non-static and store fractal and predictionAccuracy in object
 Balancer* BalancerPolicy::chooseBalancer(std::string balancerName, Fractal* fractal) {
-    int predictionAccuracy = 16;
+    const int predictionAccuracy = 16;
 
     // C++ doesn't like string in switch :(
     if (balancerName == NaiveBalancer::NAME) {

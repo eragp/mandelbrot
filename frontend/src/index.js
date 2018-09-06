@@ -14,7 +14,7 @@ import NetworkView from "./visualization/NetworkView";
 import IdleTime from "./visualization/IdleTime";
 
 // CSS
-import "./Index.css";
+import "./index.css";
 
 class App extends Component {
   render() {

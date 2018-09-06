@@ -1,5 +1,5 @@
 #pragma once
-#ifndef PREDICTIONBALANCER_H	// Prevents multiple includes of this header
+#ifndef PREDICTIONBALANCER_H    // Prevents multiple includes of this header
 #define PREDICTIONBALANCER_H
 
 #include "Balancer.h"
@@ -11,18 +11,28 @@
 
 class PredictionBalancer : public Balancer {
 private:
-	// The higher, the better; a part of size guaranteedDivisor * guaranteedDivisor is represented by predictionAccuracy * predictionAccuracy pixels in the prediction
-	// Negative accuracy means that a pixel in the prediction represents predictionAccuracy * predictionAccuracy parts of size guaranteedDivisor * guaranteedDivisor
-	// Please note: predictionAccuracy should never be 0
-	int predictionAccuracy;
-	Fractal* f;
-	Region* splitCol(Region col, int parts, int nSum, std::vector<int> n, double deltaImaginary);
-public:
-	static const std::string NAME;
+    /**
+     * predictionAccuracy > 0:
+     *  predictionAccuracy^2 pixel samples are used in each guaranteedDivisor^2 Block.
+     *
+     * predictionAccuracy < 0:
+     *  predictionAccuracy^2 Blocks of size guaranteedDivisor^2 are combined in one pixel sample.
+     *
+     * predictionAccuracy cannot be == 0
+     */
+    int predictionAccuracy;
+    Fractal *f;
 
-	Region* balanceLoad(Region region, int nodeCount);
-	~PredictionBalancer();
-	static PredictionBalancer* create(Fractal* f, int predictionAccuracy);
+    Region *splitCol(Region col, int parts, int nSum, std::vector<int> n, double deltaImaginary);
+
+public:
+    static const std::string NAME;
+
+    Region *balanceLoad(Region region, int nodeCount) override;
+
+    ~PredictionBalancer() override;
+
+    static PredictionBalancer *create(Fractal *f, int predictionAccuracy);
 };
 
 #endif
