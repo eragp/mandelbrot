@@ -22,7 +22,7 @@ const colorSet = [
 export default class WorkerContext {
   private callbacks: any[] = [];
   private colorSet: string[] = [];
-  private activeWorker: number | undefined;
+  private activeWorker: number;
 
   constructor() {
     // this.activeWorker = undefined;
@@ -40,7 +40,7 @@ export default class WorkerContext {
   /**
    * @returns {Number} the currently focused/hovered worker. May be undefined
    */
-  getActiveWorker(): number | undefined {
+  getActiveWorker(): number {
     return this.activeWorker;
   }
 
@@ -49,13 +49,16 @@ export default class WorkerContext {
    * @param {Number} nodeID Current worker. May be undefined
    * @returns {Boolean} Successfully changed active worker
    */
-  setActiveWorker(nodeID: number | undefined): boolean {
+  setActiveWorker(nodeID: number): boolean {
+    if (nodeID < 0 || nodeID === undefined) {
+      console.error(`Invalid nodeID: ${nodeID}`);
+      return false;
+    }
     if (this.activeWorker !== nodeID) {
       this.activeWorker = nodeID;
       this.updateAll();
-      return true;
     }
-    return false;
+    return true;
   }
 
   private updateAll() {
@@ -66,9 +69,9 @@ export default class WorkerContext {
    * Subscribe to changes to the active (hovered, focused) node
    * @param {Function} callback
    */
-  subscribe(callback: (data: number | undefined) => any) {
+  subscribe(callback: (data: any) => any) {
     let promise;
-    const fun = (data: number | undefined) => {
+    const fun = (data: any) => {
       promise = new Promise((resolve, error) => {
         try {
           resolve(callback(data));
