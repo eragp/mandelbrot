@@ -2,6 +2,8 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 // Bootstrap
 import "bootstrap/dist/css/bootstrap.css";
+// Custom Components
+import TileDisplay from "./tileDisplay/TileDisplay.jsx";
 import registerServiceWorker from "./registerServiceWorker";
 
 import WebSocketClient from "./connection/WSClient";
