@@ -3,7 +3,7 @@ import * as ReactDOM from "react-dom";
 // Bootstrap
 import "bootstrap/dist/css/bootstrap.css";
 // Custom Components
-import TileDisplay from "./tileDisplay/TileDisplay";
+import TileDisplay from "./tileDisplay/TileDisplay.jsx";
 import registerServiceWorker from "./registerServiceWorker";
 import NodeProgress from "./visualization/NodeProgress";
 import WebSocketClient from "./connection/WSClient";
@@ -14,7 +14,7 @@ import NetworkView from "./visualization/NetworkView";
 import IdleTime from "./visualization/IdleTime";
 
 // CSS
-import "./Index.css";
+import "./index.css";
 
 class App extends React.Component<{}, {}> {
   render() {
