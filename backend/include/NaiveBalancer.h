@@ -10,7 +10,7 @@
 class NaiveBalancer : public Balancer {
 	public:
 		static const std::string NAME;
-		Region* balanceLoad(Region region, int nodeCount);
+		Region* balanceLoad(Region region, int nodeCount) override;
 };
 
 #endif
