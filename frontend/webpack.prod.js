@@ -1,3 +1,4 @@
+// Based on template from https://github.com/chunliu/typescript-react-hot-reload
 const { resolve } = require("path");
 const webpack = require("webpack");
 const HtmlWebpackPlugin = require("html-webpack-plugin");

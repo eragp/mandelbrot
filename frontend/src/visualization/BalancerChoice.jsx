@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import BalancerPolicy from '../misc/BalancerPolicy';
-import PropTypes from 'prop-types';
 
 export default class BalancerChoice extends Component {
   constructor(props) {
@@ -58,9 +57,9 @@ export default class BalancerChoice extends Component {
   }
 }
 
-BalancerChoice.propTypes = {
-  balancerPolicy: PropTypes.instanceOf(BalancerPolicy)
-};
+// BalancerChoice.propTypes = {
+//   balancerPolicy: PropTypes.instanceOf(BalancerPolicy)
+// };
 
 function BalancerItem (props) {
     let classList = 'list-group-item list-group-item-action';
@@ -77,15 +76,15 @@ function BalancerItem (props) {
     );
   }
 
-BalancerItem.propTypes = {
-  active: PropTypes.bool,
-  disabled: PropTypes.bool,
-  handleClick: PropTypes.func,
-  title: PropTypes.string.isRequired
-};
+// BalancerItem.propTypes = {
+//   active: PropTypes.bool,
+//   disabled: PropTypes.bool,
+//   handleClick: PropTypes.func,
+//   title: PropTypes.string.isRequired
+// };
 
-BalancerItem.defaultProps = {
-  active: false,
-  disabled: false,
-  handleClick: () => {}
-};
+// BalancerItem.defaultProps = {
+//   active: false,
+//   disabled: false,
+//   handleClick: () => {}
+// };

@@ -1,10 +1,8 @@
-import { RegionData, Region, Request } from "./WSClientTypes";
-
 const url = "ws://localhost:9002";
 
 export default class WebSocketClient {
-  private regionCallback: ((data: RegionData) => void)[] = [];
-  private workerCallback: ((data: Region) => void)[] = [];
+  private regionCallback: Array<((data: Region) => void)> = [];
+  private workerCallback: Array<((data: RegionData) => void)> = [];
   private regionRequests: string[];
   private socket: WebSocket;
 
@@ -60,21 +58,21 @@ export default class WebSocketClient {
   /**
    * Registers a callback to call when the region subdivision is returned
    */
-  registerRegion(fun: (data: any) => void) {
+  registerRegion(fun: (data: Region) => any) {
     this.registerCallback(this.regionCallback, fun);
   }
 
   /**
    * Registers a callback to call when the region data is returned
    */
-  registerRegionData(fun: (data: any) => void) {
+  registerRegionData(fun: (data: RegionData) => any) {
     this.registerCallback(this.workerCallback, fun);
   }
 
   /**
    * Registers an observer to a list
    */
-  private registerCallback(list: any, fun: (data: any) => any) {
+  private registerCallback(list: any[], fun: (data: any) => any) {
     let promise: any;
     const render = (data: any) => {
       promise = new Promise((resolve, error) => {
@@ -105,13 +103,31 @@ export default class WebSocketClient {
 }
 
 export interface RegionData {
-
+  data: number[];
+  type: string;
+  workerInfo: WorkerInfo;
 }
 
-export interface Region {
-
+export interface WorkerInfo {
+  rank: number;
+  computationTime: number;
+  region: Region;
 }
 
 export interface Request {
+  balancer: string;
+  guaranteedDivisor: number;
+  width: number;
+  height: number;
+  minImag: number;
+  maxImag: number;
+  minReal: number;
+  maxReal: number;
+  validation: number;
+  maxIteration: number;
+}
 
+export interface Region extends Request {
+  hOffset: number;
+  vOffset: number;
 }

@@ -1,4 +1,4 @@
-import Point from '../misc/Point';
+import Point from '../misc/Point.ts';
 import { tileSize } from './Constants';
 import { getBottomRightPoint, getTopLeftPoint } from './Project';
 

@@ -7,16 +7,15 @@ import TileDisplay from "./tileDisplay/TileDisplay.jsx";
 import registerServiceWorker from "./registerServiceWorker";
 
 import WebSocketClient from "./connection/WSClient";
-import BalancerPolicy from "./misc/BalancerPolicy";
-import WorkerContext from "./misc/WorkerContext";
 import { getURLParams } from "./misc/URLParams";
 
 // Custom Components
-import TileDisplay from "./tileDisplay/TileDisplay";
-import BalancerChoice from "./visualization/BalancerChoice";
-import NetworkView from "./visualization/NetworkView";
-import IdleTime from "./visualization/IdleTime";
 import NodeProgress from "./visualization/NodeProgress";
+import BalancerChoice from "./visualization/BalancerChoice.jsx";
+import BalancerPolicy from "./misc/BalancerPolicy";
+import WorkerContext from "./misc/WorkerContext";
+import NetworkView from "./visualization/NetworkView.jsx";
+import IdleTime from "./visualization/IdleTime.jsx";
 
 // CSS
 import "./index.css";

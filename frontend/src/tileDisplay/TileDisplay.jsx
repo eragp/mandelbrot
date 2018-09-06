@@ -13,7 +13,7 @@ import { project, unproject } from "./Project";
 import { request as requestRegion } from "./RegionRequest";
 
 import { tileSize, leafletBound } from "./Constants";
-import Point from "../misc/Point";
+import Point from "../misc/Point.ts";
 import MatrixView from "./MatrixView";
 import BalancerPolicy from "../misc/BalancerPolicy";
 import WebSocketClient from "../connection/WSClient";

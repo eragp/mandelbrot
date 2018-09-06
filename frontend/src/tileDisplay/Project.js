@@ -1,5 +1,5 @@
-import Point from "../misc/Point";
-import { bounds, leafletBound } from "./Constants";
+import Point from '../misc/Point.ts';
+import { bounds, leafletBound } from './Constants';
 
 /**
  * This function projects leaflet tile coordinates to the complex plane
