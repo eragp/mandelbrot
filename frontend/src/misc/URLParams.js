@@ -6,7 +6,7 @@ export const getURLParams = () => {
   let real = parseFloat(params.get("real")),
     imag = parseFloat(params.get("imag")),
     zoom = parseFloat(params.get("zoom"));
-  if (real === undefined || imag === undefined || zoom === undefined) {
+  if (!real || !imag || !zoom) {
     return new Point(0, 0, 0);
   }
   return complexToLeaflet(real, imag, zoom);
@@ -20,10 +20,6 @@ export const setURLParams = point => {
   params.set("imag", complex.y);
   params.set("zoom", complex.z);
   // replace old url params
-  window.history.replaceState(
-    {},
-    "",
-    `${document.location.pathname}?${params}`
-  );
+  window.history.replaceState({}, "", `${document.location.pathname}?${params}`);
   return complex;
 };

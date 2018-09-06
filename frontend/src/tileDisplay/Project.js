@@ -1,4 +1,4 @@
-import Point from '../misc/Point.ts';
+import Point from '../misc/Point';
 import { bounds, leafletBound } from './Constants';
 
 /**

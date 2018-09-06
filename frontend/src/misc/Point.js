@@ -2,21 +2,17 @@
  * Models a 3D Point
  */
 export default class Point {
-  private x: number;
-  private y: number;
-  private z: number;
-
   constructor(x = 0, y = 0, z = 0) {
     this.x = x;
     this.y = y;
     this.z = z;
   }
 
-  toString(): string {
+  toString(){
     return `Point{${this.x}, ${this.y}, ${this.z}}`;
   }
 
-  equals(otherPoint: Point): boolean {
+  equals(otherPoint) {
     if (otherPoint === null) {
       return false;
     }
