@@ -11,7 +11,7 @@ const colorSet = [
   "#F5A52A",
   "#23BFAA",
   "#FAA586",
-  "#EB8CC6"
+  "#EB8CC6",
 ];
 
 /**
@@ -22,7 +22,7 @@ const colorSet = [
 export default class WorkerContext {
   private callbacks: any[] = [];
   private colorSet: string[] = [];
-  private activeWorker: number;
+  private activeWorker: number | undefined;
 
   constructor() {
     // this.activeWorker = undefined;
@@ -33,14 +33,14 @@ export default class WorkerContext {
    * Returns the worker color scheme for a given worker (identified by node ID)
    * @param {Number} nodeID
    */
-  getWorkerColor(nodeID: number): string {
+  public getWorkerColor(nodeID: number): string {
     return this.colorSet[nodeID % this.colorSet.length];
   }
 
   /**
    * @returns {Number} the currently focused/hovered worker. May be undefined
    */
-  getActiveWorker(): number {
+  public getActiveWorker(): number | undefined {
     return this.activeWorker;
   }
 
@@ -49,8 +49,8 @@ export default class WorkerContext {
    * @param {Number} nodeID Current worker. May be undefined
    * @returns {Boolean} Successfully changed active worker
    */
-  setActiveWorker(nodeID?: number): boolean {
-    if (!nodeID || nodeID < 0) {
+  public setActiveWorker(nodeID?: number): boolean {
+    if (nodeID !== undefined && nodeID < 0) {
       console.error(`Invalid nodeID: ${nodeID}`);
       return false;
     }
@@ -61,15 +61,11 @@ export default class WorkerContext {
     return true;
   }
 
-  private updateAll() {
-    this.callbacks.forEach(cb => cb(this.activeWorker));
-  }
-
   /**
    * Subscribe to changes to the active (hovered, focused) node
    * @param {Function} callback
    */
-  subscribe(callback: (data: any) => any) {
+  public subscribe(callback: (data: any) => any) {
     let promise;
     const fun = (data: any) => {
       promise = new Promise((resolve, error) => {
@@ -83,4 +79,9 @@ export default class WorkerContext {
     this.callbacks.push(fun);
     return promise;
   }
+
+  private updateAll() {
+    this.callbacks.forEach(cb => cb(this.activeWorker));
+  }
+
 }

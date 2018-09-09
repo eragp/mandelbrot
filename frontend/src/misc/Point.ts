@@ -12,16 +12,16 @@ export default class Point {
     this.z = z;
   }
 
-  toString(): string {
+  public toString(): string {
     return `Point{${this.x}, ${this.y}, ${this.z}}`;
   }
 
-  equals(otherPoint: Point): boolean {
+  public equals(otherPoint: Point): boolean {
     if (otherPoint === null) {
       return false;
     }
-    let aProps = Object.getOwnPropertyNames(this);
-    let bProps = Object.getOwnPropertyNames(otherPoint);
+    const aProps = Object.getOwnPropertyNames(this);
+    const bProps = Object.getOwnPropertyNames(otherPoint);
 
     if (aProps.length !== bProps.length) {
       return false;

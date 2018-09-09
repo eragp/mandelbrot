@@ -70,7 +70,7 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
         },
         onHover: event => {
           // change workercontext active worker on hover
-          const data = this.chart.getElementsAtEvent(event)[0];
+          const data = this.chart.getElementsAtEvent(event)[0] as any;
           if (data) {
             this.props.workerContext.setActiveWorker(this.chartState.nodes[data._index]);
             this.hoveredItem = data;
@@ -107,16 +107,16 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
       const active = new Map();
       const progress = new Map();
 
-      let animationDuration = 750;
-      for (let region of data.regions) {
+      const animationDuration = 750;
+      for (const region of data.regions) {
         nodes.push(region.rank);
         active.set(region.rank, true);
         progress.set(region.rank, animationDuration * 1000);
       }
       this.chartState = {
-        nodes: nodes,
-        active: active,
-        progress: progress
+        nodes,
+        active,
+        progress,
       };
       this.updateChart(animationDuration);
       // Start redrawing as soon as animation has finished
@@ -129,21 +129,26 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
     // Inspired by https://github.com/chartjs/Chart.js/issues/1768
     this.props.workerContext.subscribe(activeWorker => {
       // Activate new tooltip if necessary
+      const datasets = this.chart.data.datasets as any[];
+      if (datasets === undefined) {
+        return;
+      }
+      const tooltip = (this.chart as any).tooltip;
       if (activeWorker !== undefined) {
         const workerIndex = this.chartState.nodes.indexOf(activeWorker);
-        const activeSegment = this.chart.data.datasets[0]._meta[1].data[workerIndex];
-        this.chart.tooltip.initialize();
-        this.chart.tooltip._active = [activeSegment];
-        this.chart.data.datasets[0]._meta[1].controller.setHoverStyle(activeSegment);
+        const activeSegment = datasets[0]._meta[1].data[workerIndex];
+        tooltip.initialize();
+        tooltip._active = [activeSegment];
+        datasets[0]._meta[1].controller.setHoverStyle(activeSegment);
         this.hoveredSegment = activeSegment;
       } else {
         // Remove tooltip
-        this.chart.data.datasets[0]._meta[1].controller.removeHoverStyle(this.hoveredSegment);
-        this.chart.tooltip._active = [];
+        datasets[0]._meta[1].controller.removeHoverStyle(this.hoveredSegment);
+        tooltip._active = [];
       }
       // Update chart
-      this.chart.tooltip.update(true);
-      this.chart.render(this.chart.options.hover.animationDuration, false);
+      tooltip.update(true);
+      this.chart.render((this.chart as any).options.hover.animationDuration, false);
     });
   }
 
@@ -155,7 +160,7 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
     );
   }
 
-  updateChart(animationDuration: number = 0) {
+  private updateChart(animationDuration: number = 0) {
     const labels: string[] = [];
     const values: number[] = [];
     const colorSet: string[] = [];
@@ -167,7 +172,7 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
     });
 
     const data = {
-      labels: labels,
+      labels,
       datasets: [
         {
           data: values,
@@ -181,7 +186,7 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
     this.chartState.progress.forEach(value => {
       computationTime += value;
     });
-    this.chart.options.title.text[1] = computationTime + " µs";
+    (this.chart as any).options.title.text[1] = computationTime + " µs";
 
     this.chart.update(animationDuration);
   }
@@ -189,7 +194,7 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
   /**
    * Start redrawing the current node computation time every 50 milliseconds
    */
-  initNodeProgress() {
+  private initNodeProgress() {
     // Interval in milliseconds
     const intervalRate = 50;
     this.interval = setInterval(
@@ -214,7 +219,7 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
   /**
    * Stop redrawing the node progress every 50 milliseconds
    */
-  stopNodeProgress() {
+  private stopNodeProgress() {
     clearInterval(this.interval);
   }
 }

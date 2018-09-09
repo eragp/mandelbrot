@@ -10,8 +10,8 @@ export default class WebSocketClient {
     /**
      * Callbacks for any methods interested in new region subdivisions or regionData (=result of one worker)
      */
-    let regionCallback = this.regionCallback;
-    let workerCallback = this.workerCallback;
+    const regionCallback = this.regionCallback;
+    const workerCallback = this.workerCallback;
 
     // Web Socket setup
     // Necessary due to a backend bug
@@ -39,7 +39,7 @@ export default class WebSocketClient {
     };
 
     socket.onmessage = event => {
-      let msg = JSON.parse(event.data);
+      const msg = JSON.parse(event.data);
       switch (msg.type) {
         case "regionData":
           // Notify regionData/worker observers
@@ -55,17 +55,30 @@ export default class WebSocketClient {
     this.socket = socket;
   }
 
+  public close() {
+    console.log("closing the WS connection");
+    this.socket.close();
+  }
+
+  public sendRequest(request: Request) {
+    const message = JSON.stringify(request);
+    if (this.socket.readyState === this.socket.OPEN) {
+      this.socket.send(message);
+    } else {
+      this.regionRequests.push(message);
+    }
+  }
   /**
    * Registers a callback to call when the region subdivision is returned
    */
-  registerRegion(fun: (data: Regions) => any) {
+  public registerRegion(fun: (data: Regions) => any) {
     this.registerCallback(this.regionCallback, fun);
   }
 
   /**
    * Registers a callback to call when the region data is returned
    */
-  registerRegionData(fun: (data: RegionData) => any) {
+  public registerRegionData(fun: (data: RegionData) => any) {
     this.registerCallback(this.workerCallback, fun);
   }
 
@@ -87,19 +100,6 @@ export default class WebSocketClient {
     return promise;
   }
 
-  close() {
-    console.log("closing the WS connection");
-    this.socket.close();
-  }
-
-  sendRequest(request: Request) {
-    let message = JSON.stringify(request);
-    if (this.socket.readyState === this.socket.OPEN) {
-      this.socket.send(message);
-    } else {
-      this.regionRequests.push(message);
-    }
-  }
 }
 
 export interface RegionData {
