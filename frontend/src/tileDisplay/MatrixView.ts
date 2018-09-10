@@ -44,7 +44,7 @@ export default class MatrixView {
           const render = this.callbacks.get(coordsToString(tileX, tileY, zoom));
           if (render === undefined || render === null) {
             console.error(
-              'Region not found for ' + new Point(tileX, tileY, zoom)
+              "Region not found for " + new Point(tileX, tileY, zoom)
             );
             continue;
           }
@@ -59,7 +59,7 @@ export default class MatrixView {
             br,
             msg.data,
             region.width,
-            region.height
+            region.height,
           );
           render(roi);
         }
