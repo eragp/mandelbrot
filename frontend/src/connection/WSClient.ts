@@ -113,7 +113,7 @@ export interface Regions {
   regions: WorkerInfo[];
 }
 
-interface WorkerInfo {
+export interface WorkerInfo {
   rank: number;
   computationTime: number;
   region: Region;

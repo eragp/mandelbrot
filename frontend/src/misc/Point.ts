@@ -17,7 +17,7 @@ export default class Point {
   }
 
   public equals(otherPoint: Point): boolean {
-    if (otherPoint === null) {
+    if (!otherPoint) {
       return false;
     }
     const aProps = Object.getOwnPropertyNames(this);

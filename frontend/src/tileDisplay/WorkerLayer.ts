@@ -1,19 +1,23 @@
 import L from "leaflet/dist/leaflet-src.js";
+import {Point, LatLng, Layer} from "leaflet";
 import { unproject } from "./Project";
 import { tileSize } from "./Constants";
+import WebSocketClient, { WorkerInfo, Regions } from "../connection/WSClient";
+import WorkerContext from "../misc/WorkerContext";
+import { Feature } from "geojson";
 
 /**
  *
  * @param {Array} regions
  * @param {Function} pixelToLatLng
  */
-function toGeoJSON(regions, pixelToLatLng) {
+function toGeoJSON(regions: WorkerInfo[], pixelToLatLng: (a: Point) => LatLng) {
   const featureCollection = {
     type: "FeatureCollection",
-    features: []
+    features: Array(),
   };
 
-  const toLatLngArray = (real, imag, zoom) => {
+  const toLatLngArray = (real: number, imag: number, zoom: number): number[] => {
     const tl = unproject(real, imag, zoom);
     const pixelCoords = L.point(tl.x * tileSize, -tl.y * tileSize);
     const latLng = pixelToLatLng(pixelCoords);
@@ -34,13 +38,13 @@ function toGeoJSON(regions, pixelToLatLng) {
             toLatLngArray(region.maxReal, region.minImag, region.validation),
             toLatLngArray(region.minReal, region.minImag, region.validation),
             toLatLngArray(region.minReal, region.maxImag, region.validation)
-          ]
-        ]
+          ],
+        ],
       },
       properties: {
         node: worker.rank,
-        zoom: region.validation
-      }
+        zoom: region.validation,
+      },
     });
   }
 
@@ -48,48 +52,56 @@ function toGeoJSON(regions, pixelToLatLng) {
 }
 
 export default class WorkerLayer extends L.GeoJSON {
-  constructor(wsclient, pixelToLatLng, workerContext) {
-    const style = feature => {
-      return {
+  constructor(wsclient: WebSocketClient, pixelToLatLng: (p: Point) => LatLng, workerContext: WorkerContext) {
+    const style = (feature: Feature): {} => {
+      const ret = {
         weight: 1.5,
         opacity: 1,
         color: "white",
-        fillColor: workerContext.getWorkerColor(feature.properties.node),
+        fillColor: "white",
         dashArray: "3",
-        fillOpacity: 0.3
+        fillOpacity: 0.3,
       };
+      if (feature.properties !== null) {
+        ret.fillColor = workerContext.getWorkerColor(feature.properties.node);
+      }
+      return ret;
     };
 
-    const onEachFeature = (feature, layer) => {
+    const onEachFeature = (feature: Feature, layer: Layer): void => {
+      let node = 0;
+      if (feature.properties !== null) {
+        node = feature.properties.node;
+      }
       layer.on({
-        mouseover: () => workerContext.setActiveWorker(feature.properties.node),
-        mouseout: () => workerContext.setActiveWorker(undefined)
+        mouseover: () => workerContext.setActiveWorker(node),
+        mouseout: () => workerContext.setActiveWorker(undefined),
       });
-      this.nodeLayers.set(feature.properties.node, layer);
+      this.nodeLayers.set(node, layer);
     };
 
     super(null, {
-      style: style,
-      onEachFeature: onEachFeature
+      style,
+      onEachFeature,
     });
 
     this.nodeLayers = new Map();
 
-    wsclient.registerRegion(data => {
+    wsclient.registerRegion((data: Regions) => {
       this.clearLayers();
       const regions = toGeoJSON(data.regions, pixelToLatLng);
       this.addData(regions);
     });
 
-    workerContext.subscribe(worker => {
-      this.nodeLayers.forEach(layer => {
+    workerContext.subscribe((worker: WorkerInfo) => {
+      this.nodeLayers.forEach((layer: Layer) => {
         this.resetStyle(layer);
       });
       if (worker !== undefined) {
         const layer = this.nodeLayers.get(worker);
         if (layer) {
           layer.setStyle({
-            fillOpacity: 0.7
+            fillOpacity: 0.7,
           });
         }
       }
