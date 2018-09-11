@@ -35,7 +35,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
   private map: Map;
   private newViewObservers: Array<(map: Map) => any>;
   private regionDrawer: MatrixView;
-  private viewCenter: Point = new Point(0, 0, 0);
+  private viewCenter: Point;
 
   /**
    * Invoke the given callback, when the view of the map has changed
@@ -205,6 +205,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
 
     L.control.layers(baseLayer, overlayLayers).addTo(map);
 
+    this.viewCenter = this.props.viewCenter;
     map.setView([this.viewCenter.x, this.viewCenter.y], this.viewCenter.z);
     // change URL params when region changes
     this.registerNewView((curMap: Map) => {
