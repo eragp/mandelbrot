@@ -78,6 +78,9 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
       crs: L.CRS.Simple,
       maxZoom: 50,
       zoom: 0,
+      // bounds preventing the user from panning outside the mandelbrot set
+      maxBounds: bounds,
+      maxBoundsViscosity: 1
     });
 
     const map = this.map;
