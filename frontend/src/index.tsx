@@ -11,11 +11,11 @@ import { getURLParams } from "./misc/URLParams";
 
 // Custom Components
 import NodeProgress from "./visualization/NodeProgress";
-import BalancerChoice from "./visualization/BalancerChoice.jsx";
+import BalancerChoice from "./visualization/BalancerChoice";
 import BalancerPolicy from "./misc/BalancerPolicy";
 import WorkerContext from "./misc/WorkerContext";
 import NetworkView from "./visualization/NetworkView.jsx";
-import IdleTime from "./visualization/IdleTime.jsx";
+import IdleTime from "./visualization/IdleTime";
 
 // CSS
 import "./index.css";

@@ -1,5 +1,5 @@
 import L from "leaflet/dist/leaflet-src.js";
-import {Point, LatLng, GeoJSON} from "leaflet";
+import { Point, LatLng, GeoJSON } from "leaflet";
 import { unproject } from "./Project";
 import { tileSize } from "./Constants";
 import WebSocketClient, { WorkerInfo, Regions } from "../connection/WSClient";

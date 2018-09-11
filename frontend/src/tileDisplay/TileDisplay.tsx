@@ -1,9 +1,10 @@
 import * as React from "react";
 // leaflet stuff
 import "leaflet/dist/leaflet.css";
-import L from "leaflet/dist/leaflet-src.js";
+import * as L from "leaflet/dist/leaflet-src.js";
 import "leaflet-zoombox";
 import "leaflet-zoombox/L.Control.ZoomBox.css";
+import { Map } from "leaflet";
 
 // custom stylesheet
 import "./TileDisplay.css";
@@ -20,7 +21,6 @@ import WebSocketClient from "../connection/WSClient";
 import WorkerLayer from "./WorkerLayer";
 import WorkerContext from "../misc/WorkerContext";
 import { setURLParams } from "../misc/URLParams";
-import { Map } from "leaflet";
 import RegionOfInterest from "./RegionOfInterest";
 
 interface TileDisplayProps {
