@@ -46,7 +46,10 @@ export default class TileDisplay extends Component {
     this.map = L.map("viewer", {
       crs: L.CRS.Simple,
       maxZoom: 50,
-      zoom:0 
+      zoom: 0,
+      // bounds preventing the user from panning outside the mandelbrot set
+      maxBounds: bounds,
+      maxBoundsViscosity: 1
     });
 
     let map = this.map;
