@@ -1,7 +1,7 @@
-import React, { Component } from "react";
+import * as React from "react";
 import WebSocketClient from "../connection/WSClient";
 
-import { DataSet, Network } from "vis";
+import { DataSet, Network, Node, Edge, Options as NetworkOptions} from "vis";
 
 import "./NetworkView.css";
 // TODO include material design icon copyright notice
@@ -11,32 +11,46 @@ import serverImage from "./img/server.backgroundCircle.svg";
 import applicationImage from "./img/application.backgroundCircle.svg";
 import WorkerContext from "../misc/WorkerContext";
 
+interface NetworkViewProps {
+  workerContext: WorkerContext;
+  wsclient: WebSocketClient;
+}
+
+interface NetworkHoverEvent {
+  pointer: any;
+  event: MouseEvent;
+  node: number;
+}
 // TODO highlight node on workercontext active worker change
 
-export default class NetworkView extends Component {
-  componentDidMount() {
-    const options = {
+export default class NetworkView extends React.Component<NetworkViewProps, {}> {
+
+  private network: Network;
+  private networkState: {
+    nodes: number[];
+  }
+
+  public componentDidMount() {
+    const options: NetworkOptions = {
       autoResize: true,
       physics: {
         enabled: true,
+        solver: "forceAtlas2Based",
         hierarchicalRepulsion: {
-          // solver: "forceAtlas2Based",
-          centralGravity: 10
-        }
+          centralGravity: 10,
+        },
       },
       edges: {
-        smooth: {
-          enabled: false
-        },
+        smooth: false,
         color: {
-          color: "black"
-        }
+          color: "black",
+        },
       },
       layout: {
         hierarchical: {
           enabled: true,
           direction: "LR",
-          sortMethod: "directed"
+          sortMethod: "directed",
         }
       },
       interaction: {
@@ -44,20 +58,20 @@ export default class NetworkView extends Component {
         dragView: false,
         hover: true,
         zoomView: false,
-        selectable: false
+        selectable: false,
       }
     };
 
     this.network = new Network(
-      document.getElementById("nodeNetwork"),
+      document.getElementById("nodeNetwork") as HTMLCanvasElement,
       {
         nodes: new DataSet(),
         edges: new DataSet()
       },
-      options
+      options,
     );
 
-    this.network.on("hoverNode", node => {
+    this.network.on("hoverNode", (node: NetworkHoverEvent) => {
       if (node.node >= 2) {
         this.props.workerContext.setActiveWorker(this.networkState.nodes[node.node - 2]);
       }
@@ -99,11 +113,15 @@ export default class NetworkView extends Component {
     });
   }
 
+  public render() {
+    return <div id="nodeNetwork" />;
+  }
+
   /**
    * Updates the Dataset of the network according to the received number of workers
    */
-  renderNetwork() {
-    let nodes = [];
+  private renderNetwork() {
+    const nodes: Node[] = [];
 
     nodes.push({
       id: 0,
@@ -111,7 +129,7 @@ export default class NetworkView extends Component {
       image: applicationImage,
       shape: "image",
       level: 0,
-      fixed: true
+      fixed: true,
     });
     nodes.push({
       id: 1,
@@ -122,7 +140,7 @@ export default class NetworkView extends Component {
       fixed: true
     });
 
-    let edges = [];
+    const edges: Edge[] = [];
     edges.push({
       from: 0,
       to: 1
@@ -135,11 +153,10 @@ export default class NetworkView extends Component {
         label: `Worker ${rank}`,
         image: workerImage,
         shape: "image",
-        color: color,
         font: {
-          color: color
+          color: color,
         },
-        level: level
+        level,
       });
       edges.push({
         from: 1,
@@ -149,7 +166,6 @@ export default class NetworkView extends Component {
           hover: color,
           highlight: color
         },
-        level: level
       });
     });
 
@@ -159,9 +175,5 @@ export default class NetworkView extends Component {
     });
 
     this.network.fit();
-  }
-
-  render() {
-  return <div id="nodeNetwork" />;
   }
 }

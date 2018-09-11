@@ -14,7 +14,7 @@ import NodeProgress from "./visualization/NodeProgress";
 import BalancerChoice from "./visualization/BalancerChoice";
 import BalancerPolicy from "./misc/BalancerPolicy";
 import WorkerContext from "./misc/WorkerContext";
-import NetworkView from "./visualization/NetworkView.jsx";
+import NetworkView from "./visualization/NetworkView";
 import IdleTime from "./visualization/IdleTime";
 
 // CSS
