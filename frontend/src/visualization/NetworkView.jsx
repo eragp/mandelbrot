@@ -20,7 +20,7 @@ export default class NetworkView extends Component {
       physics: {
         enabled: true,
         hierarchicalRepulsion: {
-          solver: "forceAtlas2Based",
+          // solver: "forceAtlas2Based",
           centralGravity: 10
         }
       },

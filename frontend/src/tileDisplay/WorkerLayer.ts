@@ -1,20 +1,20 @@
 import L from "leaflet/dist/leaflet-src.js";
-import {Point, LatLng, Layer} from "leaflet";
+import {Point, LatLng, GeoJSON} from "leaflet";
 import { unproject } from "./Project";
 import { tileSize } from "./Constants";
 import WebSocketClient, { WorkerInfo, Regions } from "../connection/WSClient";
 import WorkerContext from "../misc/WorkerContext";
-import { Feature } from "geojson";
+import { Feature, FeatureCollection } from "geojson";
 
 /**
  *
  * @param {Array} regions
  * @param {Function} pixelToLatLng
  */
-function toGeoJSON(regions: WorkerInfo[], pixelToLatLng: (a: Point) => LatLng) {
-  const featureCollection = {
+function toGeoJSON(regions: WorkerInfo[], pixelToLatLng: (a: Point) => LatLng): FeatureCollection {
+  const featureCollection: FeatureCollection = {
     type: "FeatureCollection",
-    features: Array(),
+    features: Array<Feature>(),
   };
 
   const toLatLngArray = (real: number, imag: number, zoom: number): number[] => {
@@ -37,7 +37,7 @@ function toGeoJSON(regions: WorkerInfo[], pixelToLatLng: (a: Point) => LatLng) {
             toLatLngArray(region.maxReal, region.maxImag, region.validation),
             toLatLngArray(region.maxReal, region.minImag, region.validation),
             toLatLngArray(region.minReal, region.minImag, region.validation),
-            toLatLngArray(region.minReal, region.maxImag, region.validation)
+            toLatLngArray(region.minReal, region.maxImag, region.validation),
           ],
         ],
       },
@@ -51,7 +51,10 @@ function toGeoJSON(regions: WorkerInfo[], pixelToLatLng: (a: Point) => LatLng) {
   return featureCollection;
 }
 
-export default class WorkerLayer extends L.GeoJSON {
+export default class WorkerLayer extends GeoJSON {
+
+  private nodeLayers: Map<number, GeoJSON>;
+
   constructor(wsclient: WebSocketClient, pixelToLatLng: (p: Point) => LatLng, workerContext: WorkerContext) {
     const style = (feature: Feature): {} => {
       const ret = {
@@ -68,7 +71,7 @@ export default class WorkerLayer extends L.GeoJSON {
       return ret;
     };
 
-    const onEachFeature = (feature: Feature, layer: Layer): void => {
+    const onEachFeature = (feature: Feature, layer: GeoJSON): void => {
       let node = 0;
       if (feature.properties !== null) {
         node = feature.properties.node;
@@ -80,7 +83,7 @@ export default class WorkerLayer extends L.GeoJSON {
       this.nodeLayers.set(node, layer);
     };
 
-    super(null, {
+    super(undefined, {
       style,
       onEachFeature,
     });
@@ -93,8 +96,8 @@ export default class WorkerLayer extends L.GeoJSON {
       this.addData(regions);
     });
 
-    workerContext.subscribe((worker: WorkerInfo) => {
-      this.nodeLayers.forEach((layer: Layer) => {
+    workerContext.subscribe((worker: number|undefined) => {
+      this.nodeLayers.forEach((layer: GeoJSON) => {
         this.resetStyle(layer);
       });
       if (worker !== undefined) {

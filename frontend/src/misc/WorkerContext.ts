@@ -65,7 +65,7 @@ export default class WorkerContext {
    * Subscribe to changes to the active (hovered, focused) node
    * @param {Function} callback
    */
-  public subscribe(callback: (data: any) => any) {
+  public subscribe(callback: (nodeID: number|undefined) => any) {
     let promise;
     const fun = (data: any) => {
       promise = new Promise((resolve, error) => {
