@@ -1,10 +1,12 @@
 import { getBottomRightPoint, getTopLeftPoint, project } from "./Project";
 import { tileSize, maxIteration } from "./Constants";
+import Point from "../misc/Point";
+import { Map } from "leaflet";
 
 // making sure only new requests actually get sent
-var currentTopLeft = null;
-var currentBottomRight = null;
-var currentBalancer = null;
+let currentTopLeft: Point;
+let currentBottomRight: Point;
+let currentBalancer: string;
 /**
  *  Sends a region request for the currently visible region
  *
@@ -12,12 +14,12 @@ var currentBalancer = null;
  * Otherwise the corresponding request for the backend is returned.
  * @param {*} map current Leaflet map
  */
-export const request = (map, balancer) => {
-  let bounds = map.getPixelBounds();
-  let zoom = map.getZoom();
+export const request = (map: Map, balancer: string) => {
+  const bounds = map.getPixelBounds();
+  const zoom = map.getZoom();
 
-  let topLeft = getTopLeftPoint(bounds, tileSize, zoom);
-  let botRight = getBottomRightPoint(bounds, tileSize, zoom);
+  const topLeft = getTopLeftPoint(bounds, tileSize, zoom);
+  const botRight = getBottomRightPoint(bounds, tileSize, zoom);
 
   // has the visible region changed?
   if (
@@ -25,18 +27,19 @@ export const request = (map, balancer) => {
     botRight.equals(currentBottomRight) &&
     currentBalancer === balancer
   ) {
-    return null;
+    return;
   }
   currentTopLeft = topLeft;
   currentBottomRight = botRight;
+  currentBalancer = balancer;
 
-  let tlComplex = project(topLeft.x, topLeft.y, topLeft.z, 0, 0, tileSize);
-  let brComplex = project(botRight.x, botRight.y, botRight.z, 0, 0, tileSize);
-  let [sizeX, sizeY] = [
+  const tlComplex = project(topLeft.x, topLeft.y, topLeft.z, 0, 0, tileSize);
+  const brComplex = project(botRight.x, botRight.y, botRight.z, 0, 0, tileSize);
+  const [sizeX, sizeY] = [
     Math.abs(botRight.x - topLeft.x) * tileSize,
-    Math.abs(topLeft.y - botRight.y) * tileSize
+    Math.abs(topLeft.y - botRight.y) * tileSize,
   ];
-  let region = {
+  const region = {
     region: {
       // point top left
       minReal: tlComplex.x,
@@ -54,10 +57,10 @@ export const request = (map, balancer) => {
       validation: zoom,
       // Divisor for width and height. Will be used to perform load balancing
       guaranteedDivisor: tileSize,
-      maxIteration: maxIteration
+      maxIteration,
     },
     type: "regionRequest",
-    balancer: balancer
+    balancer,
   };
   console.log("sending Region request: ");
   console.log(region);

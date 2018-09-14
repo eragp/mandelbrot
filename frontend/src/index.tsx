@@ -1,25 +1,26 @@
-import React, { Component } from "react";
-import ReactDOM from "react-dom";
+import * as React from "react";
+import * as ReactDOM from "react-dom";
 // Bootstrap
 import "bootstrap/dist/css/bootstrap.css";
+// Custom Components
+import TileDisplay from "./tileDisplay/TileDisplay";
 import registerServiceWorker from "./registerServiceWorker";
 
 import WebSocketClient from "./connection/WSClient";
-import BalancerPolicy from "./misc/BalancerPolicy";
-import WorkerContext from "./misc/WorkerContext";
 import { getURLParams } from "./misc/URLParams";
 
 // Custom Components
-import TileDisplay from "./tileDisplay/TileDisplay";
+import NodeProgress from "./visualization/NodeProgress";
 import BalancerChoice from "./visualization/BalancerChoice";
+import BalancerPolicy from "./misc/BalancerPolicy";
+import WorkerContext from "./misc/WorkerContext";
 import NetworkView from "./visualization/NetworkView";
 import IdleTime from "./visualization/IdleTime";
-import NodeProgress from "./visualization/NodeProgress";
 
 // CSS
 import "./index.css";
 
-class App extends Component {
+class App extends React.Component<{}, {}> {
   render() {
     const websocketclient = new WebSocketClient();
     const balancerPolicy = new BalancerPolicy();
@@ -51,7 +52,7 @@ class App extends Component {
             <IdleTime workerContext={workerContext} wsclient={websocketclient} />
           </div>
           <div className="col-3">
-            <NodeProgress workerContext={workerContext} wsclient={websocketclient} />
+            <NodeProgress workerContext={workerContext} wsClient={websocketclient} />
           </div>
         </div>
       </div>
@@ -59,5 +60,5 @@ class App extends Component {
   }
 }
 
-ReactDOM.render(<App />, document.getElementById("root"));
+ReactDOM.render(<App />, document.getElementById("root") as HTMLElement);
 registerServiceWorker();

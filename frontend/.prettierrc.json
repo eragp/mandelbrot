@@ -1,5 +1,5 @@
 {
     "extends": ["google"],
-    "printWidth" : 80,
-    "parser": "flow"
+    "printWidth" : 100,
+    "parser": "typescript"
 }

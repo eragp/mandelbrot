@@ -1,19 +1,42 @@
-import React, { Component } from 'react';
-import { Chart } from 'chart.js';
-import WebSocketClient from '../connection/WSClient';
-import PropTypes from 'prop-types';
+import * as React from "react";
+import {
+  Chart,
+  ChartTooltipItem,
+  ChartData,
+  ChartConfiguration,
+  ChartDataSets,
+  ChartOptions,
+  ChartHoverOptions,
+} from "chart.js";
+import WebSocketClient from "../connection/WSClient";
 
-import './IdleTime.css';
-import WorkerContext from '../misc/WorkerContext';
+import "./IdleTime.css";
+import WorkerContext from "../misc/WorkerContext";
 
+interface IdleTimeProps {
+  wsclient: WebSocketClient;
+  workerContext: WorkerContext;
+}
+
+interface IdleTimeState {
+  nodes: number[];
+  active: Map<number, boolean>;
+  progress: Map<number, number>;
+}
 /**
  * Shows the computation time of invoked workers
  * Additional documentation on the type of used chart: https://www.chartjs.org/docs/latest/
  */
-export default class IdleTime extends Component {
-  constructor(props) {
+export default class IdleTime extends React.Component<IdleTimeProps, {}> {
+  private chartState: IdleTimeState;
+  private chart: Chart;
+  private interval: NodeJS.Timer;
+
+  private hoveredItem: any;
+  private hoveredSegment: any;
+
+  constructor(props: IdleTimeProps) {
     super(props);
-    this.websocketClient = props.wsclient;
 
     this.chartState = {
       nodes: [0],
@@ -23,24 +46,30 @@ export default class IdleTime extends Component {
     };
   }
 
-  componentDidMount() {
-    const ctx = document.getElementById('idleTime');
-    const customLabel = (tooltipItem, data) => {
-      let label = data.datasets[tooltipItem.datasetIndex].label;
+  public componentDidMount() {
+    const customLabel = (tooltipItem: ChartTooltipItem, data: ChartData) => {
+      if (!data.datasets || !tooltipItem.datasetIndex || !tooltipItem.index) {
+        return "";
+      }
+      const dataset = data.datasets[tooltipItem.datasetIndex];
+      if (!dataset.data) {
+        return "";
+      }
+      let label = dataset.label;
 
       if (label) {
-        label += ': ';
+        label += ": ";
       } else {
-        label = '';
+        label = "";
       }
-      label += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
-      label += ' ms';
+      label += dataset.data[tooltipItem.index];
+      label += " ms";
       return label;
     };
 
-    this.chart = new Chart(ctx, {
-      type: 'bar',
-      data: [],
+    const ctx = document.getElementById("idleTime") as HTMLCanvasElement;
+    const config: ChartConfiguration = {
+      type: "bar",
       options: {
         responsive: true,
         maintainAspectRatio: false,
@@ -59,36 +88,39 @@ export default class IdleTime extends Component {
         },
         onHover: event => {
           // change workercontext active worker on hover
-          const data = this.chart.getDatasetAtEvent(event)[0];
+          const data = this.chart.getDatasetAtEvent(event)[0] as ChartDataSets;
           if (data) {
             this.props.workerContext.setActiveWorker(
+              // @ts-ignore: data does not have complete .d.ts file
               this.chartState.nodes[data._datasetIndex]
             );
-            this._hoveredItem = data;
-          } else if (this._hoveredItem) {
+            this.hoveredItem = data;
+          } else if (this.hoveredItem) {
             this.props.workerContext.setActiveWorker(undefined);
-            this._hoveredItem = undefined;
+            this.hoveredItem = undefined;
           }
         },
         scales: {
           yAxes: [
             {
-              type: 'linear',
+              type: "linear",
               stacked: true,
               ticks: {
                 beginAtZero: true,
                 min: 0,
+                // @ts-ignore: suggestedMax is not in TickOptions.d.ts
                 suggestedMax: 10000
               },
               scaleLabel: {
                 display: true,
-                labelString: 'ms'
+                labelString: "ms"
               }
             }
           ]
         }
       }
-    });
+    };
+    this.chart = new Chart(ctx, config);
     this.updateChart();
 
     this.initNodeProgress();
@@ -96,7 +128,7 @@ export default class IdleTime extends Component {
     // register workers at websocket client
     // so that they are set inactive when the first tile/region
     // by them comes in
-    this.websocketClient.registerRegionData(data => {
+    this.props.wsclient.registerRegionData(data => {
       // Stop corresponding worker progress bar
       // assume that regionData is passed here
       // Pay attention here that ranks begin from 1 as long as the host does not send data on his own
@@ -109,7 +141,7 @@ export default class IdleTime extends Component {
       this.updateChart(0);
     });
 
-    this.websocketClient.registerRegion(data => {
+    this.props.wsclient.registerRegion(data => {
       // Stop redrawing
       this.stopNodeProgress();
       // Reset node progress
@@ -142,24 +174,34 @@ export default class IdleTime extends Component {
       // Activate new tooltip if necessary
       if (activeWorker !== undefined) {
         const workerIndex = this.chartState.nodes.indexOf(activeWorker);
-        const activeSegment = this.chart.data.datasets[workerIndex]._meta[0]
+        // @ts-ignore: does not have complete .d.ts file
+        const activeSegment = (this.chart.data.datasets as ChartDataSets[])[workerIndex]._meta[0]
           .data[0];
+        // @ts-ignore: does not have complete .d.ts file
         this.chart.tooltip.initialize();
+        // @ts-ignore: does not have complete .d.ts file
         this.chart.tooltip._active = [activeSegment];
-        this.chart.data.datasets[workerIndex]._meta[0].controller.setHoverStyle(
-          activeSegment
-        );
-        this._hoveredSegment = activeSegment;
+        (this.chart.data.datasets as ChartDataSets[])[
+          workerIndex
+          // @ts-ignore: does not have complete .d.ts file
+        ]._meta[0].controller.setHoverStyle(activeSegment);
+        this.hoveredSegment = activeSegment;
       } else {
         // Remove tooltip
-        this.chart.data.datasets[0]._meta[0].controller.removeHoverStyle(
-          this._hoveredSegment
+        // @ts-ignore: does not have complete .d.ts file
+        (this.chart.data.datasets as ChartDataSets[])[0]._meta[0].controller.removeHoverStyle(
+          this.hoveredSegment
         );
+        // @ts-ignore: does not have complete .d.ts file
         this.chart.tooltip._active = [];
       }
       // Update chart
+      // @ts-ignore: does not have complete .d.ts file
       this.chart.tooltip.update(true);
-      this.chart.render(this.chart.options.hover.animationDuration, false);
+      this.chart.render(
+        ((this.chart.config.options as ChartOptions).hover as ChartHoverOptions).animationDuration,
+        false
+      );
     });
   }
 
@@ -171,8 +213,8 @@ export default class IdleTime extends Component {
     );
   }
 
-  updateChart(animationDuration) {
-    const dataset = [];
+  private updateChart(animationDuration?: number) {
+    const datasets: ChartDataSets[] = [];
     let maxComputationTime = 0;
     this.chartState.progress.forEach(time => {
       if (time > maxComputationTime) {
@@ -181,19 +223,19 @@ export default class IdleTime extends Component {
     });
     // Ensure that the order from the nodes array is kept for the datasets
     this.chartState.nodes.forEach(rank => {
-      let idleTime = maxComputationTime - this.chartState.progress.get(rank);
+      let idleTime = maxComputationTime - (this.chartState.progress.get(rank) as number);
       idleTime = idleTime / 1000;
-      dataset.push({
-        label: 'Worker ' + rank,
+      datasets.push({
+        label: "Worker " + rank,
         data: [idleTime],
         backgroundColor: this.props.workerContext.getWorkerColor(rank),
-        stack: 'idle-time'
+        stack: "idle-time"
       });
     });
 
     const data = {
-      labels: ['Idle time'],
-      datasets: dataset
+      labels: ["Idle time"],
+      datasets
     };
     this.chart.data = data;
 
@@ -203,11 +245,11 @@ export default class IdleTime extends Component {
   /**
    * Start redrawing the current node computation time every 50 milliseconds
    */
-  initNodeProgress() {
+  private initNodeProgress() {
     // Interval in milliseconds
     const interval = 50;
     this.interval = setInterval(
-      state => {
+      (state: IdleTimeState) => {
         let update = false;
         state.progress.forEach((value, rank) => {
           if (state.active.get(rank)) {
@@ -228,12 +270,7 @@ export default class IdleTime extends Component {
   /**
    * Stop redrawing the node progress every 50 milliseconds
    */
-  stopNodeProgress() {
+  private stopNodeProgress() {
     clearInterval(this.interval);
   }
 }
-
-IdleTime.propTypes = {
-  wsclient: PropTypes.instanceOf(WebSocketClient),
-  workerContext: PropTypes.instanceOf(WorkerContext)
-};
