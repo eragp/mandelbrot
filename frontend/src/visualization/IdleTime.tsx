@@ -1,5 +1,13 @@
 import * as React from "react";
-import { Chart, ChartTooltipItem, ChartData, ChartConfiguration, ChartDataSets, ChartOptions, ChartHoverOptions } from "chart.js";
+import {
+  Chart,
+  ChartTooltipItem,
+  ChartData,
+  ChartConfiguration,
+  ChartDataSets,
+  ChartOptions,
+  ChartHoverOptions,
+} from "chart.js";
 import WebSocketClient from "../connection/WSClient";
 
 import "./IdleTime.css";
@@ -20,10 +28,12 @@ interface IdleTimeState {
  * Additional documentation on the type of used chart: https://www.chartjs.org/docs/latest/
  */
 export default class IdleTime extends React.Component<IdleTimeProps, {}> {
-
   private chartState: IdleTimeState;
   private chart: Chart;
   private interval: NodeJS.Timer;
+
+  private hoveredItem: any;
+  private hoveredSegment: any;
 
   constructor(props: IdleTimeProps) {
     super(props);
@@ -37,13 +47,12 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
   }
 
   public componentDidMount() {
-
     const customLabel = (tooltipItem: ChartTooltipItem, data: ChartData) => {
-      if (!data.datasets || !tooltipItem.datasetIndex || !tooltipItem.index){
+      if (!data.datasets || !tooltipItem.datasetIndex || !tooltipItem.index) {
         return "";
       }
       const dataset = data.datasets[tooltipItem.datasetIndex];
-      if (!dataset.data){
+      if (!dataset.data) {
         return "";
       }
       let label = dataset.label;
@@ -65,29 +74,30 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
         responsive: true,
         maintainAspectRatio: false,
         legend: {
-          display: false,
+          display: false
         },
         layout: {
           padding: {
-            top: 10,
-          },
+            top: 10
+          }
         },
         tooltips: {
           callbacks: {
-            label: customLabel,
-          },
+            label: customLabel
+          }
         },
-        onHover: (event) => {
+        onHover: event => {
           // change workercontext active worker on hover
           const data = this.chart.getDatasetAtEvent(event)[0] as ChartDataSets;
           if (data) {
             this.props.workerContext.setActiveWorker(
+              // @ts-ignore: data does not have complete .d.ts file
               this.chartState.nodes[data._datasetIndex]
             );
-            this._hoveredItem = data;
-          } else if (this._hoveredItem) {
+            this.hoveredItem = data;
+          } else if (this.hoveredItem) {
             this.props.workerContext.setActiveWorker(undefined);
-            this._hoveredItem = undefined;
+            this.hoveredItem = undefined;
           }
         },
         scales: {
@@ -98,17 +108,18 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
               ticks: {
                 beginAtZero: true,
                 min: 0,
-                suggestedMax: 10000,
+                // @ts-ignore: suggestedMax is not in TickOptions.d.ts
+                suggestedMax: 10000
               },
               scaleLabel: {
                 display: true,
-                labelString: "ms",
+                labelString: "ms"
               }
             }
           ]
         }
       }
-    }
+    };
     this.chart = new Chart(ctx, config);
     this.updateChart();
 
@@ -163,25 +174,34 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
       // Activate new tooltip if necessary
       if (activeWorker !== undefined) {
         const workerIndex = this.chartState.nodes.indexOf(activeWorker);
+        // @ts-ignore: does not have complete .d.ts file
         const activeSegment = (this.chart.data.datasets as ChartDataSets[])[workerIndex]._meta[0]
           .data[0];
+        // @ts-ignore: does not have complete .d.ts file
         this.chart.tooltip.initialize();
+        // @ts-ignore: does not have complete .d.ts file
         this.chart.tooltip._active = [activeSegment];
-        (this.chart.data.datasets as ChartDataSets[])[workerIndex]._meta[0].controller.setHoverStyle(
-          activeSegment
-        );
-        this._hoveredSegment = activeSegment;
+        (this.chart.data.datasets as ChartDataSets[])[
+          workerIndex
+          // @ts-ignore: does not have complete .d.ts file
+        ]._meta[0].controller.setHoverStyle(activeSegment);
+        this.hoveredSegment = activeSegment;
       } else {
         // Remove tooltip
+        // @ts-ignore: does not have complete .d.ts file
         (this.chart.data.datasets as ChartDataSets[])[0]._meta[0].controller.removeHoverStyle(
-          this._hoveredSegment
+          this.hoveredSegment
         );
+        // @ts-ignore: does not have complete .d.ts file
         this.chart.tooltip._active = [];
       }
       // Update chart
+      // @ts-ignore: does not have complete .d.ts file
       this.chart.tooltip.update(true);
-      this.chart.render(((this.chart.config.options as ChartOptions)
-        .hover as ChartHoverOptions).animationDuration, false);
+      this.chart.render(
+        ((this.chart.config.options as ChartOptions).hover as ChartHoverOptions).animationDuration,
+        false
+      );
     });
   }
 
@@ -196,26 +216,26 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
   private updateChart(animationDuration?: number) {
     const datasets: ChartDataSets[] = [];
     let maxComputationTime = 0;
-    this.chartState.progress.forEach((time) => {
+    this.chartState.progress.forEach(time => {
       if (time > maxComputationTime) {
         maxComputationTime = time;
       }
     });
     // Ensure that the order from the nodes array is kept for the datasets
-    this.chartState.nodes.forEach((rank) => {
+    this.chartState.nodes.forEach(rank => {
       let idleTime = maxComputationTime - (this.chartState.progress.get(rank) as number);
       idleTime = idleTime / 1000;
       datasets.push({
         label: "Worker " + rank,
         data: [idleTime],
         backgroundColor: this.props.workerContext.getWorkerColor(rank),
-        stack: "idle-time",
+        stack: "idle-time"
       });
     });
 
     const data = {
       labels: ["Idle time"],
-      datasets,
+      datasets
     };
     this.chart.data = data;
 
@@ -243,7 +263,7 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
         }
       },
       interval,
-      this.chartState,
+      this.chartState
     );
   }
 

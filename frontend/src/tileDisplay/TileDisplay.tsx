@@ -98,12 +98,12 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
     // Handle balancer change as view change
     //  => update all view subscribers about a policy change as if the view had changed
     this.props.balancerPolicy.subscribe(
-      () => this._updateAllViews(),
+      () => this.updateAllViews(),
     );
 
     // add event listeners to the map for region requests
     map.on({
-      moveend: () => this._updateAllViews(),
+      moveend: () => this.updateAllViews(),
     });
 
     function drawPixel(imgData: ImageData, x: number, y: number, r: number, g: number, b: number, alpha: number) {
@@ -226,7 +226,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
     );
   }
 
-  private _updateAllViews() {
+  private updateAllViews() {
     this.newViewObservers.forEach((callback) => callback(this.map));
   }
 

@@ -1,5 +1,12 @@
 import * as React from "react";
-import { Chart, ChartConfiguration, ChartDataSets, ChartOptions, ChartTitleOptions, ChartHoverOptions } from "chart.js";
+import {
+  Chart,
+  ChartConfiguration,
+  ChartDataSets,
+  ChartOptions,
+  ChartTitleOptions,
+  ChartHoverOptions
+} from "chart.js";
 import WebSocketClient from "../connection/WSClient";
 
 import "./NodeProgress.css";
@@ -34,7 +41,7 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
       nodes: [0],
       active: new Map([[0, false]]),
       // The computation time in microseconds
-      progress: new Map([[0, 1]]),
+      progress: new Map([[0, 1]])
     };
   }
 
@@ -60,26 +67,27 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
         maintainAspectRatio: false,
         tooltips: {
           callbacks: {
-            label: customLabel,
-          },
+            label: customLabel
+          }
         },
         title: {
           display: true,
           position: "bottom",
-          text: ["Total node computation time:", "0 µs"],
+          text: ["Total node computation time:", "0 µs"]
         },
-        onHover: (event) => {
+        onHover: event => {
           // change workercontext active worker on hover
           const data = this.chart.getElementsAtEvent(event)[0] as ChartDataSets;
           if (data) {
+            // @ts-ignore: does not have complete .d.ts file
             this.props.workerContext.setActiveWorker(this.chartState.nodes[data._index]);
             this.hoveredItem = data;
           } else if (this.hoveredItem) {
             this.props.workerContext.setActiveWorker(undefined);
             this.hoveredItem = undefined;
           }
-        },
-      },
+        }
+      }
     } as ChartConfiguration);
     this.updateChart();
 
@@ -88,7 +96,7 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
     // register workers at websocket client
     // so that they are set inactive when the first tile/region
     // by them comes in
-    this.websocketClient.registerRegionData((data) => {
+    this.websocketClient.registerRegionData(data => {
       // Stop corresponding worker progress bar
       // assume that regionData is passed here
       const workerID = data.workerInfo.rank;
@@ -99,7 +107,7 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
       this.updateChart();
     });
 
-    this.websocketClient.registerRegion((data) => {
+    this.websocketClient.registerRegion(data => {
       // Stop redrawing
       this.stopNodeProgress();
       // Reset node progress
@@ -116,7 +124,7 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
       this.chartState = {
         nodes,
         active,
-        progress,
+        progress
       };
       this.updateChart(animationDuration);
       // Start redrawing as soon as animation has finished
@@ -127,7 +135,7 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
 
     // Highlight segement on active worker change
     // Inspired by https://github.com/chartjs/Chart.js/issues/1768
-    this.props.workerContext.subscribe((activeWorker) => {
+    this.props.workerContext.subscribe(activeWorker => {
       // Activate new tooltip if necessary
       const datasets = this.chart.data.datasets as ChartDataSets[];
       if (datasets === undefined) {
@@ -136,13 +144,16 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
       const tooltip = (this.chart as any).tooltip;
       if (activeWorker !== undefined) {
         const workerIndex = this.chartState.nodes.indexOf(activeWorker);
+      // @ts-ignore: does not have complete .d.ts file
         const activeSegment = datasets[0]._meta[1].data[workerIndex];
         tooltip.initialize();
         tooltip._active = [activeSegment];
+      // @ts-ignore: does not have complete .d.ts file
         datasets[0]._meta[1].controller.setHoverStyle(activeSegment);
         this.hoveredSegment = activeSegment;
       } else {
         // Remove tooltip
+      // @ts-ignore: does not have complete .d.ts file
         datasets[0]._meta[1].controller.removeHoverStyle(this.hoveredSegment);
         tooltip._active = [];
       }
@@ -167,7 +178,7 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
     const values: number[] = [];
     const colorSet: string[] = [];
     // => Label/ value index is the index of the rank in the node array
-    this.chartState.nodes.forEach((rank) => {
+    this.chartState.nodes.forEach(rank => {
       labels.push("Worker " + rank);
       colorSet.push(this.props.workerContext.getWorkerColor(rank));
       values.push(this.chartState.progress.get(rank) as number);
@@ -178,18 +189,18 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
       datasets: [
         {
           data: values,
-          backgroundColor: colorSet,
+          backgroundColor: colorSet
         }
       ]
     };
     this.chart.data = data;
 
     let computationTime = 0;
-    this.chartState.progress.forEach((value) => {
+    this.chartState.progress.forEach(value => {
       computationTime += value;
     });
-    (((this.chart.config.options as ChartOptions).title as ChartTitleOptions)
-      .text as string[])[1] = computationTime + " µs";
+    (((this.chart.config.options as ChartOptions).title as ChartTitleOptions).text as string[])[1] =
+      computationTime + " µs";
 
     this.chart.update(animationDuration);
   }
@@ -215,7 +226,7 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
         }
       },
       intervalRate,
-      this.chartState,
+      this.chartState
     );
   }
 
