@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <string>
+#include <iostream>
 
 const std::string NaiveBalancer::NAME = "naive";
 
@@ -18,9 +19,51 @@ Region* NaiveBalancer::balanceLoad(Region region, int nodeCount)
 
 	int yQuantity = nodeCount / xQuantity;	// nodeCount = xQuantity * yQuantity; --> Number of Rows
 
+	// Define an empty region
+	Region empty;
+	empty.minImaginary = 0.0;
+	empty.maxImaginary = 0.0;
+
+	empty.minReal = 0.0;
+	empty.maxReal = 0.0;
+
+	empty.height = 0;
+	empty.width = 0;
+
+	empty.vOffset = 0;
+	empty.hOffset = 0;
+
+	empty.maxIteration = region.maxIteration;
+	empty.validation = region.validation;
+	empty.guaranteedDivisor = region.guaranteedDivisor;
+
 	int partWidth = (region.width / (region.guaranteedDivisor * xQuantity)) * region.guaranteedDivisor;	// Split Resolution for x, multiple of guaranteedDivisor
+	
+	if (partWidth <= 0) {
+		partWidth = region.guaranteedDivisor;
+		int spareCols = xQuantity - (region.width / region.guaranteedDivisor);
+		// Set affected regions to empty
+		for (int i = 0; i < spareCols; i++) {
+			for (int j = 0; j < yQuantity; j++) {
+				ret[(xQuantity - 1 - i) * yQuantity + j] = empty;
+			}
+		}
+		xQuantity -= spareCols;
+	}
 
 	int partHeight = (region.height / (region.guaranteedDivisor * yQuantity)) * region.guaranteedDivisor;	// Split Resolution for y, multiple of guaranteedDivisor
+
+	if (partHeight <= 0) {
+		partHeight = region.guaranteedDivisor;
+		int spareRows = yQuantity - (region.height / region.guaranteedDivisor);
+		// Set affected regions to empty
+		for (int i = 0; i < spareRows; i++) {
+			for (int j = 0; j < xQuantity; j++) {
+				ret[j * yQuantity + (yQuantity - 1 - i)] = empty;
+			}
+		}
+		yQuantity -= spareRows;
+	}
 
 	double xDelta = ((region.maxReal - region.minReal) / region.width) * partWidth;		// xDelta = x dimension of every region (except maybe the last) this method returns
 
