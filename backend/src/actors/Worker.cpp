@@ -32,7 +32,10 @@ void Worker::init(int world_rank, int world_size) {
     int flag;
     // Recieve instructions for computation
     std::cout << "Worker " << world_rank << " is ready to receive Data." << std::endl;
-    MPI_Irecv(&newRegion, sizeof(Region), MPI_BYTE, host_rank, 1, MPI_COMM_WORLD, &request); // Listen for a region asynchronously
+    // Init and start persistent receive (asynchronously)
+    MPI_Recv_init(&newRegion, sizeof(Region), MPI_BYTE, host_rank, 1, MPI_COMM_WORLD, &request);
+    MPI_Start(&request);
+    //MPI_Irecv(&newRegion, sizeof(Region), MPI_BYTE, host_rank, 1, MPI_COMM_WORLD, &request); // Listen for a region asynchronously
     // Start with actual work of this worker
     while (true) {
         MPI_Test(&request, &flag, &status);
@@ -53,8 +56,9 @@ void Worker::init(int world_rank, int world_size) {
 
             // Recieve instructions for computation
             std::cout << "Worker " << world_rank << " is listening during computation." << std::endl;
-            MPI_Irecv(&newRegion, sizeof(Region), MPI_BYTE, host_rank, 1, MPI_COMM_WORLD,
-                      &request); // Listen for a region asynchronously => store inside newRegion
+            // Listen for a region asynchronously => store inside newRegion
+            MPI_Start(&request);
+            //MPI_Irecv(&newRegion, sizeof(Region), MPI_BYTE, host_rank, 1, MPI_COMM_WORLD, &request); // Listen for a region asynchronously => store inside newRegion
 
             // Execute computations
             const unsigned int data_len = region.getPixelCount();
@@ -105,4 +109,6 @@ void Worker::init(int world_rank, int world_size) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
     }
+    MPI_Cancel(&request);
+    MPI_Request_free(&request);
 }
