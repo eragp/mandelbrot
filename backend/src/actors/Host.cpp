@@ -285,67 +285,54 @@ void Host::init(int world_rank, int world_size) {
             activeNodes.push_back(i);
         }
     }
-
-    // TODO @Tobi you might want to look at this    
+  
     // MPI - receiving answers and answering requests
     while (true) {
         // Listen for incoming complete computations from workers (MPI)
         // This accepts messages by the workers and answers requests that were stored before
         // TODO: asynchronous (maybe?)
+        
+        // Receive one message of dynamic length containing "workerInfo" and the computed "worker_data"
+        MPI_Status status;
+        MPI_Probe(MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, &status); // Rank: 2
+        int recv_len;
+        MPI_Get_count(&status, MPI_BYTE, &recv_len);
+        std::cout << "Host is receiving Data from Worker " << status.MPI_SOURCE << " Total length: " << recv_len << std::endl;
+        uint8_t* recv = new uint8_t[recv_len];
+        int ierr = MPI_Recv(recv, recv_len, MPI_BYTE, status.MPI_SOURCE, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE); // Rank: 2
+        if(ierr != MPI_SUCCESS){
+            std::cerr << "Error on receiving data from worker: " << std::endl;
+            char err_buffer[MPI_MAX_ERROR_STRING];
+            int resultlen;
+            MPI_Error_string(ierr, err_buffer, &resultlen);
+            fprintf(stderr, err_buffer);
+            continue;
+        }
+
+        // Extract "workerInfo" from the received message
         WorkerInfo workerInfo;
-        MPI_Recv((void *) &workerInfo, sizeof(WorkerInfo), MPI_BYTE, MPI_ANY_SOURCE, 3, MPI_COMM_WORLD, MPI_STATUS_IGNORE);  // 3 is tag for WorkerInfo
+        std::memcpy(&workerInfo, recv, sizeof(WorkerInfo));
         Region rendered_region{};
         {
             std::lock_guard<std::mutex> lock(transmitted_regions_lock);
             rendered_region = transmitted_regions[workerInfo.rank];
         }
-
         unsigned int region_size = rendered_region.getPixelCount();
-        int* worker_data = new int[region_size];
-        std::cout << "Host: waiting for receive from " << workerInfo.rank << ": " << region_size << std::endl;
         
-        int ierr = MPI_Recv(worker_data, region_size, MPI_INT, workerInfo.rank, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE); // 2 is tag for raw data
-        if(ierr != MPI_SUCCESS){
-            std::cerr << "Error on receiving data from worker: " << std::endl;
-            char err_buffer[MPI_MAX_ERROR_STRING];
-            int resultlen;
-            MPI_Error_string(ierr,err_buffer,&resultlen);
-            fprintf(stderr,err_buffer);
-            continue;
-        }
-
-        std::cout << "Host: received from " << workerInfo.rank << std::endl;
-
-        // Check if this data is up to date requested data
-        /*bool inside_current_region;
-        {
-            std::lock_guard<std::mutex> lock(current_big_region_lock);
-            inside_current_region = current_big_region.contains(rendered_region.tlX, rendered_region.tlY,
-                                                              rendered_region.brX, rendered_region.brY,
-                                                              rendered_region.zoom);
-
-        }
-        if (!inside_current_region) {
-            std::cout << "Host: no longer interested in the rendered region" << std::endl;
-            continue;
-        }*/
-        //std::cout << rendered_region.resX << ", " << rendered_region.resY << std::endl;
-
-        // copy the received data from worker into regionData struct
-        /*auto *worker_array = new int[region_size];
-        int i = 0;
-        for (unsigned int y = 0; y < rendered_region.height; y++) {
-            for (unsigned int x = 0; x < rendered_region.width; x++) {
-                worker_array[i] = worker_data[i];
-                i++;
-            }
-        }*/
+        // Extract "worker_data" from the received message
+        int* worker_data = new int[region_size];
+        std::memcpy(worker_data, recv + sizeof(WorkerInfo), region_size * sizeof(int));
+        std::cout << "Host: Receive from Worker " << workerInfo.rank << " complete." << std::endl;
+        
+        // Fill "region_data"
         RegionData region_data{};
         region_data.data = worker_data;
         region_data.data_length = region_size;
         region_data.workerInfo = workerInfo;
 
         Host::send(region_data);
+
+        delete[] recv;
         delete[] worker_data;
     }
 
