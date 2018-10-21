@@ -1,21 +1,42 @@
-import React, { Component } from 'react';
-import { Chart } from 'chart.js';
-import WebSocketClient from '../connection/WSClient';
-import PropTypes from 'prop-types';
+import * as React from "react";
+import {
+  Chart,
+  ChartConfiguration,
+  ChartDataSets,
+  ChartOptions,
+  ChartTitleOptions,
+  ChartHoverOptions
+} from "chart.js";
+import WebSocketClient from "../connection/WSClient";
 
 import "./NodeProgress.css";
 import WorkerContext from "../misc/WorkerContext";
 
+interface NodeProgressProps {
+  workerContext: WorkerContext;
+  wsClient: WebSocketClient;
+}
+interface ChartState {
+  nodes: number[];
+  active: Map<number, boolean>;
+  progress: Map<number, number>;
+}
 /**
  * Shows the computation time of invoked workers
  * Additional documentation on the type of used chart: https://www.chartjs.org/docs/latest/
  */
-export default class NodeProgress extends Component {
-  constructor(props) {
-    super(props);
-    this.websocketClient = props.wsclient;
-    this.chartState = {};
+export default class NodeProgress extends React.Component<NodeProgressProps, {}> {
+  private websocketClient: WebSocketClient;
+  private chartState: ChartState;
+  private chart: Chart;
 
+  private hoveredItem: any;
+  private hoveredSegment: any;
+  private interval: NodeJS.Timer;
+
+  constructor(props: NodeProgressProps) {
+    super(props);
+    this.websocketClient = props.wsClient;
     this.chartState = {
       nodes: [0],
       active: new Map([[0, false]]),
@@ -24,9 +45,9 @@ export default class NodeProgress extends Component {
     };
   }
 
-  componentDidMount() {
-    const ctx = document.getElementById("nodeProgress");
-    const customLabel = (tooltipItem, data) => {
+  public componentDidMount() {
+    const ctx = document.getElementById("nodeProgress") as HTMLCanvasElement;
+    const customLabel = (tooltipItem: any, data: any) => {
       let label = data.labels[tooltipItem.index];
 
       if (label) {
@@ -56,17 +77,18 @@ export default class NodeProgress extends Component {
         },
         onHover: event => {
           // change workercontext active worker on hover
-          const data = this.chart.getElementsAtEvent(event)[0];
+          const data = this.chart.getElementsAtEvent(event)[0] as ChartDataSets;
           if (data) {
+            // @ts-ignore: does not have complete .d.ts file
             this.props.workerContext.setActiveWorker(this.chartState.nodes[data._index]);
-            this._hoveredItem = data;
-          } else if (this._hoveredItem) {
+            this.hoveredItem = data;
+          } else if (this.hoveredItem) {
             this.props.workerContext.setActiveWorker(undefined);
-            this._hoveredItem = undefined;
+            this.hoveredItem = undefined;
           }
         }
       }
-    });
+    } as ChartConfiguration);
     this.updateChart();
 
     this.initNodeProgress();
@@ -82,7 +104,7 @@ export default class NodeProgress extends Component {
       this.chartState.active.set(workerID, false);
       // insert correct µs time in node value
       this.chartState.progress.set(workerID, data.workerInfo.computationTime);
-      this.updateChart(0);
+      this.updateChart();
     });
 
     this.websocketClient.registerRegion(data => {
@@ -94,15 +116,15 @@ export default class NodeProgress extends Component {
       const progress = new Map();
 
       const animationDuration = 750;
-      for (const worker of data.regions) {
-        nodes.push(worker.rank);
-        active.set(worker.rank, true);
-        progress.set(worker.rank, animationDuration * 1000);
+      for (const region of data.regions) {
+        nodes.push(region.rank);
+        active.set(region.rank, true);
+        progress.set(region.rank, animationDuration * 1000);
       }
       this.chartState = {
-        nodes: nodes,
-        active: active,
-        progress: progress
+        nodes,
+        active,
+        progress
       };
       this.updateChart(animationDuration);
       // Start redrawing as soon as animation has finished
@@ -115,25 +137,35 @@ export default class NodeProgress extends Component {
     // Inspired by https://github.com/chartjs/Chart.js/issues/1768
     this.props.workerContext.subscribe(activeWorker => {
       // Activate new tooltip if necessary
+      const datasets = this.chart.data.datasets as ChartDataSets[];
+      if (datasets === undefined) {
+        return;
+      }
+      const tooltip = (this.chart as any).tooltip;
       if (activeWorker !== undefined) {
         const workerIndex = this.chartState.nodes.indexOf(activeWorker);
-        const activeSegment = this.chart.data.datasets[0]._meta[1].data[workerIndex];
-        this.chart.tooltip.initialize();
-        this.chart.tooltip._active = [activeSegment];
-        this.chart.data.datasets[0]._meta[1].controller.setHoverStyle(activeSegment);
-        this._hoveredSegment = activeSegment;
+      // @ts-ignore: does not have complete .d.ts file
+        const activeSegment = datasets[0]._meta[1].data[workerIndex];
+        tooltip.initialize();
+        tooltip._active = [activeSegment];
+      // @ts-ignore: does not have complete .d.ts file
+        datasets[0]._meta[1].controller.setHoverStyle(activeSegment);
+        this.hoveredSegment = activeSegment;
       } else {
         // Remove tooltip
-        this.chart.data.datasets[0]._meta[1].controller.removeHoverStyle(this._hoveredSegment);
-        this.chart.tooltip._active = [];
+      // @ts-ignore: does not have complete .d.ts file
+        datasets[0]._meta[1].controller.removeHoverStyle(this.hoveredSegment);
+        tooltip._active = [];
       }
       // Update chart
-      this.chart.tooltip.update(true);
-      this.chart.render(this.chart.options.hover.animationDuration, false);
+      tooltip.update(true);
+      const animationDuration = ((this.chart.config.options as ChartOptions)
+        .hover as ChartHoverOptions).animationDuration;
+      this.chart.render(animationDuration, false);
     });
   }
 
-  render() {
+  public render() {
     return (
       <div className="nodeProgress">
         <canvas id="nodeProgress" />
@@ -141,19 +173,19 @@ export default class NodeProgress extends Component {
     );
   }
 
-  updateChart(animationDuration) {
-    const labels = [];
-    const values = [];
-    const colorSet = [];
+  private updateChart(animationDuration: number = 0) {
+    const labels: string[] = [];
+    const values: number[] = [];
+    const colorSet: string[] = [];
     // => Label/ value index is the index of the rank in the node array
     this.chartState.nodes.forEach(rank => {
       labels.push("Worker " + rank);
       colorSet.push(this.props.workerContext.getWorkerColor(rank));
-      values.push(this.chartState.progress.get(rank));
+      values.push(this.chartState.progress.get(rank) as number);
     });
 
     const data = {
-      labels: labels,
+      labels,
       datasets: [
         {
           data: values,
@@ -167,7 +199,8 @@ export default class NodeProgress extends Component {
     this.chartState.progress.forEach(value => {
       computationTime += value;
     });
-    this.chart.options.title.text[1] = computationTime + " µs";
+    (((this.chart.config.options as ChartOptions).title as ChartTitleOptions).text as string[])[1] =
+      computationTime + " µs";
 
     this.chart.update(animationDuration);
   }
@@ -175,11 +208,11 @@ export default class NodeProgress extends Component {
   /**
    * Start redrawing the current node computation time every 50 milliseconds
    */
-  initNodeProgress() {
+  private initNodeProgress() {
     // Interval in milliseconds
     const intervalRate = 50;
     this.interval = setInterval(
-      state => {
+      (state: ChartState) => {
         let update = false;
         state.progress.forEach((value, rank) => {
           if (state.active.get(rank)) {
@@ -200,12 +233,7 @@ export default class NodeProgress extends Component {
   /**
    * Stop redrawing the node progress every 50 milliseconds
    */
-  stopNodeProgress() {
+  private stopNodeProgress() {
     clearInterval(this.interval);
   }
 }
-
-NodeProgress.propTypes = {
-  wsclient: PropTypes.instanceOf(WebSocketClient),
-  workerContext: PropTypes.instanceOf(WorkerContext)
-};

@@ -5,6 +5,7 @@
 .debugLayer {
   color: white;
   outline: 1px solid red;
+  font-size: 5pt;
 }
 
 #viewer {

@@ -12,16 +12,20 @@ export const BALANCERS = [
  * Object returning the currently chosen balancing strategy
  */
 export default class BalancerPolicy {
+
+  private balancer: string;
+  private callbacks: Array<(s: string) => void>;
+
   constructor() {
     this.balancer = "naive";
     this.callbacks = [];
   }
 
-  getBalancer() {
+  public getBalancer() {
     return this.balancer;
   }
 
-  setBalancer(balancer) {
+  public setBalancer(balancer: string) {
     if (!BALANCERS.includes(balancer)) {
       console.error(`Invalid balancer type: ${balancer}`);
       return;
@@ -30,13 +34,9 @@ export default class BalancerPolicy {
     this._updateAll();
   }
 
-  _updateAll() {
-    this.callbacks.forEach(cb => cb(this.balancer));
-  }
-
-  subscribe(callback) {
+  public subscribe(callback: (s: string) => any): Promise<{}> | undefined {
     let promise;
-    const fun = data => {
+    const fun = (data: string) => {
       promise = new Promise((resolve, error) => {
         try {
           resolve(callback(data));
@@ -48,4 +48,9 @@ export default class BalancerPolicy {
     this.callbacks.push(fun);
     return promise;
   }
+
+  private _updateAll() {
+    this.callbacks.forEach(cb => cb(this.balancer));
+  }
+
 }
