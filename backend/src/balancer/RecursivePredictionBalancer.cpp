@@ -27,7 +27,7 @@ Region *RecursivePredictionBalancer::balanceLoad(Region region, int nodeCount) {
 }
 
 // Halves the region according to prediction
-Region *halveRegionHorizontally(Region region, Prediction prediction) {
+Region *halveRegionVertically(Region region, Prediction prediction) {
     Region* halves = new Region[2];
     halves[0] = halves[1] = region;
 
@@ -52,7 +52,7 @@ Region *halveRegionHorizontally(Region region, Prediction prediction) {
 }
 
 // Halves the region according to prediction
-Region *halveRegionVertically(Region region, Prediction prediction) {
+Region *halveRegionHorizontally(Region region, Prediction prediction) {
     Region* halves = new Region[2];
     halves[0] = halves[1] = region;
 
