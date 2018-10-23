@@ -65,8 +65,9 @@ void Worker::init(int world_rank, int world_size) {
             // The real computation starts here --> start time measurement here
             auto startTime = std::chrono::high_resolution_clock::now();
 
+            int vector_size = 16; //TODO unfix
             for (unsigned int y = 0; y < region.height && !loopFlag; y++) {
-                for (unsigned int x = 0; x < region.width && !loopFlag; x++) {
+                for (unsigned int x = 0; x < region.width && !loopFlag; x += vector_size) {
                     // Abort
                     MPI_Test(&request, &flag, &status);
                     if (flag != 0) {
@@ -75,9 +76,19 @@ void Worker::init(int world_rank, int world_size) {
                     }
                     int reverseY = region.height - y - 1;
                     // Computations
-                    data[i++] = f->calculateFractal(region.projectReal(x),
-                                                    region.projectImag(reverseY),
-                                                    region.maxIteration);
+                    long double* xreals = (long double*) calloc(vector_size, sizeof(long double));
+                    long double* yimags = (long double*) calloc(vector_size, sizeof(long double));
+                    for(int j = 0; j < vector_size; j++){
+                        xreals[j] = region.projectReal(x+j);
+                        yimags[j] = region.projectImag(reverseY+j);
+                    }
+                    int* ns = f->calculateFractal(xreals,
+                                                yimags,
+                                                region.maxIteration,
+                                                vector_size);
+                    int* data_pointer_cur = data + i;
+                    memcpy(data_pointer_cur, ns, vector_size);
+                    i += vector_size;
                 }
             }
 
