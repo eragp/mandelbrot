@@ -26,7 +26,7 @@ Region *RecursivePredictionBalancer::balanceLoad(Region region, int nodeCount) {
     return allRegions;
 }
 
-// Halves the region according to prediction
+// Halves the region according to prediction, puts new predictions to left and right
 Region *halveRegionVertically(Region region, Prediction prediction, Prediction* left, Prediction* right) {
     Region* halves = new Region[2];
     halves[0] = halves[1] = region;
@@ -35,13 +35,14 @@ Region *halveRegionVertically(Region region, Prediction prediction, Prediction* 
 	left->deltaImaginary = prediction.deltaImaginary;
 	left->deltaReal = prediction.deltaReal;
 	left->predictionLengthY = prediction.predictionLengthY;
+	left->nColSums.resize(prediction.predictionLengthX);
 
     int desiredN = prediction.nSum / 2;
     int currentN = 0;
 
     for (int i = 0; i < prediction.predictionLengthX; i++) {
         currentN += prediction.nColSums[i];
-		left->nColSums.push_back(prediction.nColSums[i]);
+		left->nColSums[i] = prediction.nColSums[i];
         // Reached 1/2 of nSum or there is only one piece of prediction left for the other half
         if (currentN > desiredN || prediction.predictionLengthX - i <= 1) {
             halves[0].maxReal = region.minReal + (i + 1) * prediction.deltaReal;
@@ -77,8 +78,8 @@ Region *halveRegionVertically(Region region, Prediction prediction, Prediction* 
 	// The deltas stay the same since the ratio is preserved
 	right->deltaImaginary = prediction.deltaImaginary;
 	right->deltaReal = prediction.deltaReal;
-	right->predictionLengthY = prediction.predictionLengthY;
 	right->predictionLengthX = prediction.predictionLengthX - left->predictionLengthX;
+	right->predictionLengthY = prediction.predictionLengthY;
 	right->nSum = prediction.nSum - left->nSum;
 
 	right->n.resize(right->predictionLengthX);
@@ -93,36 +94,85 @@ Region *halveRegionVertically(Region region, Prediction prediction, Prediction* 
 			}
 			int predictionValue = prediction.n[left->predictionLengthX + x][y];
 			right->n[x][y] = predictionValue;
-			right->nColSums[x] = prediction.nColSums[left->predictionLengthX + x];
 			right->nRowSums[y] += predictionValue;
+			if (y == 0) {
+				right->nColSums[x] = prediction.nColSums[left->predictionLengthX + x];
+			}
 		}
 	}
 
     return halves;
 }
 
-
-// Halves the region according to prediction
-Region *halveRegionHorizontally(Region region, Prediction prediction) {
+// Halves the region according to prediction, puts new prediction to top and bot
+Region *halveRegionHorizontally(Region region, Prediction prediction, Prediction* top, Prediction* bot) {
     Region* halves = new Region[2];
     halves[0] = halves[1] = region;
+
+	// The deltas stay the same since the ratio is preserved
+	top->deltaImaginary = prediction.deltaImaginary;
+	top->deltaReal = prediction.deltaReal;
+	top->predictionLengthX = prediction.predictionLengthX;
+	top->nRowSums.resize(prediction.predictionLengthY);
 
     int desiredN = prediction.nSum / 2;
     int currentN = 0;
 
     for (int i = 0; i < prediction.predictionLengthY; i++) {
         currentN += prediction.nRowSums[i];
+		top->nRowSums.push_back(prediction.nRowSums[i]);
         // Reached 1/2 of nSum or there is only one piece of prediction left for the other half
         if (currentN > desiredN || prediction.predictionLengthY - i <= 1) {
             halves[0].minImaginary = region.maxImaginary - (i + 1) * prediction.deltaImaginary;
             halves[0].height = region.guaranteedDivisor * (i + 1);
+
+			top->predictionLengthY = i + 1;
+			top->nRowSums.resize(i + 1);
             break;
         }
     }
 
+	top->nSum = currentN;
+	top->n.resize(top->predictionLengthX);
+	top->nColSums.resize(top->predictionLengthX);
+
+	for (int x = 0; x < top->predictionLengthX; x++) {
+		top->nColSums[x] = 0;
+		top->n[x].resize(top->predictionLengthY);
+		for (int y = 0; y < top->predictionLengthY; y++) {
+			int predictionValue = prediction.n[x][y];
+			top->n[x][y] = predictionValue;
+			top->nColSums[x] += predictionValue;
+		}
+	}
+
     halves[1].maxImaginary= halves[0].minImaginary;
     halves[1].height = region.height - halves[0].height;
     halves[1].vOffset = region.vOffset + halves[0].height;
+
+	// The deltas stay the same since the ratio is preserved
+	bot->deltaImaginary = prediction.deltaImaginary;
+	bot->deltaReal = prediction.deltaReal;
+	bot->predictionLengthX = prediction.predictionLengthX;
+	bot->predictionLengthY = prediction.predictionLengthY - top->predictionLengthY;
+	bot->nSum = prediction.nSum - top->nSum;
+
+	bot->n.resize(bot->predictionLengthX);
+	bot->nRowSums.resize(bot->predictionLengthY);
+	bot->nColSums.resize(bot->predictionLengthX);
+
+	for (int x = 0; x < bot->predictionLengthX; x++) {
+		bot->nColSums[x] = 0;
+		bot->n[x].resize(bot->predictionLengthY);
+		for (int y = 0; y < bot->predictionLengthY; y++) {
+			int predictionValue = prediction.n[x][top->predictionLengthY + y];
+			bot->n[x][y] = predictionValue;
+			bot->nColSums[x] += predictionValue;
+			if (x == 0) {
+				bot->nRowSums[y] = prediction.nRowSums[top->predictionLengthY + y];
+			}
+		}
+	}
 
     return halves;
 }
