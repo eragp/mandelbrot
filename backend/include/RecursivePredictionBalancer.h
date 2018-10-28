@@ -1,10 +1,9 @@
 #pragma once
 
 #include "Balancer.h"
-
-#include "Balancer.h"
 #include "Region.h"
 #include "Fractal.h"
+#include "Prediction.h"
 
 #include <vector>
 #include <string>
@@ -22,6 +21,10 @@ private:
      */
     int predictionAccuracy;
     Fractal *f;
+
+    Region *halveRegionVertically(Region region, Prediction prediction, Prediction* left, Prediction* right);
+
+    Region *halveRegionHorizontally(Region region, Prediction prediction, Prediction* top, Prediction* bot);    
 
 public:
     static const std::string NAME;
