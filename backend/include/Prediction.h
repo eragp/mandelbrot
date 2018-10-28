@@ -3,9 +3,9 @@
 #include <vector>
 
 struct Prediction {
-    std::vector<std::vector<int>> n;
-    std::vector<int> nColSums;
-    std::vector<int> nRowSums;
+    std::vector<std::vector<int>> n; // Access with n[x][y], length [predictionLengthX][predictionLengthY]
+    std::vector<int> nColSums; // length [predictionLengthX]
+    std::vector<int> nRowSums; // length [predictionLengthY]
     int nSum;
 
     int predictionLengthX;
