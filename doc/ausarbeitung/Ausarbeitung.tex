@@ -3,51 +3,23 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Ersetzen Sie in den folgenden zwei Zeilen die entsprechenden -Texte-
 %% mit den richtigen Werten.
-\newcommand{\theNumber}{Parellele Berechnung der Mandelbrotmenge} % Beispiel: A123
 \author{Maximilian Frühauf \and Tobias Klasuen \and Florian Lercher \and Niels Mündler}
 %%%%%%%%%%%
 
-\title{Abgabe zu Aufgabe \theNumber}
+\title{Parallele Berechnung der Mandelbrotmenge}
 \date{Wintersemester 2018/19}
 
 \begin{document}
 \maketitle
 
-\section{Einleitung}
-\begin{itemize}
-	\item Was ist MPI / OpenMP / SIMD
-	\item Didaktische Ziele
-	\item Warum die Mandelbrotmenge
-\end{itemize}
+\include{./Einleitung}
 
-\section{Problemstellung und Spezifikation}
-\begin{itemize}
-	\item Fachliche Spezifikation in Anhang
-	\item NFRs in Einleitung schreiben
-\end{itemize}
+\include{./Spezifikation}
 
+\include{./Implementierung}
 
-\section{Dokumentation der Implementierung}
-\begin{itemize}
-	\item Sollte größter Teil werden
-	\item \begin{enumerate}
-		      \item High level overview?
-		      \item Wie läuft das auf meinem System?
-		      \item Code Dokumentation / Entwicklerdokumentation
-	      \end{enumerate}
-\end{itemize}
+\include{./Evaluation}
 
-\section{Ergebnisse / Evaluation}
-\begin{itemize}
-	\item Skalierbarkeitsgraph
-	\item Wie gut ist SIMD / OpenMP / MPI / Mischformen?
-	\item Frontend Overhead messen
-\end{itemize}
-
-\section{Zusammenfassung}
-\begin{itemize}
-	\item Zusammenfassung
-	\item Ausblick
-\end{itemize}
+\include{./Zusammenfassung}
 
 \end{document}
