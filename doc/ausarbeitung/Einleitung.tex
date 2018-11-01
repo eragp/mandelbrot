@@ -70,6 +70,9 @@ Die Menge ist zusammenhängend, jedoch bilden sich an ihren Rändern viele klein
 % Was ist MPI
 \subsection{MPI}
 
+Die Kommunikation der verschiedenen Prozesse des Backends wird mittels MPI realisiert.
+Das Message Passing Interface\footnote{https://www.mpi-forum.org/} ist eine weit verbreitete Spezifikation, die Kommunikation zwischen unabhängigen Rechenkernen regelt. Dadurch existieren viele gut funktionierende Umsetzungen in einer Vielzahl von Programmiersprachen. Durch MPI wird echte Parallelisierung mit geringem Overhead ermöglicht. Es können so die einzelnen Workerprozesse auf jeweils einem eigenen unabhängigen Rechenkernen laufen. Die Gestaltung von MPI erlaubt dabei alle möglichen Aufteilungen, von Kernen auf einem Prozessor bis hin zu unabhängigen Clustern, die lediglich eine SSH-Verbindung besitzen.
+
 % Was ist OpenMP
 % wenn verwendet
 
