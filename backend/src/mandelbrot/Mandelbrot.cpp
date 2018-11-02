@@ -4,6 +4,7 @@
 #include <arm_neon.h>
   /* Advanced SIMD intrinsics are now available to use.  */
 #endif
+// TODO reset to original mandelbrot (or test compiler optimizations)
 
 // Raspi3 processor
 // https://developer.arm.com/products/processors/cortex-a/cortex-a53
