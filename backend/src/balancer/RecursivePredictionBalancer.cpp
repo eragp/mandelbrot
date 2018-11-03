@@ -19,14 +19,13 @@ Region *RecursivePredictionBalancer::balanceLoad(Region region, int nodeCount) {
 	auto *allRegions = new Region[nodeCount];
 	Prediction* prediction = Predicter::getPrediction(region, f, predictionAccuracy);
 
-	// Deal with numbers that don't fit
-	
-	int recCounter = floor(log2(nodeCount));
-	int onLowestLevel = (nodeCount - pow(2, recCounter)) * 2;
+	int recCounter = (int) floor(log2(nodeCount));
+	// Deal with numbers that are not powers of 2
+	int onLowestLevel = (int) (nodeCount - pow(2, recCounter)) * 2;
 	recCounter++;
 	BalancingContext context = { allRegions, 0, recCounter, onLowestLevel };
 	int partsMade = balancingHelper(region, prediction, context);
-	
+
 	if (partsMade != nodeCount) {
 		std::cerr << "Too much/few parts were made." << std::endl;
 	}
@@ -47,7 +46,7 @@ int RecursivePredictionBalancer::balancingHelper(Region region, Prediction* pred
 	Prediction* halve1 = new Prediction();
 	Region* halves; // Will have length 2
 
-	// Check whether to divide vertically or horizontally
+					// Check whether to divide vertically or horizontally
 	if (context.recCounter % 2 == 0) {
 		halves = halveRegionVertically(region, *prediction, halve0, halve1);
 	}
@@ -61,7 +60,7 @@ int RecursivePredictionBalancer::balancingHelper(Region region, Prediction* pred
 	context.recCounter--;
 	context.resultIndex = balancingHelper(halves[0], halve0, context);
 	return balancingHelper(halves[1], halve1, context);
-	
+
 }
 
 // Halves the region according to prediction, puts new predictions to left and right
@@ -139,6 +138,20 @@ Region *RecursivePredictionBalancer::halveRegionVertically(Region region, Predic
 		}
 	}
 
+	// Explicitly set halves[1] to zero, if needed
+	if (halves[1].width == 0) {
+		halves[1].minImaginary = 0.0;
+		halves[1].maxImaginary = 0.0;
+
+		halves[1].minReal = 0.0;
+		halves[1].maxReal = 0.0;
+
+		halves[1].height = 0;
+
+		halves[1].vOffset = 0;
+		halves[1].hOffset = 0;
+	}
+
 	return halves;
 }
 
@@ -210,6 +223,20 @@ Region *RecursivePredictionBalancer::halveRegionHorizontally(Region region, Pred
 				bot->nRowSums[y] = prediction.nRowSums[top->predictionLengthY + y];
 			}
 		}
+	}
+
+	// Explicitly set halves[1] to zero, if needed
+	if (halves[1].height == 0) {
+		halves[1].minImaginary = 0.0;
+		halves[1].maxImaginary = 0.0;
+
+		halves[1].minReal = 0.0;
+		halves[1].maxReal = 0.0;
+
+		halves[1].width = 0;
+
+		halves[1].vOffset = 0;
+		halves[1].hOffset = 0;
 	}
 
 	return halves;
