@@ -21,9 +21,11 @@ Region *RecursivePredictionBalancer::balanceLoad(Region region, int nodeCount) {
 
 	// Deal with numbers that don't fit
 	
-	int recCounter = log2(nodeCount); // Floor or ceil??? --> decide later
-
-	int partsMade = balancingHelper(region, prediction, allRegions, 0, recCounter);
+	int recCounter = floor(log2(nodeCount));
+	int onLowestLevel = (nodeCount - pow(2, recCounter)) * 2;
+	recCounter++;
+	BalancingContext context = { allRegions, 0, recCounter, onLowestLevel };
+	int partsMade = balancingHelper(region, prediction, context);
 	
 	if (partsMade != nodeCount) {
 		std::cerr << "Too much/few parts were made." << std::endl;
@@ -32,12 +34,12 @@ Region *RecursivePredictionBalancer::balanceLoad(Region region, int nodeCount) {
 	return allRegions;
 }
 
-int RecursivePredictionBalancer::balancingHelper(Region region, Prediction* prediction, Region* result, int resultIndex, int recCounter) {
+int RecursivePredictionBalancer::balancingHelper(Region region, Prediction* prediction, BalancingContext context) {
 	// Store region in result
-	if (recCounter == 0) {
-		result[resultIndex++] = region;
+	if (context.recCounter == 0 || (context.recCounter == 1 && context.resultIndex >= context.onLowestLevel)) {
+		context.result[context.resultIndex++] = region;
 		delete prediction;
-		return resultIndex;
+		return context.resultIndex;
 	}
 
 	// Alloc memory for predictions and regions
@@ -46,7 +48,7 @@ int RecursivePredictionBalancer::balancingHelper(Region region, Prediction* pred
 	Region* halves; // Will have length 2
 
 	// Check whether to divide vertically or horizontally
-	if (recCounter % 2 == 0) {
+	if (context.recCounter % 2 == 0) {
 		halves = halveRegionVertically(region, *prediction, halve0, halve1);
 	}
 	else {
@@ -56,9 +58,9 @@ int RecursivePredictionBalancer::balancingHelper(Region region, Prediction* pred
 	// Free prediction since it's no longer needed
 	delete prediction;
 
-	recCounter--;
-	resultIndex = balancingHelper(halves[0], halve0, result, resultIndex, recCounter);
-	return balancingHelper(halves[1], halve1, result, resultIndex, recCounter);
+	context.recCounter--;
+	context.resultIndex = balancingHelper(halves[0], halve0, context);
+	return balancingHelper(halves[1], halve1, context);
 	
 }
 

@@ -8,6 +8,14 @@
 #include <vector>
 #include <string>
 
+struct BalancingContext {
+	Region* result;
+
+	int resultIndex;
+	int recCounter;
+	int onLowestLevel;
+};
+
 class RecursivePredictionBalancer : public Balancer {
 private:
 	/**
@@ -22,7 +30,7 @@ private:
 	int predictionAccuracy;
 	Fractal *f;
 
-	int balancingHelper(Region region, Prediction* prediction, Region* result, int resultIndex, int recCounter);
+	int balancingHelper(Region region, Prediction* prediction, BalancingContext context);
 
 	Region *halveRegionVertically(Region region, Prediction prediction, Prediction* left, Prediction* right);
 
