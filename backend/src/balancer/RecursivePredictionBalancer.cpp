@@ -59,8 +59,10 @@ int RecursivePredictionBalancer::balancingHelper(Region region, Prediction* pred
 
 	context.recCounter--;
 	context.resultIndex = balancingHelper(halves[0], halve0, context);
-	return balancingHelper(halves[1], halve1, context);
-
+	context.resultIndex = balancingHelper(halves[1], halve1, context);
+	// Allocated in halveRegionV/H --> halves is the only pointer left
+	delete[] halves;
+	return context.resultIndex;
 }
 
 // Halves the region according to prediction, puts new predictions to left and right
