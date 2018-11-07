@@ -1,5 +1,10 @@
 \section{Dokumentation der Implementierung}
 
+% Sollte größter Teil werden
+% - High level overview?
+% - Wie läuft das auf meinem System?
+% - Code Dokumentation / Entwicklerdokumentation
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Abschnitt - Grober Überblick
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -162,15 +167,6 @@ Durch eine hierarchische Dekomposition besteht das Fenster (Window) unter andere
 Ebenfalls werden die Komponenten Visualization und Interaction erzeugt, welche Diagramme über die relative Verteilung der Rechenzeit, die Netzwerkdarstellung der Kommunikation des verteilten Systems und Komponenten zur Auswahl der Fraktale sowie Lastbalancierer durch den Benutzer enthalten. 
 
 Das Fenster erzeugt dabei initial eine Websocket Verbindung zum Backend, welche durch Anwendung des Observer Patterns den Komponenten des Windows ermöglicht auf empfangene Daten zu reagieren. Dabei registrieren alle beteiligten Objekte einen Callback bei der WebSocket Verbindung, welcher evaluiert wird sobald Daten vorliegen. Dieses Pattern wird auch auf den Austausch der Informationen über den momentan ausgewählten Lastbalancierer und Fraktal angewendet, um eine responsive Anwendung zu ermöglichen.
-
-\begin{itemize}
-	\item Sollte größter Teil werden
-	\item \begin{enumerate}
-		      \item High level overview?
-		      \item Wie läuft das auf meinem System?
-		      \item Code Dokumentation / Entwicklerdokumentation
-	      \end{enumerate}
-\end{itemize}
 
 \subsubsection{Backend}
 
