@@ -29,6 +29,11 @@ private:
     static std::mutex current_big_region_lock;
     // And for the split up regions
 
+    // Transfer region requests from Websocket-Thread to MPI-Thread
+    static bool mpi_send_regions;
+    static std::map<int, Region> transmit_regions;
+    static std::mutex transmit_regions_lock;
+
     //Store send MPI Requests
     static std::map<int, Region> transmitted_regions;
     static std::mutex transmitted_regions_lock;
