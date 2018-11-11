@@ -184,12 +184,12 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
     });
 
     const mandelbrotLayer = new L.GridLayer.MandelbrotLayer({
-      tileSize, // in px
-      bounds,
+      tileSize: tileSize, // in px
+      bound: bounds,
     });
     const debugLayer = new L.GridLayer.DebugLayer({
-      tileSize,
-      bounds,
+      tileSize: tileSize,
+      bounds: bounds,
     });
     const workerLayer = new WorkerLayer(
       websocketClient,

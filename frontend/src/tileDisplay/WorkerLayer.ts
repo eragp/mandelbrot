@@ -52,9 +52,6 @@ function toGeoJSON(regions: WorkerInfo[], pixelToLatLng: (a: Point) => LatLng): 
 }
 
 export default class WorkerLayer extends GeoJSON {
-
-  private nodeLayers: Map<number, GeoJSON>;
-
   constructor(wsclient: WebSocketClient, pixelToLatLng: (p: Point) => LatLng, workerContext: WorkerContext) {
     const style = (feature: Feature): {} => {
       const ret = {
