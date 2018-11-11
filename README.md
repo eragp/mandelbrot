@@ -1,6 +1,6 @@
 # Mandelbrot
 
-![Screenshot of working interface](Screenshot_20180527_141303.png)
+![Screenshot of working interface](images/UI_Design.jpg)
 
 ## Overview
 
@@ -8,10 +8,10 @@ This is an interactive visualization of the mandelbrot set.
 
 ## Getting Started
 
-> TODO
+To start the back- / frontend check the readme in the readme files in the corresponding folders.
 
 ## Links
 
-> Spezifikation
+[Spezifikation]
 
 > Ausarbeitung
