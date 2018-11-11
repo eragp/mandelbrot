@@ -31,7 +31,6 @@ interface TileDisplayProps {
 }
 
 export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
-
   private map: Map;
   private newViewObservers: Array<(map: Map) => any>;
   private regionDrawer: MatrixView;
@@ -97,16 +96,22 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
 
     // Handle balancer change as view change
     //  => update all view subscribers about a policy change as if the view had changed
-    this.props.balancerPolicy.subscribe(
-      () => this.updateAllViews(),
-    );
+    this.props.balancerPolicy.subscribe(() => this.updateAllViews());
 
     // add event listeners to the map for region requests
     map.on({
-      moveend: () => this.updateAllViews(),
+      moveend: () => this.updateAllViews()
     });
 
-    function drawPixel(imgData: ImageData, x: number, y: number, r: number, g: number, b: number, alpha: number) {
+    function drawPixel(
+      imgData: ImageData,
+      x: number,
+      y: number,
+      r: number,
+      g: number,
+      b: number,
+      alpha: number
+    ) {
       const d = imgData.data;
       const i = (x << 2) + ((y * imgData.width) << 2);
       d[i] = r; // red
@@ -116,7 +121,6 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
     }
 
     L.GridLayer.MandelbrotLayer = L.GridLayer.extend({
-
       createTile(coords: Point, done: (e: Error | null, t: HTMLCanvasElement) => any) {
         const tile = L.DomUtil.create("canvas", "leaflet-tile") as HTMLCanvasElement;
         const size = this.getTileSize();
@@ -153,11 +157,10 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
         };
         regionDrawer.registerTile(p, drawTile);
         return tile;
-      },
+      }
     });
 
     L.GridLayer.DebugLayer = L.GridLayer.extend({
-
       createTile(coords: Point) {
         const div = document.createElement("div");
         const size = this.getTileSize();
@@ -180,28 +183,28 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
           unprojected;
 
         return div;
-      },
+      }
     });
 
     const mandelbrotLayer = new L.GridLayer.MandelbrotLayer({
-      tileSize: tileSize, // in px
-      bound: bounds,
+      tileSize, // in px
+      bounds
     });
     const debugLayer = new L.GridLayer.DebugLayer({
-      tileSize: tileSize,
-      bounds: bounds,
+      tileSize,
+      bounds
     });
     const workerLayer = new WorkerLayer(
       websocketClient,
       map.unproject.bind(map),
-      this.props.workerContext,
+      this.props.workerContext
     );
     const baseLayer = {
-      "Mandelbrot Layer": mandelbrotLayer,
+      "Mandelbrot Layer": mandelbrotLayer
     };
     const overlayLayers = {
       "Debug Layer": debugLayer,
-      "Worker Layer": workerLayer,
+      "Worker Layer": workerLayer
     };
     map.addLayer(mandelbrotLayer);
     map.addLayer(workerLayer);
@@ -221,13 +224,12 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
     map.addControl(
       L.control.zoomBox({
         modal: true,
-        title: "Box area zoom",
-      }),
+        title: "Box area zoom"
+      })
     );
   }
 
   private updateAllViews() {
-    this.newViewObservers.forEach((callback) => callback(this.map));
+    this.newViewObservers.forEach(callback => callback(this.map));
   }
-
 }
