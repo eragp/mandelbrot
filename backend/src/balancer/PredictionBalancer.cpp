@@ -168,6 +168,7 @@ Region *PredictionBalancer::balanceLoad(Region region, int nodeCount) {
             }
 
             delete[] colRegions;
+            currentCol++;
 
             // End the loop
             break;
@@ -219,17 +220,28 @@ Region *PredictionBalancer::balanceLoad(Region region, int nodeCount) {
             usedPredictionCols = 0;
         }
     }
-    /* // Debug: return the col vector as array
-    std::cout << "Cols: " << cols << std::endl;
-    TileInfo* colArray = new TileInfo[cols];
-    for (int i = 0; i < cols; i++) {
-        colArray[i] = colTiles[i];
+    
+    // Fill rest of allRegions with empty Regions, needed when `region` is covered with less than `cols` columns 
+    // This happens if guaranteedDivisor or nodeCount becomes to big (especially when nodeCount is a prime number)
+    // Set tmp to empty region
+    tmp.minImaginary = 0.0;
+    tmp.maxImaginary = 0.0;
+
+    tmp.minReal = 0.0;
+    tmp.maxReal = 0.0;
+
+    tmp.height = 0;
+    tmp.width = 0;
+
+    tmp.vOffset = 0;
+    tmp.hOffset = 0;
+
+    while (currentCol < cols) {
+        for (int i = 0; i < rows; i++) {
+            allRegions[rows * currentCol + i] = tmp;
+        }
+        currentCol++;
     }
-    // return colArray;
-    //---
-    for (int i = 0; i < cols; i++) {
-        TileInfo t = colArray[i];
-    }*/
 
     return allRegions;
 }
@@ -274,6 +286,8 @@ Region *PredictionBalancer::splitCol(Region col, int parts, int nSum, std::vecto
             tmp.height = col.height - col.guaranteedDivisor * i;
 
             regions[currentPart] = tmp;
+
+            currentPart++;
             // End the loop
             break;
         }
@@ -309,7 +323,27 @@ Region *PredictionBalancer::splitCol(Region col, int parts, int nSum, std::vecto
             usedPredictionRows = 0;
         }
     }
+    
+    // Fill rest of `regions` with empty Regions, needed when `col` is covered with less than `parts` parts
+    // This happens if guaranteedDivisor or nodeCount becomes to big (especially when nodeCount is a prime number)
+    // Set tmp to empty region
+    tmp.minImaginary = 0.0;
+    tmp.maxImaginary = 0.0;
 
+    tmp.minReal = 0.0;
+    tmp.maxReal = 0.0;
+
+    tmp.height = 0;
+    tmp.width = 0;
+
+    tmp.vOffset = 0;
+    tmp.hOffset = 0;
+
+    while (currentPart < parts) {
+        regions[currentPart] = tmp;
+        currentPart++;
+    }
+    
     return regions;
 }
 

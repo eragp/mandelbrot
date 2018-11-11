@@ -12,9 +12,38 @@ const std::string ColumnBalancer::NAME = "column";
  * columns tile sets. (eg. region is split into #nodeCount columns)
  */
 Region* ColumnBalancer::balanceLoad(Region region, const int nodeCount) {
+    int nodes = nodeCount;
     Region* regions = new Region[nodeCount];
 
     int columnWidth = (region.width / (region.guaranteedDivisor * nodeCount)) * region.guaranteedDivisor;
+    // If there are more nodes than guaranteedDivisor*guaranteedDivisor cells, the balancer needs to make empty regions
+    if (columnWidth <= 0) {
+        columnWidth = region.guaranteedDivisor;
+        int spareNodes = nodeCount - (region.width / region.guaranteedDivisor);
+        
+        // Put empty regions for spare nodes
+        Region empty;
+        empty.minImaginary = 0.0;
+        empty.maxImaginary = 0.0;
+
+        empty.minReal = 0.0;
+        empty.maxReal = 0.0;
+
+        empty.height = 0;
+        empty.width = 0;
+
+        empty.vOffset = 0;
+        empty.hOffset = 0;
+
+        empty.maxIteration = region.maxIteration;
+        empty.validation = region.validation;
+        empty.guaranteedDivisor = region.guaranteedDivisor;
+        for (int i = 0; i < spareNodes; i++) {
+            regions[nodeCount - 1 - i] = empty;
+        }
+
+        nodes -= spareNodes;
+    }
     double xDelta = Fractal::deltaReal(region.maxReal, region.minReal, region.width) * columnWidth;
 
     Region tmp;
@@ -31,8 +60,8 @@ Region* ColumnBalancer::balanceLoad(Region region, const int nodeCount) {
 	tmp.minReal = region.minReal;
 	tmp.hOffset = region.hOffset;
 
-    for (int i = 0; i < nodeCount; i++) {
-       if (i == nodeCount - 1) {
+    for (int i = 0; i < nodes; i++) {
+       if (i == nodes - 1) {
            // Take the rest
            tmp.maxReal = region.maxReal;
 		   tmp.width = region.width - columnWidth * i;
