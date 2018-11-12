@@ -177,3 +177,67 @@ Das Fenster erzeugt dabei initial eine Websocket Verbindung zum Backend, welche 
         \caption{Klassendiagramm für Fractal}
     \label{fig:klassendiagramm_fractal}
 \end{figure}
+
+% Problem mit aktueller Aufteilung: weitere Aufteilung nicht gewollt aber aktuell nötig
+\subsubsection{Kommunikation per MPI}
+
+Das Message Passing Interface (MPI) wird ausschließlich im Backend zur Kommunikation zwischen Host
+und Worker verwendet.
+Um die Berechnung einer Teilregion anzufragen, sendet der Host ein entsprechendes Region-Objekt per
+MPI mit Tag 1 an den Worker mit dem zuvor bestimmten Rang. Der Worker erwartet:
+% Quellcode hier einfügen?
+\begin{itemize}
+    \item Koordinaten des Bildausschnitts (bzgl. der komplexen Ebene) und Auflösung (= Breite und Höhe
+der Region)
+    \item Einen Teiler der Auflösung, der bei der Aufteilung erhalten werden soll (im Fall des Leaflet
+Frontends ist das die Auflösung einer Kachel, ansonsten kann man dies auf 1 setzen)
+    \item Die maximale Anzahl an Iterationen
+    \item Kennzahl des Fraktals
+    \item Validierungsnummer der jeweiligen Region (zur Zuordnung der Aufteilung im Frontend)
+\end{itemize}
+
+Der Worker beginnt sofort nach Empfang der Nachricht mit der Bearbeitung der Region. Ist die Region
+fertig berechnet, werden als Antwort die gestoppte Zeit und die berechneten Daten gesendet.
+Um laufende Berechnungen abbrechen zu können und um die Leistung zu steigern, wurde sich dazu
+entschieden, eine asynchrone Kommunikation zwischen dem Host und den Workern aufzubauen. Diese
+wird genutzt, um neue Rechenaufträge für Teilregionen an die Worker zu verteilen.
+Der Host sendet dabei jede Teilregion an einen anderen Worker, sodass jeder Worker genau eine
+Teilregion zugeteilt bekommt. Dieses senden passiert parallel für alle Worker, indem das
+nicht-blockierende MPI\_Isend genutzt wird. Es startet die Senden-Operation, und kehrt unter Umständen
+zurück, bevor die Senden-Operation abgeschlossen ist. Dadurch wird ein möglichst schnelles Senden der
+Aufträge erzielt. Um sicherzustellen, dass die Senden-Operation abgeschlossen ist, also alle
+Senden-Buffer vollständig ausgelesen wurden, wird MPI\_Waitall eingesetzt, das den Thread des Hosts so
+lange blockiert, bis alle Anfragen gesendet wurden. Es wird nicht gewartet, bis die Anfragen von allen
+Workern empfangen wurden.
+Um sicherzustellen, dass der Worker laufende Berechnungen bei Erhalt einer neuen Teilregionsanfrage
+abbricht und sofort mit der Berechnung der neuen Anfrage beginnt, wird hier ebenfalls ein
+nicht-blockierendes Empfangen eingesetzt. Das bedeutet, dass zu Beginn der Berechnung MPI\_Irecv
+aufgerufen wird, was ausdrückt, dass eine Nachricht in bestimmter Form erwartet wird und in einen
+spezifizierten Buffer geschrieben werden soll. In diesem Fall wird ein Region-Objekt als Anfrage erwartet.
+Vor der Berechnung jedes einzelnen Pixels der alten Anfrage wird per MPI\_Test geprüft, ob eine neue
+Nachricht empfangen wurde. Ist dies der Fall, wird die Berechnung sofort abgebrochen und mit der
+Bearbeitung der neuen, empfangenen Region begonnen.
+
+%% Anfrage Skizze
+
+Das Senden der berechneten Region vom Worker zum Host funktioniert hingegen mit blockierenden
+Sende- und Empfangs-Operationen (MPI\_Send und MPI\_Recv).
+Diese Variante wurde gewählt, da das Senden im Vergleich zum Berechnen sehr wenig Zeit benötigt, so dass die Komplexität, die eine
+nicht-blockierende Behandlung mitbringen würde in keinem Verhältnis zum Nutzen steht.
+Tatsächlich besteht das Senden der berechneten Daten aus zwei Schritten.
+Zunächst wird ein WorkerInfo-Objekt mit der gestoppten Zeit der Berechnung in Mikrosekunden, dem Rang des
+Workers und dem zu Beginn empfangenen Region-Objekt vom Worker gesendet und vom Host
+empfangen. Hierzu wird der Tag 3 benutzt.
+Anschließend erwartet der Host von dem selben Worker ein Array an Integern der Größe
+$region.width * region.height$, wobei $region$ in dem gerade erhaltenen WorkerInfo-Objekt enthalten war.
+Dieses Array enthält die eigentlichen Daten, die der Worker berechnet hat. Für diese Operation wird der
+Tag 2 benutzt.
+Dieses eben beschriebene Senden bzw. Empfangen muss in zwei Schritte aufgeteilt werden, da es nicht
+ohne Probleme möglich ist, ein struct mit einem dynamischen Array über MPI zu senden. Ein dynamisches
+Array für die Ergebnisse der Berechnungen wird benötigt, da nicht zu Compile-Zeit festgelegt werden
+kann, wie viele Pixel eine Teilregion enthält. Das ist abhängig vom Balancer. Dieses dynamische Array wird
+in einem struct aber als Pointer dargestellt. Das heißt, dass die Daten nicht direkt bei den anderen Daten
+des structs liegen. Dies hat zur Folge, dass nur ein Pointer mit MPI geschickt werden würde. Das ist aber
+nicht zielführend, da die Daten ja immer noch auf einem anderen Hardwareknoten liegen und dadurch ein
+Zugriff nicht möglich wird. Deshalb erschienen zwei separate Operationen als die beste Lösung.
+
