@@ -6,9 +6,10 @@ class Fractal {
      * @param cReal real coordinate
      * @param cImaginary imaginary coordinate
      * @param maxIteration maximum amount of iterations to perform
-     * @return number of iterations for the given coordinates
+     * @param vectorLength number of coordinates to be calculated at once
+     * @param dest memory position where result(number of iterations for coordinates) should be stored
      */
-    virtual int calculateFractal(long double cReal, long double cImaginary, int maxIteration) = 0;
+    virtual void calculateFractal(long double* cReal, long double* cImaginary, int maxIteration, int vectorLength, int* dest) = 0;
     virtual ~Fractal();
 
     /**
