@@ -117,6 +117,12 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         return;
     }
 
+    // DEBUG
+    std::cout << "Recieved Region: "
+              << " TopLeft: (" << region.minReal << ", " << region.maxImaginary << ") -> BottomRight: ("
+              << region.maxReal << ", " << region.minImaginary << ") Resolution: ("
+              << region.width << ", " << region.height << ")" << std::endl;
+
     {
         std::lock_guard<std::mutex> lock(current_big_region_lock);
 //        if (region == current_big_region) {
@@ -128,7 +134,6 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
 
     // TODO increase by one as soon as host is invoked as worker too
     int nodeCount = activeNodes.size();
-    // make this based on balancer variable defined above (sounds like strategy pattern...) --> That was the idea :)
     // TODO let frontend choose fractal similar to balancer
     Balancer *b = BalancerPolicy::chooseBalancer(balancer, new Mandelbrot());
     Region *blocks = b->balanceLoad(region, nodeCount);  // Blocks is array with nodeCount members
