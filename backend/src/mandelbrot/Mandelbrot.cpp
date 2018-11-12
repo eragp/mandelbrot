@@ -1,6 +1,13 @@
 #include "Mandelbrot.h"
 
-int Mandelbrot::calculateFractal(long double cReal, long double cImaginary, int maxIteration) {
+// Non-simd-izable version
+void Mandelbrot::calculateFractal(long double* cReal, long double* cImaginary, int maxIteration, int vectorLength, int* dest) {
+    for(int j = 0; j < vectorLength; j++){
+        dest[j] = calculateFractalNonParallel(cReal[j], cImaginary[j], maxIteration);
+    }
+}
+
+int Mandelbrot::calculateFractalNonParallel(long double cReal, long double cImaginary, int maxIteration){
     int i = 0;
     long double zReal = 0.0;
     long double zImaginary = 0.0;

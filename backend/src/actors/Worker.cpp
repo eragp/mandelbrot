@@ -65,21 +65,35 @@ void Worker::init(int world_rank, int world_size) {
             // The real computation starts here --> start time measurement here
             auto startTime = std::chrono::high_resolution_clock::now();
 
+            int vectorLength = 1;
+            long double* projReal = new long double[vectorLength];
+            long double* projImag = new long double[vectorLength];
             for (unsigned int y = 0; y < region.height && !loopFlag; y++) {
-                for (unsigned int x = 0; x < region.width && !loopFlag; x++) {
+                for (unsigned int x = 0; x < region.width && !loopFlag; x+=vectorLength) {
                     // Abort
                     MPI_Test(&request, &flag, &status);
                     if (flag != 0) {
                         std::cout << "Worker " << world_rank << " abort." << std::endl;
                         loopFlag = true;
                     }
-                    int reverseY = region.height - y - 1;
                     // Computations
-                    data[i++] = f->calculateFractal(region.projectReal(x),
-                                                    region.projectImag(reverseY),
-                                                    region.maxIteration);
+                    // Project all points to be computed
+                    int reverseY = region.height - y - 1;
+                    for(int k = 0; k < vectorLength; k++){
+                        projReal[k] = region.projectReal(x+k);
+                        projImag[k] = region.projectImag(reverseY);
+                    }
+                    // Directly write them into our n array
+                    f->calculateFractal(projReal,
+                                        projImag,
+                                        region.maxIteration,
+                                        vectorLength,
+                                        &data[i]);
+                    i += vectorLength;
                 }
             }
+            delete projReal;
+            delete projImag;
 
             // Computation ends here --> stop the clock
             auto endTime = std::chrono::high_resolution_clock::now();

@@ -39,13 +39,18 @@ Region *PredictionBalancer::balanceLoad(Region region, int nodeCount) {
 
         for (unsigned int x = 0; x < lowRes.width; x++) {
             for (unsigned int y = 0; y < lowRes.height; y++) {
-                int iterationCount = f->calculateFractal(lowRes.minReal + x * deltaReal,
-                                                         lowRes.maxImaginary - y * deltaImaginary,
-                                                         lowRes.maxIteration);
-                // wtf?!
-                n[x / predictionAccuracy][y / predictionAccuracy] += iterationCount;
-                // Sum over expected iteration per column
-                nColSums[x / predictionAccuracy] += iterationCount;
+                int iterationCount;
+                long double projReal = lowRes.minReal + x * deltaReal;
+                long double projImag = lowRes.maxImaginary - y * deltaImaginary;
+                f->calculateFractal(&projReal,
+                                    &projImag,
+                                    lowRes.maxIteration,
+                                    1,
+                                    &iterationCount);
+// wtf?!
+n[x / predictionAccuracy][y / predictionAccuracy] += iterationCount;
+// Sum over expected iteration per column
+nColSums[x / predictionAccuracy] += iterationCount;
                 // Sum over all expected iterations
                 nSum += iterationCount;
             }
@@ -82,9 +87,14 @@ Region *PredictionBalancer::balanceLoad(Region region, int nodeCount) {
 
         for (unsigned int x = 0; x < lowRes.width; x++) {
             for (unsigned int y = 0; y < lowRes.height; y++) {
-                int iterationCount = f->calculateFractal(lowRes.minReal + x * deltaReal,
-                                                         lowRes.maxImaginary - y * deltaImaginary,
-                                                         lowRes.maxIteration);
+                int iterationCount;
+                long double projReal = lowRes.minReal + x * deltaReal;
+                long double projImag = lowRes.maxImaginary - y * deltaImaginary;
+                f->calculateFractal(&projReal,
+                                    &projImag,
+                                    lowRes.maxIteration,
+                                    1,
+                                    &iterationCount);
 
                 // Put iterationCount in every entry which belongs to this prediction part
                 int xStartIndex = x * predictionAccuracy;
