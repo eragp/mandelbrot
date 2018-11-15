@@ -221,7 +221,7 @@ Region *PredictionBalancer::splitCol(Region col, int parts, Prediction* predicti
     int cumulativeN = 0;
     int usedPredictionRows = 0;
 
-    for (unsigned int i = 0; i < prediction->predictionLengthY; i++) {
+    for (int i = 0; i < prediction->predictionLengthY; i++) {
         if (currentPart == parts - 1) {
             // Take the rest
             tmp.minImaginary = col.minImaginary;
