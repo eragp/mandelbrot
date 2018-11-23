@@ -16,6 +16,7 @@
 
 // Cpp REST libraries
 #include <cpprest/json.h>
+#include "rapidjson/document.h"
 
 // Websockets
 #include <websocketpp/config/asio_no_tls.hpp>
@@ -34,6 +35,7 @@
 using namespace web;
 using namespace web::http;
 using namespace web::http::experimental::listener;
+using namespace rapidjson;
 
 const int default_res = 256;
 // Init values with some arbitrary value
@@ -79,29 +81,31 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
 
     std::string request_string = msg->get_payload();
 
-    std::error_code error;
-    json::value request = json::value::parse(request_string, error);
-    if (error.value() > 0) {
-        std::cerr << "Error " << error.value() << "on parsing request: " << error.message() << "\n on "
-                  << request_string << std::endl;
-        return;
-    }
+    Document request;
+    request.Parse(request_string.c_str());
+    /* TODO
+        try{
+        } catch (ParseErrorCode error){
+            std::cerr << "Error " << error. << "on parsing request: " << error.message() << "\n on "
+                    << request_string << std::endl;
+            return;
+        }
+        */
 
-    if(request["type"].as_string() != "regionRequest"){
+    if(request["type"].GetString() != "regionRequest"){
         return;
     }
 
     Region region{};
     utility::string_t balancer;
     try {
-        balancer = request["balancer"].as_string();
+        balancer = request["balancer"].GetString();
 
-        json::value regionObject = request["region"];
-        region.minReal = regionObject["minReal"].as_double();
-        region.maxImaginary = regionObject["maxImag"].as_double();
+        region.minReal = request["region"]["minReal"].GetDouble();
+        region.maxImaginary = request["region"]["maxImag"].GetDouble();
 
-        region.maxReal = regionObject["maxReal"].as_double();
-        region.minImaginary = regionObject["minImag"].as_double();
+        region.maxReal = request["region"]["maxReal"].GetDouble();
+        region.minImaginary = request["region"]["minImag"].GetDouble();
 
         region.width = static_cast<unsigned int >(regionObject["width"].as_integer());
         region.height = static_cast<unsigned int >(regionObject["height"].as_integer());
