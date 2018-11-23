@@ -1,5 +1,6 @@
-#include "Mandelbrot.h"
+#include "MandelbrotOpt.h"
 #include <algorithm>
+#include <stdexcept>
 
 /**
  * Return whether at least one point still has an abs value below 2 => continue computation
@@ -16,9 +17,13 @@ bool continueComp(long double* zReal, long double* zImaginary, int vectorLength,
 }
 
 // Probably more open to compiler optimization
-void Mandelbrot::calculateFractal(long double* cReal, long double* cImaginary, int maxIteration, int vectorLength, int* dest) {
+// vectorlength >= 1 !!
+void MandelbrotOpt::calculateFractal(long double* cReal, long double* cImaginary, int maxIteration, int vectorLength, int* dest) {
     std::fill(dest, dest+vectorLength, 0);
     int i = 0;
+    if(vectorLength <= 0){
+        throw std::invalid_argument("vectorLength may not be less than 1.");
+    }
     long double zReal[vectorLength] = {0.0};
     long double zImaginary[vectorLength] = {0.0};
     long double nextZReal[vectorLength];
@@ -38,18 +43,4 @@ void Mandelbrot::calculateFractal(long double* cReal, long double* cImaginary, i
             dest[k] += factor[k];
         }
     }
-}
-
-int Mandelbrot::calculateFractalNonParallel(long double cReal, long double cImaginary, int maxIteration){
-    int i = 0;
-    long double zReal = 0.0;
-    long double zImaginary = 0.0;
-    while (i < maxIteration && zReal * zReal + zImaginary * zImaginary < 4.0) {
-        long double nextZReal = (zReal * zReal - zImaginary * zImaginary) + cReal;
-        long double nextZImaginary = 2 * (zReal * zImaginary) + cImaginary;
-        zReal = nextZReal;
-        zImaginary = nextZImaginary;
-        i++;
-    }
-    return i;
 }
