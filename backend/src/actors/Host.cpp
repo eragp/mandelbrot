@@ -283,11 +283,15 @@ void Host::init(int world_rank, int world_size) {
             int testReceive;
             MPI_Recv(&testReceive, 1, MPI_INT, i, 11, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
             if (testSend == testReceive) {
-                std::cout << "Core " << i << " ready!" << std::endl;
+                std::cout << "Host: Core " << i << " ready!" << std::endl;
             }
             activeNodes.push_back(i);
         }
     }
+
+    // Approximately the time that MPI communication with one Worker has taken in microseconds
+    std::chrono::high_resolution_clock::time_point *mpiCommunicationStart = new std::chrono::high_resolution_clock::time_point[activeNodes.size()];
+    unsigned long *mpiCommunicationTime = new unsigned long[activeNodes.size()];
 
     // Init persistent asynchronous send
     MPI_Request region_requests[activeNodes.size()];
@@ -306,16 +310,20 @@ void Host::init(int world_rank, int world_size) {
                 int nodeCount = activeNodes.size();
                 for (int i = 0 ; i<nodeCount ; i++) {
                     int rank_worker = activeNodes.at(i);
-                    std::cout << "Invoking core " << rank_worker << std::endl;
+                    std::cout << "Host: Start invoking core " << rank_worker << std::endl;
+                    // Start the clock for MPI communication
+                    mpiCommunicationStart[i] = std::chrono::high_resolution_clock::now();
+                    // Start send to one Worker using persistent asynchronous send
                     MPI_Start(&region_requests[i]);
                     {
                         std::lock_guard<std::mutex> lock(transmitted_regions_lock);
                         transmitted_regions[rank_worker] = transmit_regions[rank_worker];
                     }
                 }
-                std::cout << "Invoking cores done" << std::endl;
+                std::cout << "Host: Start invoking all cores done." << std::endl;
+                // Wait to complete all send operations
                 MPI_Waitall(nodeCount, region_requests, region_status);
-                std::cout << "Waitall done" << std::endl;
+                std::cout << "Host: Waitall returned. All send operations are complete." << std::endl;
                 mpi_send_regions = false;
             }
         }
@@ -330,7 +338,7 @@ void Host::init(int world_rank, int world_size) {
             probe_flag = 0;
             int recv_len;
             MPI_Get_count(&status, MPI_BYTE, &recv_len);
-            std::cout << "Host is receiving Data from Worker " << status.MPI_SOURCE << " Total length: " << recv_len << std::endl;
+            std::cout << "Host is receiving Data from Worker " << status.MPI_SOURCE << " Total length: " << recv_len << " Bytes." << std::endl;
             uint8_t* recv = new uint8_t[recv_len];
             int ierr = MPI_Recv(recv, recv_len, MPI_BYTE, status.MPI_SOURCE, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE); // Rank: 2
             if(ierr != MPI_SUCCESS){
@@ -342,6 +350,9 @@ void Host::init(int world_rank, int world_size) {
                 continue;
             }
 
+            // Stop the clock for MPI communication
+            std::chrono::high_resolution_clock::time_point mpiCommunicationEnd = std::chrono::high_resolution_clock::now();
+
             // Extract "workerInfo" from the received message
             WorkerInfo workerInfo;
             std::memcpy(&workerInfo, recv, sizeof(WorkerInfo));
@@ -351,6 +362,10 @@ void Host::init(int world_rank, int world_size) {
                 rendered_region = transmitted_regions[workerInfo.rank];
             }
             unsigned int region_size = rendered_region.getPixelCount();
+
+            // Compute time approximately used for MPI communication
+            mpiCommunicationTime[workerInfo.rank - 1] = std::chrono::duration_cast<std::chrono::microseconds>(mpiCommunicationEnd - mpiCommunicationStart[workerInfo.rank - 1]).count() - workerInfo.computationTime;
+            std::cout << "Host: MPI communication with Worker " << workerInfo.rank << " took approximately " << mpiCommunicationTime[workerInfo.rank - 1] << " microseconds." << std::endl;
         
             // Extract "worker_data" from the received message
             int* worker_data = new int[region_size];

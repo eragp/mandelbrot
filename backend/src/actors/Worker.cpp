@@ -103,7 +103,7 @@ void Worker::init(int world_rank, int world_size) {
                 std::memcpy(ret + sizeof(WorkerInfo), data, data_len * sizeof(int));
                 
                 // Send "ret" to the Host using one MPI_Send operation
-                std::cout << "Worker " << world_rank << " is sending the data. Total length: " << ret_len << " Elapsed time: " << elapsedTime << std::endl;
+                std::cout << "Worker " << world_rank << " is sending the data. Total length: " << ret_len << " Bytes. Elapsed time: " << elapsedTime << " microseconds." << std::endl;
                 MPI_Send(ret, ret_len, MPI_BYTE, host_rank, 2, MPI_COMM_WORLD); // Rank: 2
 
                 delete[] ret;
