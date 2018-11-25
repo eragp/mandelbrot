@@ -1,11 +1,11 @@
 import { getBottomRightPoint, getTopLeftPoint, project } from "./Project";
 import { tileSize, maxIteration } from "./Constants";
-import Point from "../misc/Point";
+import 3DPoint from "../misc/Point";
 import { Map } from "leaflet";
 
 // making sure only new requests actually get sent
-let currentTopLeft: Point;
-let currentBottomRight: Point;
+let currentTopLeft: 3DPoint;
+let currentBottomRight: 3DPoint;
 let currentBalancer: string;
 /**
  *  Sends a region request for the currently visible region

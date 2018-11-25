@@ -1,4 +1,4 @@
-import Point from "../misc/Point";
+import 3DPoint from "../misc/Point";
 import { tileSize } from "./Constants";
 import { getBottomRightPoint, getTopLeftPoint } from "./Project";
 import WebSocketClient, { RegionData } from "../connection/WSClient";
@@ -10,8 +10,8 @@ export default class MatrixView {
   /**
    * These variables handle the current visible region bounds as points
    */
-  public topLeft: Point;
-  public bottomRight: Point;
+  public topLeft: 3DPoint;
+  public bottomRight: 3DPoint;
   private callbacks: Map<string, (roi: RegionOfInterest) => any>;
 
   constructor(tileDisplay: any, webSocketClient: WebSocketClient) {
@@ -29,7 +29,7 @@ export default class MatrixView {
       const xEnd = region.width / regionTileSize;
       const yEnd = region.height / regionTileSize;
 
-      const topLeft = new Point(
+      const topLeft = new 3DPoint(
         this.topLeft.x + region.hOffset / regionTileSize,
         this.topLeft.y - region.vOffset / regionTileSize,
         zoom,
@@ -44,15 +44,15 @@ export default class MatrixView {
           const render = this.callbacks.get(coordsToString(tileX, tileY, zoom));
           if (render === undefined || render === null) {
             console.error(
-              "Region not found for " + new Point(tileX, tileY, zoom)
+              "Region not found for " + new 3DPoint(tileX, tileY, zoom)
             );
             continue;
           }
           // only pass data of this region
           const realX = x * tileSize;
           const realY = y * tileSize;
-          const tl = new Point(realX, realY);
-          const br = new Point(realX + tileSize, realY + tileSize);
+          const tl = new 3DPoint(realX, realY);
+          const br = new 3DPoint(realX + tileSize, realY + tileSize);
 
           const roi = new RegionOfInterest(
             tl,
@@ -86,10 +86,10 @@ export default class MatrixView {
 
   /**
    * Registers the tile at coords to be drawn as soon as data is available.
-   * @param {Point} origin coordinates on the tile to be registerd
+   * @param {3DPoint} origin coordinates on the tile to be registerd
    * @param {*} draw function expecting data that draws the tile @coords
    */
-  public registerTile(origin: Point, draw: (data: RegionOfInterest) => any) {
+  public registerTile(origin: 3DPoint, draw: (data: RegionOfInterest) => any) {
     let promise;
     const render = (data: RegionOfInterest) => {
       promise = new Promise((resolve, error) => {

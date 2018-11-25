@@ -1,4 +1,4 @@
-import "./ComTypes";
+import {RegionData, Regions } from "./ComTypes";
 
 const url = "ws://localhost:9002";
 
@@ -103,5 +103,4 @@ export default class WebSocketClient {
     list.push(render);
     return promise;
   }
-
 }

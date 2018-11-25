@@ -1,4 +1,4 @@
-import Point from "./Point";
+import 3DPoint from "./Point";
 import { complexToLeaflet, leafletToComplex } from "../tileDisplay/Project";
 
 export const getURLParams = () => {
@@ -7,12 +7,12 @@ export const getURLParams = () => {
   const imag = parseFloat(params.get("imag") as string);
   const zoom = parseFloat(params.get("zoom") as string);
   if (!real || !imag || !zoom) {
-    return new Point(0, 0, 0);
+    return new 3DPoint(0, 0, 0);
   }
   return complexToLeaflet(real, imag, zoom);
 };
 
-export const setURLParams = (point: Point) => {
+export const setURLParams = (point: 3DPoint) => {
   const complex = leafletToComplex(point.x, point.y, point.z);
   const params = new URLSearchParams(document.location.search);
   params.set("real", complex.x.toString());

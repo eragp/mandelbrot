@@ -1,4 +1,4 @@
-import Point from "../misc/Point";
+import 3DPoint from "../misc/Point";
 import { bounds, leafletBound } from "./Constants";
 import { Bounds } from "leaflet";
 
@@ -12,14 +12,14 @@ import { Bounds } from "leaflet";
  * @param {*} tileSize pixel dimensions of a tile (tiles have to be square)
  */
 export const project = (tileX: number, tileY: number, zoom: number, 
-  pixelX: number, pixelY: number, tileSize: number): Point => {
+  pixelX: number, pixelY: number, tileSize: number): 3DPoint => {
   tileSize = tileSize || 1;
   // top left -> bottom right
   // bounds in the imaginary plane have to be symmetric
   const tileCount = Math.pow(2, zoom) * 16;
   const real = (tileX * bounds[0]) / tileCount;
   const imag = (tileY * bounds[1]) / tileCount;
-  return new Point(real, imag);
+  return new 3DPoint(real, imag);
 };
 
 /**
@@ -27,13 +27,13 @@ export const project = (tileX: number, tileY: number, zoom: number,
  * @param {number} real Real part of the complex coordinate
  * @param {number} imag Imaginary part of the complex coordinate
  * @param {number} zoom current zoom factor in leaflet space
- * @returns {Point} Leaflet tile coordinate corresponding to real/imag coordinate
+ * @returns {3DPoint} Leaflet tile coordinate corresponding to real/imag coordinate
  */
-export const unproject = (real: number, imag: number, zoom: number): Point => {
+export const unproject = (real: number, imag: number, zoom: number): 3DPoint => {
   const tileCount = Math.pow(2, zoom) * 16;
   const x = (tileCount * real) / bounds[0];
   const y = (tileCount * imag) / bounds[1];
-  return new Point(Math.floor(x), Math.floor(y), zoom);
+  return new 3DPoint(Math.floor(x), Math.floor(y), zoom);
 };
 
 /**
@@ -41,10 +41,10 @@ export const unproject = (real: number, imag: number, zoom: number): Point => {
  * @param {number} real real coordinate on the complex plane
  * @param {number} imag imaginary coordinate on the complex plane
  * @param {number} zoom zoom factor
- * @returns {Point} projected point
+ * @returns {3DPoint} projected point
  */
-export const complexToLeaflet = (real: number, imag: number, zoom: number): Point => {
-  return new Point(
+export const complexToLeaflet = (real: number, imag: number, zoom: number): 3DPoint => {
+  return new 3DPoint(
     (imag * leafletBound) / bounds[1],
     (real * leafletBound) / bounds[0],
     zoom,
@@ -56,10 +56,10 @@ export const complexToLeaflet = (real: number, imag: number, zoom: number): Poin
  * @param {number} lat  Latitude in CRS Space
  * @param {number} lng  Longitude in CRS Space
  * @param {number} zoom  zoom factor
- * @returns {Point} projected point
+ * @returns {3DPoint} projected point
  */
-export const leafletToComplex = (lat: number, lng: number, zoom: number): Point => {
-  return new Point(
+export const leafletToComplex = (lat: number, lng: number, zoom: number): 3DPoint => {
+  return new 3DPoint(
     (lng / leafletBound) * bounds[1],
     (lat / leafletBound) * bounds[0],
     zoom,
@@ -72,7 +72,7 @@ export const leafletToComplex = (lat: number, lng: number, zoom: number): Point 
  * @param {number} tileSize leaflet tile size
  * @param {number} zoom zoom factor
  */
-export const getTopLeftPoint = (curBounds: Bounds, tileSize: number, zoom: number): Point => {
+export const getTopLeftPoint = (curBounds: Bounds, tileSize: number, zoom: number): 3DPoint => {
   if (curBounds.min !== undefined){
     return toPoint(curBounds.min, tileSize, zoom, true);
   }
@@ -85,7 +85,7 @@ export const getTopLeftPoint = (curBounds: Bounds, tileSize: number, zoom: numbe
  * @param {Number} tileSize leaflet tile size
  * @param {Number} zoom zoom factor
  */
-export const getBottomRightPoint = (curBounds: Bounds, tileSize: number, zoom: number): Point => {
+export const getBottomRightPoint = (curBounds: Bounds, tileSize: number, zoom: number): 3DPoint => {
   if (curBounds.max !== undefined){
     return toPoint(curBounds.max, tileSize, zoom, false);
   }
@@ -94,7 +94,7 @@ export const getBottomRightPoint = (curBounds: Bounds, tileSize: number, zoom: n
 
 /**
  *
- * @param {Point} bound
+ * @param {3DPoint} bound
  * @param {Number} tileSize
  * @param {Number} zoom
  * @param {Boolean} topLeft
@@ -112,5 +112,5 @@ function toPoint(bound: L.Point, tileSize: number, zoom: number, topLeft: boolea
   } else {
     y = Math.ceil(bound.y / tileSize);
   }
-  return new Point(x, -y, zoom);
+  return new 3DPoint(x, -y, zoom);
 }
