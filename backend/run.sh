@@ -1,9 +1,9 @@
 #!/bin/bash
 
 DOCKER_REMOTE_IMAGE_NAME="rasaford/mandelbrot"
-IMAGE_VERSION="0.8"
+IMAGE_VERSION="1.1"
 LOCAL_IMAGE_NAME="mandelbrot_build"
-LOCAL_VERSION="1"
+LOCAL_VERSION="1.1"
 
 echo "Starting the Build Process"
 ## Docker ##
