@@ -14,8 +14,10 @@
 // MPI Libraries
 #include <mpi.h>
 
-// Cpp REST libraries
-#include <cpprest/json.h>
+// Json
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
 
 // Websockets
 #include <websocketpp/config/asio_no_tls.hpp>
@@ -31,9 +33,7 @@
 #include <algorithm>
 #include <vector>
 
-using namespace web;
-using namespace web::http;
-using namespace web::http::experimental::listener;
+using namespace rapidjson;
 
 const int default_res = 256;
 // Init values with some arbitrary value
@@ -79,39 +79,41 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
 
     std::string request_string = msg->get_payload();
 
-    std::error_code error;
-    json::value request = json::value::parse(request_string, error);
-    if (error.value() > 0) {
-        std::cerr << "Error " << error.value() << "on parsing request: " << error.message() << "\n on "
-                  << request_string << std::endl;
-        return;
-    }
+    Document request;
+    request.Parse(request_string.c_str());
+    /* TODO
+        try{
+        } catch (ParseErrorCode error){
+            std::cerr << "Error " << error. << "on parsing request: " << error.message() << "\n on "
+                    << request_string << std::endl;
+            return;
+        }
+        */
 
-    if(request["type"].as_string() != "regionRequest"){
+    if(std::strcmp(request["type"].GetString(), "regionRequest") != 0){
         return;
     }
 
     Region region{};
-    utility::string_t balancer;
+    const char* balancer;
     try {
-        balancer = request["balancer"].as_string();
+        balancer = request["balancer"].GetString();
 
-        json::value regionObject = request["region"];
-        region.minReal = regionObject["minReal"].as_double();
-        region.maxImaginary = regionObject["maxImag"].as_double();
+        region.minReal = request["region"]["minReal"].GetDouble();
+        region.maxImaginary = request["region"]["maxImag"].GetDouble();
 
-        region.maxReal = regionObject["maxReal"].as_double();
-        region.minImaginary = regionObject["minImag"].as_double();
+        region.maxReal = request["region"]["maxReal"].GetDouble();
+        region.minImaginary = request["region"]["minImag"].GetDouble();
 
-        region.width = static_cast<unsigned int >(regionObject["width"].as_integer());
-        region.height = static_cast<unsigned int >(regionObject["height"].as_integer());
+        region.width = request["region"]["width"].GetUint();
+        region.height = request["region"]["height"].GetUint();
 
         region.hOffset = 0;
         region.vOffset = 0;
 
-        region.maxIteration = static_cast<unsigned int >(regionObject["maxIteration"].as_integer());
-        region.validation = regionObject["validation"].as_integer();
-        region.guaranteedDivisor = static_cast<unsigned int >(regionObject["guaranteedDivisor"].as_integer());
+        region.maxIteration = request["region"]["maxIteration"].GetUint();
+        region.validation = request["region"]["validation"].GetInt();
+        region.guaranteedDivisor = request["region"]["guaranteedDivisor"].GetUint();
     } catch (std::out_of_range &e) {
         std::cerr << "Inclompletely specified region requested: " << request_string;
         return;
@@ -166,38 +168,50 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     // All workers received their region
     MPI_Waitall(nodeCount, region_requests, region_status);
 
-    json::value reply;
-    reply[U("type")] = json::value::string(U("region"));
-    reply[U("regionCount")] = json::value(nodeCount);
-    json::value workers;
+    Document reply;
+    reply.SetObject();
+
+    reply.AddMember("type", "region", reply.GetAllocator());
+    reply.AddMember("regionCount", nodeCount, reply.GetAllocator());
+
+    Value workers;
+    workers.SetArray();
     for (int i = 0; i < nodeCount; i++) {
         Region t = blocks[i];
 
-        json::value region;
-        region[U("minReal")] = json::value((double) t.minReal);
-        region[U("maxImag")] = json::value((double) t.maxImaginary);
+        Value region;
+        region.SetObject();
+        region.AddMember("minReal", Value().SetDouble(t.minReal), reply.GetAllocator());
+        region.AddMember("maxImag", Value().SetDouble(t.maxImaginary), reply.GetAllocator());
 
-        region[U("maxReal")] = json::value((double) t.maxReal);
-        region[U("minImag")] = json::value((double) t.minImaginary);
+        region.AddMember("maxReal", Value().SetDouble(t.maxReal), reply.GetAllocator());
+        region.AddMember("minImag", Value().SetDouble(t.minImaginary), reply.GetAllocator());
 
-        region[U("width")] = json::value(t.width);
-        region[U("height")] = json::value(t.height);
+        region.AddMember("width", t.width, reply.GetAllocator());
+        region.AddMember("height", t.height, reply.GetAllocator());
 
-        region[U("hOffset")] = json::value(t.hOffset);
-        region[U("vOffset")] = json::value(t.vOffset);
+        region.AddMember("hOffset", t.hOffset, reply.GetAllocator());
+        region.AddMember("vOffset", t.vOffset, reply.GetAllocator());
 
-        region[U("maxIteration")] = json::value(t.maxIteration);
-        region[U("validation")] = json::value(t.validation);
-        region[U("guaranteedDivisor")] = json::value(t.guaranteedDivisor);
+        region.AddMember("maxIteration", t.maxIteration, reply.GetAllocator());
+        region.AddMember("validation", t.validation, reply.GetAllocator());
+        region.AddMember("guaranteedDivisor", t.guaranteedDivisor, reply.GetAllocator());
 
-        workers[i] = json::value();
-        workers[i][U("rank")] = json::value(activeNodes.at(i));
-        workers[i][U("computationTime")] = json::value(0);
-        workers[i][U("region")] = region;
+        Value entry;
+        entry.SetObject();
+        entry.AddMember("rank", activeNodes.at(i), reply.GetAllocator());
+        entry.AddMember("computationTime", 0, reply.GetAllocator());
+        entry.AddMember("region", region, reply.GetAllocator());
+
+        workers.PushBack(entry, reply.GetAllocator());
     }
-    reply[U("regions")] = workers;
+    reply.AddMember("regions", workers, reply.GetAllocator());
+    // Stringify reply
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    reply.Accept(writer);
     try {
-        websocket_server.send(hdl, reply.serialize().c_str(), websocketpp::frame::opcode::text);
+        websocket_server.send(hdl, buffer.GetString(), websocketpp::frame::opcode::text);
     } catch (websocketpp::exception &e) {
         std::cerr << "Bad connection to client, Refresh connection" << std::endl;
     }
@@ -219,45 +233,49 @@ void Host::send(RegionData data) {
     Region region = data.workerInfo.region;
 
     // Create json value from returned
-    json::value answer;
+    Document answer(kObjectType);
     // answer[U("rank")] = json::value(data.world_rank);
-    json::value rawDataJSON = json::value();
+    Value rawDataJSON(kArrayType);
     for (unsigned int index = 0; index < (region.width * region.height); index++) {
-        rawDataJSON[index] = data.data[index];
+        rawDataJSON.PushBack(data.data[index], answer.GetAllocator());
     }
 
-    json::value workerInfoJSON = json::value();
-    workerInfoJSON[U("rank")] = json::value(workerInfo.rank);
-    workerInfoJSON[U("computationTime")] = json::value(static_cast<uint64_t >(workerInfo.computationTime));
+    Value workerInfoJSON(kObjectType);
+    workerInfoJSON.AddMember("rank", workerInfo.rank, answer.GetAllocator());
+    workerInfoJSON.AddMember("computationTime", Value().SetInt64(workerInfo.computationTime), answer.GetAllocator());
 
     // Maybe put this into extra method
-    json::value regionJSON = json::value();
-    regionJSON[U("minReal")] = json::value((double) region.minReal);
-    regionJSON[U("maxImag")] = json::value((double) region.maxImaginary);
+    Value regionJSON;
+    regionJSON.SetObject();
+    regionJSON.AddMember("minReal", Value().SetDouble(region.minReal), answer.GetAllocator());
+    regionJSON.AddMember("maxImag", Value().SetDouble(region.maxImaginary), answer.GetAllocator());
 
-    regionJSON[U("maxReal")] = json::value((double) region.maxReal);
-    regionJSON[U("minImag")] = json::value((double) region.minImaginary);
+    regionJSON.AddMember("maxReal", Value().SetDouble(region.maxReal), answer.GetAllocator());
+    regionJSON.AddMember("minImag", Value().SetDouble(region.minImaginary), answer.GetAllocator());
 
-    regionJSON[U("width")] = json::value(region.width);
-    regionJSON[U("height")] = json::value(region.height);
+    regionJSON.AddMember("width", region.width, answer.GetAllocator());
+    regionJSON.AddMember("height", region.height, answer.GetAllocator());
 
-    regionJSON[U("hOffset")] = json::value(region.hOffset);
-    regionJSON[U("vOffset")] = json::value(region.vOffset);
+    regionJSON.AddMember("hOffset", region.hOffset, answer.GetAllocator());
+    regionJSON.AddMember("vOffset", region.vOffset, answer.GetAllocator());
 
-    regionJSON[U("maxIteration")] = json::value(region.maxIteration);
-    regionJSON[U("validation")] = json::value(region.validation);
-    regionJSON[U("guaranteedDivisor")] = json::value(region.guaranteedDivisor);
+    regionJSON.AddMember("maxIteration", region.maxIteration, answer.GetAllocator());
+    regionJSON.AddMember("validation", region.validation, answer.GetAllocator());
+    regionJSON.AddMember("guaranteedDivisor", region.guaranteedDivisor, answer.GetAllocator());
 
-    workerInfoJSON[U("region")] = regionJSON;
+    workerInfoJSON.AddMember("region", regionJSON, answer.GetAllocator());
 
-    answer[U("workerInfo")] = workerInfoJSON;
-    answer[U("data")] = rawDataJSON;
-    answer[U("type")] = json::value("regionData");
+    answer.AddMember("workerInfo", workerInfoJSON, answer.GetAllocator());
+    answer.AddMember("data", rawDataJSON, answer.GetAllocator());
+    answer.AddMember("type", "regionData", answer.GetAllocator());
 
-    utility::string_t data_string = answer.serialize();
+    // Stringify reply
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    answer.Accept(writer);
 
     try {
-        websocket_server.send(client, data_string.c_str(), websocketpp::frame::opcode::text);
+        websocket_server.send(client, buffer.GetString(), websocketpp::frame::opcode::text);
     } catch (websocketpp::exception &e) {
         std::cerr << e.what() << "\n" << "Refresh websocket connection.\n";
     }

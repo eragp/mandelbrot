@@ -1,4 +1,4 @@
-FROM rasaford/mandelbrot:0.8
+FROM rasaford/mandelbrot:1.1
 # changes that depend on src/ only after this point
 COPY . /usr/src/mandelbrot-backend
 # shared library path needs to be set
