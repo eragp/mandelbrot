@@ -1,3 +1,5 @@
+import "./ComTypes";
+
 const url = "ws://localhost:9002";
 
 export default class WebSocketClient {
@@ -47,6 +49,7 @@ export default class WebSocketClient {
           break;
         case "region":
           // Notify region subdivision listeners
+          console.log(msg);
           regionCallback.forEach(callback => callback(<Regions>msg));
           break;
         default:
@@ -101,39 +104,4 @@ export default class WebSocketClient {
     return promise;
   }
 
-}
-
-export interface RegionData {
-  data: number[];
-  type: string;
-  workerInfo: WorkerInfo;
-}
-
-export interface Regions {
-  type: string;
-  regions: WorkerInfo[];
-}
-
-export interface WorkerInfo {
-  rank: number;
-  computationTime: number;
-  region: Region;
-}
-
-export interface Request {
-  balancer: string;
-  guaranteedDivisor: number;
-  width: number;
-  height: number;
-  minImag: number;
-  maxImag: number;
-  minReal: number;
-  maxReal: number;
-  validation: number;
-  maxIteration: number;
-}
-
-export interface Region extends Request {
-  hOffset: number;
-  vOffset: number;
 }

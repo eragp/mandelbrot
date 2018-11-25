@@ -62,7 +62,7 @@ export const request = (map: Map, balancer: string) => {
     type: "regionRequest",
     balancer,
   };
-  console.log("sending Region request: ");
-  console.log(region);
+  // console.log("sending Region request: ");
+  // console.log(region);
   return region;
 };
