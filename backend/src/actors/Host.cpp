@@ -33,9 +33,6 @@
 #include <algorithm>
 #include <vector>
 
-using namespace web;
-using namespace web::http;
-using namespace web::http::experimental::listener;
 using namespace rapidjson;
 
 const int default_res = 256;
@@ -98,7 +95,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     }
 
     Region region{};
-    utility::string_t balancer;
+    const char* balancer;
     try {
         balancer = request["balancer"].GetString();
 
