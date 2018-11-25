@@ -25,14 +25,6 @@ RUN update-alternatives --install /usr/bin/gfortran gfortran /usr/local/bin/gfor
     libtool \
     # clean after apt-get install
     && rm -rf /var/lib/apt/lists/*
-# build cpprestsdk from source
-RUN git clone https://github.com/Microsoft/cpprestsdk.git casablanca \
-    && cd casablanca/Release \
-    && mkdir build.debug \
-    && cd build.debug \
-    && cmake .. -DCMAKE_BUILD_TYPE=Release \
-    && make \
-    && make install 
 
 # based on Dockerfile from: wget https://github.com/sourceryinstitute/mpich-docker-image/blob/master/Dockerfile
 # install mpich 3.2.1
