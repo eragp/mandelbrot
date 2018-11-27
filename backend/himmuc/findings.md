@@ -57,4 +57,7 @@
     make
     ```
 
-    Current error: `/usr/bin/ld: cannot find -lboost_system` even though Flag `-L~/try_install/local/lib` is added
+    Current error: `/usr/bin/ld: cannot find -lboost_system` even though Flag `-L~/try_install/local/lib` is added.
+    Fixed by changing flag to `-L/u/home/muendler/try_install/local/lib`
+
+    !!! Do change the directory to your own directory when building !!!
