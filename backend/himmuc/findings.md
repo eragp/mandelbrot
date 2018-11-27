@@ -61,7 +61,7 @@ mkdir ~/try_install
     Then
     ```bash
     cd ~/try_install
-    git clone #gitlab repo
+    git clone https://gitlab.lrz.de/lrr-tum/students/eragp-mandelbrot
     cd eragp_mandelbrot/backend
     mkdir build
     cd build
