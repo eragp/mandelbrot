@@ -1,4 +1,8 @@
-# How to install on RaspBerryPi
+# Set Up on Raspberry Pi
+
+## Installation
+
+If you want to build the executables on your own, procede. If you want to use the pre-compiled executables (for arch debian stretch raspis) jump directly to [Running](#running)
 
 First, create a directory with write access. In this tutorial `~/try_install` will be used. Replace any occurrence of this path to choose your own path. Also make sure to change the path in backend/CMakeLists line 6 (include_directories) and line 19 (set_target_properties).
 
@@ -64,8 +68,17 @@ mkdir ~/try_install
     cmake ..
     make
     ```
+## Running
 
-6. Run the executables from build directory via
+6. SSH to vmschulz (himmuc.caps.in.tum.de)
+    
     ```bash
-    mpiexec -n 1 host : -n 4 worker
+    salloc -p rpi -N <number>
+    ssh rpi<lowestavailable>
+    ```
+
+7. Run the executables from build directory via
+
+    ```bash
+    mpiexec -n 1 host : -n <number-2> worker
     ```
