@@ -63,3 +63,8 @@
     cmake ..
     make 
     ```
+
+9. Run the executables from build directory via
+    ```bash
+    mpiexec -n 1 host : -n 4 worker
+    ```
