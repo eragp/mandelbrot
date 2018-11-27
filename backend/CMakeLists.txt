@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.7.0)
 project(Mandelbrot)
 # compiler flags
 # load the header files
-include_directories(include)
+include_directories(include ~/try_install/local/include ~/try_install/install/websocketpp ~/try_install/install/rapidjson/include)
 # load all the *.cpp files
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 list(FILTER SOURCES EXCLUDE REGEX ".*main\.cpp")
@@ -18,7 +18,9 @@ target_link_libraries(host PUBLIC ${MPI_LIBRARIES})
 target_link_libraries(worker PUBLIC ${MPI_LIBRARIES})
 set(CMAKE_CXX_STANDARD 11)
 # lib configs
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -lboost_system -lcrypto -lssl -lpthread")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -lpthread")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -L/u/home/muendler/try_install/local/lib/ -lboost_system")
+
 # custom flags for dependencies
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_WEBSOCKETPP_CPP11_STL_")
 
