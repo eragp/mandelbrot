@@ -70,15 +70,23 @@ mkdir ~/try_install
     ```
 ## Running
 
+First log on to the himmuc. [More Information](http://www.caps.in.tum.de/hw/himmuc/quick-start/)
+
 6. SSH to vmschulz (himmuc.caps.in.tum.de)
+
+   ```bash
+   ssh <login>@himmuc.caps.in.tum.de
+   ```
+
+7. Alloc the amount of raspis you want as workers + 2 (one for starting the job, one as host)
     
     ```bash
-    salloc -p rpi -N <number>
+    salloc -p rpi -N <number+2>
     ssh rpi<lowestavailable>
     ```
 
 7. Run the executables from build directory via
 
     ```bash
-    mpiexec -n 1 host : -n <number-2> worker
+    mpiexec -n 1 host : -n <number> worker
     ```
