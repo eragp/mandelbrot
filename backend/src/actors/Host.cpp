@@ -55,15 +55,21 @@ websocketpp::connection_hdl Host::client;
 
 void Host::start_server() {
 
-    //print_server.set_message_handler(&listener_region);
-
+    std::cout << "Init\n";
     websocket_server.init_asio();
+    std::cout << "Run perpetual\n";
     websocket_server.start_perpetual();
-    websocket_server.listen(9002);
+    std::cout << "Set listener\n";
+    // Use IPv4 explicitely
+    websocket_server.listen(websocketpp::lib::asio::ip::tcp::v4(), 9002);
+    std::cout << "Start accepting\n";
     websocket_server.start_accept();
 
+    std::cout << "Set open handler\n";
     websocket_server.set_open_handler(&register_client);
+    std::cout << "Set close handler\n";
     websocket_server.set_close_handler(&deregister_client);
+    std::cout << "Set message handler\n";
     websocket_server.set_message_handler(&handle_region_request);
 
     // How about not logging everything?
@@ -282,7 +288,7 @@ void Host::send(RegionData data) {
 }
 
 void Host::init(int world_rank, int world_size) {
-    MPI_Errhandler_set(MPI_COMM_WORLD,MPI_ERRORS_RETURN); /* return info about errors */
+    MPI_Comm_set_errhandler(MPI_COMM_WORLD,MPI_ERRORS_RETURN); /* return info about errors */
 
     Host::world_size = world_size;
     int cores = world_size;
