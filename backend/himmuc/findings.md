@@ -63,6 +63,7 @@ mkdir ~/.eragp-mandelbrot
     ```bash
     git clone https://gitlab.lrz.de/lrr-tum/students/eragp-mandelbrot
     cd eragp_mandelbrot/backend
+
     mkdir build
     cd build
     cmake ..
@@ -85,10 +86,11 @@ First log on to the himmuc. [More Information](http://www.caps.in.tum.de/hw/himm
     ssh rpi<lowestavailable>
     ```
 
-7. Run the executables from build directory via
+8. Run the executables from build directory via
 
     ```bash
     cd eragp-mandelbrot/backend/build
+
     module load mpi
     mpiexec -n 1 host : -n <number> worker
     ```
