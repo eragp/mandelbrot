@@ -79,18 +79,15 @@ First log on to the himmuc. [More Information](http://www.caps.in.tum.de/hw/himm
    ssh <login>@himmuc.caps.in.tum.de
    ```
 
-7. Alloc the amount of raspis you want as workers + 2 (one for starting the job, one as host)
-    
-    ```bash
-    salloc -p rpi -N <number+2>
-    ssh rpi<lowestavailable>
-    ```
+7. Run the executables
 
-8. Run the executables from build directory via
+   ```bash
+   srun -n<number of nodes+1> -l --multi-prog run.conf
+   ssh -L 0.0.0.0:9002:localhost:9002 -fN -M -S .tunnel.ssh rpi<lowest alloced number>
+   ```
 
-    ```bash
-    cd eragp-mandelbrot/backend/build
+8. How to stop
 
-    module load mpi
-    mpiexec -n 1 host : -n <number> worker
-    ```
+  ```bash
+  ssh -S .tunnel.ssh -O exit rpi<lowest alloced number>
+  ```
