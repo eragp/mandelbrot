@@ -8,6 +8,10 @@
 
 #include <mpi.h>
 
+#ifdef _OPENMP
+    #include <omp.h>
+#endif
+
 #include <iostream>
 #include <map>
 #include <set>
@@ -32,6 +36,14 @@ void Worker::init(int world_rank, int world_size) {
     int flag;
     // Recieve instructions for computation
     std::cout << "Worker " << world_rank << " is ready to receive Data." << std::endl;
+
+    // Check if OpenMp is enabled
+    #ifdef _OPENMP
+        std::cout << "OpenMP is enabled." << std::endl;
+    #else
+        std::cout << "OpenMP is disabled." << std::endl;
+    #endif
+
     MPI_Irecv(&newRegion, sizeof(Region), MPI_BYTE, host_rank, 1, MPI_COMM_WORLD, &request); // Listen for a region asynchronously
     // Start with actual work of this worker
     while (true) {
@@ -59,30 +71,44 @@ void Worker::init(int world_rank, int world_size) {
             // Execute computations
             const unsigned int data_len = region.getPixelCount();
             int* data = new int[data_len];
-            
-            int i = 0;
+
+            // The number of OpenMP Threads used
+            int num_threads = -1;
 
             // The real computation starts here --> start time measurement here
             auto startTime = std::chrono::high_resolution_clock::now();
 
             for (unsigned int y = 0; y < region.height && !loopFlag; y++) {
-                for (unsigned int x = 0; x < region.width && !loopFlag; x++) {
-                    // Abort
-                    MPI_Test(&request, &flag, &status);
-                    if (flag != 0) {
-                        std::cout << "Worker " << world_rank << " abort." << std::endl;
-                        loopFlag = true;
-                    }
-                    int reverseY = region.height - y - 1;
+                int reverseY = region.height - y - 1;
+                // Start parallel computation of one row using OpenMP Threads.
+                // Abort is not possible until the computation for the current row is finished.
+                // TODO Remove default(none). Only for development.
+                #pragma omp parallel for default(none) shared(region, data, y, reverseY, f, num_threads) schedule(nonmonotonic:dynamic, 10)
+                for (unsigned int x = 0; x < region.width; x++) {
+                    // Set number of OpenMP Threads used (only once)
+                    #ifdef _OPENMP
+                        if (y == 0 && x == 0) {
+                            num_threads = omp_get_num_threads();
+                        }
+                    #endif
+
                     // Computations
-                    data[i++] = f->calculateFractal(region.projectReal(x),
-                                                    region.projectImag(reverseY),
-                                                    region.maxIteration);
+                    data[y * region.width + x] = f->calculateFractal(region.projectReal(x),
+                                                                     region.projectImag(reverseY),
+                                                                     region.maxIteration);
+                }
+                // Abort
+                MPI_Test(&request, &flag, &status);
+                if (flag != 0) {
+                    std::cout << "Worker " << world_rank << " abort." << std::endl;
+                    loopFlag = true;
                 }
             }
 
             // Computation ends here --> stop the clock
             auto endTime = std::chrono::high_resolution_clock::now();
+
+            std::cout << "Worker " << world_rank << " used " << num_threads << " OpenMP Threads." << std::endl;
 
             if (!loopFlag) {
                 // We measure time in microseconds
