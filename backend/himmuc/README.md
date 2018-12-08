@@ -25,7 +25,6 @@ mkdir ~/.eragp-mandelbrot
     cd boost_1_67_0
     ./bootstrap.sh --prefix="$HOME/.eragp-mandelbrot/local/" --with-libraries=system,thread,random
     ./b2 install
-    cd ..
     ```
 
 2. Install websocketpp
@@ -63,9 +62,9 @@ mkdir ~/.eragp-mandelbrot
     build the tools.
     ```bash
     git clone https://gitlab.lrz.de/lrr-tum/students/eragp-mandelbrot
-    cd eragp-mandelbrot
+    cd eragp-mandelbrot/backend
+    
     git checkout raspberry_pi_die_erste
-    cd backend
 
     mkdir build
     cd build
@@ -87,17 +86,17 @@ First log on to the himmuc. [More Information](http://www.caps.in.tum.de/hw/himm
    ```bash
    git clone https://gitlab.lrz.de/lrr-tum/students/eragp-mandelbrot # if not already done
    cd eragp-mandelbrot
+   
    git checkout raspberry_pi_die_erste # if not already done
-   cd backend/himmuc
+   cd backend/build
    ```
    
-   Make sure to run the following from the vmschulz, *not* from any of the raspberry pis.
+   Make sure to run the following in the folder `eragp-mandelbrot/backend/build` on the vmschulz (see example output), *not* on any of the raspberry pis.
    
    If you want to enforce that the host process shares a node with any worker process,
    do set the number of nodes (`-N`) one less than the number of processes (`-n`).
    
    ```bash
-   
    srun -n <number of workers+1> -N <number of nodes/raspis> -l --multi-prog run.conf
    ssh -L 0.0.0.0:9002:localhost:9002 -fN -M -S .tunnel.ssh rpi<host number>
    ```
