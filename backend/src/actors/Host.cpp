@@ -32,6 +32,8 @@
 #include <string>
 #include <algorithm>
 #include <vector>
+#include <chrono>
+#include <thread>
 
 using namespace rapidjson;
 
@@ -45,6 +47,11 @@ std::vector<int> Host::activeNodes;
 Region Host::current_big_region;
 std::mutex Host::current_big_region_lock;
 
+// Transfer region requests from Websocket-Thread to MPI-Thread
+bool Host::mpi_send_regions = false;
+std::map<int, Region> Host::transmit_regions;
+std::mutex Host::transmit_regions_lock;
+
 // Store send MPI Requests
 std::map<int, Region> Host::transmitted_regions;
 std::mutex Host::transmitted_regions_lock;
@@ -54,6 +61,8 @@ websocketpp::server<websocketpp::config::asio> Host::websocket_server;
 websocketpp::connection_hdl Host::client;
 
 void Host::start_server() {
+
+    std::cout << "Start Server" << std::endl;
 
     //print_server.set_message_handler(&listener_region);
 
@@ -75,6 +84,8 @@ void Host::start_server() {
 
 void Host::handle_region_request(const websocketpp::connection_hdl hdl,
                                  websocketpp::server<websocketpp::config::asio>::message_ptr msg) {
+    std::cout << "Handle Region Request" << std::endl;
+    
     client = hdl;
 
     std::string request_string = msg->get_payload();
@@ -148,25 +159,17 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
                   << blocks[i].width << ", " << blocks[i].height << ")" << std::endl;
     }
 
-    // send regions to cores deterministically
-    MPI_Request region_requests[nodeCount];
-    MPI_Status region_status[nodeCount];
-    for (int i = 0; i < nodeCount; i++) {
-        Region small_region = blocks[i];
-        int rank_worker = activeNodes.at(i);
-        std::cout << "Invoking core " << rank_worker << std::endl;
-        // Tag for computation requests is 1
-        // Send new region
-        // TODO @Tobi you might want to look at this
-        {
-            std::lock_guard<std::mutex> lock(transmitted_regions_lock);
-            transmitted_regions[rank_worker] = small_region;
+    // Send regions to MPI-Thread
+    {
+        std::lock_guard<std::mutex> lock(transmit_regions_lock);
+        for (int i = 0 ; i < nodeCount ; i++) {
+            Region small_region = blocks[i];
+            int rank_worker = activeNodes.at(i);
+            transmit_regions[rank_worker] = small_region;
         }
-        MPI_Isend(&small_region, sizeof(Region), MPI_BYTE, rank_worker, 1, MPI_COMM_WORLD,
-                  &region_requests[i]);
+        mpi_send_regions = true;
     }
-    // All workers received their region
-    MPI_Waitall(nodeCount, region_requests, region_status);
+    std::cout << "Transmit angefordert" << std::endl;
 
     Document reply;
     reply.SetObject();
@@ -283,7 +286,7 @@ void Host::send(RegionData data) {
 
 void Host::init(int world_rank, int world_size) {
     MPI_Errhandler_set(MPI_COMM_WORLD,MPI_ERRORS_RETURN); /* return info about errors */
-
+    
     Host::world_size = world_size;
     int cores = world_size;
     int my_rank = world_rank;
@@ -303,73 +306,107 @@ void Host::init(int world_rank, int world_size) {
             int testReceive;
             MPI_Recv(&testReceive, 1, MPI_INT, i, 11, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
             if (testSend == testReceive) {
-                std::cout << "Core " << i << " ready!" << std::endl;
+                std::cout << "Host: Core " << i << " ready!" << std::endl;
             }
             activeNodes.push_back(i);
         }
     }
 
-    // TODO @Tobi you might want to look at this    
-    // MPI - receiving answers and answering requests
+    // Approximately the time that MPI communication with one Worker has taken in microseconds
+    std::chrono::high_resolution_clock::time_point *mpiCommunicationStart = new std::chrono::high_resolution_clock::time_point[activeNodes.size()];
+    unsigned long *mpiCommunicationTime = new unsigned long[activeNodes.size()];
+
+    // Init persistent asynchronous send
+    MPI_Request region_requests[activeNodes.size()];
+    MPI_Status region_status[activeNodes.size()];
+    for (int i = 0 ; i < (int) activeNodes.size() ; i++) {
+        int rank_worker = activeNodes.at(i);
+        MPI_Send_init(&transmit_regions[rank_worker], sizeof(Region), MPI_BYTE, rank_worker, 1, MPI_COMM_WORLD, &region_requests[i]);
+    }
+  
+    // MPI communication between Host and Workers (send region requests and receive computed data) and start websocket send
     while (true) {
-        // Listen for incoming complete computations from workers (MPI)
-        // This accepts messages by the workers and answers requests that were stored before
-        // TODO: asynchronous (maybe?)
-        WorkerInfo workerInfo;
-        MPI_Recv((void *) &workerInfo, sizeof(WorkerInfo), MPI_BYTE, MPI_ANY_SOURCE, 3, MPI_COMM_WORLD, MPI_STATUS_IGNORE);  // 3 is tag for WorkerInfo
-        Region rendered_region{};
+        // Send regions to cores deterministically using persistent asynchronous send
         {
-            std::lock_guard<std::mutex> lock(transmitted_regions_lock);
-            rendered_region = transmitted_regions[workerInfo.rank];
-        }
-
-        unsigned int region_size = rendered_region.getPixelCount();
-        int* worker_data = new int[region_size];
-        std::cout << "Host: waiting for receive from " << workerInfo.rank << ": " << region_size << std::endl;
-        
-        int ierr = MPI_Recv(worker_data, region_size, MPI_INT, workerInfo.rank, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE); // 2 is tag for raw data
-        if(ierr != MPI_SUCCESS){
-            std::cerr << "Error on receiving data from worker: " << std::endl;
-            char err_buffer[MPI_MAX_ERROR_STRING];
-            int resultlen;
-            MPI_Error_string(ierr,err_buffer,&resultlen);
-            fprintf(stderr,err_buffer);
-            continue;
-        }
-
-        std::cout << "Host: received from " << workerInfo.rank << std::endl;
-
-        // Check if this data is up to date requested data
-        /*bool inside_current_region;
-        {
-            std::lock_guard<std::mutex> lock(current_big_region_lock);
-            inside_current_region = current_big_region.contains(rendered_region.tlX, rendered_region.tlY,
-                                                              rendered_region.brX, rendered_region.brY,
-                                                              rendered_region.zoom);
-
-        }
-        if (!inside_current_region) {
-            std::cout << "Host: no longer interested in the rendered region" << std::endl;
-            continue;
-        }*/
-        //std::cout << rendered_region.resX << ", " << rendered_region.resY << std::endl;
-
-        // copy the received data from worker into regionData struct
-        /*auto *worker_array = new int[region_size];
-        int i = 0;
-        for (unsigned int y = 0; y < rendered_region.height; y++) {
-            for (unsigned int x = 0; x < rendered_region.width; x++) {
-                worker_array[i] = worker_data[i];
-                i++;
+            std::lock_guard<std::mutex> lock(transmit_regions_lock);
+            if (mpi_send_regions == true) {
+                int nodeCount = activeNodes.size();
+                for (int i = 0 ; i<nodeCount ; i++) {
+                    int rank_worker = activeNodes.at(i);
+                    std::cout << "Host: Start invoking core " << rank_worker << std::endl;
+                    // Start the clock for MPI communication
+                    mpiCommunicationStart[i] = std::chrono::high_resolution_clock::now();
+                    // Start send to one Worker using persistent asynchronous send
+                    MPI_Start(&region_requests[i]);
+                    {
+                        std::lock_guard<std::mutex> lock(transmitted_regions_lock);
+                        transmitted_regions[rank_worker] = transmit_regions[rank_worker];
+                    }
+                }
+                std::cout << "Host: Start invoking all cores done." << std::endl;
+                // Wait to complete all send operations
+                MPI_Waitall(nodeCount, region_requests, region_status);
+                std::cout << "Host: Waitall returned. All send operations are complete." << std::endl;
+                mpi_send_regions = false;
             }
-        }*/
-        RegionData region_data{};
-        region_data.data = worker_data;
-        region_data.data_length = region_size;
-        region_data.workerInfo = workerInfo;
+        }
+        
+        // Listen for incoming complete computations from workers (MPI)
+        // Receive one message of dynamic length containing "workerInfo" and the computed "worker_data"
+        // TODO: asynchronous (maybe?)
+        MPI_Status status;
+        int probe_flag;
+        MPI_Iprobe(MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, &probe_flag, &status);
+        if (probe_flag == true) { // Rank: 2
+            probe_flag = 0;
+            int recv_len;
+            MPI_Get_count(&status, MPI_BYTE, &recv_len);
+            std::cout << "Host is receiving Data from Worker " << status.MPI_SOURCE << " Total length: " << recv_len << " Bytes." << std::endl;
+            uint8_t* recv = new uint8_t[recv_len];
+            int ierr = MPI_Recv(recv, recv_len, MPI_BYTE, status.MPI_SOURCE, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE); // Rank: 2
+            if(ierr != MPI_SUCCESS){
+                std::cerr << "Error on receiving data from worker: " << std::endl;
+                char err_buffer[MPI_MAX_ERROR_STRING];
+                int resultlen;
+                MPI_Error_string(ierr, err_buffer, &resultlen);
+                fprintf(stderr, err_buffer);
+                continue;
+            }
 
-        Host::send(region_data);
-        delete[] worker_data;
+            // Stop the clock for MPI communication
+            std::chrono::high_resolution_clock::time_point mpiCommunicationEnd = std::chrono::high_resolution_clock::now();
+
+            // Extract "workerInfo" from the received message
+            WorkerInfo workerInfo;
+            std::memcpy(&workerInfo, recv, sizeof(WorkerInfo));
+            Region rendered_region{};
+            {
+                std::lock_guard<std::mutex> lock(transmitted_regions_lock);
+                rendered_region = transmitted_regions[workerInfo.rank];
+            }
+            unsigned int region_size = rendered_region.getPixelCount();
+
+            // Compute time approximately used for MPI communication
+            mpiCommunicationTime[workerInfo.rank - 1] = std::chrono::duration_cast<std::chrono::microseconds>(mpiCommunicationEnd - mpiCommunicationStart[workerInfo.rank - 1]).count() - workerInfo.computationTime;
+            std::cout << "Host: MPI communication with Worker " << workerInfo.rank << " took approximately " << mpiCommunicationTime[workerInfo.rank - 1] << " microseconds." << std::endl;
+        
+            // Extract "worker_data" from the received message
+            int* worker_data = new int[region_size];
+            std::memcpy(worker_data, recv + sizeof(WorkerInfo), region_size * sizeof(int));
+            std::cout << "Host: Receive from Worker " << workerInfo.rank << " complete." << std::endl;
+        
+            // Fill "region_data"
+            RegionData region_data{};
+            region_data.data = worker_data;
+            region_data.data_length = region_size;
+            region_data.workerInfo = workerInfo;
+
+            Host::send(region_data);
+
+            delete[] recv;
+            delete[] worker_data;
+        }
+        
     }
 
 }
