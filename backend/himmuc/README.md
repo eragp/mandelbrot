@@ -23,7 +23,7 @@ mkdir ~/.eragp-mandelbrot
     wget https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.bz2
     tar --bzip2 -xf boost_1_67_0.tar.bz2
     ./boost_1_67_0/bootstrap.sh --prefix="~/.eragp-mandelbrot/local/" --with-libraries=system,thread,random
-    ./bz2 install
+    ./b2 install
     cd ..
     ```
 
