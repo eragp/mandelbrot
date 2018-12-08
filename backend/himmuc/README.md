@@ -23,7 +23,7 @@ mkdir ~/.eragp-mandelbrot
     wget https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.bz2
     tar --bzip2 -xf boost_1_67_0.tar.bz2
     cd boost_1_67_0
-    ./bootstrap.sh --prefix="~/.eragp-mandelbrot/local/" --with-libraries=system,thread,random
+    ./bootstrap.sh --prefix="$HOME/.eragp-mandelbrot/local/" --with-libraries=system,thread,random
     ./b2 install
     cd ..
     ```
@@ -83,6 +83,9 @@ First log on to the himmuc. [More Information](http://www.caps.in.tum.de/hw/himm
 7. Run the executables
 
    ```bash
+   git clone https://gitlab.lrz.de/lrr-tum/students/eragp-mandelbrot # if not already done
+   cd eragp-mandelbrot/backend/himmuc
+   
    srun -n<number of nodes+1> -l --multi-prog run.conf
    ssh -L 0.0.0.0:9002:localhost:9002 -fN -M -S .tunnel.ssh rpi<lowest alloced number>
    ```
