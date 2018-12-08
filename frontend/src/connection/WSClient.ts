@@ -1,4 +1,4 @@
-const url = "ws://localhost:9002";
+const url = "ws://himmuc.caps.in.tum.de:9002";
 
 export default class WebSocketClient {
   private regionCallback: Array<((data: Regions) => void)> = [];
