@@ -13,6 +13,9 @@ export interface RegionGroup {
   maxIteration: number;
   hOffset: number;
   vOffset: number;
+  /**
+   * returns closed polyline of the Region (first point is the same as the last).
+   */
   bounds(): Point2D[];
   getChildren(): RegionGroup[] | null;
 }
@@ -38,14 +41,25 @@ class Group implements RegionGroup {
     this.computationTime = regions.map(r => r.computationTime).reduce((acc, curr) => acc + curr);
     this.balancer = regions[0].region.balancer;
     this.guaranteedDivisor = regions[0].region.guaranteedDivisor;
-    // TODO:
     this.validation = regions[0].region.validation;
-    this.maxIteration = regions[0].region.maxIteration;
-    this.children = regions.map(r => new Tile(r));
+    this.maxIteration = regions
+      .map(r => r.region.maxIteration)
+      .reduce((acc, curr) => (curr > acc ? curr : acc));
+    this.children = regions.map(r => new Rectangle(r));
+    console.log("created region Group with: ");
+    console.log(this.children);
   }
 
-  bounds() {
-    return [new Point2D()];
+  public bounds() {
+    let v: Set<Point2D> = new Set();
+    this.children.forEach(child => {
+      child.bounds().forEach(point => {
+        v.add(point);
+      });
+    });
+    let ret: Point2D[] = [];
+    v.forEach(p => ret.push(p));
+    return ret;
   }
 
   getChildren() {
@@ -53,21 +67,22 @@ class Group implements RegionGroup {
   }
 }
 
-class Tile implements RegionGroup {
+class Rectangle implements RegionGroup {
   public rank: number;
   public computationTime: number;
   public balancer: string;
   public guaranteedDivisor: number;
   public width: number;
   public height: number;
-  public minImag: number;
-  public maxImag: number;
-  public minReal: number;
-  public maxReal: number;
   public validation: number;
   public maxIteration: number;
   public hOffset: number;
   public vOffset: number;
+
+  private minImag: number;
+  private maxImag: number;
+  private minReal: number;
+  private maxReal: number;
 
   constructor(region: WorkerInfo) {
     this.rank = region.rank;
@@ -76,26 +91,24 @@ class Tile implements RegionGroup {
     this.guaranteedDivisor = region.region.guaranteedDivisor;
     this.width = region.region.width;
     this.height = region.region.height;
-    this.minImag = region.region.minImag;
-    this.maxImag = region.region.maxImag;
-    this.minReal = region.region.minReal;
-    this.maxReal = region.region.maxReal;
     this.validation = region.region.validation;
     this.maxIteration = region.region.maxIteration;
     this.hOffset = region.region.hOffset;
     this.vOffset = region.region.vOffset;
+
+    this.minImag = region.region.minImag;
+    this.maxImag = region.region.maxImag;
+    this.minReal = region.region.minReal;
+    this.maxReal = region.region.maxReal;
   }
 
-  /**
-   * returns closed polyline of the Region (first point is the same as the last).
-   */
   public bounds() {
     return [
-      new Point2D(this.maxImag, this.minReal),
-      new Point2D(this.maxImag, this.maxReal),
-      new Point2D(this.minImag, this.maxReal),
-      new Point2D(this.minImag, this.minReal),
-      new Point2D(this.maxImag, this.minReal)
+      new Point2D(this.minReal, this.maxImag),
+      new Point2D(this.maxReal, this.maxImag),
+      new Point2D(this.maxReal, this.minImag),
+      new Point2D(this.minReal, this.minImag),
+      new Point2D(this.minReal, this.maxImag)
     ];
   }
 
@@ -104,15 +117,16 @@ class Tile implements RegionGroup {
   }
 }
 
-export const groupRegions = (regions: Regions) => {
+export const groupRegions = (regions: Regions): RegionGroup[] => {
   let r = regions.regions;
   if (r.length <= MAX_DISPLAY_REGIONS) {
-    return r.map(r => new Tile(r));
+    return r.map(r => new Rectangle(r));
   }
+
   let groupSize = Math.floor(r.length / MAX_DISPLAY_REGIONS);
-  let groups: RegionGroup[] = [];
+  let groups = [];
   for (let i = 0; i < Math.floor(r.length / groupSize); i++) {
-    let group: WorkerInfo[] = [];
+    let group = [];
     for (let j = 0; j < groupSize; j++) {
       group.push(r[i * groupSize + j]);
     }

@@ -1,12 +1,11 @@
-import 3DPoint from "../misc/Point";
+import Point3D from "../misc/Point";
 
 /**
  * Represents a view on the data of the rectangle defined by tl, br.
  */
 export default class RegionOfInterest {
-
-  public topLeft: 3DPoint;
-  public bottomRight: 3DPoint;
+  public topLeft: Point3D;
+  public bottomRight: Point3D;
   public data: number[];
   public width: number;
   public height: number;
@@ -14,13 +13,13 @@ export default class RegionOfInterest {
   private ROIHeight: number;
 
   /**
-   * @param {3DPoint} tl TopLeft Point
-   * @param {3DPoint} br BottomRight Point
+   * @param {Point3D} tl TopLeft Point
+   * @param {Point3D} br BottomRight Point
    * @param {*} data data for super region
    * @param {number} width width of the super region
    * @param {number} height height of the super region
    */
-  constructor(tl: 3DPoint, br: 3DPoint, data: number[], width: number, height: number) {
+  constructor(tl: Point3D, br: Point3D, data: number[], width: number, height: number) {
     this.topLeft = tl;
     this.bottomRight = br;
     this.data = data;

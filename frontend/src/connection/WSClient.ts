@@ -1,4 +1,5 @@
-import {RegionData, Regions } from "./ComTypes";
+import { RegionData, Regions } from "./ComTypes";
+import { groupRegions , RegionGroup } from "./RegionGroup";
 
 const url = "ws://localhost:9002";
 
@@ -45,12 +46,13 @@ export default class WebSocketClient {
       switch (msg.type) {
         case "regionData":
           // Notify regionData/worker observers
-          workerCallback.forEach(callback => callback(<RegionData>msg));
+          workerCallback.forEach(call => call(<RegionData>msg));
           break;
         case "region":
           // Notify region subdivision listeners
           console.log(msg);
-          regionCallback.forEach(callback => callback(<Regions>msg));
+          let groups = groupRegions(<Regions> msg)
+          regionCallback.forEach(call => call(groups));
           break;
         default:
       }
@@ -75,7 +77,7 @@ export default class WebSocketClient {
   /**
    * Registers a callback to call when the region subdivision is returned
    */
-  public registerRegion(fun: (data: Regions) => any) {
+  public registerRegion(fun: (data: RegionGroup[]) => any) {
     this.registerCallback(this.regionCallback, fun);
   }
 

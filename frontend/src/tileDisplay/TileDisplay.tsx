@@ -14,7 +14,7 @@ import { project, unproject } from "./Project";
 import { request as requestRegion } from "./RegionRequest";
 
 import { tileSize, leafletBound } from "./Constants";
-import 3DPoint from "../misc/Point";
+import { Point3D } from "../misc/Point";
 import MatrixView from "./MatrixView";
 import BalancerPolicy from "../misc/BalancerPolicy";
 import WebSocketClient from "../connection/WSClient";
@@ -27,14 +27,14 @@ interface TileDisplayProps {
   wsclient: WebSocketClient;
   balancerPolicy: BalancerPolicy;
   workerContext: WorkerContext;
-  viewCenter: 3DPoint;
+  viewCenter: Point3D;
 }
 
 export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
   private map: Map;
   private newViewObservers: Array<(map: Map) => any>;
   private regionDrawer: MatrixView;
-  private viewCenter: 3DPoint;
+  private viewCenter: Point3D;
 
   /**
    * Invoke the given callback, when the view of the map has changed
@@ -121,7 +121,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
     }
 
     L.GridLayer.MandelbrotLayer = L.GridLayer.extend({
-      createTile(coords: 3DPoint, done: (e: Error | null, t: HTMLCanvasElement) => any) {
+      createTile(coords: Point3D, done: (e: Error | null, t: HTMLCanvasElement) => any) {
         const tile = L.DomUtil.create("canvas", "leaflet-tile") as HTMLCanvasElement;
         const size = this.getTileSize();
         // when zooming map.getZoom() is not up to date
@@ -129,7 +129,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
         const zoom = this._tileZoom;
         tile.width = size.x;
         tile.height = size.y;
-        const p = new 3DPoint(coords.x, coords.y, zoom);
+        const p = new Point3D(coords.x, coords.y, zoom);
 
         /**
          * Draw tile callback, asserts tileData to be RegionOfInterest object
@@ -161,14 +161,14 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
     });
 
     L.GridLayer.DebugLayer = L.GridLayer.extend({
-      createTile(coords: 3DPoint) {
+      createTile(coords: Point3D) {
         const div = document.createElement("div");
         const size = this.getTileSize();
         const zoom = this._tileZoom;
         div.style.width = size.x;
         div.style.height = size.y;
 
-        const p = new 3DPoint(coords.x, coords.y, zoom);
+        const p = new Point3D(coords.x, coords.y, zoom);
 
         const projected = project(coords.x, coords.y, zoom, 0, 0, tileSize);
         const unprojected = unproject(projected.x, projected.y, zoom);
@@ -217,7 +217,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
     this.registerNewView((curMap: Map) => {
       const center = curMap.getCenter();
       const zoom = curMap.getZoom();
-      this.viewCenter = new 3DPoint(center.lat, center.lng, zoom);
+      this.viewCenter = new Point3D(center.lat, center.lng, zoom);
       setURLParams(this.viewCenter);
     });
 
