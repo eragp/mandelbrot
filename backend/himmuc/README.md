@@ -7,10 +7,6 @@ If you want to build the executables on your own, procede. If you want to use th
 First, create a directory with write access. In this tutorial `~/.eragp-mandelbrot` will be used. Replace any occurrence of this path to choose your own path. Also make sure to change the path in backend/CMakeLists line 6 (include_directories) and line 19 (set_target_properties).
 
 ```bash
-git clone https://gitlab.lrz.de/lrr-tum/students/eragp-mandelbrot
-cd eragp-mandelbrot
-git checkout raspberry_pi_die_erste
-cd ~
 mkdir ~/.eragp-mandelbrot
 ```
 
@@ -93,13 +89,44 @@ First log on to the himmuc. [More Information](http://www.caps.in.tum.de/hw/himm
    cd eragp-mandelbrot
    git checkout raspberry_pi_die_erste # if not already done
    cd backend/himmuc
-   
-   srun -n<number of nodes+1> -l --multi-prog run.conf
-   ssh -L 0.0.0.0:9002:localhost:9002 -fN -M -S .tunnel.ssh rpi<lowest alloced number>
    ```
+   
+   Make sure to run the following from the vmschulz, *not* from any of the raspberry pis.
+   
+   If you want to enforce that the host process shares a node with any worker process,
+   do set the number of nodes (`-N`) one less than the number of processes (`-n`).
+   
+   ```bash
+   
+   srun -n <number of workers+1> -N <number of nodes/raspis> -l --multi-prog run.conf
+   ssh -L 0.0.0.0:9002:localhost:9002 -fN -M -S .tunnel.ssh rpi<host number>
+   ```
+   
+   Example output:
+   ```
+   muendler@vmschulz8:~/eragp-mandelbrot/backend/build$ srun -N4 -n5 -l --multi-prog ../himmuc/run.conf
+   srun: error: Could not find executable worker
+   4: Worker: 4 of 5 on node rpi06
+   2: Worker: 2 of 5 on node rpi04
+   3: Worker: 3 of 5 on node rpi05
+   0: Host: 0 of 5 on node rpi03
+   0: Host init 5
+   1: Worker: 1 of 5 on node rpi03
+   0: Core 1 ready!
+   1: Worker 1 is ready to receive Data.
+   2: Worker 2 is ready to receive Data.
+   0: Listening for connections on to websocket server on 9002
+   0: Core 2 ready!
+   3: Worker 3 is ready to receive Data.
+   0: Core 3 ready!
+   4: Worker 4 is ready to receive Data.
+   0: Core 4 ready!
+   ```
+   
+   Host number is `03` here, ssh would be told to connect to `rpi03`.
 
 8. How to stop
 
-  ```bash
-  ssh -S .tunnel.ssh -O exit rpi<lowest alloced number>
-  ```
+   ```bash
+   ssh -S .tunnel.ssh -O exit rpi<host number>
+   ```
