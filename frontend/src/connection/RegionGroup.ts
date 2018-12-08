@@ -149,9 +149,5 @@ export const groupRegions = (regions: Regions): RegionGroup[] => {
     }
     if (remainder.length > 0) groups.push(new Group(remainder));
   }
-
-  console.log("split");
-  console.log(r);
-  console.log(groups);
   return groups;
 };

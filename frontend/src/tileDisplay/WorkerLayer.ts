@@ -46,6 +46,10 @@ function toGeoJSON(regions: RegionGroup[], pixelToLatLng: (a: Point) => LatLng):
  * Displays an overlay showing which node computed which region
  */
 export default class WorkerLayer extends L.GeoJSON {
+  private nodeLayers: Map<number, GeoJSON<any>>;
+  private nodeGroups: Map<number, RegionGroup>;
+  private currentGroup: RegionGroup[];
+
   constructor(
     wsclient: WebSocketClient,
     pixelToLatLng: (p: Point) => LatLng,
@@ -84,12 +88,18 @@ export default class WorkerLayer extends L.GeoJSON {
     });
 
     this.nodeLayers = new Map();
+    this.nodeGroups = new Map();
 
-    wsclient.registerRegion((data: RegionGroup[]) => {
+    const onNewRegion = (group: RegionGroup[]) => {
       this.clearLayers();
-      const regions = toGeoJSON(data, pixelToLatLng);
+      this.nodeGroups.clear();
+      group.forEach(g => this.nodeGroups.set(g.rank, g));
+      this.currentGroup = group;
+
+      const regions = toGeoJSON(group, pixelToLatLng);
       this.addData(regions);
-    });
+    };
+    wsclient.registerRegion(onNewRegion);
 
     workerContext.subscribe((worker: number | undefined) => {
       this.nodeLayers.forEach((layer: GeoJSON) => {
@@ -101,6 +111,11 @@ export default class WorkerLayer extends L.GeoJSON {
           layer.setStyle({
             fillOpacity: 0.7
           });
+        }
+        const group = this.nodeGroups.get(worker);
+        if (group && group.getChildren() !== null) {
+          onNewRegion(this.currentGroup);
+          this.addData(toGeoJSON(group.getChildren() as RegionGroup[], pixelToLatLng));
         }
       }
     });
