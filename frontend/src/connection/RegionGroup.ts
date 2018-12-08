@@ -1,4 +1,4 @@
-import { Regions, WorkerInfo, isEmptyRegion } from "./ComTypes";
+import { Regions, WorkerInfo } from "./ComTypes";
 import { Point2D } from "../misc/Point";
 
 const MAX_DISPLAY_REGIONS = 8;
@@ -46,15 +46,15 @@ class Group implements RegionGroup {
   }
 
   public bounds() {
-    let v: Point2D[] = [];
-    this.children.forEach(child => {
-      child.bounds().forEach(point => {
-        if (point.x != 0 && point.y != 0) {
-          v.push(point);
-        }
-      });
-    });
-    return v;
+    let tl = this.children[0].bounds()[0],
+      br = this.children[this.children.length - 1].bounds()[2];
+    return [
+      new Point2D(tl.x, tl.y),
+      new Point2D(br.x, tl.y),
+      new Point2D(br.x, br.y),
+      new Point2D(tl.x, br.y),
+      new Point2D(tl.x, tl.y)
+    ];
   }
 
   getChildren() {
@@ -109,6 +109,19 @@ class Rectangle implements RegionGroup {
     return null;
   }
 }
+
+export const isEmptyRegion = (region: Region) => {
+  return (
+    region.width === 0 &&
+    region.height === 0 &&
+    region.minImag === 0 &&
+    region.maxImag === 0 &&
+    region.minReal === 0 &&
+    region.maxReal === 0 &&
+    region.hOffset === 0 &&
+    region.vOffset === 0
+  );
+};
 
 export const groupRegions = (regions: Regions): RegionGroup[] => {
   let r = regions.regions.filter(r => !isEmptyRegion(r.region));
