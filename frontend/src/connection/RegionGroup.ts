@@ -127,13 +127,15 @@ export const groupRegions = (regions: Regions): RegionGroup[] => {
     }
     groups.push(new Group(group));
   }
-  let remainder = [];
-  j = 0;
-  while (i * groupSize + j < r.length) {
-    remainder.push(r[i * groupSize + j]);
-    j++;
+  {
+    let remainder = [];
+    j = 0;
+    while (i * groupSize + j < r.length) {
+      remainder.push(r[i * groupSize + j]);
+      j++;
+    }
+    if (remainder.length > 0) groups.push(new Group(remainder));
   }
-  if (remainder.length > 0) groups.push(new Group(remainder));
 
   console.log("split");
   console.log(r);
