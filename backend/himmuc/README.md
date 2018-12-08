@@ -7,6 +7,10 @@ If you want to build the executables on your own, procede. If you want to use th
 First, create a directory with write access. In this tutorial `~/.eragp-mandelbrot` will be used. Replace any occurrence of this path to choose your own path. Also make sure to change the path in backend/CMakeLists line 6 (include_directories) and line 19 (set_target_properties).
 
 ```bash
+git clone https://gitlab.lrz.de/lrr-tum/students/eragp-mandelbrot
+cd eragp-mandelbrot
+git checkout raspberry_pi_die_erste
+cd ~
 mkdir ~/.eragp-mandelbrot
 ```
 
@@ -63,7 +67,9 @@ mkdir ~/.eragp-mandelbrot
     build the tools.
     ```bash
     git clone https://gitlab.lrz.de/lrr-tum/students/eragp-mandelbrot
-    cd eragp_mandelbrot/backend
+    cd eragp-mandelbrot
+    git checkout raspberry_pi_die_erste
+    cd backend
 
     mkdir build
     cd build
@@ -84,7 +90,9 @@ First log on to the himmuc. [More Information](http://www.caps.in.tum.de/hw/himm
 
    ```bash
    git clone https://gitlab.lrz.de/lrr-tum/students/eragp-mandelbrot # if not already done
-   cd eragp-mandelbrot/backend/himmuc
+   cd eragp-mandelbrot
+   git checkout raspberry_pi_die_erste # if not already done
+   cd backend/himmuc
    
    srun -n<number of nodes+1> -l --multi-prog run.conf
    ssh -L 0.0.0.0:9002:localhost:9002 -fN -M -S .tunnel.ssh rpi<lowest alloced number>
