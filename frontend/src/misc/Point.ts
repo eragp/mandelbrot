@@ -32,7 +32,10 @@ export class Point3D implements Point {
     if (aProps.length !== bProps.length) {
       return false;
     }
-    return this.x === pt.x && this.y === pt.y && this.z === pt.z;
+    let dx = this.x - pt.x,
+      dy = this.y - pt.y,
+      dz = this.z - pt.z;
+    return dx < Number.EPSILON && dy < Number.EPSILON && dz < Number.EPSILON;
   }
 }
 
@@ -42,7 +45,7 @@ export class Point3D implements Point {
 export class Point2D implements Point {
   public x: number;
   public y: number;
-  
+
   constructor(x = 0, y = 0) {
     this.x = x;
     this.y = y;
@@ -63,6 +66,8 @@ export class Point2D implements Point {
     if (aProps.length !== bProps.length) {
       return false;
     }
-    return this.x === pt.x && this.y === pt.y;
+    let dx = this.x - pt.x,
+      dy = this.y - pt.y;
+    return dx < Number.EPSILON && dy < Number.EPSILON;
   }
 }

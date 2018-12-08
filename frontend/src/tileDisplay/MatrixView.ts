@@ -1,7 +1,8 @@
 import { Point3D } from "../misc/Point";
 import { tileSize } from "./Constants";
 import { getBottomRightPoint, getTopLeftPoint } from "./Project";
-import WebSocketClient, { RegionData } from "../connection/WSClient";
+import WebSocketClient from "../connection/WSClient";
+import { RegionData } from "../connection/ComTypes";
 import { Map as LeafletMap } from "leaflet";
 import RegionOfInterest from "./RegionOfInterest";
 

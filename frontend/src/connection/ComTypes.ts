@@ -15,7 +15,16 @@ export interface Request {
   maxIteration: number;
 }
 
-export interface Region extends Request {
+export interface Region {
+  guaranteedDivisor: number;
+  width: number;
+  height: number;
+  minImag: number;
+  maxImag: number;
+  minReal: number;
+  maxReal: number;
+  validation: number;
+  maxIteration: number;
   hOffset: number;
   vOffset: number;
 }

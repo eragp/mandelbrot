@@ -141,7 +141,7 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
       this.updateChart(0);
     });
 
-    this.props.wsclient.registerRegion(data => {
+    this.props.wsclient.registerRegion(group => {
       // Stop redrawing
       this.stopNodeProgress();
       // Reset node progress
@@ -151,10 +151,10 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
 
       let animationDuration = 750;
 
-      for (let worker of data.regions) {
-        nodes.push(worker.rank);
-        active.set(worker.rank, true);
-        progress.set(worker.rank, animationDuration * 1000);
+      for (let region of group) {
+        nodes.push(region.rank);
+        active.set(region.rank, true);
+        progress.set(region.rank, animationDuration * 1000);
       }
       this.chartState = {
         nodes: nodes,

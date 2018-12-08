@@ -107,7 +107,7 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
       this.updateChart();
     });
 
-    this.websocketClient.registerRegion(data => {
+    this.websocketClient.registerRegion(group => {
       // Stop redrawing
       this.stopNodeProgress();
       // Reset node progress
@@ -116,7 +116,7 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
       const progress = new Map();
 
       const animationDuration = 750;
-      for (const region of data.regions) {
+      for (const region of group) {
         nodes.push(region.rank);
         active.set(region.rank, true);
         progress.set(region.rank, animationDuration * 1000);

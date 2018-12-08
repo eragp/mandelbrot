@@ -5,7 +5,6 @@ const MAX_DISPLAY_REGIONS = 8;
 export interface RegionGroup {
   rank: number;
   computationTime: number;
-  balancer: string;
   guaranteedDivisor: number;
   width: number;
   height: number;
@@ -26,7 +25,6 @@ export interface RegionGroup {
 class Group implements RegionGroup {
   public rank: number;
   public computationTime: number;
-  public balancer: string;
   public guaranteedDivisor: number;
   public width: number;
   public height: number;
@@ -39,27 +37,24 @@ class Group implements RegionGroup {
   constructor(regions: WorkerInfo[]) {
     this.rank = regions[0].rank;
     this.computationTime = regions.map(r => r.computationTime).reduce((acc, curr) => acc + curr);
-    this.balancer = regions[0].region.balancer;
     this.guaranteedDivisor = regions[0].region.guaranteedDivisor;
     this.validation = regions[0].region.validation;
     this.maxIteration = regions
       .map(r => r.region.maxIteration)
       .reduce((acc, curr) => (curr > acc ? curr : acc));
     this.children = regions.map(r => new Rectangle(r));
-    console.log("created region Group with: ");
-    console.log(this.children);
   }
 
   public bounds() {
-    let v: Set<Point2D> = new Set();
+    let v: Point2D[] = [];
     this.children.forEach(child => {
       child.bounds().forEach(point => {
-        v.add(point);
+        if (point.x != 0 && point.y != 0) {
+          v.push(point);
+        }
       });
     });
-    let ret: Point2D[] = [];
-    v.forEach(p => ret.push(p));
-    return ret;
+    return v;
   }
 
   getChildren() {
@@ -67,10 +62,32 @@ class Group implements RegionGroup {
   }
 }
 
+// class CustomSet<V> {
+//   // private map: Map<String, V>;
+//   private list: V[];
+
+//   constructor() {
+//     this.list = [];
+//     this[Symbol.iterator] = this.values;
+//   }
+
+//   add(item: V): boolean {
+//     let unique = true;
+//     this.list.forEach(i => i.equals(item) ? unique = false : unique = unique);
+//     if (unique) this.list.push(item);
+//     return unique;
+//   }
+//   values() {
+//     return this.list;
+//   }
+//   forEach(fun: (value: V) => void) {
+//     this.list.forEach(fun);
+//   }
+// }
+
 class Rectangle implements RegionGroup {
   public rank: number;
   public computationTime: number;
-  public balancer: string;
   public guaranteedDivisor: number;
   public width: number;
   public height: number;
@@ -87,7 +104,6 @@ class Rectangle implements RegionGroup {
   constructor(region: WorkerInfo) {
     this.rank = region.rank;
     this.computationTime = region.computationTime;
-    this.balancer = region.region.balancer;
     this.guaranteedDivisor = region.region.guaranteedDivisor;
     this.width = region.region.width;
     this.height = region.region.height;
@@ -123,14 +139,27 @@ export const groupRegions = (regions: Regions): RegionGroup[] => {
     return r.map(r => new Rectangle(r));
   }
 
-  let groupSize = Math.floor(r.length / MAX_DISPLAY_REGIONS);
+  let groupSize = Math.ceil(r.length / MAX_DISPLAY_REGIONS);
   let groups = [];
-  for (let i = 0; i < Math.floor(r.length / groupSize); i++) {
+  let i = 0,
+    j = 0;
+  for (; i < Math.floor(r.length / groupSize); i++) {
     let group = [];
-    for (let j = 0; j < groupSize; j++) {
+    for (j = 0; j < groupSize; j++) {
       group.push(r[i * groupSize + j]);
     }
     groups.push(new Group(group));
   }
+  let remainder = [];
+  j = 0;
+  while (i * groupSize + j < r.length) {
+    remainder.push(r[i * groupSize + j]);
+    j++
+  }
+  groups.push(new Group(remainder));
+
+  console.log("split");
+  console.log(regions);
+  console.log(groups);
   return groups;
 };

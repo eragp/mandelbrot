@@ -90,10 +90,10 @@ export default class NetworkView extends React.Component<NetworkViewProps, {}> {
     /**
      * Redraw graph when information about backend becomes available
      */
-    this.props.wsclient.registerRegion(data => {
+    this.props.wsclient.registerRegion(regions => {
       const nodes = [];
-      for (const worker of data.regions) {
-        nodes.push(worker.rank);
+      for (const region of regions) {
+        nodes.push(region.rank);
       }
       if (this.networkState.nodes !== nodes) {
         this.networkState.nodes = nodes;
