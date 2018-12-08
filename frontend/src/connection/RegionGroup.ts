@@ -1,4 +1,4 @@
-import { Regions, WorkerInfo } from "./ComTypes";
+import { Regions, WorkerInfo, isEmptyRegion } from "./ComTypes";
 import { Point2D } from "../misc/Point";
 
 const MAX_DISPLAY_REGIONS = 8;
@@ -62,29 +62,6 @@ class Group implements RegionGroup {
   }
 }
 
-// class CustomSet<V> {
-//   // private map: Map<String, V>;
-//   private list: V[];
-
-//   constructor() {
-//     this.list = [];
-//     this[Symbol.iterator] = this.values;
-//   }
-
-//   add(item: V): boolean {
-//     let unique = true;
-//     this.list.forEach(i => i.equals(item) ? unique = false : unique = unique);
-//     if (unique) this.list.push(item);
-//     return unique;
-//   }
-//   values() {
-//     return this.list;
-//   }
-//   forEach(fun: (value: V) => void) {
-//     this.list.forEach(fun);
-//   }
-// }
-
 class Rectangle implements RegionGroup {
   public rank: number;
   public computationTime: number;
@@ -134,7 +111,7 @@ class Rectangle implements RegionGroup {
 }
 
 export const groupRegions = (regions: Regions): RegionGroup[] => {
-  let r = regions.regions;
+  let r = regions.regions.filter(r => !isEmptyRegion(r.region));
   if (r.length <= MAX_DISPLAY_REGIONS) {
     return r.map(r => new Rectangle(r));
   }
@@ -154,12 +131,12 @@ export const groupRegions = (regions: Regions): RegionGroup[] => {
   j = 0;
   while (i * groupSize + j < r.length) {
     remainder.push(r[i * groupSize + j]);
-    j++
+    j++;
   }
-  groups.push(new Group(remainder));
+  if (remainder.length > 0) groups.push(new Group(remainder));
 
   console.log("split");
-  console.log(regions);
+  console.log(r);
   console.log(groups);
   return groups;
 };
