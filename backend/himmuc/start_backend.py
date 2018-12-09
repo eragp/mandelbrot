@@ -30,17 +30,26 @@ if __name__ == '__main__':
 
     argssrun = ["srun", "-n{}".format(args.processes), "-N{}".format(args.nodes), "--multi-prog", "../himmuc/run.conf"]
 
+    print("Start mandelbrot host and workers...")
     with subprocess.Popen(argssrun, stdout=subprocess.PIPE, universal_newlines=True, cwd="{}/eragp-mandelbrot/backend/build".format(os.environ.get('HOME'))) as srun:
-        hostpattern = re.compile(r"Host: \d+ of \d+ on node (rpi\d\d)")
+        print("Started mandelbrot")
+        hostpattern = re.compile(r".*Host: \d+ of \d+ on node (rpi\d\d).*")
         for line in srun.stdout:
             # Print line so that we can see what is happing
-            print(line)
+            # print(line[:-1])
             # Try to find the host
             match_ = hostpattern.match(line)
             if match_:
-                argsssh = ["ssh", "-L 0.0.0.0:9002:localhost:9002", match_.group(1)]
-                with subprocess.Popen(argsssh, stdout=subprocess.DEVNULL) as sshproc:
-                    print("Enter to exit")
-                    command = input()
-                    srun.kill()
-                    sshproc.kill()
+                break
+        argsssh = ["ssh", "-L 0.0.0.0:9002:localhost:9002", match_.group(1)]
+        print("Establish port forwarding to host node...")
+        with subprocess.Popen(argsssh, stdout=subprocess.DEVNULL) as sshproc:
+            print("Port forwarding established")
+            print("System running")
+            command = input("Press enter to stop")
+            print("Stopping port forwarding...")
+            sshproc.kill()
+        print("Stopped")
+        print("Stopping mandelbrot host and workers")
+        srun.kill()
+        print("Stopped")
