@@ -128,4 +128,8 @@ First log on to the himmuc. [More Information](http://www.caps.in.tum.de/hw/himm
 
    ```bash
    ssh -S .tunnel.ssh -O exit rpi<host number>
+
+   # To stop the node allocation
+   ps aux | grep srun
+   kill <srun pid>
    ```
