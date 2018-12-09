@@ -73,9 +73,50 @@ mkdir ~/.eragp-mandelbrot
     ```
 ## Running
 
-First log on to the himmuc. [More Information](http://www.caps.in.tum.de/hw/himmuc/quick-start/)
+### Using the automagically working python script
+
+It is possible to set up the project in such a way that the execution on the himmuc
+is handled automatically by the provided script `start_himmuc.py`.
+
+Prerequisites:
+ - `python3`
+ - `ssh`
+
+> Note: If `ssh` is not available on your device, set up the backend as described on the vmschulz. Then login to the vmschulz and run
+> ```bash
+> python3 ~/eragp-mandelbrot/backend/himmuc/start_backend.py
+> ```
+> This is essentially what the script `start_himmuc.py` does.
+> Also note that the script is not working directory sensitive, yet it is important that the git repository is cloned into the home directory
+
+**Set up the project on the vmschulz**
+
+```bash
+ssh <login>@himmuc.caps.in.tum.de
+# on the vmschulz
+cd ~
+git clone https://gitlab.lrz.de/lrr-tum/students/eragp-mandelbrot
+cd eragp-mandelbrot
+git checkout raspberry_pi_die_erste
+```
+
+**Set up on your device**
+
+Clone the repository and check out `raspberry_pi_die_erste`.
+
+**Running automagically**
+
+Any time you want to run the backend on the himmuc, execute
+`start_himmuc.py`, which is located in this directory.
+
+```bash
+python3 start_himmuc.py
+```
+
+### Running manually
 
 6. SSH to vmschulz (himmuc.caps.in.tum.de)
+   First log on to the himmuc. [More Information](http://www.caps.in.tum.de/hw/himmuc/quick-start/)
 
    ```bash
    ssh <login>@himmuc.caps.in.tum.de
