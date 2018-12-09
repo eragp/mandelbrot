@@ -3,7 +3,7 @@ import { Point2D } from "./Point";
 import { MAX_DISPLAY_REGIONS } from "../Constants";
 
 export interface RegionGroup {
-  rank: number;
+  id: number;
   computationTime: number;
   guaranteedDivisor: number;
   width: number;
@@ -17,14 +17,15 @@ export interface RegionGroup {
    */
   bounds(): Point2D[];
   getChildren(): RegionGroup[] | null;
-  isLeaf(): boolean;
+  getRanks(): number[];
+  isGroup(): boolean;
 }
 
 /**
  * Dynamically groups the returned Regions from the backend for cleaner display to the user.
  */
 class Group implements RegionGroup {
-  rank: number;
+  id: number;
   computationTime: number;
   guaranteedDivisor: number;
   width: number;
@@ -35,8 +36,8 @@ class Group implements RegionGroup {
   vOffset: number;
   private children: RegionGroup[];
 
-  constructor(regions: WorkerInfo[]) {
-    this.rank = regions[0].rank;
+  constructor(regions: WorkerInfo[], groupID: number) {
+    this.id = groupID;
     this.computationTime = regions.map(r => r.computationTime).reduce((acc, curr) => acc + curr);
     this.guaranteedDivisor = regions[0].region.guaranteedDivisor;
     this.validation = regions[0].region.validation;
@@ -65,13 +66,16 @@ class Group implements RegionGroup {
     return this.children;
   }
 
-  isLeaf() {
-    return false;
+  isGroup() {
+    return true;
+  }
+  getRanks() {
+    return this.children.map(c => c.getRanks()).reduce((acc, curr) => acc.concat(curr));
   }
 }
 
 class Rectangle implements RegionGroup {
-  rank: number;
+  id: number;
   computationTime: number;
   guaranteedDivisor: number;
   width: number;
@@ -87,7 +91,7 @@ class Rectangle implements RegionGroup {
   private maxReal: number;
 
   constructor(region: WorkerInfo) {
-    this.rank = region.rank;
+    this.id = region.rank;
     this.computationTime = region.computationTime;
     this.guaranteedDivisor = region.region.guaranteedDivisor;
     this.width = region.region.width;
@@ -117,8 +121,12 @@ class Rectangle implements RegionGroup {
     return null;
   }
 
-  isLeaf() {
-    return true;
+  isGroup() {
+    return false;
+  }
+
+  getRanks() {
+    return [this.id];
   }
 }
 
@@ -140,9 +148,9 @@ export const groupRegions = (regions: Regions): RegionGroup[] => {
   if (r.length <= MAX_DISPLAY_REGIONS) {
     return r.map(r => new Rectangle(r));
   }
-
   let groupSize = Math.ceil(r.length / MAX_DISPLAY_REGIONS);
   let groups = [];
+  let groupID = 1;
   let i = 0,
     j = 0;
   for (; i < Math.floor(r.length / groupSize); i++) {
@@ -150,7 +158,7 @@ export const groupRegions = (regions: Regions): RegionGroup[] => {
     for (j = 0; j < groupSize; j++) {
       group.push(r[i * groupSize + j]);
     }
-    groups.push(new Group(group));
+    groups.push(new Group(group, groupID++));
   }
   {
     let remainder = [];
@@ -159,7 +167,7 @@ export const groupRegions = (regions: Regions): RegionGroup[] => {
       remainder.push(r[i * groupSize + j]);
       j++;
     }
-    if (remainder.length > 0) groups.push(new Group(remainder));
+    if (remainder.length > 0) groups.push(new Group(remainder, groupID++));
   }
   return groups;
 };

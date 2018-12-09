@@ -117,9 +117,9 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
 
       const animationDuration = 750;
       for (const region of group) {
-        nodes.push(region.rank);
-        active.set(region.rank, true);
-        progress.set(region.rank, animationDuration * 1000);
+        nodes.push(region.id);
+        active.set(region.id, true);
+        progress.set(region.id, animationDuration * 1000);
       }
       this.chartState = {
         nodes,
@@ -179,7 +179,7 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
     const colorSet: string[] = [];
     // => Label/ value index is the index of the rank in the node array
     this.chartState.nodes.forEach(rank => {
-      labels.push("Worker " + rank);
+      labels.push("Group " + rank);
       colorSet.push(this.props.workerContext.getWorkerColor(rank));
       values.push(this.chartState.progress.get(rank) as number);
     });

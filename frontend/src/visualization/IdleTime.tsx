@@ -152,9 +152,9 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
       let animationDuration = 750;
 
       for (let region of group) {
-        nodes.push(region.rank);
-        active.set(region.rank, true);
-        progress.set(region.rank, animationDuration * 1000);
+        nodes.push(region.id);
+        active.set(region.id, true);
+        progress.set(region.id, animationDuration * 1000);
       }
       this.chartState = {
         nodes: nodes,

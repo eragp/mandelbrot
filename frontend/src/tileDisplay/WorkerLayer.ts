@@ -6,7 +6,6 @@ import WebSocketClient from "../connection/WSClient";
 import WorkerContext from "../misc/WorkerContext";
 import { Feature, FeatureCollection } from "geojson";
 import { RegionGroup } from "../misc/RegionGroup";
-import { fileURLToPath } from "url";
 
 /**
  *
@@ -34,9 +33,9 @@ function toGeoJSON(regions: RegionGroup[], pixelToLatLng: (a: Point) => LatLng):
         coordinates: [region.bounds().map(p => toLatLngArray(p.x, p.y, region.validation))]
       },
       properties: {
-        node: region.rank,
+        node: region.id,
         zoom: region.validation,
-        isLeaf: region.isLeaf()
+        isGroup: region.isGroup()
       }
     });
   }
@@ -65,7 +64,7 @@ export default class WorkerLayer extends L.GeoJSON {
         dashArray: "3",
         fillOpacity: 0.3
       };
-      if (feature.properties !== null && !feature.properties.isLeaf) {
+      if (feature.properties !== null && feature.properties.isGroup) {
         regionStyle = Object.assign(regionStyle, {
           fillColor: workerContext.getWorkerColor(feature.properties.node)
         });
@@ -85,11 +84,11 @@ export default class WorkerLayer extends L.GeoJSON {
       }
       layer.on({
         mouseover: () => {
-          if (feature.properties !== null && !feature.properties.isLeaf)
+          if (feature.properties !== null && feature.properties.isGroup)
             workerContext.setActiveWorker(node);
         },
         mouseout: () => {
-          if (feature.properties !== null && !feature.properties.isLeaf)
+          if (feature.properties !== null && feature.properties.isGroup)
             workerContext.setActiveWorker(undefined);
         }
       });
@@ -107,7 +106,7 @@ export default class WorkerLayer extends L.GeoJSON {
     const onNewRegion = (group: RegionGroup[]) => {
       this.clearLayers();
       this.nodeGroups.clear();
-      group.forEach(g => this.nodeGroups.set(g.rank, g));
+      group.forEach(g => this.nodeGroups.set(g.id, g));
       this.currentGroup = group;
 
       const regions = toGeoJSON(group, pixelToLatLng);
