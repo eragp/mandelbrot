@@ -11,7 +11,7 @@ import "./TileDisplay.css";
 
 import Shader from "./Shader";
 import { project, unproject } from "./Project";
-import { request as requestRegion } from "./RegionRequest";
+import { request as requestRegion } from "../connection/RegionRequest";
 
 import { tileSize, leafletBound } from "../Constants";
 import { Point3D } from "../misc/Point";

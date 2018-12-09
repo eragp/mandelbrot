@@ -1,4 +1,4 @@
-import { getBottomRightPoint, getTopLeftPoint, project } from "./Project";
+import { getBottomRightPoint, getTopLeftPoint, project } from "../tileDisplay/Project";
 import { tileSize, maxIteration } from "../Constants";
 import { Point3D } from "../misc/Point";
 import { Map } from "leaflet";
