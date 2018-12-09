@@ -13,7 +13,7 @@ import Shader from "./Shader";
 import { project, unproject } from "./Project";
 import { request as requestRegion } from "./RegionRequest";
 
-import { tileSize, leafletBound } from "./Constants";
+import { tileSize, leafletBound } from "../Constants";
 import { Point3D } from "../misc/Point";
 import MatrixView from "./MatrixView";
 import BalancerPolicy from "../misc/BalancerPolicy";

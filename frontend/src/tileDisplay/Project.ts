@@ -1,5 +1,5 @@
 import { Point3D } from "../misc/Point";
-import { bounds, leafletBound } from "./Constants";
+import { bounds, leafletBound } from "../Constants";
 import { Bounds } from "leaflet";
 
 /**

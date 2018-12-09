@@ -1,11 +1,11 @@
 import L from "leaflet/dist/leaflet-src.js";
 import { Point, LatLng, GeoJSON } from "leaflet";
 import { unproject } from "./Project";
-import { tileSize } from "./Constants";
+import { tileSize } from "../Constants";
 import WebSocketClient from "../connection/WSClient";
 import WorkerContext from "../misc/WorkerContext";
 import { Feature, FeatureCollection } from "geojson";
-import { RegionGroup } from "../connection/RegionGroup";
+import { RegionGroup } from "../misc/RegionGroup";
 import { fileURLToPath } from "url";
 
 /**

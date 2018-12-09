@@ -1,5 +1,5 @@
 import { RegionData, Regions } from "./ExchangeTypes";
-import { groupRegions, RegionGroup } from "./RegionGroup";
+import { groupRegions, RegionGroup } from "../misc/RegionGroup";
 
 const url = "ws://localhost:9002";
 

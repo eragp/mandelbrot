@@ -1,7 +1,7 @@
-import { Regions, WorkerInfo, Region } from "./ExchangeTypes";
-import { Point2D } from "../misc/Point";
+import { Regions, WorkerInfo, Region } from "../connection/ExchangeTypes";
+import { Point2D } from "./Point";
+import { MAX_DISPLAY_REGIONS } from "../Constants";
 
-const MAX_DISPLAY_REGIONS = 8;
 export interface RegionGroup {
   rank: number;
   computationTime: number;
