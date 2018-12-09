@@ -6,6 +6,7 @@ import WebSocketClient from "../connection/WSClient";
 import WorkerContext from "../misc/WorkerContext";
 import { Feature, FeatureCollection } from "geojson";
 import { RegionGroup } from "../connection/RegionGroup";
+import { fileURLToPath } from "url";
 
 /**
  *
@@ -26,16 +27,16 @@ function toGeoJSON(regions: RegionGroup[], pixelToLatLng: (a: Point) => LatLng):
   };
 
   for (const region of regions) {
-    let bounds = region.bounds().map(p => toLatLngArray(p.x, p.y, region.validation));
     featureCollection.features.push({
       type: "Feature",
       geometry: {
         type: "Polygon",
-        coordinates: [bounds]
+        coordinates: [region.bounds().map(p => toLatLngArray(p.x, p.y, region.validation))]
       },
       properties: {
         node: region.rank,
-        zoom: region.validation
+        zoom: region.validation,
+        isLeaf: region.isLeaf()
       }
     });
   }
@@ -56,7 +57,7 @@ export default class WorkerLayer extends L.GeoJSON {
     workerContext: WorkerContext
   ) {
     const style = (feature: Feature): {} => {
-      const ret = {
+      let regionStyle = {
         weight: 1.5,
         opacity: 1,
         color: "white",
@@ -64,10 +65,17 @@ export default class WorkerLayer extends L.GeoJSON {
         dashArray: "3",
         fillOpacity: 0.3
       };
-      if (feature.properties !== null) {
-        ret.fillColor = workerContext.getWorkerColor(feature.properties.node);
+      if (feature.properties !== null && !feature.properties.isLeaf) {
+        regionStyle = Object.assign(regionStyle, {
+          fillColor: workerContext.getWorkerColor(feature.properties.node)
+        });
+      } else {
+        regionStyle = Object.assign(regionStyle, {
+          fillOpacity: 0,
+          weight: 1
+        });
       }
-      return ret;
+      return regionStyle;
     };
 
     const onEachFeature = (feature: Feature, layer: GeoJSON): void => {
@@ -76,8 +84,14 @@ export default class WorkerLayer extends L.GeoJSON {
         node = feature.properties.node;
       }
       layer.on({
-        mouseover: () => workerContext.setActiveWorker(node),
-        mouseout: () => workerContext.setActiveWorker(undefined)
+        mouseover: () => {
+          if (feature.properties !== null && !feature.properties.isLeaf)
+            workerContext.setActiveWorker(node);
+        },
+        mouseout: () => {
+          if (feature.properties !== null && !feature.properties.isLeaf)
+            workerContext.setActiveWorker(undefined);
+        }
       });
       this.nodeLayers.set(node, layer);
     };

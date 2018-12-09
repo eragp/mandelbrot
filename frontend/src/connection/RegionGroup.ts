@@ -1,4 +1,4 @@
-import { Regions, WorkerInfo } from "./ComTypes";
+import { Regions, WorkerInfo, Region } from "./ExchangeTypes";
 import { Point2D } from "../misc/Point";
 
 const MAX_DISPLAY_REGIONS = 8;
@@ -17,21 +17,22 @@ export interface RegionGroup {
    */
   bounds(): Point2D[];
   getChildren(): RegionGroup[] | null;
+  isLeaf(): boolean;
 }
 
 /**
  * Dynamically groups the returned Regions from the backend for cleaner display to the user.
  */
 class Group implements RegionGroup {
-  public rank: number;
-  public computationTime: number;
-  public guaranteedDivisor: number;
-  public width: number;
-  public height: number;
-  public validation: number;
-  public maxIteration: number;
-  public hOffset: number;
-  public vOffset: number;
+  rank: number;
+  computationTime: number;
+  guaranteedDivisor: number;
+  width: number;
+  height: number;
+  validation: number;
+  maxIteration: number;
+  hOffset: number;
+  vOffset: number;
   private children: RegionGroup[];
 
   constructor(regions: WorkerInfo[]) {
@@ -45,7 +46,10 @@ class Group implements RegionGroup {
     this.children = regions.map(r => new Rectangle(r));
   }
 
-  public bounds() {
+  /**
+   * bound of a group will return a rectangle fitting all of it's children
+   */
+  bounds() {
     let tl = this.children[0].bounds()[0],
       br = this.children[this.children.length - 1].bounds()[2];
     return [
@@ -60,18 +64,22 @@ class Group implements RegionGroup {
   getChildren() {
     return this.children;
   }
+
+  isLeaf() {
+    return false;
+  }
 }
 
 class Rectangle implements RegionGroup {
-  public rank: number;
-  public computationTime: number;
-  public guaranteedDivisor: number;
-  public width: number;
-  public height: number;
-  public validation: number;
-  public maxIteration: number;
-  public hOffset: number;
-  public vOffset: number;
+  rank: number;
+  computationTime: number;
+  guaranteedDivisor: number;
+  width: number;
+  height: number;
+  validation: number;
+  maxIteration: number;
+  hOffset: number;
+  vOffset: number;
 
   private minImag: number;
   private maxImag: number;
@@ -95,7 +103,7 @@ class Rectangle implements RegionGroup {
     this.maxReal = region.region.maxReal;
   }
 
-  public bounds() {
+  bounds() {
     return [
       new Point2D(this.minReal, this.maxImag),
       new Point2D(this.maxReal, this.maxImag),
@@ -105,8 +113,12 @@ class Rectangle implements RegionGroup {
     ];
   }
 
-  public getChildren() {
+  getChildren() {
     return null;
+  }
+
+  isLeaf() {
+    return true;
   }
 }
 
