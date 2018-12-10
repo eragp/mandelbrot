@@ -81,6 +81,7 @@ is handled automatically by the provided script `start_himmuc.py`.
 Prerequisites:
  - `python3`
  - `ssh`
+ - `rsync`
 
 > Note: If `ssh` is not available on your device, set up the backend as described on the vmschulz. Then login to the vmschulz and run
 > ```bash
@@ -90,6 +91,8 @@ Prerequisites:
 > Also note that the script is not working directory sensitive, yet it is important that the git repository is cloned into the home directory
 
 **Set up the project on the vmschulz**
+
+*Only necessary when `rsync` is not available or you want to build the binaries yourself*
 
 ```bash
 ssh <login>@himmuc.caps.in.tum.de
@@ -110,7 +113,7 @@ Any time you want to run the backend on the himmuc, execute
 `start_himmuc.py`, which is located in this directory.
 
 ```bash
-python3 start_himmuc.py
+python3 start_himmuc.py -h
 ```
 
 ### Running manually
