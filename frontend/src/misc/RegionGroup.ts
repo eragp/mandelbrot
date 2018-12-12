@@ -17,6 +17,7 @@ export interface RegionGroup {
    */
   bounds(): Point2D[];
   getChildren(): RegionGroup[] | null;
+  getLeafs(): Rectangle[];
   getRanks(): number[];
   isGroup(): boolean;
 }
@@ -50,9 +51,9 @@ class Group implements RegionGroup {
   /**
    * bound of a group will return a rectangle fitting all of it's children
    */
-  bounds() {
-    let tl = this.children[0].bounds()[0],
-      br = this.children[this.children.length - 1].bounds()[2];
+  public bounds() {
+    const tl = this.children[0].bounds()[0];
+    const br = this.children[this.children.length - 1].bounds()[2];
     return [
       new Point2D(tl.x, tl.y),
       new Point2D(br.x, tl.y),
@@ -62,14 +63,23 @@ class Group implements RegionGroup {
     ];
   }
 
-  getChildren() {
+  public getChildren() {
     return this.children;
   }
 
-  isGroup() {
+  public isGroup() {
     return true;
   }
-  getRanks() {
+
+  public getLeafs() {
+    let leafs: Rectangle[] = [];
+    this.getChildren().forEach((child) => {
+        leafs = leafs.concat(child.getLeafs());
+    });
+    return leafs;
+  }
+
+  public getRanks() {
     return this.children.map(c => c.getRanks()).reduce((acc, curr) => acc.concat(curr));
   }
 }
@@ -123,6 +133,10 @@ class Rectangle implements RegionGroup {
 
   isGroup() {
     return false;
+  }
+
+  public getLeafs(){
+      return [this];
   }
 
   getRanks() {
