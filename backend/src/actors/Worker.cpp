@@ -32,7 +32,9 @@ void Worker::init(int world_rank, int world_size) {
     int flag;
     // Recieve instructions for computation
     std::cout << "Worker " << world_rank << " is ready to receive Data." << std::endl;
-    MPI_Irecv(&newRegion, sizeof(Region), MPI_BYTE, host_rank, 1, MPI_COMM_WORLD, &request); // Listen for a region asynchronously
+    // Init and start persistent receive (asynchronously)
+    MPI_Recv_init(&newRegion, sizeof(Region), MPI_BYTE, host_rank, 1, MPI_COMM_WORLD, &request);
+    MPI_Start(&request);
     // Start with actual work of this worker
     while (true) {
         MPI_Test(&request, &flag, &status);
@@ -53,8 +55,8 @@ void Worker::init(int world_rank, int world_size) {
 
             // Recieve instructions for computation
             std::cout << "Worker " << world_rank << " is listening during computation." << std::endl;
-            MPI_Irecv(&newRegion, sizeof(Region), MPI_BYTE, host_rank, 1, MPI_COMM_WORLD,
-                      &request); // Listen for a region asynchronously => store inside newRegion
+            // Listen for a region asynchronously using persistent receive => store inside newRegion
+            MPI_Start(&request);
 
             // Execute computations
             const unsigned int data_len = region.getPixelCount();
@@ -87,7 +89,6 @@ void Worker::init(int world_rank, int world_size) {
             if (!loopFlag) {
                 // We measure time in microseconds
                 unsigned long elapsedTime = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
-                std::cout << "Worker " << world_rank << " elapsed time: " << elapsedTime << std::endl;
 
                 // Create WorkerInfo
                 WorkerInfo workerInfo;
@@ -95,9 +96,17 @@ void Worker::init(int world_rank, int world_size) {
 				workerInfo.computationTime = elapsedTime;
 				workerInfo.region = region;
 
-                std::cout << "Worker " << world_rank << " is sending the data: " << data_len << std::endl;
-                MPI_Send(&workerInfo, sizeof(WorkerInfo), MPI_BYTE, host_rank, 3, MPI_COMM_WORLD);
-                MPI_Send(data, data_len, MPI_INT, host_rank, 2, MPI_COMM_WORLD);
+                // Pack "workerInfo" and the computed "data" in one coherent storage area "ret"
+                const unsigned int ret_len = sizeof(int) * data_len + sizeof(WorkerInfo);
+                uint8_t* ret = new uint8_t[ret_len];
+                std::memcpy(ret, &workerInfo, sizeof(WorkerInfo));
+                std::memcpy(ret + sizeof(WorkerInfo), data, data_len * sizeof(int));
+                
+                // Send "ret" to the Host using one MPI_Send operation
+                std::cout << "Worker " << world_rank << " is sending the data. Total length: " << ret_len << " Bytes. Elapsed time: " << elapsedTime << " microseconds." << std::endl;
+                MPI_Send(ret, ret_len, MPI_BYTE, host_rank, 2, MPI_COMM_WORLD); // Rank: 2
+
+                delete[] ret;
             }
             delete[] data;
         } else {
@@ -105,4 +114,6 @@ void Worker::init(int world_rank, int world_size) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
     }
+    MPI_Cancel(&request);
+    MPI_Request_free(&request);
 }
