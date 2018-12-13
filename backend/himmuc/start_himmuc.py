@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import subprocess
 import argparse
+import os
 
 arguments = [{
     'dest': 'username',
@@ -24,44 +25,70 @@ if __name__ == '__main__':
     for arg in arguments:
         parser.add_argument(**arg)
     parser.add_argument(
-        '--pre_built',
-        '-p',
+        '-b',
+        '--build',
         action='store_const',
         const=True,
-        dest='pre_built',
+        dest='build',
         help=
-        'Use pre puilt executables from local git clone. Otherwise uses executables located on the raspi at ~/eragp-mandelbrot/backend/build',
-        default=True)
+        'Issue a build process on the backend (i.e. if you changed the src)',
+        default=False)
+    parser.add_argument(
+        '-r',
+        '--no-rsync',
+        action='store_const',
+        const=True,
+        dest='no_rsync',
+        help=
+        'Tell the script not to use rsync. Note that for this, you need to copy the eragp-mandelbrot project folder into the vmschulz home directory manually BEFORE running this script!',
+        default=False)
     args = parser.parse_args()
-    # meh.. would rather start the process in the shell on the target
+    sshserver = "{}@himmuc.caps.in.tum.de".format(args.username)
+    backend_path = "eragp-mandelbrot/backend"
     # -> run python script on vmschulz
-    print("Uploading scripts and executables... ", end=" ", flush=True)
-    print("start_backend.py", end=" ", flush=True)
-    subprocess.run([
-        "rsync", "-ua", "start_backend.py",
-        "{}@himmuc.caps.in.tum.de:".format(args.username)
-    ])
-    if args.pre_built:
-        print("host worker", end=" ", flush=True)
+    if not args.no_rsync:
+        print("Uploading backend... ", end=" ", flush=True)
         subprocess.run([
-            "rsync", "-ua", "../build/host",
-            "{}@himmuc.caps.in.tum.de:".format(args.username)
-        ])
+            "ssh", sshserver, "mkdir {}".format(backend_path)
+        ], stderr=subprocess.DEVNULL)
         subprocess.run([
-            "rsync", "-ua", "../build/worker",
-            "{}@himmuc.caps.in.tum.de:".format(args.username)
+            "rsync", "-Prua", '../backend', "muendler@himmuc.caps.in.tum.de:eragp-mandelbrot" 
         ])
-    print("run.conf", end=" ", flush=True)
-    subprocess.run(
-        ["rsync", "-ua", "run.conf", "{}@himmuc.caps.in.tum.de:".format(args.username)])
-    print()
+        print("done")
+    else:
+        print("Not uploading backend - make sure to have copied the project to your home directory already!")
+    
+    # issue build on rpi
+    if args.build:
+        sshserver_rpi = "{}@sshgate-gepasp.in.tum.de".format(args.username)
+        # check if boost has to be built
+        try:
+            print("Attempting to install libraries on backend")
+            # Attempt to create boost install folder
+            # error is thrown when return code is not 0 <=> dir exists
+            library_folder_exists = subprocess.run([
+                "ssh", sshserver, "mkdir .eragp-mandelbrot/local"
+            ], stderr=subprocess.DEVNULL, check=True)
+            subprocess.run([
+                "ssh", sshserver, "mkdir .eragp-mandelbrot/install"
+            ], stderr=subprocess.DEVNULL)
+            subprocess.run([
+                "ssh", sshserver, "eragp-mandelbrot/backend/himmuc/install_libs.sh"
+            ])
+        except subprocess.CalledProcessError:
+            print("Backend libraries already installed")
+        # Build mandelbrot
+        subprocess.run([
+            "ssh", sshserver, "mkdir eragp-mandelbrot/backend/build"
+        ], stderr=subprocess.DEVNULL)
+        subprocess.run([
+            "ssh", sshserver_rpi, "eragp-mandelbrot/backend/himmuc/build_mandelbrot.sh"
+        ])
 
+    # Start execution on backend
     argsssh = [
-        "ssh", "{}@himmuc.caps.in.tum.de".format(args.username),
-        "python3 {}start_backend.py {} {} {}".format(
-            ('~/eragp-mandelbrot/backend/himmuc/'
-             if not args.pre_built else ''), args.processes, args.nodes,
-            ('-p' if args.pre_built else ''))
+        "ssh", sshserver,
+        "python3 eragp-mandelbrot/backend/himmuc/start_backend.py {} {}".format(args.processes, args.nodes)
     ]
     with subprocess.Popen(argsssh) as schulz_ssh:
         try:

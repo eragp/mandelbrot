@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.7.0)
 project(Mandelbrot)
 # compiler flags
 # load the header files
-include_directories(include ~/.eragp-mandelbrot/local/include ~/.eragp-mandelbrot/install/websocketpp ~/.eragp-mandelbrot/install/rapidjson/include)
+include_directories(include)
 # load all the *.cpp files
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 list(FILTER SOURCES EXCLUDE REGEX ".*main\.cpp")
@@ -13,11 +13,13 @@ add_executable(worker "src/worker.main.cpp" ${SOURCES})
 # load libraries
 find_package(MPI REQUIRED)
 include_directories(${MPI_INCLUDE_PATH})
+# load header libraries
+include_directories($ENV{HOME}/.eragp-mandelbrot/local/include $ENV{HOME}/.eragp-mandelbrot/install/websocketpp $ENV{HOME}/.eragp-mandelbrot/install/rapidjson/include)
 
 # link boost statically
-ADD_LIBRARY(boost_system STATIC IMPORTED)
-SET_TARGET_PROPERTIES(boost_system PROPERTIES
-    IMPORTED_LOCATION $ENV{HOME}/.eragp-mandelbrot/local/lib/libboost_system.a)
+add_library(boost_system STATIC IMPORTED)
+set_target_properties(boost_system PROPERTIES
+   IMPORTED_LOCATION $ENV{HOME}/.eragp-mandelbrot/local/lib/libboost_system.a)
 # links boost and MPI
 target_link_libraries(host PUBLIC ${MPI_LIBRARIES} boost_system)
 target_link_libraries(worker PUBLIC ${MPI_LIBRARIES} boost_system)

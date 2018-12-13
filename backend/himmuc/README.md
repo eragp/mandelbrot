@@ -1,5 +1,18 @@
 # Set Up on Raspberry Pi
 
+## Quick start
+
+If you just want to get this running up and delivering, make sure you have installed
+- `rsync`
+- `ssh`
+- `python3` (version 3.5 or newer)
+
+and run
+
+```bash
+python3 start_himmuc.py -h
+```
+
 ## Installation
 
 If you want to build the executables on your own, procede. If you want to use the pre-compiled executables (for arch debian stretch raspis) jump directly to [Running](#running)
@@ -18,8 +31,8 @@ mkdir ~/.eragp-mandelbrot
 
     ```bash
     cd ~/.eragp-mandelbrot
-    mkdir package
-    cd package
+    mkdir install
+    cd install
     wget https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.bz2
     tar --bzip2 -xf boost_1_67_0.tar.bz2
     cd boost_1_67_0

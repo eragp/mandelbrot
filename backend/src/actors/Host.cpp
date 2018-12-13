@@ -292,13 +292,7 @@ void Host::send(RegionData data) {
 }
 
 void Host::init(int world_rank, int world_size) {
-<<<<<<< HEAD
     MPI_Comm_set_errhandler(MPI_COMM_WORLD,MPI_ERRORS_RETURN); /* return info about errors */
-
-=======
-    MPI_Errhandler_set(MPI_COMM_WORLD,MPI_ERRORS_RETURN); /* return info about errors */
-    
->>>>>>> 2aab36d48d160c67f14eca76bc8916be9aee62c4
     Host::world_size = world_size;
     int cores = world_size;
     int my_rank = world_rank;

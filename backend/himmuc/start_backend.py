@@ -27,28 +27,18 @@ if __name__ == '__main__':
         description='Run nodes from slurm implementing device (vmschulz)')
     for arg in arguments:
         parser.add_argument(**arg)
-    parser.add_argument(
-        '-p',
-        '--pre_built',
-        action='store_const',
-        const=True,
-        dest='pre_built',
-        help=
-        'Use prebuilt binaries that lie in same directory as this script or use binaries in ~/eragp-mandelbrot/backend/build.',
-        default=False)
     args = parser.parse_args()
 
     argssrun = [
         "srun", "-n{}".format(args.processes), "-N{}".format(args.nodes),
-        "--multi-prog", "run.conf"
+        "--multi-prog", "../himmuc/slurm_run.conf"
     ]
 
     print_begin(
         "Start mandelbrot with 1 host and {} workers on {} nodes...".format(
             args.processes - 1, args.nodes))
     binary_dir = "{}/eragp-mandelbrot/backend/build".format(
-        os.environ.get('HOME')) if not args.pre_built else os.environ.get(
-            'HOME')
+        os.environ.get('HOME'))
     with subprocess.Popen(
             argssrun,
             stdout=subprocess.PIPE,
@@ -65,7 +55,7 @@ if __name__ == '__main__':
             if _match:
                 host_node = _match.group(1)
                 break
-        argsssh = ["ssh", "-L 0.0.0.0:9002:localhost:9002", host_node]
+        argsssh = ["ssh", "-L 0.0.0.0:9002:localhost:9002", "-N", host_node]
         print_begin(
             "Establish port 9002 forwarding to host node {} ...".format(
                 host_node))
@@ -74,7 +64,7 @@ if __name__ == '__main__':
             print(
                 "System running. Websocket connection to backend is now available at"
             )
-            print("ws://himmuc.caps.in.tum.de:9002")
+            print("\tws://himmuc.caps.in.tum.de:9002")
             try:
                 command = input("Press enter to stop ")
             except KeyboardInterrupt:

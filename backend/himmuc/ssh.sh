@@ -1,3 +1,3 @@
 #! /bin/bash
 
-ssh muendler@himmuc.caps.in.tum.de
+ssh $1@himmuc.caps.in.tum.de

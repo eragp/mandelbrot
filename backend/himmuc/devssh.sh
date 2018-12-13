@@ -1,3 +1,3 @@
 #! /bin/bash
 
-ssh muendler@sshgate-gepasp.in.tum.de
+ssh $1@sshgate-gepasp.in.tum.de
