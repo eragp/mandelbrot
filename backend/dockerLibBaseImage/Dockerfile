@@ -1,6 +1,9 @@
 # the gcc dockerfile uses the buildpack-deps package and is based on debian:stretch
 FROM gcc:7
-WORKDIR /usr/src/mandelbrot-backend
+
+ENV HOME /home/username
+RUN mkdir -p ${HOME}
+WORKDIR ${HOME}
 # install required dependencies
 RUN update-alternatives --install /usr/bin/gfortran gfortran /usr/local/bin/gfortran 999 \
     && apt-get update && apt-get install -y \
@@ -12,13 +15,6 @@ RUN update-alternatives --install /usr/bin/gfortran gfortran /usr/local/bin/gfor
     # CLI tools to make life easier while in the container
     vim \
     nano \
-    # libs
-    libcpprest-dev \
-    zlib1g-dev \
-    libboost-all-dev \
-    libssl-dev \
-    libcrypto++-dev \
-    libpthread-workqueue-dev \
     # mpich dependencies
     mpich \
     gfortran \
@@ -57,12 +53,21 @@ RUN wget -q -O - https://www.mpich.org/static/downloads/3.2.1/mpich-3.2.1.tar.gz
     && rm -rf /var/lib/apt/lists/* /var/log/* /tmp/* \
     && echo "export PATH=\"$MPI_HOME/bin:\$PATH\"" >> /etc/bash.bashrc
 
-# install websocketpp v0.7.0
-RUN git clone --branch 0.7.0 https://github.com/zaphoyd/websocketpp.git websocketpp \
-    && cd websocketpp \
-    && mkdir build \
-    && cd build \
-    && cmake .. \
-    && make \
-    && make install \
-    && cd ../..
+# install libraries
+RUN mkdir -p ${HOME}/.eragp-mandelbrot/install
+# websocketpp 0.7.0
+RUN cd ${HOME}/.eragp-mandelbrot/install \
+    && git clone --branch 0.7.0 https://github.com/zaphoyd/websocketpp.git websocketpp --depth 1
+# rapidjson
+RUN cd ${HOME}/.eragp-mandelbrot/install \
+    && git clone https://github.com/Tencent/rapidjson/ --depth 1
+# boost
+RUN cd ~/.eragp-mandelbrot/install \
+    && echo "Downloading boost" \
+    && wget https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.bz2 \
+    && echo "Extracting boost - this will take a while" \
+    && tar --bzip2 -xf boost_1_67_0.tar.bz2 \
+    && echo "Installing boost" \
+    && cd boost_1_67_0 \
+    && ./bootstrap.sh --prefix="$HOME/.eragp-mandelbrot/local/" --with-libraries=system,thread,random \
+    && ./b2 install
