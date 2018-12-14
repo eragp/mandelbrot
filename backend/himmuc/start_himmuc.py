@@ -52,7 +52,7 @@ if __name__ == '__main__':
             "ssh", sshserver, "mkdir {}".format(backend_path)
         ], stderr=subprocess.DEVNULL)
         subprocess.run([
-            "rsync", "-Prua", '../backend', "muendler@himmuc.caps.in.tum.de:eragp-mandelbrot" 
+            "rsync", "-Prua", '../backend', "{}:eragp-mandelbrot".format(sshserver)
         ])
         print("done")
     else:
