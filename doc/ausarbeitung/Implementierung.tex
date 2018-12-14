@@ -7,3 +7,52 @@
 		      \item Code Dokumentation / Entwicklerdokumentation
 	      \end{enumerate}
 \end{itemize}
+
+%%%%%%%%
+% Highlevel
+% ca 1-2 Seiten
+% Buzzwords, grober Überriss
+
+%%%%%%%%
+% Middle level
+% ca 2-3 Seiten
+% Skripte, libraries/packages, Setup
+% beispielbilder /output
+% getestete Systeme (ARM/Raspi, Debian stretch, x86)
+% mindeste was in README.md im master liegen sollte
+% viel bereits in READMEs der zugehörigen Ordner zusammengefasst
+% backend-deployment -> Niels
+% frontend-deployment -> Max
+
+%%%%%%%%
+% Low level
+% was muss ich als entwickler wissen
+% tiles, parallelisierung, structs/klassen, struktur des projekts
+
+% Zuordnung klasse -> Dokumentation
+% backend
+%   *.main.cpp, init -> Niels
+%   include Ordner und CMake -> Niels
+%   balancer + tests -> Florian
+%   mandelbrot -> Florian (außer MandelbrotSIMD -> Niels)
+%   actors
+%      Worker -> Tobi
+%      Host
+%         websocket-funktionen -> Niels
+%         Rest -> Tobi
+%           + Parallelisierungskonzept (+ welche MPI Method, warum)
+%   structs/Netzwerk -> Tobi/Niels/Florian
+%   dev-environment (was ist docker und wie/warum) -> Max
+% frontend
+%    connection -> Niels
+%    tileDisplay -> Max
+%        TileDisplay.ts
+%            Prinzip 
+%            genauer Ablauf/Funktionen
+%               + Shader
+%        WorkerLayer.ts
+%           + Gruppierung
+%        MatrixView.ts + RegionOfInterest.ts
+%        Project.ts
+%    visualization -> Niels
+%    misc -> Max
