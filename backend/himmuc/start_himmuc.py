@@ -42,6 +42,13 @@ if __name__ == '__main__':
         help=
         'Tell the script not to use rsync. Note that for this, you need to copy the eragp-mandelbrot project folder into the vmschulz home directory manually BEFORE running this script!',
         default=False)
+    parser.add_argument(
+        '-p',
+        '--port',
+        dest='port',
+        help=
+        'Set the port on the himmuc to be opened',
+        default=9002)
     args = parser.parse_args()
     sshserver = "{}@himmuc.caps.in.tum.de".format(args.username)
     backend_path = "eragp-mandelbrot/backend"
@@ -88,7 +95,7 @@ if __name__ == '__main__':
     # Start execution on backend
     argsssh = [
         "ssh", sshserver,
-        "python3 eragp-mandelbrot/backend/himmuc/start_backend.py {} {}".format(args.processes, args.nodes)
+        "python3 eragp-mandelbrot/backend/himmuc/start_backend.py {} {} -p {}".format(args.processes, args.nodes, args.port)
     ]
     with subprocess.Popen(argsssh) as schulz_ssh:
         try:
