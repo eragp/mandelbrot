@@ -1,4 +1,4 @@
-#include "MandelbrotOpt.h"
+#include "Mandelbrot.h"
 #include <algorithm>
 #include <stdexcept>
 
@@ -18,7 +18,7 @@ bool continueComp(long double* zReal, long double* zImaginary, int vectorLength,
 
 // Probably more open to compiler optimization
 // vectorlength >= 1 !!
-void MandelbrotOpt::calculateFractal(long double* cReal, long double* cImaginary, int maxIteration, int vectorLength, int* dest) {
+void Mandelbrot::calculateFractal(long double* cReal, long double* cImaginary, int maxIteration, int vectorLength, int* dest) {
     std::fill(dest, dest+vectorLength, 0);
     int i = 0;
     if(vectorLength <= 0){
