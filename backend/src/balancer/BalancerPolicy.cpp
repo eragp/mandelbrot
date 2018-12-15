@@ -3,6 +3,7 @@
 #include "NaiveBalancer.h"
 #include "ColumnBalancer.h"
 #include "PredictionBalancer.h"
+#include "RecursivePredictionBalancer.h"
 #include "Fractal.h"
 
 #include <string>
@@ -26,6 +27,9 @@ Balancer* BalancerPolicy::chooseBalancer(std::string balancerName, Fractal* frac
     } else if (balancerName == PredictionBalancer::NAME) {
         std::cout << "Chose prediction balancer" << std::endl;
         return PredictionBalancer::create(fractal, predictionAccuracy);
+    } else if (balancerName == RecursivePredictionBalancer::NAME) {
+        std::cout << "Chose recursive prediction balancer" << std::endl;
+        return RecursivePredictionBalancer::create(fractal, predictionAccuracy);
     } else {
         std::cerr << "Unknown balancer name, returning NaiveBalancer" << std::endl;
         // TODO: Fractal is not needed --> delete? depends on implementation in Host
