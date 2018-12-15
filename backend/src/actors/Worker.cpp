@@ -1,7 +1,7 @@
 #include "Worker.h"
 
 #include "Fractal.h"
-#include "Mandelbrot.h"
+#include "MandelbrotOpt.h"
 #include "Region.h"
 #include "Tile.h"
 #include "WorkerInfo.h"
@@ -18,7 +18,7 @@
 #include <chrono>
 
 void Worker::init(int world_rank, int world_size) {
-    Fractal *f = new Mandelbrot();
+    Fractal *f = new MandelbrotOpt();
     // Initial test if this core is ready
     int test;
     MPI_Status status;
@@ -68,8 +68,8 @@ void Worker::init(int world_rank, int world_size) {
             auto startTime = std::chrono::high_resolution_clock::now();
 
             int vectorLength = 1;
-            long double* projReal = new long double[vectorLength];
-            long double* projImag = new long double[vectorLength];
+            precision_t* projReal = new precision_t[vectorLength];
+            precision_t* projImag = new precision_t[vectorLength];
             for (unsigned int y = 0; y < region.height && !loopFlag; y++) {
                 for (unsigned int x = 0; x < region.width && !loopFlag; x+=vectorLength) {
                     // Abort

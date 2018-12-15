@@ -4,7 +4,7 @@
 #include "BalancerPolicy.h"
 
 #include "Fractal.h"
-#include "Mandelbrot.h"
+#include "MandelbrotOpt.h"
 
 #include "Region.h"
 #include "Tile.h"
@@ -155,7 +155,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     // TODO increase by one as soon as host is invoked as worker too
     int nodeCount = activeNodes.size();
     // TODO let frontend choose fractal similar to balancer
-    Balancer *b = BalancerPolicy::chooseBalancer(balancer, new Mandelbrot());
+    Balancer *b = BalancerPolicy::chooseBalancer(balancer, new MandelbrotOpt());
     Region *blocks = b->balanceLoad(region, nodeCount);  // Blocks is array with nodeCount members
     // DEBUG
     std::cout << "Balancer Output:" << std::endl;
