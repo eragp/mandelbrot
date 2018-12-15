@@ -7,10 +7,10 @@ If you just want to get this running up and delivering, make sure you have insta
 - `ssh`
 - `python3` (version 3.5 or newer)
 
-and run
+and run (from the backend folder, one directory above this README)
 
 ```bash
-python3 start_himmuc.py -h
+python3 himmuc/start_himmuc.py -h
 ```
 
 ## Installation
@@ -96,37 +96,24 @@ Prerequisites:
  - `ssh`
  - `rsync`
 
-> Note: If `ssh` is not available on your device, set up the backend as described on the vmschulz. Then login to the vmschulz and run
+> Note: If `ssh` is not available on your device, clone the project on the vmschulz. Then login to the vmschulz and run
 > ```bash
 > python3 ~/eragp-mandelbrot/backend/himmuc/start_backend.py
 > ```
 > This is essentially what the script `start_himmuc.py` does.
 > Also note that the script is not working directory sensitive, yet it is important that the git repository is cloned into the home directory
 
-**Set up the project on the vmschulz**
-
-*Only necessary when `rsync` is not available or you want to build the binaries yourself*
-
-```bash
-ssh <login>@himmuc.caps.in.tum.de
-# on the vmschulz
-cd ~
-git clone https://gitlab.lrz.de/lrr-tum/students/eragp-mandelbrot
-cd eragp-mandelbrot
-git checkout raspberry_pi_die_erste
-```
-
 **Set up on your device**
 
-Clone the repository and check out `raspberry_pi_die_erste`.
+Clone the repository.
 
 **Running automagically**
 
 Any time you want to run the backend on the himmuc, execute
-`start_himmuc.py`, which is located in this directory.
+`start_himmuc.py`, which is located in this directory from the backend folder (one directory up).
 
 ```bash
-python3 start_himmuc.py -h
+python3 himmuc/start_himmuc.py -h
 ```
 
 ### Running manually
@@ -135,7 +122,7 @@ python3 start_himmuc.py -h
    First log on to the himmuc. [More Information](http://www.caps.in.tum.de/hw/himmuc/quick-start/)
 
    ```bash
-   ssh <login>@himmuc.caps.in.tum.de
+   ssh <login>@himmuc.caps.in.tum.de -L localhost:9002:localhost:9002
    ```
 
 7. Run the executables
