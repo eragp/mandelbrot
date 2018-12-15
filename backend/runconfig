@@ -5,4 +5,4 @@
 # Start n worker processes. 
 # They should use up all available nodes so that one of them
 # shares a node with the host
--n 37 /usr/src/mandelbrot-backend/build/worker
+-n 4 /usr/src/mandelbrot-backend/build/worker

@@ -21,7 +21,9 @@ private:
 
     static int maxIteration;
     static int world_size;
-    static std::vector<int> activeNodes;
+    
+    // Defines if a Node can or should be used
+    static bool* usableNodes;
 
     // Store for the current big region
     static Region current_big_region;
@@ -32,10 +34,6 @@ private:
     static bool mpi_send_regions;
     static std::map<int, Region> transmit_regions;
     static std::mutex transmit_regions_lock;
-
-    //Store send MPI Requests
-    static std::map<int, Region> transmitted_regions;
-    static std::mutex transmitted_regions_lock;
 
     // Websocket server
     static websocketpp::server<websocketpp::config::asio> websocket_server;
