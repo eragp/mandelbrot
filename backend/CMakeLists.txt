@@ -13,12 +13,20 @@ add_executable(worker "src/worker.main.cpp" ${SOURCES})
 # load libraries
 find_package(MPI REQUIRED)
 include_directories(${MPI_INCLUDE_PATH})
+# load header libraries
+include_directories($ENV{HOME}/.eragp-mandelbrot/local/include $ENV{HOME}/.eragp-mandelbrot/install/websocketpp $ENV{HOME}/.eragp-mandelbrot/install/rapidjson/include)
 
-target_link_libraries(host PUBLIC ${MPI_LIBRARIES})
-target_link_libraries(worker PUBLIC ${MPI_LIBRARIES})
+# link boost statically
+add_library(boost_system STATIC IMPORTED)
+set_target_properties(boost_system PROPERTIES
+   IMPORTED_LOCATION $ENV{HOME}/.eragp-mandelbrot/local/lib/libboost_system.a)
+# links boost and MPI
+target_link_libraries(host PUBLIC ${MPI_LIBRARIES} boost_system)
+target_link_libraries(worker PUBLIC ${MPI_LIBRARIES} boost_system)
 set(CMAKE_CXX_STANDARD 11)
 # lib configs
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -lboost_system -lcrypto -lssl -lpthread")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -lpthread")
+
 # custom flags for dependencies
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_WEBSOCKETPP_CPP11_STL_")
 
