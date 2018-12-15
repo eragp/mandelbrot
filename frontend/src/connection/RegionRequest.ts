@@ -1,11 +1,11 @@
-import { getBottomRightPoint, getTopLeftPoint, project } from "./Project";
-import { tileSize, maxIteration } from "./Constants";
-import Point from "../misc/Point";
+import { getBottomRightPoint, getTopLeftPoint, project } from "../tileDisplay/Project";
+import { tileSize, maxIteration } from "../Constants";
+import { Point3D } from "../misc/Point";
 import { Map } from "leaflet";
 
 // making sure only new requests actually get sent
-let currentTopLeft: Point;
-let currentBottomRight: Point;
+let currentTopLeft: Point3D;
+let currentBottomRight: Point3D;
 let currentBalancer: string;
 /**
  *  Sends a region request for the currently visible region
@@ -37,7 +37,7 @@ export const request = (map: Map, balancer: string) => {
   const brComplex = project(botRight.x, botRight.y, botRight.z, 0, 0, tileSize);
   const [sizeX, sizeY] = [
     Math.abs(botRight.x - topLeft.x) * tileSize,
-    Math.abs(topLeft.y - botRight.y) * tileSize,
+    Math.abs(topLeft.y - botRight.y) * tileSize
   ];
   const region = {
     region: {
@@ -57,12 +57,12 @@ export const request = (map: Map, balancer: string) => {
       validation: zoom,
       // Divisor for width and height. Will be used to perform load balancing
       guaranteedDivisor: tileSize,
-      maxIteration,
+      maxIteration
     },
     type: "regionRequest",
-    balancer,
+    balancer
   };
-  console.log("sending Region request: ");
-  console.log(region);
+  // console.log("sending Region request: ");
+  // console.log(region);
   return region;
 };
