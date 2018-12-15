@@ -47,7 +47,7 @@ if __name__ == '__main__':
         '--port',
         dest='port',
         help=
-        'Set the port on the himmuc to be opened',
+        'Set the port on the himmuc to be opened. May need to be configured if more than one user is running this on the himmuc.',
         default=9002)
     args = parser.parse_args()
     sshserver = "{}@himmuc.caps.in.tum.de".format(args.username)
@@ -93,8 +93,9 @@ if __name__ == '__main__':
         ])
 
     # Start execution on backend
+    # also forward local port 9002 to the chosen port on the himmuc
     argsssh = [
-        "ssh", sshserver,
+        "ssh", sshserver, "-L localhost:9002:localhost:{}".format(args.port),
         "python3 eragp-mandelbrot/backend/himmuc/start_backend.py {} {} -p {}".format(args.processes, args.nodes, args.port)
     ]
     with subprocess.Popen(argsssh) as schulz_ssh:

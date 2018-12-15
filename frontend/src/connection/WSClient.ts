@@ -1,7 +1,7 @@
 import { RegionData, Regions } from "./ExchangeTypes";
 import { groupRegions, RegionGroup } from "../misc/RegionGroup";
 
-const url = "ws://himmuc.caps.in.tum.de:9002"; // or "ws://localhost:9002";
+const url = "ws://localhost:9002";
 
 export default class WebSocketClient {
   private regionCallback: Array<((data: RegionGroup[]) => void)> = [];
