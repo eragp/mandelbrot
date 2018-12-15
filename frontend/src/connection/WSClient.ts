@@ -21,7 +21,7 @@ export default class WebSocketClient {
     // TODO: remove this as it's a dirty hack
     {
       let s = new WebSocket(url);
-      s.onopen = () => setTimeout(1, () => s.close());
+      s.onopen = () => setTimeout(() => s.close(), 1);
     }
 
     let socket = new WebSocket(url);
