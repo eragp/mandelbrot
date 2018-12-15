@@ -1,7 +1,7 @@
 #include "Worker.h"
 
 #include "Fractal.h"
-#include "MandelbrotOpt.h"
+#include "Mandelbrot.h"
 #include "Region.h"
 #include "Tile.h"
 #include "WorkerInfo.h"
@@ -18,7 +18,7 @@
 #include <chrono>
 
 void Worker::init(int world_rank, int world_size) {
-    Fractal *f = new MandelbrotOpt();
+    Fractal *f = new Mandelbrot();
     // Initial test if this core is ready
     int test;
     MPI_Status status;
