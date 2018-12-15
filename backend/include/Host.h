@@ -43,7 +43,7 @@ private:
     static websocketpp::connection_hdl client;
     static void register_client(websocketpp::connection_hdl conn);
     static void deregister_client(websocketpp::connection_hdl conn);
-    static void send(RegionData data);
+    static void send(RegionData data, unsigned long mpiCommunicationTime);
     static void handle_region_request(websocketpp::connection_hdl hdl, websocketpp::server<websocketpp::config::asio>::message_ptr msg);
 };
 #endif

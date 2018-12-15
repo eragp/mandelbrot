@@ -149,7 +149,15 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     int nodeCount = activeNodes.size();
     // TODO let frontend choose fractal similar to balancer
     Balancer *b = BalancerPolicy::chooseBalancer(balancer, new Mandelbrot());
+    // Measure time needed for balancing - Start
+    std::chrono::high_resolution_clock::time_point balancerTimeStart = std::chrono::high_resolution_clock::now();
+    // Call balanceLoad
     Region *blocks = b->balanceLoad(region, nodeCount);  // Blocks is array with nodeCount members
+    // Measure time needed for balancing - End
+    std::chrono::high_resolution_clock::time_point balancerTimeEnd = std::chrono::high_resolution_clock::now();
+    unsigned long balancerTime = std::chrono::duration_cast<std::chrono::microseconds>(balancerTimeEnd - balancerTimeStart).count();
+    std::cout << "Balancing took " << balancerTime << " microseconds." << std::endl;
+
     // DEBUG
     std::cout << "Balancer Output:" << std::endl;
     for (int i = 0; i < nodeCount; i++) {
@@ -176,6 +184,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
 
     reply.AddMember("type", "region", reply.GetAllocator());
     reply.AddMember("regionCount", nodeCount, reply.GetAllocator());
+    reply.AddMember("balancerTime", Value().SetInt64(balancerTime), reply.GetAllocator());
 
     Value workers;
     workers.SetArray();
@@ -231,7 +240,7 @@ void Host::deregister_client(websocketpp::connection_hdl hdl) {
     // TODO maybe mock client or sth similar
 }
 
-void Host::send(RegionData data) {
+void Host::send(RegionData data, unsigned long mpiCommunicationTime) {
     WorkerInfo workerInfo = data.workerInfo;
     Region region = data.workerInfo.region;
 
@@ -246,6 +255,7 @@ void Host::send(RegionData data) {
     Value workerInfoJSON(kObjectType);
     workerInfoJSON.AddMember("rank", workerInfo.rank, answer.GetAllocator());
     workerInfoJSON.AddMember("computationTime", Value().SetInt64(workerInfo.computationTime), answer.GetAllocator());
+    workerInfoJSON.AddMember("mpiCummunicationTime", Value().SetInt64(mpiCommunicationTime), answer.GetAllocator());
 
     // Maybe put this into extra method
     Value regionJSON;
@@ -314,7 +324,6 @@ void Host::init(int world_rank, int world_size) {
 
     // Approximately the time that MPI communication with one Worker has taken in microseconds
     std::chrono::high_resolution_clock::time_point *mpiCommunicationStart = new std::chrono::high_resolution_clock::time_point[activeNodes.size()];
-    unsigned long *mpiCommunicationTime = new unsigned long[activeNodes.size()];
 
     // Init persistent asynchronous send
     MPI_Request region_requests[activeNodes.size()];
@@ -387,8 +396,8 @@ void Host::init(int world_rank, int world_size) {
             unsigned int region_size = rendered_region.getPixelCount();
 
             // Compute time approximately used for MPI communication
-            mpiCommunicationTime[workerInfo.rank - 1] = std::chrono::duration_cast<std::chrono::microseconds>(mpiCommunicationEnd - mpiCommunicationStart[workerInfo.rank - 1]).count() - workerInfo.computationTime;
-            std::cout << "Host: MPI communication with Worker " << workerInfo.rank << " took approximately " << mpiCommunicationTime[workerInfo.rank - 1] << " microseconds." << std::endl;
+            unsigned long mpiCommunicationTime = std::chrono::duration_cast<std::chrono::microseconds>(mpiCommunicationEnd - mpiCommunicationStart[workerInfo.rank - 1]).count() - workerInfo.computationTime;
+            std::cout << "Host: MPI communication with Worker " << workerInfo.rank << " took approximately " << mpiCommunicationTime << " microseconds." << std::endl;
         
             // Extract "worker_data" from the received message
             int* worker_data = new int[region_size];
@@ -401,7 +410,7 @@ void Host::init(int world_rank, int world_size) {
             region_data.data_length = region_size;
             region_data.workerInfo = workerInfo;
 
-            Host::send(region_data);
+            Host::send(region_data, mpiCommunicationTime);
 
             delete[] recv;
             delete[] worker_data;
