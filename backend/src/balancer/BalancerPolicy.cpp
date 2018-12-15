@@ -11,7 +11,16 @@
 
 // TODO: Maybe make this method non-static and store fractal and predictionAccuracy in object
 Balancer* BalancerPolicy::chooseBalancer(std::string balancerName, Fractal* fractal) {
-    const int predictionAccuracy = 16;
+    /**
+     * predictionAccuracy > 0:
+     *  predictionAccuracy^2 pixel samples are used in each guaranteedDivisor^2 Block.
+     *
+     * predictionAccuracy < 0:
+     *  predictionAccuracy^2 Blocks of size guaranteedDivisor^2 are combined in one pixel sample.
+     *
+     * predictionAccuracy cannot be == 0
+     */
+    const int predictionAccuracy = 4;
 
     // C++ doesn't like string in switch :(
     if (balancerName == NaiveBalancer::NAME) {
