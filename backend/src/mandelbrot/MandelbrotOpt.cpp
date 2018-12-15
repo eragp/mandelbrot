@@ -10,7 +10,7 @@
 bool continueComp(std::vector<precision_t>* zReal, std::vector<precision_t>* zImaginary, int vectorLength, std::vector<int>* factor){
     bool lessThanTwo = false;
     for(int k = 0; k < vectorLength; k++){
-        (*factor)[k] = (*zReal)[k] * (*zReal)[k] + (*zImaginary)[k] * (*zImaginary)[k] < 4.0 ? 1 : 0;
+        (*factor)[k] = ((*factor)[k] && (*zReal)[k] * (*zReal)[k] + (*zImaginary)[k] * (*zImaginary)[k] < 4.0) ? 1 : 0;
         // or => if any value is true, true is returned
         lessThanTwo = lessThanTwo || ((*factor)[k] > 0);
     }
@@ -32,6 +32,9 @@ void MandelbrotOpt::calculateFractal(precision_t* cReal, precision_t* cImaginary
     // Factor that is multiplied on iteration count and computation 
     // is 0 or 1 and determines whether that point is still being computed
     std::vector<int> factor(vectorLength);
+    for(int i = 0; i <vectorLength; i++){
+        factor[i] = 1;
+    }
     // Bool storing information about whether any abs value that is being computed
     // is still below two => continue computation
     bool lessThanTwo = continueComp(&zReal, &zImaginary, vectorLength, &factor);
