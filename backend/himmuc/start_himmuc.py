@@ -99,9 +99,4 @@ if __name__ == '__main__':
         "python3 eragp-mandelbrot/backend/himmuc/start_backend.py {} {} -p {}".format(args.processes, args.nodes, args.port)
     ]
     with subprocess.Popen(argsssh) as schulz_ssh:
-        try:
-            schulz_ssh.wait()
-        except KeyboardInterrupt:
-            # Give it a try...
-            print("Really quit?")
-            schulz_ssh.wait()
+        schulz_ssh.wait()
