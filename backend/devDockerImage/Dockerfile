@@ -54,15 +54,16 @@ RUN wget -q -O - https://www.mpich.org/static/downloads/3.2.1/mpich-3.2.1.tar.gz
     && echo "export PATH=\"$MPI_HOME/bin:\$PATH\"" >> /etc/bash.bashrc
 
 # install libraries
-RUN mkdir -p ${HOME}/.eragp-mandelbrot/install
-# websocketpp 0.7.0
-RUN cd ${HOME}/.eragp-mandelbrot/install \
-    && git clone --branch 0.7.0 https://github.com/zaphoyd/websocketpp.git websocketpp --depth 1
-# rapidjson
-RUN cd ${HOME}/.eragp-mandelbrot/install \
-    && git clone https://github.com/Tencent/rapidjson/ --depth 1
-# boost
-RUN cd ~/.eragp-mandelbrot/install \
+RUN mkdir -p ${HOME}/.eragp-mandelbrot/install \
+    # websocketpp 0.7.0
+    && cd ${HOME}/.eragp-mandelbrot/install \
+    && git clone --branch 0.7.0 https://github.com/zaphoyd/websocketpp.git websocketpp --depth 1 \
+    # rapidjson
+    && cd ${HOME}/.eragp-mandelbrot/install \
+    && git clone https://github.com/Tencent/rapidjson/ --depth 1 \
+    # compile libboot from source
+    
+    && cd ~/.eragp-mandelbrot/install \
     && echo "Downloading boost" \
     && wget https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.bz2 \
     && echo "Extracting boost - this will take a while" \
