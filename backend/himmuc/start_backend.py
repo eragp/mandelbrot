@@ -68,7 +68,7 @@ if __name__ == '__main__':
         print_begin(
             "Establish port {} forwarding to host node {}:9002 ...".format(
                 args.port, host_node))
-        with subprocess.Popen(argsssh, stdout=subprocess.DEVNULL) as sshproc:
+        with subprocess.Popen(argsssh, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL) as sshproc:
             print("established")
             print(
                 "System running. Websocket connection to backend is now available at"
@@ -77,10 +77,28 @@ if __name__ == '__main__':
             try:
                 command = input("Press enter (in doubt, twice) to stop ")
             except KeyboardInterrupt:
-                print("Naughty you, this was not enter!")
+                pass
             print_begin("Stopping port forwarding...")
             sshproc.kill()
-        print("stopped")
+            try:
+                sshproc.wait(5)
+                print("stopped ({})".format(sshproc.returncode))
+            except subprocess.TimeoutExpired:
+                print_begin("failed, sending signal 9...")
+                try:
+                    sshproc.wait(5)
+                    print("stopped ({})".format(sshproc.returncode))
+                except subprocess.TimeoutExpired:
+                    print("failed")
         print_begin("Stopping mandelbrot host and workers...")
         srun.kill()
-        print("stopped")
+        try:
+            srun.wait(5)
+            print("stopped ({})".format(srun.returncode))
+        except subprocess.TimeoutExpired:
+            print_begin("failed, sending signal 9...")
+            try:
+                srun.wait(5)
+                print("stopped ({})".format(srun.returncode))
+            except subprocess.TimeoutExpired:
+                print("failed")
