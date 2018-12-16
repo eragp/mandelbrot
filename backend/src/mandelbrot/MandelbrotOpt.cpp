@@ -7,12 +7,12 @@
  * Return whether at least one point still has an abs value below 2 => continue computation
  * @param dest Memory where it is stored whether this point is still computed (0 for no, 1 for yes)
  */
-bool continueComp(std::vector<precision_t>* zReal, std::vector<precision_t>* zImaginary, int vectorLength, std::vector<int>* factor){
+bool continueComp(precision_t* zReal, precision_t* zImaginary, int vectorLength, bool* factor){
     bool lessThanTwo = false;
     for(int k = 0; k < vectorLength; k++){
-        (*factor)[k] = ((*factor)[k] && (*zReal)[k] * (*zReal)[k] + (*zImaginary)[k] * (*zImaginary)[k] < 4.0) ? 1 : 0;
+        factor[k] = (factor[k] && zReal[k] * zReal[k] + zImaginary[k] * zImaginary[k] < 4.0) ? 1 : 0;
         // or => if any value is true, true is returned
-        lessThanTwo = lessThanTwo || ((*factor)[k] > 0);
+        lessThanTwo = lessThanTwo || factor[k];
     }
     return lessThanTwo;
 }
@@ -24,20 +24,18 @@ void MandelbrotOpt::calculateFractal(precision_t* cReal, precision_t* cImaginary
     if(vectorLength <= 0){
         throw std::invalid_argument("vectorLength may not be less than 1.");
     }
-    std::fill(dest, dest+vectorLength, 0);
-    std::vector<precision_t> zReal(vectorLength);
-    std::vector<precision_t> zImaginary(vectorLength);
-    precision_t nextZReal[vectorLength];
-    precision_t nextZImaginary[vectorLength];
+    std::fill_n(dest, vectorLength, 0);
+    precision_t* zReal = new precision_t[vectorLength];
+    precision_t* zImaginary = new precision_t[vectorLength];
+    precision_t* nextZReal = new precision_t[vectorLength];
+    precision_t* nextZImaginary = new precision_t[vectorLength];
     // Factor that is multiplied on iteration count and computation 
     // is 0 or 1 and determines whether that point is still being computed
-    std::vector<int> factor(vectorLength);
-    for(int i = 0; i <vectorLength; i++){
-        factor[i] = 1;
-    }
+    bool* factor = new bool[vectorLength];
+    std::fill_n(factor, vectorLength, 1);
     // Bool storing information about whether any abs value that is being computed
     // is still below two => continue computation
-    bool lessThanTwo = continueComp(&zReal, &zImaginary, vectorLength, &factor);
+    bool lessThanTwo = continueComp(zReal, zImaginary, vectorLength, factor);
     while (i < maxIteration && lessThanTwo){
         for(int k = 0; k < vectorLength; k++){
             nextZReal[k] = (zReal[k] * zReal[k] - zImaginary[k] * zImaginary[k]) + cReal[k];
@@ -46,6 +44,11 @@ void MandelbrotOpt::calculateFractal(precision_t* cReal, precision_t* cImaginary
             zImaginary[k] = factor[k]*nextZImaginary[k];
             dest[k] += factor[k];
         }
-        lessThanTwo = continueComp(&zReal, &zImaginary, vectorLength, &factor);
+        lessThanTwo = continueComp(zReal, zImaginary, vectorLength, factor);
     }
+    delete[] zReal;
+    delete[] zImaginary;
+    delete[] nextZReal;
+    delete[] nextZImaginary;
+    delete[] factor;
 }
