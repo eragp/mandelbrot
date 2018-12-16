@@ -14,6 +14,7 @@
 // Attention: default_res should divide 2048! Square of default_res*default_res will be returned
 const int default_res = 256;
 
+// General initialization of host and worker processes
 int init(int argc, char **argv, bool host) {
     const char* type = host ? "Host" : "Worker";
 
