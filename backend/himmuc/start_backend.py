@@ -44,7 +44,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     argssrun = [
-        "srun", "-p {}".format(args.partition), "-n{}".format(args.processes), "-N{}".format(args.nodes),
+        "srun", "-p {}".format(args.partition), "-n {}".format(args.processes), "-N {}".format(args.nodes),
         "--multi-prog", "../himmuc/slurm_run.conf"
     ]
 
@@ -54,7 +54,8 @@ if __name__ == '__main__':
     binary_dir = "{}/eragp-mandelbrot/backend/build".format(
         os.environ.get('HOME'))
     with subprocess.Popen(
-            argssrun,
+            " ".join(argssrun),
+            shell=True,
             stdout=subprocess.PIPE,
             universal_newlines=True,
             cwd=binary_dir) as srun:
