@@ -141,8 +141,8 @@ python3 himmuc/start_himmuc.py -h
    do set the number of nodes (`-N`) one less than the number of processes (`-n`).
    
    ```bash
-   srun -n <number of workers+1> -N <number of nodes/raspis> -l --multi-prog run.conf
-   ssh -L 0.0.0.0:9002:localhost:9002 -fN -M -S .tunnel.ssh rpi<host number>
+   srun -p <odr|rpi> -n <number of workers+1> -N <number of nodes/raspis> -l --multi-prog run.conf
+   ssh -L 0.0.0.0:9002:localhost:9002 -fN -M -S .tunnel.ssh <odr|rpi><host number>
    ```
    
    Example output:
