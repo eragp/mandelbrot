@@ -13,6 +13,26 @@ and run (from the backend folder, one directory above this README)
 python3 himmuc/start_himmuc.py -h
 ```
 
+Example output:
+```
+$ ./run_himmuc.sh muendler 10 9
+Uploading backend...  sending incremental file list
+backend/himmuc/start_backend.py
+          3,897 100%    3.05MB/s    0:00:00 (xfr#1, to-chk=35/62)
+done
+Start mandelbrot with 1 host and 9 workers on 9 nodes... started mandelbrot
+Search host node... srun: error: Could not find executable worker
+odr00 found
+Establish port 9002 forwarding to host node odr00:9002 ... established
+System running. Websocket connection to backend is now available at
+        ws://himmuc.caps.in.tum.de:9002
+Press enter (in doubt, twice) to stop Warning: Permanently added the ED25519 host key for IP address '10.42.0.54' to the list of known hosts.
+
+
+Stopping port forwarding... stopped (-9)
+Stopping mandelbrot host and workers... stopped (-9)
+```
+
 ## Installation
 
 If you want to build the executables on your own, procede. If you want to use the pre-compiled executables (for arch debian stretch raspis) jump directly to [Running](#running)
@@ -141,8 +161,8 @@ python3 himmuc/start_himmuc.py -h
    do set the number of nodes (`-N`) one less than the number of processes (`-n`).
    
    ```bash
-   srun -n <number of workers+1> -N <number of nodes/raspis> -l --multi-prog run.conf
-   ssh -L 0.0.0.0:9002:localhost:9002 -fN -M -S .tunnel.ssh rpi<host number>
+   srun -p <odr|rpi> -n <number of workers+1> -N <number of nodes/raspis> -l --multi-prog run.conf
+   ssh -L 0.0.0.0:9002:localhost:9002 -fN -M -S .tunnel.ssh <odr|rpi><host number>
    ```
    
    Example output:

@@ -28,16 +28,23 @@ if __name__ == '__main__':
     for arg in arguments:
         parser.add_argument(**arg)
     parser.add_argument(
-        '-p',
+        '-P',
         '--port',
         dest='port',
         help=
-        'Set the port on the himmuc to be opened',
+        'Set the port on the himmuc to be opened. May need to be configured if more than one user is running this on the himmuc.',
         default=9002)
+    parser.add_argument(
+        '-p',
+        '--partition',
+        dest='partition',
+        help=
+        'Set the partition on which to run the executables. Options are: odr, rpi',
+        default="odr")
     args = parser.parse_args()
 
     argssrun = [
-        "srun", "-n{}".format(args.processes), "-N{}".format(args.nodes),
+        "srun", "-p {}".format(args.partition), "-n {}".format(args.processes), "-N {}".format(args.nodes),
         "--multi-prog", "../himmuc/slurm_run.conf"
     ]
 
@@ -47,12 +54,13 @@ if __name__ == '__main__':
     binary_dir = "{}/eragp-mandelbrot/backend/build".format(
         os.environ.get('HOME'))
     with subprocess.Popen(
-            argssrun,
+            " ".join(argssrun),
+            shell=True,
             stdout=subprocess.PIPE,
             universal_newlines=True,
             cwd=binary_dir) as srun:
         print("started mandelbrot")
-        _hostpattern = re.compile(r".*Host: \d+ of \d+ on node (rpi\d\d).*")
+        _hostpattern = re.compile(r".*Host: \d+ of \d+ on node ({}\d\d).*".format(args.partition))
         host_node = 'ERROR'
         print_begin("Search host node...")
         for line in srun.stdout:
