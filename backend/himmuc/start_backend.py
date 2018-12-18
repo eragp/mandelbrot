@@ -32,7 +32,7 @@ if __name__ == '__main__':
         '--port',
         dest='port',
         help=
-        'Set the port on the himmuc to be opened',
+        'Set the port on the himmuc to be opened. May need to be configured if more than one user is running this on the himmuc.',
         default=9002)
     parser.add_argument(
         '-p',
