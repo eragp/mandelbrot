@@ -1,7 +1,7 @@
 #include "Worker.h"
 
 #include "Fractal.h"
-#include "MandelbrotVect.h"
+#include "MandelbrotSIMD32.h"
 #include "Region.h"
 #include "Tile.h"
 #include "WorkerInfo.h"
@@ -18,7 +18,7 @@
 #include <chrono>
 
 void Worker::init(int world_rank, int world_size) {
-    Fractal *f = new MandelbrotVect();
+    Fractal *f = new MandelbrotSIMD32();
     // Initial test if this core is ready
     int test;
     MPI_Status status;
@@ -67,7 +67,7 @@ void Worker::init(int world_rank, int world_size) {
             // The real computation starts here --> start time measurement here
             auto startTime = std::chrono::high_resolution_clock::now();
 
-            int vectorLength = 1;
+            int vectorLength = 4;
             precision_t* projReal = new precision_t[vectorLength];
             precision_t* projImag = new precision_t[vectorLength];
             for (unsigned int y = 0; y < region.height && !loopFlag; y++) {
@@ -94,8 +94,8 @@ void Worker::init(int world_rank, int world_size) {
                     i += vectorLength;
                 }
             }
-            delete projReal;
-            delete projImag;
+            delete[] projReal;
+            delete[] projImag;
 
             // Computation ends here --> stop the clock
             auto endTime = std::chrono::high_resolution_clock::now();
