@@ -21,7 +21,7 @@ arguments = [{
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         'start_himmuc',
-        description='Connect to himmuc and run eragp-mandelbrot from nodes')
+        description='Connect to himmuc and run eragp-mandelbrot on nodes')
     for arg in arguments:
         parser.add_argument(**arg)
     parser.add_argument(
@@ -31,8 +31,24 @@ if __name__ == '__main__':
         const=True,
         dest='build',
         help=
-        'Issue a build process on the backend (i.e. if you changed the src)',
+        'issue a build process on the backend (i.e. if you changed the src)',
         default=False)
+    parser.add_argument(
+        '-P',
+        '--port',
+        dest='port',
+        type=int,
+        help=
+        'set the port on the himmuc to be opened. May need to be configured if more than one user is running this on the himmuc. Default: 9002',
+        default=9002)
+    parser.add_argument(
+        '-p',
+        '--partition',
+        dest='partition',
+        type=str,
+        help=
+        'set the partition on which to run the executables. Options are: odr, rpi. Default: odr',
+        default='odr')
     parser.add_argument(
         '-r',
         '--no-rsync',
@@ -40,15 +56,8 @@ if __name__ == '__main__':
         const=True,
         dest='no_rsync',
         help=
-        'Tell the script not to use rsync. Note that for this, you need to copy the eragp-mandelbrot project folder into the vmschulz home directory manually BEFORE running this script!',
+        'sell the script not to use rsync. Note that for this, you need to copy the eragp-mandelbrot project folder into the vmschulz home directory manually BEFORE running this script!',
         default=False)
-    parser.add_argument(
-        '-p',
-        '--port',
-        dest='port',
-        help=
-        'Set the port on the himmuc to be opened. May need to be configured if more than one user is running this on the himmuc.',
-        default=9002)
     args = parser.parse_args()
     sshserver = "{}@himmuc.caps.in.tum.de".format(args.username)
     backend_path = "eragp-mandelbrot/backend"
@@ -89,14 +98,15 @@ if __name__ == '__main__':
             "ssh", sshserver, "mkdir eragp-mandelbrot/backend/build"
         ], stderr=subprocess.DEVNULL)
         subprocess.run([
-            "ssh", sshserver_rpi, "eragp-mandelbrot/backend/himmuc/build_mandelbrot.sh"
-        ])
+            "ssh", sshserver_rpi, 
+        ], input="eragp-mandelbrot/backend/himmuc/build_mandelbrot.sh; exit\n", universal_newlines=True,
+        stderr=subprocess.DEVNULL)
 
     # Start execution on backend
     # also forward local port 9002 to the chosen port on the himmuc
     argsssh = [
         "ssh", sshserver, "-L localhost:9002:localhost:{}".format(args.port),
-        "python3 eragp-mandelbrot/backend/himmuc/start_backend.py {} {} -p {}".format(args.processes, args.nodes, args.port)
+        "python3 eragp-mandelbrot/backend/himmuc/start_backend.py {} {} --partition {} --port {}".format(args.processes, args.nodes, args.partition, args.port)
     ]
     with subprocess.Popen(argsssh) as schulz_ssh:
         schulz_ssh.wait()
