@@ -40,8 +40,8 @@ void MandelbrotOpt::calculateFractal(precision_t* cReal, precision_t* cImaginary
         for(int k = 0; k < vectorLength; k++){
             nextZReal[k] = (zReal[k] * zReal[k] - zImaginary[k] * zImaginary[k]) + cReal[k];
             nextZImaginary[k] = 2 * (zReal[k] * zImaginary[k]) + cImaginary[k];
-            zReal[k] = factor[k]*nextZReal[k];
-            zImaginary[k] = factor[k]*nextZImaginary[k];
+            zReal[k] = nextZReal[k];
+            zImaginary[k] = nextZImaginary[k];
             dest[k] += factor[k];
         }
         lessThanTwo = continueComp(zReal, zImaginary, vectorLength, factor);
