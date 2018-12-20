@@ -1,12 +1,13 @@
 #include "Mandelbrot32.h"
+#include <arm_neon.h>
 
 int calculateFractalNonParallel32(precision_t cReal, precision_t cImaginary, int maxIteration){
     int i = 0;
-    float zReal = 0.0;
-    float zImaginary = 0.0;
+    float32_t zReal = 0.0;
+    float32_t zImaginary = 0.0;
     while (i < maxIteration && zReal * zReal + zImaginary * zImaginary < 4.0) {
-        float nextZReal = (zReal * zReal - zImaginary * zImaginary) + (float) cReal;
-        float nextZImaginary = 2 * (zReal * zImaginary) + (float) cImaginary;
+        float32_t nextZReal = (zReal * zReal - zImaginary * zImaginary) + (float32_t) cReal;
+        float32_t nextZImaginary = 2 * (zReal * zImaginary) + (float32_t) cImaginary;
         zReal = nextZReal;
         zImaginary = nextZImaginary;
         i++;

@@ -12,14 +12,14 @@ struct Region {
     * in the complex plane.
     * Included in the region.
     */
-    long double minReal, maxImaginary;
+    precision_t minReal, maxImaginary;
 
     /**
     * The coordinates for the bottom right corner of the region
     * in the complex plane.
     * Excluded from the region.
     */
-    long double maxReal, minImaginary;
+    precision_t maxReal, minImaginary;
 
     /**
     * Pixel amount in respective dimension of this region.
@@ -52,6 +52,11 @@ struct Region {
     * Should not become negative usually.
     */
     int hOffset, vOffset;
+
+    /**
+     * Value to determine, which fractal will be computed
+     */
+    enum fractal_type fractal;
 
     unsigned int getPixelCount() {
         return width * height;

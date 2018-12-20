@@ -3,6 +3,14 @@
 // Define the precision for computations globally
 typedef long double precision_t;
 
+enum fractal_type {
+    mandelbrot,
+    mandelbrot32,
+    mandelbrot64,
+    mandelbrotSIMD32,
+    mandelbrotSIMD64,
+};
+
 class Fractal {
    public:
     /**
