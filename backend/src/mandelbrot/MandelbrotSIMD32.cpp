@@ -2,8 +2,9 @@
 #include <algorithm>
 #include <stdexcept>
 #include <vector>
-#include <arm_neon.h>
 #include <iostream>
+
+#include <arm_neon.h>
 
 // Note that this is set for Raspi3 and Odroid (ARM Cortex A53)
 // According to https://developer.arm.com/technologies/neon and https://en.wikipedia.org/wiki/ARM_Cortex-A53

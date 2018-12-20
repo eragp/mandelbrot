@@ -1,8 +1,11 @@
 #include "Worker.h"
 
 #include "Fractal.h"
-#include "MandelbrotSIMD32.h"
+#include "Mandelbrot.h"
 #include "Mandelbrot32.h"
+#include "Mandelbrot64.h"
+#include "MandelbrotSIMD32.h"
+#include "MandelbrotSIMD64.h"
 #include "Region.h"
 #include "Tile.h"
 #include "WorkerInfo.h"
@@ -19,13 +22,13 @@
 #include <chrono>
 
 void Worker::init(int world_rank, int world_size) {
-    Fractal *f = new Mandelbrot32();
     // Initial test if this core is ready
     int test;
     MPI_Status status;
     MPI_Recv(&test, 1, MPI_INT, MPI_ANY_SOURCE, 10, MPI_COMM_WORLD, &status);
     MPI_Send((void *) &test, 1, MPI_INT, status.MPI_SOURCE, 11, MPI_COMM_WORLD);
     int host_rank = status.MPI_SOURCE;
+    Fractal *f ;
 
     bool loopFlag = false;
     Region region, newRegion;
@@ -64,6 +67,24 @@ void Worker::init(int world_rank, int world_size) {
             int* data = new int[data_len];
             
             int i = 0;
+
+            // Choose fractal
+            switch(region.fractal){
+                case mandelbrot32:
+                    f = new Mandelbrot32();
+                    break;
+                case mandelbrot64:
+                    f = new Mandelbrot64();
+                    break;
+                case mandelbrotSIMD32:
+                    f = new MandelbrotSIMD32();
+                    break;
+                case mandelbrotSIMD64:
+                    f = new MandelbrotSIMD64();
+                    break;
+                default:
+                    f = new Mandelbrot();
+            }
 
             // The real computation starts here --> start time measurement here
             auto startTime = std::chrono::high_resolution_clock::now();
@@ -124,6 +145,7 @@ void Worker::init(int world_rank, int world_size) {
                 delete[] ret;
             }
             delete[] data;
+            delete f;
         } else {
             // Reduce processor usage on idle
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
