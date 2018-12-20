@@ -1,12 +1,8 @@
+import { balancers } from "../tileDisplay/Constants";
 /**
  * All available balancers
  */
-export const BALANCERS = [
-  "naive",
-  "column",
-  "prediction"
-  // To be continued...
-];
+export const BALANCERS = balancers.map(b => b.key);
 
 /**
  * Object returning the currently chosen balancing strategy

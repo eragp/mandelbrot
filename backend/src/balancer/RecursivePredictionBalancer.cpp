@@ -83,7 +83,7 @@ Region *RecursivePredictionBalancer::halveRegionVertically(Region region, Predic
 		currentN += prediction.nColSums[i];
 		left->nColSums[i] = prediction.nColSums[i];
 		// Reached 1/2 of nSum or there is only one piece of prediction left for the other half
-		if (currentN > desiredN || prediction.predictionLengthX - i <= 1) {
+		if (currentN >= desiredN || prediction.predictionLengthX - i <= 1) {
 			halves[0].maxReal = region.minReal + (i + 1) * prediction.deltaReal;
 			halves[0].width = region.guaranteedDivisor * (i + 1);
 
@@ -175,7 +175,7 @@ Region *RecursivePredictionBalancer::halveRegionHorizontally(Region region, Pred
 		currentN += prediction.nRowSums[i];
 		top->nRowSums.push_back(prediction.nRowSums[i]);
 		// Reached 1/2 of nSum or there is only one piece of prediction left for the other half
-		if (currentN > desiredN || prediction.predictionLengthY - i <= 1) {
+		if (currentN >= desiredN || prediction.predictionLengthY - i <= 1) {
 			halves[0].minImaginary = region.maxImaginary - (i + 1) * prediction.deltaImaginary;
 			halves[0].height = region.guaranteedDivisor * (i + 1);
 

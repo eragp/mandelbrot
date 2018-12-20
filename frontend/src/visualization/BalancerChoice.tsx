@@ -1,17 +1,20 @@
 import * as React from "react";
 import BalancerPolicy from "../misc/BalancerPolicy";
+import { balancers } from "../tileDisplay/Constants";
 
 interface BalancerChoiceProps {
-   balancerPolicy: BalancerPolicy;
+  balancerPolicy: BalancerPolicy;
 }
 
 interface BalancerChoiceState {
   active: string;
-  items: Array<{key: string; title: string; disabled?: boolean}>;
+  items: Array<{ key: string; title: string; disabled?: boolean }>;
 }
 
-export default class BalancerChoice extends React.Component<BalancerChoiceProps, BalancerChoiceState> {
-
+export default class BalancerChoice extends React.Component<
+  BalancerChoiceProps,
+  BalancerChoiceState
+> {
   constructor(props: BalancerChoiceProps) {
     super(props);
 
@@ -19,30 +22,17 @@ export default class BalancerChoice extends React.Component<BalancerChoiceProps,
 
     this.state = {
       active: this.props.balancerPolicy.getBalancer(),
-      items: [
-        {
-          key: "naive",
-          title: "Naive Balancer",
-        },
-        {
-          key: "column",
-          title: "Column Balancer",
-        },
-        {
-          key: "prediction",
-          title: "Prediction Balancer",
-        },
-      ],
+      items: balancers
     };
   }
 
   public handleBalancerChoice(balancer: string) {
     this.props.balancerPolicy.setBalancer(balancer);
 
-    this.setState((state) => {
+    this.setState(state => {
       const newState = {
         active: this.props.balancerPolicy.getBalancer(),
-        items: state.items,
+        items: state.items
       };
       return newState;
     });
@@ -52,9 +42,7 @@ export default class BalancerChoice extends React.Component<BalancerChoiceProps,
     const itemList = [];
     for (const item of this.state.items) {
       const active = item.key == this.state.active;
-      const handler = item.disabled
-        ? () => false
-        : () => this.handleBalancerChoice(item.key);
+      const handler = item.disabled ? () => false : () => this.handleBalancerChoice(item.key);
       itemList.push(
         <BalancerItem
           key={item.key}
@@ -70,27 +58,26 @@ export default class BalancerChoice extends React.Component<BalancerChoiceProps,
   }
 }
 
-
 function BalancerItem(props: BalancerItemProps) {
-    let classList = "list-group-item list-group-item-action";
-    if (props.active) {
-      classList += " active";
-    }
-    if (props.disabled) {
-      classList += " disabled";
-    }
-    return (
-      <a href="#" className={classList} onClick={props.handleClick}>
-        {props.title}
-      </a>
-    );
+  let classList = "list-group-item list-group-item-action";
+  if (props.active) {
+    classList += " active";
   }
+  if (props.disabled) {
+    classList += " disabled";
+  }
+  return (
+    <a href="#" className={classList} onClick={props.handleClick}>
+      {props.title}
+    </a>
+  );
+}
 
 interface BalancerItemProps {
-   active: boolean;
-   disabled: boolean;
-   handleClick: (event?: React.MouseEvent<HTMLAnchorElement>) => void;
-   title: string;
+  active: boolean;
+  disabled: boolean;
+  handleClick: (event?: React.MouseEvent<HTMLAnchorElement>) => void;
+  title: string;
 }
 
 // BalancerItem.defaultProps = {
