@@ -5,6 +5,10 @@
 
 #include "Fractal.h"
 #include "Mandelbrot.h"
+#include "Mandelbrot32.h"
+#include "Mandelbrot64.h"
+#include "MandelbrotSIMD32.h"
+#include "MandelbrotSIMD64.h"
 
 #include "Region.h"
 #include "Tile.h"
@@ -34,6 +38,8 @@
 #include <vector>
 #include <chrono>
 #include <thread>
+
+#include <boost/algorithm/string.hpp>
 
 using namespace rapidjson;
 
@@ -114,8 +120,31 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
 
     Region region{};
     const char* balancer;
+    enum fractal_type fractal = mandelbrot;
+    Fractal* fractal_bal = new Mandelbrot();
     try {
         balancer = request["balancer"].GetString();
+        if(request.HasMember("fractal")
+            && request["fractal"].IsString()){
+            const char* reg_fractal = request["region"]["fractal"].GetString();
+            // Case insensitive compares (just convenience for frontend devs)
+            if(boost::iequals(reg_fractal, "mandelbrot32")){
+                fractal = mandelbrot32;
+                fractal_bal = new Mandelbrot32();
+            }
+            else if(boost::iequals(reg_fractal, "mandelbrot64")){
+                fractal = mandelbrot64;
+                fractal_bal = new Mandelbrot64();
+            }
+            else if(boost::iequals(reg_fractal, "mandelbrotsimd32")){
+                fractal = mandelbrotSIMD32;
+                fractal_bal = new Mandelbrot32();
+            }
+            else if(boost::iequals(reg_fractal, "mandelbrotsimd64")){
+                fractal = mandelbrotSIMD64;
+                fractal_bal = new Mandelbrot64();
+            }
+        }
 
         region.minReal = request["region"]["minReal"].GetDouble();
         region.maxImaginary = request["region"]["maxImag"].GetDouble();
@@ -132,6 +161,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         region.maxIteration = request["region"]["maxIteration"].GetUint();
         region.validation = request["region"]["validation"].GetInt();
         region.guaranteedDivisor = request["region"]["guaranteedDivisor"].GetUint();
+
     } catch (std::out_of_range &e) {
         std::cerr << "Inclompletely specified region requested: " << request_string;
         return;
@@ -152,10 +182,8 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         current_big_region = region;
     }
 
-    // TODO increase by one as soon as host is invoked as worker too
     int nodeCount = activeNodes.size();
-    // TODO let frontend choose fractal similar to balancer
-    Balancer *b = BalancerPolicy::chooseBalancer(balancer, new Mandelbrot());
+    Balancer *b = BalancerPolicy::chooseBalancer(balancer, fractal_bal);
     Region *blocks = b->balanceLoad(region, nodeCount);  // Blocks is array with nodeCount members
     // DEBUG
     std::cout << "Balancer Output:" << std::endl;
@@ -171,6 +199,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         std::lock_guard<std::mutex> lock(transmit_regions_lock);
         for (int i = 0 ; i < nodeCount ; i++) {
             Region small_region = blocks[i];
+            small_region.fractal = fractal;
             int rank_worker = activeNodes.at(i);
             transmit_regions[rank_worker] = small_region;
         }
