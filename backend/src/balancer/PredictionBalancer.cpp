@@ -1,6 +1,7 @@
 #include "PredictionBalancer.h"
 #include "Region.h"
 #include "Fractal.h"
+#include "Predicter.h"
 
 #include <iostream>
 #include <vector>
@@ -15,117 +16,8 @@ PredictionBalancer::~PredictionBalancer() {
 
 // Worst case scenario: Prediction changes suddenly from small to big values
 Region *PredictionBalancer::balanceLoad(Region region, int nodeCount) {
-    int predictionLengthX = region.width / region.guaranteedDivisor;
-    int predictionLengthY = region.height / region.guaranteedDivisor;
+	Prediction* prediction = Predicter::getPrediction(region, f, predictionAccuracy);
 
-    // Declare all variables used by both if branches
-    Region lowRes = region;
-
-    // Prediction per part with width and height == guaranteedDivisor
-    std::vector<std::vector<int>> n(predictionLengthX, std::vector<int>(predictionLengthY));
-    std::vector<int> nColSums(predictionLengthX);
-    int nSum = 0;
-
-    precision_t deltaReal = 0.0;
-    precision_t deltaImaginary = 0.0;
-
-    // predicitionAccuracy > 0: (predicitionAccuracy^2) pixel samples in each (divisor^2)-Block
-    if (predictionAccuracy > 0) {
-        lowRes.width = (region.width / region.guaranteedDivisor) * predictionAccuracy;
-        lowRes.height = (region.height / region.guaranteedDivisor) * predictionAccuracy;
-
-        deltaReal = Fractal::deltaReal(lowRes.maxReal, lowRes.minReal, lowRes.width);
-        deltaImaginary = Fractal::deltaImaginary(lowRes.maxImaginary, lowRes.minImaginary, lowRes.height);
-
-        for (unsigned int x = 0; x < lowRes.width; x++) {
-            for (unsigned int y = 0; y < lowRes.height; y++) {
-                int iterationCount;
-                precision_t projReal = lowRes.minReal + x * deltaReal;
-                precision_t projImag = lowRes.maxImaginary - y * deltaImaginary;
-                f->calculateFractal(&projReal,
-                                    &projImag,
-                                    lowRes.maxIteration,
-                                    1,
-                                    &iterationCount);
-                // wtf?!
-                n[x / predictionAccuracy][y / predictionAccuracy] += iterationCount;
-                // Sum over expected iteration per column
-                nColSums[x / predictionAccuracy] += iterationCount;
-                // Sum over all expected iterations
-                nSum += iterationCount;
-            }
-        }
-
-        // Set deltas to represent delta per prediction piece
-        deltaReal *= predictionAccuracy;
-        deltaImaginary *= predictionAccuracy;
-
-    // predicitionAccuracy < 0: (predicitionAccuracy^2) (divisor^2)-Blocks in each pixel sample
-    } else if (predictionAccuracy < 0) {
-        // Make predictionAccuracy positive, sign just determines the operation internally predictionAccuracy is always positive
-        predictionAccuracy = -predictionAccuracy;
-
-        lowRes.width = predictionLengthX / predictionAccuracy;
-        lowRes.height = predictionLengthY / predictionAccuracy;
-
-        // calculate also a prediction for overlaying parts of size guaranteedDivisor * guaranteedDivisor
-        if (predictionLengthX % predictionAccuracy != 0) {
-            lowRes.maxReal += (predictionAccuracy - predictionLengthX % predictionAccuracy)
-                              * region.guaranteedDivisor
-                              * Fractal::deltaReal(region.maxReal, region.minReal, region.width);
-            lowRes.width += 1;
-        }
-        if (predictionLengthY % predictionAccuracy != 0) {
-            lowRes.minImaginary -= (predictionAccuracy - predictionLengthY % predictionAccuracy)
-                                   * region.guaranteedDivisor
-                                   * Fractal::deltaImaginary(region.maxImaginary, region.minImaginary, region.height);
-            lowRes.height += 1;
-        }
-
-        deltaReal = Fractal::deltaReal(lowRes.maxReal, lowRes.minReal, lowRes.width);
-        deltaImaginary = Fractal::deltaImaginary(lowRes.maxImaginary, lowRes.minImaginary, lowRes.height);
-
-        for (unsigned int x = 0; x < lowRes.width; x++) {
-            for (unsigned int y = 0; y < lowRes.height; y++) {
-                int iterationCount;
-                precision_t projReal = lowRes.minReal + x * deltaReal;
-                precision_t projImag = lowRes.maxImaginary - y * deltaImaginary;
-                f->calculateFractal(&projReal,
-                                    &projImag,
-                                    lowRes.maxIteration,
-                                    1,
-                                    &iterationCount);
-
-                // Put iterationCount in every entry which belongs to this prediction part
-                int xStartIndex = x * predictionAccuracy;
-                int yStartIndex = y * predictionAccuracy;
-                for (int i = 0; i < predictionAccuracy; i++) {
-                    for (int j = 0; j < predictionAccuracy; j++) {
-                        if (xStartIndex + i < predictionLengthX && yStartIndex + j < predictionLengthY) {
-                            n[xStartIndex + i][yStartIndex + j] += iterationCount;
-                            nColSums[xStartIndex + i] += iterationCount;
-                            nSum += iterationCount;
-                        }
-                    }
-                }
-            }
-        }
-
-        // Set deltas to represent delta per prediction piece
-        deltaReal /= predictionAccuracy;
-        deltaImaginary /= predictionAccuracy;
-
-        // Make predictionAccuracy negative again, so that next call has same conditions
-        predictionAccuracy = -predictionAccuracy;
-    } else {
-        std::cerr << "predictionAccuracy cannot be 0." << std::endl;
-        return nullptr;
-    }
-
-    // Debug
-    std::cout << "nSum: " << nSum << std::endl;
-    std::cout << "nColSums[0]: " << nColSums[0] << std::endl;
-    //---
     auto *allRegions = new Region[nodeCount];
 
     // Same as in naive
@@ -135,7 +27,7 @@ Region *PredictionBalancer::balanceLoad(Region region, int nodeCount) {
     }
 
     int rows = nodeCount / cols;    // nodeCount = cols * rows; --> Number of Rows
-    int desiredN = nSum / cols;
+    int desiredN = prediction->nSum / cols;
 
 
     Region tmp{};
@@ -157,27 +49,43 @@ Region *PredictionBalancer::balanceLoad(Region region, int nodeCount) {
     int cumulativeN = 0; // Needed to update desiredN
     int usedPredictionCols = 0; // Needed to determine resolution
 
-    for (int i = 0; i < predictionLengthX; i++) {
+    for (int i = 0; i < prediction->predictionLengthX; i++) {
         if (currentCol == cols - 1) {
             // Take the rest
             tmp.maxReal = region.maxReal;
             tmp.width = region.width - region.guaranteedDivisor * i;
 
-            std::vector<int> colPrediction(predictionLengthY);
-            for (int j = 0; j < predictionLengthY; j++) {
-                colPrediction[j] = 0;
-                for (int k = i; k < predictionLengthX; k++) {
-                    colPrediction[j] += n[k][j];
+			Prediction* colPrediction = new Prediction();
+
+			colPrediction->predictionLengthX = 1;
+			colPrediction->predictionLengthY = prediction->predictionLengthY;
+
+			colPrediction->nSum = prediction->nSum - cumulativeN;
+			colPrediction->nRowSums.resize(colPrediction->predictionLengthY);
+			// Not used, may be undefined
+			// colPrediction->nColSums.resize(colPrediction->predictionLengthX);
+			// colPrediction->n.resize(colPrediction->predictionLengthX);
+			// for (std::vector<int> v : colPrediction->n) {
+			//	v.resize(colPrediction->predictionLengthY);
+			// }
+
+            for (int j = 0; j < prediction->predictionLengthY; j++) {
+                colPrediction->nRowSums[j] = 0;
+                for (int k = i; k < prediction->predictionLengthX; k++) {
+                    colPrediction->nRowSums[j] += prediction->n[k][j];
                 }
             }
-            Region *colRegions = PredictionBalancer::splitCol(tmp, rows, nSum - cumulativeN,
-                                                              colPrediction,
-                                                              deltaImaginary); //length: rows
+
+			colPrediction->deltaReal = prediction->deltaReal;
+			colPrediction->deltaImaginary = prediction->deltaImaginary;
+
+            Region *colRegions = PredictionBalancer::splitCol(tmp, rows, colPrediction); //length: rows
             for (int j = 0; j < rows; j++) {
                 allRegions[rows * currentCol + j] = colRegions[j];
             }
 
-            delete[] colRegions;
+			delete colPrediction;
+			delete[] colRegions;
             currentCol++;
 
             // End the loop
@@ -185,31 +93,47 @@ Region *PredictionBalancer::balanceLoad(Region region, int nodeCount) {
         }
 
         // Add nColSums entry to currentN
-        currentN += nColSums[i];
+        currentN += prediction->nColSums[i];
         // Increment usedPredictionCols
         usedPredictionCols++;
 
         // Reached 1/cols of nSum or there is only one piece of prediction left for each remaining col
-        if (currentN > desiredN || predictionLengthX - i <= cols - currentCol) {
-            tmp.maxReal = region.minReal + (i + 1) * deltaReal;
+        if (currentN >= desiredN || prediction->predictionLengthX - i <= cols - currentCol) {
+            tmp.maxReal = region.minReal + (i + 1) * prediction->deltaReal;
             tmp.width = region.guaranteedDivisor * usedPredictionCols;
 
-            std::vector<int> colPrediction(predictionLengthY);
-            for (int j = 0; j < predictionLengthY; j++) {
-                colPrediction[j] = 0;
-                for (int k = i + 1 - usedPredictionCols; k < i + 1; k++) {
-                    colPrediction[j] += n[k][j];
-                }
-            }
+			Prediction* colPrediction = new Prediction();
 
-            Region *colRegions = PredictionBalancer::splitCol(tmp, rows, currentN, colPrediction,
-                                                              deltaImaginary); //length: rows
+			colPrediction->predictionLengthX = 1;
+			colPrediction->predictionLengthY = prediction->predictionLengthY;
+
+			colPrediction->nSum = currentN;
+			colPrediction->nRowSums.resize(colPrediction->predictionLengthY);
+			// Not used, may be undefined
+			// colPrediction->nColSums.resize(colPrediction->predictionLengthX);
+			// colPrediction->n.resize(colPrediction->predictionLengthX);
+			// for (std::vector<int> v : colPrediction->n) {
+			//	v.resize(colPrediction->predictionLengthY);
+			// }
+
+			for (int j = 0; j < prediction->predictionLengthY; j++) {
+				colPrediction->nRowSums[j] = 0;
+				for (int k = i + 1 - usedPredictionCols; k < i + 1; k++) {
+					colPrediction->nRowSums[j] += prediction->n[k][j];
+				}
+			}
+
+			colPrediction->deltaReal = prediction->deltaReal;
+			colPrediction->deltaImaginary = prediction->deltaImaginary;
+
+            Region *colRegions = PredictionBalancer::splitCol(tmp, rows, colPrediction); //length: rows
 
             for (int j = 0; j < rows; j++) {
                 allRegions[rows * currentCol + j] = colRegions[j];
             }
 
-            delete[] colRegions;
+			delete colPrediction;
+			delete[] colRegions;
 
             // Prepare tmp for next col
             tmp.minReal = tmp.maxReal;
@@ -223,7 +147,7 @@ Region *PredictionBalancer::balanceLoad(Region region, int nodeCount) {
             // Increment currentCol
             currentCol++;
             // Update desiredN --> this should reduce the difference of n between the cols
-            desiredN = (nSum - cumulativeN) / (cols - currentCol);
+            desiredN = (prediction->nSum - cumulativeN) / (cols - currentCol);
             // Reset currentN
             currentN = 0;
             // Reset usedPredictionCols
@@ -231,6 +155,9 @@ Region *PredictionBalancer::balanceLoad(Region region, int nodeCount) {
         }
     }
     
+	// Free prediction, not needed anymore
+	delete prediction;
+
     // Fill rest of allRegions with empty Regions, needed when `region` is covered with less than `cols` columns 
     // This happens if guaranteedDivisor or nodeCount becomes to big (especially when nodeCount is a prime number)
     // Set tmp to empty region
@@ -265,10 +192,15 @@ Region *PredictionBalancer::balanceLoad(Region region, int nodeCount) {
  * @param deltaImaginary
  * @return
  */
-Region *PredictionBalancer::splitCol(Region col, int parts, int nSum, std::vector<int> n, double deltaImaginary) {
-    auto *regions = new Region[parts];
+Region *PredictionBalancer::splitCol(Region col, int parts, Prediction* prediction) {
+	/*if (prediction->predictionLengthX != 1) {
+		std::cerr << "Invalid prediction: more/less than one column." << std::endl;
+		return nullptr;
+	}*/
 
-    int desiredN = nSum / parts;
+	auto *regions = new Region[parts];
+
+    int desiredN = prediction->nSum / parts;
 
     Region tmp{};
     // These stay the same over all iterations
@@ -289,7 +221,7 @@ Region *PredictionBalancer::splitCol(Region col, int parts, int nSum, std::vecto
     int cumulativeN = 0;
     int usedPredictionRows = 0;
 
-    for (unsigned int i = 0; i < n.size(); i++) {
+    for (int i = 0; i < prediction->predictionLengthY; i++) {
         if (currentPart == parts - 1) {
             // Take the rest
             tmp.minImaginary = col.minImaginary;
@@ -302,14 +234,14 @@ Region *PredictionBalancer::splitCol(Region col, int parts, int nSum, std::vecto
             break;
         }
 
-        // Add n entry to currentN
-        currentN += n[i];
+        // Add nRowSum entry to currentN
+        currentN += prediction->nRowSums[i];
         // Increment usedPredictionRows
         usedPredictionRows++;
 
         // Reached 1/parts of nSum or there is only one piece of prediction left for each remaining part
-        if (currentN > desiredN || n.size() - i <= (unsigned int) (parts - currentPart)) {
-            tmp.minImaginary = col.maxImaginary - (i + 1) * deltaImaginary;
+        if (currentN >= desiredN || prediction->predictionLengthY - i <= parts - currentPart) {
+            tmp.minImaginary = col.maxImaginary - (i + 1) * prediction->deltaImaginary;
             tmp.height = col.guaranteedDivisor * usedPredictionRows;
 
             regions[currentPart] = tmp;
@@ -326,7 +258,7 @@ Region *PredictionBalancer::splitCol(Region col, int parts, int nSum, std::vecto
             // Increment currentPart
             currentPart++;
             // Update desiredN
-            desiredN = (nSum - cumulativeN) / (parts - currentPart);
+            desiredN = (prediction->nSum - cumulativeN) / (parts - currentPart);
             // Reset currentN
             currentN = 0;
             // Reset usedPredictionCols
