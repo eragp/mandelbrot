@@ -126,7 +126,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         balancer = request["balancer"].GetString();
         if(request.HasMember("fractal")
             && request["fractal"].IsString()){
-            const char* reg_fractal = request["region"]["fractal"].GetString();
+            const char* reg_fractal = request["fractal"].GetString();
             // Case insensitive compares (just convenience for frontend devs)
             if(boost::iequals(reg_fractal, "mandelbrot32")){
                 fractal = mandelbrot32;

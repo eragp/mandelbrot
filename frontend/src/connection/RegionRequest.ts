@@ -57,10 +57,11 @@ export const request = (map: Map, balancer: string) => {
       validation: zoom,
       // Divisor for width and height. Will be used to perform load balancing
       guaranteedDivisor: tileSize,
-      maxIteration
+      maxIteration,
     },
     type: "regionRequest",
-    balancer
+    balancer,
+    fractal: "mandelbrotsimd32",
   };
   // console.log("sending Region request: ");
   // console.log(region);

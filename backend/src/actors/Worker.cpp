@@ -89,7 +89,7 @@ void Worker::init(int world_rank, int world_size) {
             // The real computation starts here --> start time measurement here
             auto startTime = std::chrono::high_resolution_clock::now();
 
-            int vectorLength = 8;
+            int vectorLength = 4; // Maximum SIMD size
             precision_t* projReal = new precision_t[vectorLength];
             precision_t* projImag = new precision_t[vectorLength];
             for (unsigned int y = 0; y < region.height && !loopFlag; y++) {

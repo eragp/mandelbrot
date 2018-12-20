@@ -20,7 +20,6 @@ bool continueComp(precision_t* zReal, precision_t* zImaginary, int vectorLength,
 // Probably more open to compiler optimization
 // vectorlength >= 1 !!
 void MandelbrotVect::calculateFractal(precision_t* cReal, precision_t* cImaginary, int maxIteration, int vectorLength, int* dest) {
-    int i = 0;
     if(vectorLength <= 0){
         throw std::invalid_argument("vectorLength may not be less than 1.");
     }
@@ -36,6 +35,7 @@ void MandelbrotVect::calculateFractal(precision_t* cReal, precision_t* cImaginar
     // Bool storing information about whether any abs value that is being computed
     // is still below two => continue computation
     bool lessThanTwo = continueComp(zReal, zImaginary, vectorLength, factor);
+    int i = 0;
     while (i < maxIteration && lessThanTwo){
         for(int k = 0; k < vectorLength; k++){
             nextZReal[k] = (zReal[k] * zReal[k] - zImaginary[k] * zImaginary[k]) + cReal[k];

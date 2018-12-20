@@ -12,7 +12,6 @@
 // Probably more open to compiler optimization
 // vectorlength >= 1 !!
 void MandelbrotSIMD64::calculateFractal(precision_t* cRealArray, precision_t* cImaginaryArray, int maxIteration, int vectorLength, int* dest) {
-    int i = 0;
     if(vectorLength <= 0){
         throw std::invalid_argument("vectorLength may not be less than 1.");
     }
@@ -40,6 +39,7 @@ void MandelbrotSIMD64::calculateFractal(precision_t* cRealArray, precision_t* cI
     uint64x2_t one = vdupq_n_u64(1);
     uint64x2_t n = vdupq_n_u64(0);
     uint64x2_t absLesserThanTwo = vdupq_n_u64(1);
+    int i = 0;
     while(i < maxIteration && vaddvq_u64(absLesserThanTwo) != 0){
         // add a b -> a+b
         // mls a b c -> a - b*c
