@@ -98,7 +98,7 @@ Region *PredictionBalancer::balanceLoad(Region region, int nodeCount) {
         usedPredictionCols++;
 
         // Reached 1/cols of nSum or there is only one piece of prediction left for each remaining col
-        if (currentN > desiredN || prediction->predictionLengthX - i <= cols - currentCol) {
+        if (currentN >= desiredN || prediction->predictionLengthX - i <= cols - currentCol) {
             tmp.maxReal = region.minReal + (i + 1) * prediction->deltaReal;
             tmp.width = region.guaranteedDivisor * usedPredictionCols;
 
@@ -240,7 +240,7 @@ Region *PredictionBalancer::splitCol(Region col, int parts, Prediction* predicti
         usedPredictionRows++;
 
         // Reached 1/parts of nSum or there is only one piece of prediction left for each remaining part
-        if (currentN > desiredN || prediction->predictionLengthY - i <= parts - currentPart) {
+        if (currentN >= desiredN || prediction->predictionLengthY - i <= parts - currentPart) {
             tmp.minImaginary = col.maxImaginary - (i + 1) * prediction->deltaImaginary;
             tmp.height = col.guaranteedDivisor * usedPredictionRows;
 
