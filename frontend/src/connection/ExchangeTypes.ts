@@ -29,6 +29,22 @@ export interface Region {
   vOffset: number;
 }
 
+export const regionEquals = (a: Region, b: Region) => {
+  return (
+    a.guaranteedDivisor === b.guaranteedDivisor &&
+    a.width === b.width &&
+    a.height === b.height &&
+    a.minImag === b.minImag &&
+    a.maxImag === b.maxImag &&
+    a.minReal === b.minReal &&
+    a.maxReal === b.maxReal &&
+    a.validation === b.validation &&
+    a.maxIteration === b.maxIteration &&
+    a.hOffset === b.hOffset &&
+    a.vOffset === b.vOffset
+  );
+};
+
 export interface WorkerInfo {
   rank: number;
   computationTime: number;

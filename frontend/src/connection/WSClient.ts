@@ -45,12 +45,18 @@ export default class WebSocketClient {
       const msg = JSON.parse(event.data);
       switch (msg.type) {
         case "regionData":
-          // Notify regionData/worker observers
-          workerCallback.forEach(call => call(<RegionData>msg));
+          {
+            // Notify regionData/worker observers
+            let r = <RegionData>msg;
+            workerCallback.forEach(call => call(r));
+          }
           break;
         case "region":
-          // Notify region subdivision listeners
-          regionCallback.forEach(call => call(groupRegions(<Regions>msg)));
+          {
+            // Notify region subdivision listeners
+            let r = groupRegions(<Regions>msg);
+            regionCallback.forEach(call => call(r));
+          }
           break;
         default:
       }

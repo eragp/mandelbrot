@@ -1,4 +1,4 @@
-import { Regions, WorkerInfo, Region } from "../connection/ExchangeTypes";
+import { Regions, WorkerInfo, Region, regionEquals } from "../connection/ExchangeTypes";
 import { Point2D } from "./Point";
 import { MAX_DISPLAY_REGIONS } from "../Constants";
 
@@ -26,15 +26,15 @@ export interface RegionGroup {
  * Dynamically groups the returned Regions from the backend for cleaner display to the user.
  */
 class Group implements RegionGroup {
-  id: number;
-  computationTime: number;
-  guaranteedDivisor: number;
-  width: number;
-  height: number;
-  validation: number;
-  maxIteration: number;
-  hOffset: number;
-  vOffset: number;
+  public id: number;
+  public computationTime: number;
+  public guaranteedDivisor: number;
+  public width: number;
+  public height: number;
+  public validation: number;
+  public maxIteration: number;
+  public hOffset: number;
+  public vOffset: number;
   private children: RegionGroup[];
 
   constructor(regions: WorkerInfo[], groupID: number) {
@@ -73,8 +73,8 @@ class Group implements RegionGroup {
 
   public getLeafs() {
     let leafs: Rectangle[] = [];
-    this.getChildren().forEach((child) => {
-        leafs = leafs.concat(child.getLeafs());
+    this.getChildren().forEach(child => {
+      leafs = leafs.concat(child.getLeafs());
     });
     return leafs;
   }
@@ -135,8 +135,8 @@ class Rectangle implements RegionGroup {
     return false;
   }
 
-  public getLeafs(){
-      return [this];
+  public getLeafs() {
+    return [this];
   }
 
   getRanks() {
@@ -163,25 +163,49 @@ export const groupRegions = (regions: Regions): RegionGroup[] => {
     return r.map(r => new Rectangle(r));
   }
   let groupSize = Math.ceil(r.length / MAX_DISPLAY_REGIONS);
-  let groups = [];
+  let groups: Group[] = [];
   let groupID = 1;
-  let i = 0,
-    j = 0;
-  for (; i < Math.floor(r.length / groupSize); i++) {
-    let group = [];
-    for (j = 0; j < groupSize; j++) {
-      group.push(r[i * groupSize + j]);
-    }
-    groups.push(new Group(group, groupID++));
-  }
-  {
-    let remainder = [];
-    j = 0;
-    while (i * groupSize + j < r.length) {
-      remainder.push(r[i * groupSize + j]);
-      j++;
-    }
-    if (remainder.length > 0) groups.push(new Group(remainder, groupID++));
-  }
+
+  let rects = r;
+  let not: WorkerInfo[] = [];
+  do {
+    let g = expandGroup(rects[0], rects, not, groupSize);
+    rects = sub(rects, g);
+    not = not.concat(g);
+    groups.push(new Group(g, groupID++));
+  } while (rects.length != 0);
+  console.log(groups);
   return groups;
+};
+
+const sub = (a: WorkerInfo[], b: WorkerInfo[]) =>
+  a.filter(i => !b.some(j => regionEquals(i.region, j.region)));
+
+const expandGroup = (
+  start: WorkerInfo,
+  rects: WorkerInfo[],
+  not: WorkerInfo[],
+  size: number
+): WorkerInfo[] => {
+  let n = rects.filter(w => {
+    let m =
+      start.region.minImag === w.region.minImag ||
+      start.region.maxImag === w.region.maxImag ||
+      start.region.minReal === w.region.minReal ||
+      start.region.maxReal === w.region.maxReal;
+    let n = !not.some(r => regionEquals(r.region, w.region));
+    return m && n;
+  });
+  if (n.length == 0) {
+    return [];
+  } else if (n.length < size) {
+    let expanded: WorkerInfo[] = [];
+    for (let i = 0; i < n.length; i++) {
+      expanded = expandGroup(n[i++], rects, not.concat(n), size - n.length);
+      if (expanded.length != 0) break;
+    }
+    return n.concat(expanded);
+  } else {
+    return n.slice(0, size);
+  }
 };
