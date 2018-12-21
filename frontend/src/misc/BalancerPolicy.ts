@@ -1,4 +1,4 @@
-import { balancers } from "../tileDisplay/Constants";
+import { balancers } from "../Constants";
 /**
  * All available balancers
  */

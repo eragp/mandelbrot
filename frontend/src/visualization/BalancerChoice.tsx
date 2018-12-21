@@ -1,6 +1,6 @@
 import * as React from "react";
 import BalancerPolicy from "../misc/BalancerPolicy";
-import { balancers } from "../tileDisplay/Constants";
+import { balancers } from "../Constants";
 
 interface BalancerChoiceProps {
   balancerPolicy: BalancerPolicy;
