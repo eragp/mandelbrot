@@ -9,8 +9,9 @@ import {
 } from "chart.js";
 import WebSocketClient from "../connection/WSClient";
 
-import "./NodeProgress.css";
+import "./ComputationTime.css";
 import WorkerContext from "../misc/WorkerContext";
+import { RegionGroup } from "../misc/RegionGroup";
 
 interface NodeProgressProps {
   workerContext: WorkerContext;
@@ -33,6 +34,8 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
   private hoveredItem: any;
   private hoveredSegment: any;
   private interval: NodeJS.Timer;
+
+  private groups: RegionGroup[];
 
   constructor(props: NodeProgressProps) {
     super(props);
@@ -97,17 +100,24 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
     // so that they are set inactive when the first tile/region
     // by them comes in
     this.websocketClient.registerRegionData(data => {
-      // Stop corresponding worker progress bar
+      // Stop corresponding group progress bar
       // assume that regionData is passed here
-      const workerID = data.workerInfo.rank;
+      const workerRank = data.workerInfo.rank;
+      let group = this.groups.find(g => g.getRanks().some(r => r === workerRank));
+      if (!group) {
+        console.error("No group found with rank: " + workerRank);
+        return;
+      }
+      group.computationTime += data.workerInfo.computationTime;
       // Pay attention here that ranks begin from 1 as long as the host does not send data on his own
-      this.chartState.active.set(workerID, false);
+      this.chartState.active.set(group.id, false);
       // insert correct µs time in node value
-      this.chartState.progress.set(workerID, data.workerInfo.computationTime);
+      this.chartState.progress.set(group.id, group.computationTime);
       this.updateChart();
     });
 
-    this.websocketClient.registerRegion(group => {
+    this.websocketClient.registerRegion(groups => {
+      this.groups = groups;
       // Stop redrawing
       this.stopNodeProgress();
       // Reset node progress
@@ -116,7 +126,7 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
       const progress = new Map();
 
       const animationDuration = 750;
-      for (const region of group) {
+      for (const region of groups) {
         nodes.push(region.id);
         active.set(region.id, true);
         progress.set(region.id, animationDuration * 1000);
@@ -144,16 +154,16 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
       const tooltip = (this.chart as any).tooltip;
       if (activeWorker !== undefined) {
         const workerIndex = this.chartState.nodes.indexOf(activeWorker);
-      // @ts-ignore: does not have complete .d.ts file
+        // @ts-ignore: does not have complete .d.ts file
         const activeSegment = datasets[0]._meta[1].data[workerIndex];
         tooltip.initialize();
         tooltip._active = [activeSegment];
-      // @ts-ignore: does not have complete .d.ts file
+        // @ts-ignore: does not have complete .d.ts file
         datasets[0]._meta[1].controller.setHoverStyle(activeSegment);
         this.hoveredSegment = activeSegment;
       } else {
         // Remove tooltip
-      // @ts-ignore: does not have complete .d.ts file
+        // @ts-ignore: does not have complete .d.ts file
         datasets[0]._meta[1].controller.removeHoverStyle(this.hoveredSegment);
         tooltip._active = [];
       }
@@ -183,6 +193,16 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
       colorSet.push(this.props.workerContext.getWorkerColor(rank));
       values.push(this.chartState.progress.get(rank) as number);
     });
+    const formatTime = (time: number) => {
+      const units = ["μs", "ms", "s"];
+      let t = time,
+        i = 0;
+      while (i != units.length && t > 100) {
+        t = t / 1000;
+        i++;
+      }
+      return (Math.round(t * 100) / 100).toFixed(2) + " " + units[i];
+    };
 
     const data = {
       labels,
@@ -199,8 +219,8 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
     this.chartState.progress.forEach(value => {
       computationTime += value;
     });
-    (((this.chart.config.options as ChartOptions).title as ChartTitleOptions).text as string[])[1] =
-      computationTime + " µs";
+    (((this.chart.config.options as ChartOptions).title as ChartTitleOptions)
+      .text as string[])[1] = formatTime(computationTime);
 
     this.chart.update(animationDuration);
   }
