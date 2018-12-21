@@ -193,15 +193,15 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
       colorSet.push(this.props.workerContext.getWorkerColor(rank));
       values.push(this.chartState.progress.get(rank) as number);
     });
-    const formatTime = (time: number) => {
+
+    const usToString = (time: number) => {
       const units = ["μs", "ms", "s"];
-      let t = time,
-        i = 0;
-      while (i != units.length && t > 100) {
-        t = t / 1000;
+      let i = 0;
+      while (i != units.length && time > 1000) {
+        time = time / 1000;
         i++;
       }
-      return (Math.round(t * 100) / 100).toFixed(2) + " " + units[i];
+      return (Math.round(time * 100) / 100).toFixed(2) + " " + units[i];
     };
 
     const data = {
@@ -220,7 +220,7 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
       computationTime += value;
     });
     (((this.chart.config.options as ChartOptions).title as ChartTitleOptions)
-      .text as string[])[1] = formatTime(computationTime);
+      .text as string[])[1] = usToString(computationTime);
 
     this.chart.update(animationDuration);
   }
