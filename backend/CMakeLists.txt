@@ -7,9 +7,11 @@ include_directories(include)
 # load all the *.cpp files
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 list(FILTER SOURCES EXCLUDE REGEX ".*main\.cpp")
+list(FILTER SOURCES EXCLUDE REGEX ".*Host\.cpp")
+list(FILTER SOURCES EXCLUDE REGEX ".*Worker\.cpp")
 #set(TARGET_NAME mandelbrot)
-add_executable(host "src/host.main.cpp" ${SOURCES})
-add_executable(worker "src/worker.main.cpp" ${SOURCES})
+add_executable(host "src/host.main.cpp" "src/actors/Host.cpp" ${SOURCES})
+add_executable(worker "src/worker.main.cpp" "src/actors/Worker.cpp" ${SOURCES})
 # load libraries
 find_package(MPI REQUIRED)
 include_directories(${MPI_INCLUDE_PATH})
