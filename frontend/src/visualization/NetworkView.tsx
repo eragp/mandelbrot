@@ -9,7 +9,7 @@ import "./NetworkView.css";
 import workerImage from "./img/worker.backgroundCircle.svg";
 import serverImage from "./img/server.backgroundCircle.svg";
 import applicationImage from "./img/application.backgroundCircle.svg";
-import WorkerContext from "../misc/WorkerContext";
+import WorkerContext from "../misc/GroupContext";
 import { RegionGroup } from "../misc/RegionGroup";
 
 interface NetworkViewProps {

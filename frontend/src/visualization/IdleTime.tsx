@@ -6,12 +6,13 @@ import {
   ChartConfiguration,
   ChartDataSets,
   ChartOptions,
-  ChartHoverOptions,
+  ChartHoverOptions
 } from "chart.js";
 import WebSocketClient from "../connection/WSClient";
 
 import "./IdleTime.css";
-import WorkerContext from "../misc/WorkerContext";
+import WorkerContext from "../misc/GroupContext";
+import { RegionGroup } from "../misc/RegionGroup";
 
 interface IdleTimeProps {
   wsclient: WebSocketClient;
@@ -34,6 +35,8 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
 
   private hoveredItem: any;
   private hoveredSegment: any;
+
+  private groups: RegionGroup[];
 
   constructor(props: IdleTimeProps) {
     super(props);
@@ -132,16 +135,22 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
       // Stop corresponding worker progress bar
       // assume that regionData is passed here
       // Pay attention here that ranks begin from 1 as long as the host does not send data on his own
-      const workerID = data.workerInfo.rank;
-
+      const workerRank = data.workerInfo.rank;
+      let group = this.groups.find(g => g.getRanks().some(r => r === workerRank));
+      if (!group) {
+        console.error("No group found with rank: " + workerRank);
+        return;
+      }
       // Note that it is not active anymore
-      this.chartState.active.set(workerID, false);
+      this.chartState.active.set(group.id, false);
+      // group.computationTime += data.workerInfo.computationTime;
       // insert correct µs time in node value
-      this.chartState.progress.set(workerID, data.workerInfo.computationTime);
+      this.chartState.progress.set(group.id, group.computationTime);
       this.updateChart(0);
     });
 
     this.props.wsclient.registerRegion(group => {
+      this.groups = group;
       // Stop redrawing
       this.stopNodeProgress();
       // Reset node progress
@@ -150,7 +159,6 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
       const progress = new Map();
 
       let animationDuration = 750;
-
       for (let region of group) {
         nodes.push(region.id);
         active.set(region.id, true);

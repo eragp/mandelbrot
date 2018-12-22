@@ -57,7 +57,7 @@ export default class WebSocketClient {
           {
             // filter empty regions
             let r = (<Regions>msg).regions.filter(r => !isEmptyRegion(r.region));
-            let g = groupRegions(r);
+            let g = groupRegions(r)
             // Notify region subdivision listeners
             regionCallback.forEach(call => call(g));
           }

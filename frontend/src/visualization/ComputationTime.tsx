@@ -10,7 +10,7 @@ import {
 import WebSocketClient from "../connection/WSClient";
 
 import "./ComputationTime.css";
-import WorkerContext from "../misc/WorkerContext";
+import WorkerContext from "../misc/GroupContext";
 import { RegionGroup } from "../misc/RegionGroup";
 
 interface NodeProgressProps {

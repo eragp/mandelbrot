@@ -19,7 +19,7 @@ import MatrixView from "./MatrixView";
 import BalancerPolicy from "../misc/BalancerPolicy";
 import WebSocketClient from "../connection/WSClient";
 import WorkerLayer from "./WorkerLayer";
-import WorkerContext from "../misc/WorkerContext";
+import WorkerContext from "../misc/GroupContext";
 import { setURLParams } from "../misc/URLParams";
 import RegionOfInterest from "./RegionOfInterest";
 
