@@ -96,6 +96,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
     // Handle balancer change as view change
     //  => update all view subscribers about a policy change as if the view had changed
     this.props.balancer.subscribe(() => this.updateAllViews());
+    this.props.implementation.subscribe(() => this.updateAllViews());
 
     // add event listeners to the map for region requests
     map.on({

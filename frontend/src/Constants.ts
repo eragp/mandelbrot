@@ -69,7 +69,7 @@ export const Implementations: Implementation[] = [
     description: "TODO: add doc"
   },
   {
-    key: "mmandelbrot64",
+    key: "mandelbrot64",
     title: "64 bit float",
     description: "TODO: add doc"
   },

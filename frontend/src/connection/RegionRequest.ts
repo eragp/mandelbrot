@@ -7,6 +7,7 @@ import { Map } from "leaflet";
 let currentTopLeft: Point3D;
 let currentBottomRight: Point3D;
 let currentBalancer: string;
+let currentImplementation: string;
 /**
  *  Sends a region request for the currently visible region
  *
@@ -25,7 +26,8 @@ export const request = (map: Map, balancer: string, implementation: string) => {
   if (
     topLeft.equals(currentTopLeft) &&
     botRight.equals(currentBottomRight) &&
-    currentBalancer === balancer
+    currentBalancer === balancer &&
+    currentImplementation === implementation
   ) {
     return;
   }
@@ -40,6 +42,7 @@ export const request = (map: Map, balancer: string, implementation: string) => {
     Math.abs(topLeft.y - botRight.y) * TileSize
   ];
   const region = {
+    type: "regionRequest",
     region: {
       // point top left
       minReal: tlComplex.x,
@@ -57,13 +60,12 @@ export const request = (map: Map, balancer: string, implementation: string) => {
       validation: zoom,
       // Divisor for width and height. Will be used to perform load balancing
       guaranteedDivisor: TileSize,
-      maxIteration: MaxIteration,
+      maxIteration: MaxIteration
     },
-    type: "regionRequest",
     balancer,
-    fractal: "mandelbrotsimd32",
+    fractal: implementation
   };
-  // console.log("sending Region request: ");
-  // console.log(region);
+  console.log("sending Region request: ");
+  console.log(region);
   return region;
 };

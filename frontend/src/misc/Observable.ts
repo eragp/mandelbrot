@@ -16,8 +16,9 @@ class Observable<T> {
   }
 
   set(data: T) {
+    console.log(data, this.possibleValues);
     if (this.possibleValues && !this.possibleValues.includes(data)) {
-      console.error(`Invalid data: ${data}`);
+      console.error(`${data} not in ${this.possibleValues}`);
       return false;
     } else if (this.data !== data) {
       this.data = data;

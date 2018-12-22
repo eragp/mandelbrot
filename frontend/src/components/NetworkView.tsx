@@ -142,8 +142,7 @@ export default class NetworkView extends React.Component<NetworkViewProps, {}> {
     });
 
     this.groups.forEach((group, i) => {
-      // const color = this.props.workerContext.getWorkerColor(rank);
-      const color = this.props.group.set(group.id);
+      const color = this.props.group.getColor(group.id);
       const level = Math.floor(i / 2) + 2;
       const id = group.id + 2;
       // push group node

@@ -118,32 +118,36 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
 
     Region region{};
     const char* balancer;
-    enum fractal_type fractal = mandelbrot;
+    enum fractal_type fractal;
     Fractal* fractal_bal = nullptr;
     try {
         balancer = request["balancer"].GetString();
-        if(request.HasMember("fractal")
-            && request["fractal"].IsString()){
-            const char* reg_fractal = request["fractal"].GetString();
-            // Case insensitive compares (just convenience for frontend devs)
-            if(boost::iequals(reg_fractal, "mandelbrot32")){
-                fractal = mandelbrot32;
-                fractal_bal = new Mandelbrot32();
-            }
-            else if(boost::iequals(reg_fractal, "mandelbrot64")){
-                fractal = mandelbrot64;
-                fractal_bal = new Mandelbrot64();
-            }
-            else if(boost::iequals(reg_fractal, "mandelbrotsimd32")){
-                fractal = mandelbrotSIMD32;
-                fractal_bal = new Mandelbrot32();
-            }
-            else if(boost::iequals(reg_fractal, "mandelbrotsimd64")){
-                fractal = mandelbrotSIMD64;
-                fractal_bal = new Mandelbrot64();
-            }
-            std::cout << "Host: chose fractal " << reg_fractal << std::endl;
+        const char * fractal_str = request["fractal"].GetString();
+        // Case insensitive compares (just convenience for frontend devs)
+        if(boost::iequals(fractal_str, "mandelbrot32")){
+            fractal = mandelbrot32;
+            fractal_bal = new Mandelbrot32();
         }
+        else if(boost::iequals(fractal_str, "mandelbrot64")){
+            fractal = mandelbrot64;
+            fractal_bal = new Mandelbrot64();
+        }
+        else if(boost::iequals(fractal_str, "mandelbrotsimd32")){
+            fractal = mandelbrotSIMD32;
+            fractal_bal = new Mandelbrot32();
+        }
+        else if(boost::iequals(fractal_str, "mandelbrotsimd64")){
+            fractal = mandelbrotSIMD64;
+            fractal_bal = new Mandelbrot64();
+        }
+        else if(boost::iequals(fractal_str, "mandelbrot")){
+            fractal = mandelbrot;
+            fractal_bal = new Mandelbrot();
+        } else {
+            std::cerr << "Inclompletely specified region requested: " << request_string;
+            return;
+        }
+        std::cout << "Host: chose fractal " << fractal_str << std::endl;
 
         region.minReal = request["region"]["minReal"].GetDouble();
         region.maxImaginary = request["region"]["maxImag"].GetDouble();
@@ -164,12 +168,6 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     } catch (std::out_of_range &e) {
         std::cerr << "Inclompletely specified region requested: " << request_string;
         return;
-    }
-
-    if (fractal_bal == nullptr) {
-        fractal = mandelbrot;
-        fractal_bal = new Mandelbrot();
-        std::cout << "Host: chose fractal " << "mandelbrot" << std::endl;
     }
 
     // DEBUG
