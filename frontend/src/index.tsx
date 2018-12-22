@@ -10,15 +10,15 @@ import WebSocketClient from "./connection/WSClient";
 import { getURLParams } from "./misc/URLParams";
 
 // Custom Components
-import NodeProgress from "./visualization/NodeProgress";
-import BalancerChoice from "./visualization/BalancerChoice";
+import NodeProgress from "./components/NodeProgress";
 import BalancerPolicy from "./misc/BalancerPolicy";
 import WorkerContext from "./misc/WorkerContext";
-import NetworkView from "./visualization/NetworkView";
-import IdleTime from "./visualization/IdleTime";
+import NetworkView from "./components/NetworkView";
+import IdleTime from "./components/IdleTime";
 
 // CSS
 import "./index.css";
+import SelectBox from "./components/SelectBox";
 
 class App extends React.Component<{}, {}> {
   render() {
@@ -32,7 +32,7 @@ class App extends React.Component<{}, {}> {
     // window.history.replaceState({}, '', `${document.location.pathname}?${params}`);
 
     return (
-      <div>
+      <div className="index">
         <div className="mainTop">
           <TileDisplay
             workerContext={workerContext}
@@ -43,9 +43,9 @@ class App extends React.Component<{}, {}> {
         </div>
         <div className="mainBottom row">
           <div className="col-3">
-            <BalancerChoice balancerPolicy={balancerPolicy} />
+            <SelectBox balancer={balancerPolicy} />
           </div>
-          <div className="col-5">
+          <div className="col">
             <NetworkView workerContext={workerContext} wsclient={websocketclient} />
           </div>
           <div className="col-1">

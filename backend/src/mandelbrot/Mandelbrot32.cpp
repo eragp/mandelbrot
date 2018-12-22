@@ -23,8 +23,8 @@ void Mandelbrot32::calculateFractal(precision_t* cReal, precision_t* cImaginary,
         dest[j] = calculateFractalNonParallel32(cReal[j], cImaginary[j], maxIteration);
     }
 }
-#else
 
+#else
 void Mandelbrot32::calculateFractal(precision_t* cReal, precision_t* cImaginary, int maxIteration, int vectorLength, int* dest) {
     for(int j = 0; j < vectorLength; j++){
         dest[j] = 0;

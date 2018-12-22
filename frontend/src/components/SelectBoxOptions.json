@@ -1,0 +1,54 @@
+{
+    "balancer":{
+       "active":"naive",
+       "title":"Loadbalancer",
+       "items":[
+          {
+             "key":"naive",
+             "title":"Naive Balancer",
+             "description":"Divides the visible region into rectangles of equal size."
+          },
+          {
+             "key":"column",
+             "title":"Column Balancer",
+             "description":"Divides the visible region along the x Axis into columns."
+          },
+          {
+             "key":"prediction",
+             "title":"Prediction Balancer",
+             "description":"Uses a low resolution of the mandelbrot set to determine an optimal division."
+          }
+       ]
+    },
+    "impl":{
+       "active":"mandelbrot",
+       "title":"Implementation",
+       "items":[
+          {
+             "key":"mandelbrot",
+             "title":"Default Implementation",
+             "description":"TODO: add doc"
+          },
+          {
+             "key":"mandelbrot32",
+             "title":"32 bit float",
+             "description":"TODO: add doc"
+          },
+          {
+             "key":"mmandelbrot64",
+             "title":"64 bit float",
+             "description":"TODO: add doc"
+          },
+          {
+             "key":"mandelbrotsimd32",
+             "title":"SIMD 32 bit",
+             "description":"TODO: add doc"
+          },
+          {
+             "key":"mandelbrotsimd64",
+             "title":"SIMD 64 bit",
+             "description":"TODO: add doc"
+          }
+       ]
+    }
+ }

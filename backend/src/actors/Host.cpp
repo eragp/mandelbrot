@@ -121,7 +121,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     Region region{};
     const char* balancer;
     enum fractal_type fractal = mandelbrot;
-    Fractal* fractal_bal = new Mandelbrot();
+    Fractal* fractal_bal = nullptr;
     try {
         balancer = request["balancer"].GetString();
         if(request.HasMember("fractal")
@@ -144,6 +144,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
                 fractal = mandelbrotSIMD64;
                 fractal_bal = new Mandelbrot64();
             }
+            std::cout << "Host: chose fractal " << reg_fractal << std::endl;
         }
 
         region.minReal = request["region"]["minReal"].GetDouble();
@@ -165,6 +166,12 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     } catch (std::out_of_range &e) {
         std::cerr << "Inclompletely specified region requested: " << request_string;
         return;
+    }
+
+    if (fractal_bal == nullptr) {
+        fractal = mandelbrot;
+        fractal_bal = new Mandelbrot();
+        std::cout << "Host: chose fractal " << "mandelbrot" << std::endl;
     }
 
     // DEBUG
