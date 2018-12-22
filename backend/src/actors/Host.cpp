@@ -205,7 +205,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         }
         mpi_send_regions = true;
     }
-    std::cout << "Transmit angefordert" << std::endl;
+    std::cout << "Sending Region division" << std::endl;
 
     Document reply;
     reply.SetObject();

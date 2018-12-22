@@ -1,4 +1,6 @@
 #include "Mandelbrot64.h"
+
+#ifdef __ARM_NEON
 #include <arm_neon.h>
 
 int calculateFractalNonParallel64(precision_t cReal, precision_t cImaginary, int maxIteration){
@@ -21,3 +23,11 @@ void Mandelbrot64::calculateFractal(precision_t* cReal, precision_t* cImaginary,
         dest[j] = calculateFractalNonParallel64(cReal[j], cImaginary[j], maxIteration);
     }
 }
+#else
+
+void Mandelbrot64::calculateFractal(precision_t* cReal, precision_t* cImaginary, int maxIteration, int vectorLength, int* dest) {
+    for(int j = 0; j < vectorLength; j++){
+        dest[j] = 0;
+    }
+}
+#endif 

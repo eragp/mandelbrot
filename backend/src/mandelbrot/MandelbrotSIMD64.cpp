@@ -2,8 +2,10 @@
 #include <algorithm>
 #include <stdexcept>
 #include <vector>
-#include <arm_neon.h>
 #include <iostream>
+
+#ifdef __ARM_NEON
+#include <arm_neon.h>
 
 // Note that this is set for Raspi3 and Odroid (ARM Cortex A53)
 // According to https://developer.arm.com/technologies/neon and https://en.wikipedia.org/wiki/ARM_Cortex-A53
@@ -67,3 +69,12 @@ void MandelbrotSIMD64::calculateFractal(precision_t* cRealArray, precision_t* cI
     dest += 2;
     }
 }
+
+#else
+
+void MandelbrotSIMD64::calculateFractal(precision_t* cReal, precision_t* cImaginary, int maxIteration, int vectorLength, int* dest) {
+    for(int j = 0; j < vectorLength; j++){
+        dest[j] = 0;
+    }
+}
+#endif 
