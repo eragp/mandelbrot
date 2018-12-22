@@ -166,6 +166,19 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
                   << blocks[i].width << ", " << blocks[i].height << ")" << std::endl;
     }
 
+    // Delete empty subregions
+    std::vector<Region> newBlocks;
+    for (int i = 0 ; i < nodeCount ; i++) {
+        if ((blocks[i].minReal == blocks[i].maxReal && blocks[i].maxImaginary == blocks[i].minImaginary) || blocks[i].width == 0 || blocks[i].height == 0) {
+            std::cout << "Empty Region " << i << " deleted." << std::endl;
+        } else {
+            newBlocks.push_back(blocks[i]);
+        }
+    }
+    blocks = &newBlocks[0];
+    nodeCount = newBlocks.size();
+    std::cout << "There are " << nodeCount << " Regions to compute" << std::endl;
+
     // Send regions to MPI-Thread
     {
         std::lock_guard<std::mutex> lock(transmit_regions_lock);
