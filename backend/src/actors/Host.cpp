@@ -47,7 +47,9 @@ const int default_res = 256;
 // Init values with some arbitrary value
 int Host::maxIteration = 200;
 int Host::world_size = 0;
-std::vector<int> Host::activeNodes;
+
+// Defines if a Node can or should be used
+bool* Host::usableNodes;
 
 // Store for the current big region
 Region Host::current_big_region;
@@ -57,10 +59,6 @@ std::mutex Host::current_big_region_lock;
 bool Host::mpi_send_regions = false;
 std::map<int, Region> Host::transmit_regions;
 std::mutex Host::transmit_regions_lock;
-
-// Store send MPI Requests
-std::map<int, Region> Host::transmitted_regions;
-std::mutex Host::transmitted_regions_lock;
 
 // Websocket server
 websocketpp::server<websocketpp::config::asio> Host::websocket_server;
@@ -189,7 +187,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         current_big_region = region;
     }
 
-    int nodeCount = activeNodes.size();
+    int nodeCount = world_size - 1;
     Balancer *b = BalancerPolicy::chooseBalancer(balancer, fractal_bal);
     Region *blocks = b->balanceLoad(region, nodeCount);  // Blocks is array with nodeCount members
     // DEBUG
@@ -201,18 +199,49 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
                   << blocks[i].width << ", " << blocks[i].height << ")" << std::endl;
     }
 
+    // Delete empty subregions
+    std::vector<Region> newBlocks;
+    for (int i = 0 ; i < nodeCount ; i++) {
+        if ((blocks[i].minReal == blocks[i].maxReal && blocks[i].maxImaginary == blocks[i].minImaginary) || blocks[i].width == 0 || blocks[i].height == 0) {
+            std::cout << "Empty Region " << i << " deleted." << std::endl;
+        } else {
+            newBlocks.push_back(blocks[i]);
+        }
+    }
+    blocks = &newBlocks[0];
+    nodeCount = newBlocks.size();
+    std::cout << "There are " << nodeCount << " Regions to compute" << std::endl;
+
+    for (int i = 0; i < nodeCount; i++) {
+        std::cout << "Region " << i << ": "
+                  << " TopLeft: (" << blocks[i].minReal << ", " << blocks[i].maxImaginary << ") -> BottomRight: ("
+                  << blocks[i].maxReal << ", " << blocks[i].minImaginary << ") Resolution: ("
+                  << blocks[i].width << ", " << blocks[i].height << ")" << std::endl;
+    }
+
     // Send regions to MPI-Thread
     {
         std::lock_guard<std::mutex> lock(transmit_regions_lock);
+        transmit_regions.clear();
         for (int i = 0 ; i < nodeCount ; i++) {
             Region small_region = blocks[i];
+            // Pass through fractal type
             small_region.fractal = fractal;
-            int rank_worker = activeNodes.at(i);
-            transmit_regions[rank_worker] = small_region;
+            transmit_regions[i] = small_region;
         }
         mpi_send_regions = true;
     }
     std::cout << "Sending Region division" << std::endl;
+
+    // Determine which Worker gets which Region
+    int region_to_worker[nodeCount];
+    int counter = 0;
+    for (int rank = 0 ; rank < world_size && counter < nodeCount ; rank++) {
+        if (usableNodes[rank] == true) {
+            std::cout << "Region " << counter << " will be computed by Worker " << rank << std::endl;
+            region_to_worker[counter++] = rank;
+        }
+    }
 
     Document reply;
     reply.SetObject();
@@ -245,7 +274,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
 
         Value entry;
         entry.SetObject();
-        entry.AddMember("rank", activeNodes.at(i), reply.GetAllocator());
+        entry.AddMember("rank", region_to_worker[i], reply.GetAllocator());
         entry.AddMember("computationTime", 0, reply.GetAllocator());
         entry.AddMember("region", region, reply.GetAllocator());
 
@@ -330,40 +359,47 @@ void Host::send(RegionData data) {
 void Host::init(int world_rank, int world_size) {
     MPI_Comm_set_errhandler(MPI_COMM_WORLD,MPI_ERRORS_RETURN); /* return info about errors */
     Host::world_size = world_size;
-    int cores = world_size;
-    int my_rank = world_rank;
     std::cout << "Host init " << world_size << std::endl;
 
     // Websockets
     // Start a thread that hosts the server
     std::thread websocket_server(start_server);
 
+    // Init usableNodes and set Host as not usable
+    usableNodes = new bool[world_size];
+    usableNodes[world_rank] = false;
+
     // Test if all cores are available
     // We assume from programs side that all cores *are* available, this allows Workers to get the Host rank
-    activeNodes = std::vector<int>();
-    for (int i = 0; i < cores; i++) {
-        if(i != my_rank){
-            int testSend = i;
-            MPI_Send((const void *) &testSend, 1, MPI_INT, i, 10, MPI_COMM_WORLD);
+    for (int rank = 0; rank < world_size; rank++) {
+        if(rank != world_rank){
+            int testSend = rank;
+            MPI_Send((const void *) &testSend, 1, MPI_INT, rank, 10, MPI_COMM_WORLD);
             int testReceive;
-            MPI_Recv(&testReceive, 1, MPI_INT, i, 11, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Recv(&testReceive, 1, MPI_INT, rank, 11, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
             if (testSend == testReceive) {
-                std::cout << "Host: Core " << i << " ready!" << std::endl;
+                std::cout << "Host: Core " << rank << " ready!" << std::endl;
+                usableNodes[rank] = true;
+            } else {
+                std::cout << "Host: Core " << rank << " NOT ready! This core won't be used by default." << std::endl;
+                usableNodes[rank] = false;
             }
-            activeNodes.push_back(i);
         }
     }
 
-    // Approximately the time that MPI communication with one Worker has taken in microseconds
-    std::chrono::high_resolution_clock::time_point *mpiCommunicationStart = new std::chrono::high_resolution_clock::time_point[activeNodes.size()];
-    unsigned long *mpiCommunicationTime = new unsigned long[activeNodes.size()];
+    // TODO: ENTFERNEN
+    // usableNodes[2] = false;
 
-    // Init persistent asynchronous send
-    MPI_Request region_requests[activeNodes.size()];
-    MPI_Status region_status[activeNodes.size()];
-    for (int i = 0 ; i < (int) activeNodes.size() ; i++) {
-        int rank_worker = activeNodes.at(i);
-        MPI_Send_init(&transmit_regions[rank_worker], sizeof(Region), MPI_BYTE, rank_worker, 1, MPI_COMM_WORLD, &region_requests[i]);
+    // Approximately the time that MPI communication with one Worker has taken in microseconds
+    std::chrono::high_resolution_clock::time_point *mpiCommunicationStart = new std::chrono::high_resolution_clock::time_point[world_size];
+    unsigned long *mpiCommunicationTime = new unsigned long[world_size];
+
+    // Init persistent asynchronous send. Each process gets his own Request, Status and Buffer
+    MPI_Request region_requests[world_size];
+    MPI_Status region_status[world_size];
+    Region persistent_send_buffer[world_size];
+    for (int rank = 0 ; rank < world_size ; rank++) {
+        MPI_Send_init(&persistent_send_buffer[rank], sizeof(Region), MPI_BYTE, rank, 1, MPI_COMM_WORLD, &region_requests[rank]);
     }
   
     // MPI communication between Host and Workers (send region requests and receive computed data) and start websocket send
@@ -372,22 +408,24 @@ void Host::init(int world_rank, int world_size) {
         {
             std::lock_guard<std::mutex> lock(transmit_regions_lock);
             if (mpi_send_regions == true) {
-                int nodeCount = activeNodes.size();
-                for (int i = 0 ; i<nodeCount ; i++) {
-                    int rank_worker = activeNodes.at(i);
-                    std::cout << "Host: Start invoking core " << rank_worker << std::endl;
-                    // Start the clock for MPI communication
-                    mpiCommunicationStart[i] = std::chrono::high_resolution_clock::now();
-                    // Start send to one Worker using persistent asynchronous send
-                    MPI_Start(&region_requests[i]);
-                    {
-                        std::lock_guard<std::mutex> lock(transmitted_regions_lock);
-                        transmitted_regions[rank_worker] = transmit_regions[rank_worker];
+                unsigned int transmit_counter = 0;
+                for (int rank = 0 ; rank < world_size && transmit_counter < transmit_regions.size() ; rank++) {
+                    if (usableNodes[rank] == true) {
+                        std::cout << "Host: Start invoking core " << rank << std::endl;
+                        // Copy requested Region from joint datastructure "transmit_regions" to MPI Send buffer "persistent_send_buffer"
+                        std::memcpy(&persistent_send_buffer[rank], &transmit_regions[transmit_counter++], sizeof(Region));
+                        // Start the clock for MPI communication
+                        mpiCommunicationStart[rank] = std::chrono::high_resolution_clock::now();
+                        // Start send to one Worker using persistent asynchronous send
+                        MPI_Start(&region_requests[rank]);
                     }
+                }
+                if (transmit_counter != transmit_regions.size()) {
+                    std::cerr << "Not enough Workers to compute all subregions." << std::endl;
                 }
                 std::cout << "Host: Start invoking all cores done." << std::endl;
                 // Wait to complete all send operations
-                MPI_Waitall(nodeCount, region_requests, region_status);
+                MPI_Waitall(world_size, region_requests, region_status);
                 std::cout << "Host: Waitall returned. All send operations are complete." << std::endl;
                 mpi_send_regions = false;
             }
@@ -421,18 +459,13 @@ void Host::init(int world_rank, int world_size) {
             // Extract "workerInfo" from the received message
             WorkerInfo workerInfo;
             std::memcpy(&workerInfo, recv, sizeof(WorkerInfo));
-            Region rendered_region{};
-            {
-                std::lock_guard<std::mutex> lock(transmitted_regions_lock);
-                rendered_region = transmitted_regions[workerInfo.rank];
-            }
-            unsigned int region_size = rendered_region.getPixelCount();
 
             // Compute time approximately used for MPI communication
-            mpiCommunicationTime[workerInfo.rank - 1] = std::chrono::duration_cast<std::chrono::microseconds>(mpiCommunicationEnd - mpiCommunicationStart[workerInfo.rank - 1]).count() - workerInfo.computationTime;
-            std::cout << "Host: MPI communication with Worker " << workerInfo.rank << " took approximately " << mpiCommunicationTime[workerInfo.rank - 1] << " microseconds." << std::endl;
+            mpiCommunicationTime[workerInfo.rank] = std::chrono::duration_cast<std::chrono::microseconds>(mpiCommunicationEnd - mpiCommunicationStart[workerInfo.rank]).count() - workerInfo.computationTime;
+            std::cout << "Host: MPI communication with Worker " << workerInfo.rank << " took approximately " << mpiCommunicationTime[workerInfo.rank] << " microseconds." << std::endl;
         
             // Extract "worker_data" from the received message
+            unsigned int region_size = workerInfo.region.getPixelCount();
             int* worker_data = new int[region_size];
             std::memcpy(worker_data, recv + sizeof(WorkerInfo), region_size * sizeof(int));
             std::cout << "Host: Receive from Worker " << workerInfo.rank << " complete." << std::endl;
