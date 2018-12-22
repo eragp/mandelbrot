@@ -1,4 +1,4 @@
-import Point3D from "../misc/Point";
+import { Point3D } from "../misc/Point";
 
 /**
  * Represents a view on the data of the rectangle defined by tl, br.

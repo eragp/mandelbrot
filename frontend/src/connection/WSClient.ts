@@ -46,7 +46,9 @@ export default class WebSocketClient {
       switch (msg.type) {
         case "regionData":
           // Notify regionData/worker observers
-          workerCallback.forEach(call => call(<RegionData>msg));
+          workerCallback.forEach(call => {
+            call(<RegionData>msg);
+          });
           break;
         case "region":
           // Notify region subdivision listeners
@@ -63,7 +65,6 @@ export default class WebSocketClient {
     this.socket.close();
   }
 
-  // TODO typisize this parameter
   public sendRequest(request: {}) {
     const message = JSON.stringify(request);
     if (this.socket.readyState === this.socket.OPEN) {
