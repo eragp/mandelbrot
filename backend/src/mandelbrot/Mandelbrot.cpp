@@ -1,7 +1,7 @@
 #include "Mandelbrot.h"
 
-int Mandelbrot::calculateFractal(long double cReal, long double cImaginary, int maxIteration) {
-    int i = 0;
+int Mandelbrot::calculateFractal(long double cReal, long double cImaginary, unsigned short int maxIteration) {
+    unsigned short int i = 0;
     long double zReal = 0.0;
     long double zImaginary = 0.0;
     while (i < maxIteration && zReal * zReal + zImaginary * zImaginary < 4.0) {

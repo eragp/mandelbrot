@@ -30,7 +30,7 @@ struct Region {
     /**
     * Maximum n value for iteration in this region.
     */
-    unsigned int maxIteration;
+    unsigned short int maxIteration;
 
     /**
     * Frontend specific information, identification/validation value, do not touch
