@@ -9,10 +9,18 @@
 
 ## Quick Start
 
-To run the build pipeline a current version of `docker` needs to 
-be installed on the host system
+On Unix-like machines, make sure to have `rsync`, `ssh` and `python3` (3.5 or newer) installed.
+From this folder (`backend`) run
+```bash
+./run_himmuc.sh -h
+```
+
+For running from other hosts and more details, please refer to the documentation in `himmuc`.
 
 ### Development
+
+To run the build pipeline a current version of `docker` needs to 
+be installed on the host system
 
 For testing the app on the local machine just run the `build` script `backend/run.sh`.
 

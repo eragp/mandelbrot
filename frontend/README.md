@@ -36,12 +36,6 @@ Download all required libraries:
 $ npm install
 ```
 
-Current workaround:
-Manually place leaflet-src.js from the forked version in the node_modules folder.
-```bash
-$ wget https://raw.githubusercontent.com/nielstron/Leaflet/fixed-ratio-selection-rectangle-build/dist/leaflet-src.js -O ./node_modules/leaflet/dist/leaflet-src.js
-```
-
 Start the local server:
 
 ```bash

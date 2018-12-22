@@ -15,9 +15,9 @@
 #include <mpi.h>
 
 // Json
-#include "rapidjson/document.h"
-#include "rapidjson/writer.h"
-#include "rapidjson/stringbuffer.h"
+#include <rapidjson/document.h>
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
 
 // Websockets
 #include <websocketpp/config/asio_no_tls.hpp>
@@ -65,12 +65,19 @@ void Host::start_server() {
     //print_server.set_message_handler(&listener_region);
 
     websocket_server.init_asio();
+    // std::cout << "Run perpetual\n";
     websocket_server.start_perpetual();
-    websocket_server.listen(9002);
+    // std::cout << "Set listener\n";
+    // Use IPv4 explicitely
+    websocket_server.listen(websocketpp::lib::asio::ip::tcp::v4(), 9002);
+    // std::cout << "Start accepting\n";
     websocket_server.start_accept();
 
+    // std::cout << "Set open handler\n";
     websocket_server.set_open_handler(&register_client);
+    // std::cout << "Set close handler\n";
     websocket_server.set_close_handler(&deregister_client);
+    // std::cout << "Set message handler\n";
     websocket_server.set_message_handler(&handle_region_request);
 
     // How about not logging everything?
@@ -157,6 +164,19 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
                   << blocks[i].maxReal << ", " << blocks[i].minImaginary << ") Resolution: ("
                   << blocks[i].width << ", " << blocks[i].height << ")" << std::endl;
     }
+
+    // Delete empty subregions
+    std::vector<Region> newBlocks;
+    for (int i = 0 ; i < nodeCount ; i++) {
+        if ((blocks[i].minReal == blocks[i].maxReal && blocks[i].maxImaginary == blocks[i].minImaginary) || blocks[i].width == 0 || blocks[i].height == 0) {
+            std::cout << "Empty Region " << i << " deleted." << std::endl;
+        } else {
+            newBlocks.push_back(blocks[i]);
+        }
+    }
+    blocks = &newBlocks[0];
+    nodeCount = newBlocks.size();
+    std::cout << "There are " << nodeCount << " Regions to compute" << std::endl;
 
     // Send regions to MPI-Thread
     {
@@ -292,8 +312,7 @@ void Host::send(RegionData data) {
 }
 
 void Host::init(int world_rank, int world_size) {
-    MPI_Errhandler_set(MPI_COMM_WORLD,MPI_ERRORS_RETURN); /* return info about errors */
-    
+    MPI_Comm_set_errhandler(MPI_COMM_WORLD,MPI_ERRORS_RETURN); /* return info about errors */
     Host::world_size = world_size;
     std::cout << "Host init " << world_size << std::endl;
 

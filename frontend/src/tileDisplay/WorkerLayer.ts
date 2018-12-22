@@ -1,20 +1,21 @@
 import L from "leaflet/dist/leaflet-src.js";
 import { Point, LatLng, GeoJSON } from "leaflet";
 import { unproject } from "./Project";
-import { tileSize } from "./Constants";
-import WebSocketClient, { WorkerInfo, Regions } from "../connection/WSClient";
+import { tileSize } from "../Constants";
+import WebSocketClient from "../connection/WSClient";
 import WorkerContext from "../misc/WorkerContext";
 import { Feature, FeatureCollection } from "geojson";
+import { RegionGroup } from "../misc/RegionGroup";
 
 /**
  *
- * @param {Array} regions
- * @param {Function} pixelToLatLng
+ * @param regions
+ * @param pixelToLatLng
  */
-function toGeoJSON(regions: WorkerInfo[], pixelToLatLng: (a: Point) => LatLng): FeatureCollection {
+function toGeoJSON(regions: RegionGroup[], pixelToLatLng: (a: Point) => LatLng): FeatureCollection {
   const featureCollection: FeatureCollection = {
     type: "FeatureCollection",
-    features: Array<Feature>(),
+    features: Array<Feature>()
   };
 
   const toLatLngArray = (real: number, imag: number, zoom: number): number[] => {
@@ -24,48 +25,56 @@ function toGeoJSON(regions: WorkerInfo[], pixelToLatLng: (a: Point) => LatLng): 
     return [latLng.lng, latLng.lat];
   };
 
-  for (const worker of regions) {
-    const region = worker.region;
+  for (const region of regions) {
     featureCollection.features.push({
       type: "Feature",
       geometry: {
         type: "Polygon",
-        coordinates: [
-          [
-            // TODO correct coordinates (as arrays! lat, lon)
-            toLatLngArray(region.minReal, region.maxImag, region.validation),
-            toLatLngArray(region.maxReal, region.maxImag, region.validation),
-            toLatLngArray(region.maxReal, region.minImag, region.validation),
-            toLatLngArray(region.minReal, region.minImag, region.validation),
-            toLatLngArray(region.minReal, region.maxImag, region.validation),
-          ],
-        ],
+        coordinates: [region.bounds().map(p => toLatLngArray(p.x, p.y, region.validation))]
       },
       properties: {
-        node: worker.rank,
+        node: region.id,
         zoom: region.validation,
-      },
+        isGroup: region.isGroup()
+      }
     });
   }
 
   return featureCollection;
 }
-
+/**
+ * Displays an overlay showing which node computed which region
+ */
 export default class WorkerLayer extends L.GeoJSON {
-  constructor(wsclient: WebSocketClient, pixelToLatLng: (p: Point) => LatLng, workerContext: WorkerContext) {
+  private nodeLayers: Map<number, GeoJSON<any>>;
+  private nodeGroups: Map<number, RegionGroup>;
+  private currentGroup: RegionGroup[];
+
+  constructor(
+    wsclient: WebSocketClient,
+    pixelToLatLng: (p: Point) => LatLng,
+    workerContext: WorkerContext
+  ) {
     const style = (feature: Feature): {} => {
-      const ret = {
+      let regionStyle = {
         weight: 1.5,
         opacity: 1,
         color: "white",
         fillColor: "white",
         dashArray: "3",
-        fillOpacity: 0.3,
+        fillOpacity: 0.3
       };
-      if (feature.properties !== null) {
-        ret.fillColor = workerContext.getWorkerColor(feature.properties.node);
+      if (feature.properties !== null && feature.properties.isGroup) {
+        regionStyle = Object.assign(regionStyle, {
+          fillColor: workerContext.getWorkerColor(feature.properties.node)
+        });
+      } else {
+        regionStyle = Object.assign(regionStyle, {
+          fillOpacity: 0,
+          weight: 1
+        });
       }
-      return ret;
+      return regionStyle;
     };
 
     const onEachFeature = (feature: Feature, layer: GeoJSON): void => {
@@ -74,26 +83,38 @@ export default class WorkerLayer extends L.GeoJSON {
         node = feature.properties.node;
       }
       layer.on({
-        mouseover: () => workerContext.setActiveWorker(node),
-        mouseout: () => workerContext.setActiveWorker(undefined),
+        mouseover: () => {
+          if (feature.properties !== null && feature.properties.isGroup)
+            workerContext.setActiveWorker(node);
+        },
+        mouseout: () => {
+          if (feature.properties !== null && feature.properties.isGroup)
+            workerContext.setActiveWorker(undefined);
+        }
       });
       this.nodeLayers.set(node, layer);
     };
 
     super(undefined, {
       style,
-      onEachFeature,
+      onEachFeature
     });
 
     this.nodeLayers = new Map();
+    this.nodeGroups = new Map();
 
-    wsclient.registerRegion((data: Regions) => {
+    const onNewRegion = (group: RegionGroup[]) => {
       this.clearLayers();
-      const regions = toGeoJSON(data.regions, pixelToLatLng);
-      this.addData(regions);
-    });
+      this.nodeGroups.clear();
+      group.forEach(g => this.nodeGroups.set(g.id, g));
+      this.currentGroup = group;
 
-    workerContext.subscribe((worker: number|undefined) => {
+      const regions = toGeoJSON(group, pixelToLatLng);
+      this.addData(regions);
+    };
+    wsclient.registerRegion(onNewRegion);
+
+    workerContext.subscribe((worker: number | undefined) => {
       this.nodeLayers.forEach((layer: GeoJSON) => {
         this.resetStyle(layer);
       });
@@ -101,8 +122,13 @@ export default class WorkerLayer extends L.GeoJSON {
         const layer = this.nodeLayers.get(worker);
         if (layer) {
           layer.setStyle({
-            fillOpacity: 0.7,
+            fillOpacity: 0.7
           });
+        }
+        const group = this.nodeGroups.get(worker);
+        if (group && group.getChildren() !== null) {
+          onNewRegion(this.currentGroup);
+          this.addData(toGeoJSON(group.getChildren() as RegionGroup[], pixelToLatLng));
         }
       }
     });
