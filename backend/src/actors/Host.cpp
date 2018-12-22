@@ -152,7 +152,6 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
 
     // TODO increase by one as soon as host is invoked as worker too
     int nodeCount = world_size - 1;
-    // nodeCount = 2; // TODO: ENTFERNEN
     // TODO let frontend choose fractal similar to balancer
     Balancer *b = BalancerPolicy::chooseBalancer(balancer, new Mandelbrot());
     Region *blocks = b->balanceLoad(region, nodeCount);  // Blocks is array with nodeCount members
@@ -178,6 +177,13 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     nodeCount = newBlocks.size();
     std::cout << "There are " << nodeCount << " Regions to compute" << std::endl;
 
+    for (int i = 0; i < nodeCount; i++) {
+        std::cout << "Region " << i << ": "
+                  << " TopLeft: (" << blocks[i].minReal << ", " << blocks[i].maxImaginary << ") -> BottomRight: ("
+                  << blocks[i].maxReal << ", " << blocks[i].minImaginary << ") Resolution: ("
+                  << blocks[i].width << ", " << blocks[i].height << ")" << std::endl;
+    }
+
     // Send regions to MPI-Thread
     {
         std::lock_guard<std::mutex> lock(transmit_regions_lock);
@@ -192,8 +198,9 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     // Determine which Worker gets which Region
     int region_to_worker[nodeCount];
     int counter = 0;
-    for (int rank = 0 ; rank < world_size ; rank++) {
+    for (int rank = 0 ; rank < world_size && counter < nodeCount ; rank++) {
         if (usableNodes[rank] == true) {
+            std::cout << "Region " << counter << " will be computed by Worker " << rank << std::endl;
             region_to_worker[counter++] = rank;
         }
     }
