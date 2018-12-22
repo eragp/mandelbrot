@@ -9,9 +9,6 @@ export default class WebSocketClient {
   private regionRequests: string[];
   private socket: WebSocket;
 
-  private retRegions: number = 0;
-  private currRegion: number = 1;
-
   constructor() {
     /**
      * Callbacks for any methods interested in new region subdivisions or regionData (=result of one worker)
@@ -49,15 +46,12 @@ export default class WebSocketClient {
       switch (msg.type) {
         case "regionData":
           // Notify regionData/worker observers
-          console.log("# " + this.currRegion++ + " of " + this.retRegions);
           workerCallback.forEach(call => {
             call(<RegionData>msg);
           });
           break;
         case "region":
           // Notify region subdivision listeners
-          this.currRegion = 1;
-          this.retRegions = (<Regions>msg).regions.length;
           regionCallback.forEach(call => call(groupRegions(<Regions>msg)));
           break;
         default:
