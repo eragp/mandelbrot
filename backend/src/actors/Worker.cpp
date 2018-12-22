@@ -22,6 +22,11 @@
 #include <chrono>
 
 void Worker::init(int world_rank, int world_size) {
+    // Notify about SIMD
+    #ifndef __ARM_NEON
+    std::cout << "No SIMD available on Worker "<< world_rank << "!" << std::endl;
+    #endif
+
     // Initial test if this core is ready
     int test;
     MPI_Status status;
