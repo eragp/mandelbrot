@@ -1,8 +1,8 @@
-import { balancers } from "../Constants";
+import { Balancers } from "../Constants";
 /**
  * All available balancers
  */
-export const BALANCERS = balancers.map(b => b.key);
+export const BALANCERS = Balancers.map(b => b.key);
 
 /**
  * Object returning the currently chosen balancing strategy

@@ -6,16 +6,16 @@ import {
   ChartConfiguration,
   ChartDataSets,
   ChartOptions,
-  ChartHoverOptions,
+  ChartHoverOptions
 } from "chart.js";
 import WebSocketClient from "../connection/WSClient";
+import { GroupObservable } from "../misc/Observable";
 
 import "./IdleTime.css";
-import WorkerContext from "../misc/WorkerContext";
 
 interface IdleTimeProps {
+  group: GroupObservable;
   wsclient: WebSocketClient;
-  workerContext: WorkerContext;
 }
 
 interface IdleTimeState {
@@ -90,13 +90,13 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
           // change workercontext active worker on hover
           const data = this.chart.getDatasetAtEvent(event)[0] as ChartDataSets;
           if (data) {
-            this.props.workerContext.setActiveWorker(
+            this.props.group.set(
               // @ts-ignore: data does not have complete .d.ts file
               this.chartState.nodes[data._datasetIndex]
             );
             this.hoveredItem = data;
           } else if (this.hoveredItem) {
-            this.props.workerContext.setActiveWorker(undefined);
+            this.props.group.set(undefined);
             this.hoveredItem = undefined;
           }
         },
@@ -170,9 +170,9 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
 
     // Highlight segement on active worker change
     // Inspired by https://github.com/chartjs/Chart.js/issues/1768
-    this.props.workerContext.subscribe(activeWorker => {
+    this.props.group.subscribe(activeWorker => {
       // Activate new tooltip if necessary
-      if (activeWorker !== undefined) {
+      if (activeWorker) {
         const workerIndex = this.chartState.nodes.indexOf(activeWorker);
         // @ts-ignore: does not have complete .d.ts file
         const activeSegment = (this.chart.data.datasets as ChartDataSets[])[workerIndex]._meta[0]
@@ -228,7 +228,7 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
       datasets.push({
         label: "Worker " + rank,
         data: [idleTime],
-        backgroundColor: this.props.workerContext.getWorkerColor(rank),
+        backgroundColor: this.props.group.getColor(rank),
         stack: "idle-time"
       });
     });

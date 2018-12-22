@@ -6,30 +6,29 @@ import "leaflet-zoombox";
 import "leaflet-zoombox/L.Control.ZoomBox.css";
 import { Map } from "leaflet";
 
-// custom stylesheet
-import "./TileDisplay.css";
-
 import Shader from "./Shader";
 import { project, unproject } from "./Project";
 import { request as requestRegion } from "../connection/RegionRequest";
 
-import { tileSize, leafletBound } from "../Constants";
+import { TileSize, LeafletBound } from "../Constants";
 import { Point3D } from "../misc/Point";
 import MatrixView from "./MatrixView";
-import BalancerPolicy from "../misc/BalancerPolicy";
 import WebSocketClient from "../connection/WSClient";
 import WorkerLayer from "./WorkerLayer";
-import WorkerContext from "../misc/WorkerContext";
 import { setURLParams } from "../misc/URLParams";
 import RegionOfInterest from "./RegionOfInterest";
+import { BalancerObservable, GroupObservable, ImplementationObservable } from "../misc/Observable";
+
+// custom stylesheet
+import "./TileDisplay.css";
 
 interface TileDisplayProps {
   wsclient: WebSocketClient;
-  balancerPolicy: BalancerPolicy;
-  workerContext: WorkerContext;
+  balancer: BalancerObservable;
+  group: GroupObservable;
+  implementation: ImplementationObservable;
   viewCenter: Point3D;
 }
-
 export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
   private map: Map;
   private newViewObservers: Array<(map: Map) => any>;
@@ -72,7 +71,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
     // bounds have to be a power of two
     // these bounds are chosen arbitrary and have nothing to do with
     // either leaflet space, nor the complex plane
-    const bounds = [[-leafletBound, -leafletBound], [leafletBound, leafletBound]];
+    const bounds = [[-LeafletBound, -LeafletBound], [LeafletBound, LeafletBound]];
     this.map = L.map("viewer", {
       crs: L.CRS.Simple,
       maxZoom: 50,
@@ -88,7 +87,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
 
     // Request a new region subdivision via websocket on view change
     this.registerNewView((curMap: Map) => {
-      const r = requestRegion(curMap, this.props.balancerPolicy.getBalancer());
+      const r = requestRegion(curMap, this.props.balancer.get(), this.props.implementation.get());
       if (r !== undefined) {
         websocketClient.sendRequest(r);
       }
@@ -96,7 +95,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
 
     // Handle balancer change as view change
     //  => update all view subscribers about a policy change as if the view had changed
-    this.props.balancerPolicy.subscribe(() => this.updateAllViews());
+    this.props.balancer.subscribe(() => this.updateAllViews());
 
     // add event listeners to the map for region requests
     map.on({
@@ -170,7 +169,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
 
         const p = new Point3D(coords.x, coords.y, zoom);
 
-        const projected = project(coords.x, coords.y, zoom, 0, 0, tileSize);
+        const projected = project(coords.x, coords.y, zoom, 0, 0, TileSize);
         const unprojected = unproject(projected.x, projected.y, zoom);
 
         div.classList.add("debugLayer");
@@ -187,18 +186,14 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
     });
 
     const mandelbrotLayer = new L.GridLayer.MandelbrotLayer({
-      tileSize, // in px
+      tileSize: TileSize, // in px
       bounds
     });
     const debugLayer = new L.GridLayer.DebugLayer({
-      tileSize,
+      tileSize: TileSize,
       bounds
     });
-    const workerLayer = new WorkerLayer(
-      websocketClient,
-      map.unproject.bind(map),
-      this.props.workerContext
-    );
+    const workerLayer = new WorkerLayer(websocketClient, map.unproject.bind(map), this.props.group);
     const baseLayer = {
       "Mandelbrot Layer": mandelbrotLayer
     };

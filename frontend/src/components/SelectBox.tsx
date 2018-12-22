@@ -1,5 +1,6 @@
 import * as React from "react";
-import BalancerPolicy from "../misc/BalancerPolicy";
+import { Balancers, Implementations } from "../Constants";
+import { BalancerObservable, ImplementationObservable } from "../misc/Observable";
 
 // Stylesheet
 import "./SelectBox.css";
@@ -8,7 +9,8 @@ import "./SelectBox.css";
 import mandelbrot from "./img/server.svg";
 
 interface SelectBoxProps {
-  balancer: BalancerPolicy;
+  balancer: BalancerObservable;
+  implementation: ImplementationObservable;
 }
 
 interface BoxItem {
@@ -29,14 +31,25 @@ interface SelectBoxState {
 export default class SelectBox extends React.Component<SelectBoxProps, SelectBoxState> {
   constructor(props: SelectBoxProps) {
     super(props);
-    this.state = require("./SelectBoxOptions.json");
+    this.state = {
+      balancer: {
+        active: Balancers[0].key,
+        title: "Loadbalancer",
+        items: Balancers
+      },
+      impl: {
+        active: Implementations[0].key,
+        title: "Implementation",
+        items: Implementations
+      }
+    };
   }
 
   private setBalancer(val: string) {
     if (val === this.state.balancer.active) {
       return;
     }
-    this.props.balancer.setBalancer(val);
+    this.props.balancer.set(val);
     this.setState(prev => {
       return {
         balancer: Object.assign(prev.balancer, { active: val })
@@ -48,7 +61,7 @@ export default class SelectBox extends React.Component<SelectBoxProps, SelectBox
     if (val === this.state.balancer.active) {
       return;
     }
-    // this.props.balancerPolicy.setBalancer(val);
+    this.props.implementation.set(val);
     this.setState(prev => {
       return {
         impl: Object.assign(prev.impl, { active: val })

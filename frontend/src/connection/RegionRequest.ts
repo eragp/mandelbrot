@@ -1,5 +1,5 @@
 import { getBottomRightPoint, getTopLeftPoint, project } from "../tileDisplay/Project";
-import { tileSize, maxIteration } from "../Constants";
+import { TileSize, MaxIteration } from "../Constants";
 import { Point3D } from "../misc/Point";
 import { Map } from "leaflet";
 
@@ -14,12 +14,12 @@ let currentBalancer: string;
  * Otherwise the corresponding request for the backend is returned.
  * @param {*} map current Leaflet map
  */
-export const request = (map: Map, balancer: string) => {
+export const request = (map: Map, balancer: string, implementation: string) => {
   const bounds = map.getPixelBounds();
   const zoom = map.getZoom();
 
-  const topLeft = getTopLeftPoint(bounds, tileSize, zoom);
-  const botRight = getBottomRightPoint(bounds, tileSize, zoom);
+  const topLeft = getTopLeftPoint(bounds, TileSize, zoom);
+  const botRight = getBottomRightPoint(bounds, TileSize, zoom);
 
   // has the visible region changed?
   if (
@@ -33,11 +33,11 @@ export const request = (map: Map, balancer: string) => {
   currentBottomRight = botRight;
   currentBalancer = balancer;
 
-  const tlComplex = project(topLeft.x, topLeft.y, topLeft.z, 0, 0, tileSize);
-  const brComplex = project(botRight.x, botRight.y, botRight.z, 0, 0, tileSize);
+  const tlComplex = project(topLeft.x, topLeft.y, topLeft.z, 0, 0, TileSize);
+  const brComplex = project(botRight.x, botRight.y, botRight.z, 0, 0, TileSize);
   const [sizeX, sizeY] = [
-    Math.abs(botRight.x - topLeft.x) * tileSize,
-    Math.abs(topLeft.y - botRight.y) * tileSize
+    Math.abs(botRight.x - topLeft.x) * TileSize,
+    Math.abs(topLeft.y - botRight.y) * TileSize
   ];
   const region = {
     region: {
@@ -56,8 +56,8 @@ export const request = (map: Map, balancer: string) => {
       // region identification via zoom factor
       validation: zoom,
       // Divisor for width and height. Will be used to perform load balancing
-      guaranteedDivisor: tileSize,
-      maxIteration,
+      guaranteedDivisor: TileSize,
+      maxIteration: MaxIteration,
     },
     type: "regionRequest",
     balancer,

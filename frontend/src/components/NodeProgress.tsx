@@ -10,10 +10,10 @@ import {
 import WebSocketClient from "../connection/WSClient";
 
 import "./NodeProgress.css";
-import WorkerContext from "../misc/WorkerContext";
+import { GroupObservable } from "../misc/Observable";
 
 interface NodeProgressProps {
-  workerContext: WorkerContext;
+  group: GroupObservable;
   wsClient: WebSocketClient;
 }
 interface ChartState {
@@ -80,10 +80,10 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
           const data = this.chart.getElementsAtEvent(event)[0] as ChartDataSets;
           if (data) {
             // @ts-ignore: does not have complete .d.ts file
-            this.props.workerContext.setActiveWorker(this.chartState.nodes[data._index]);
+            this.props.group.set(this.chartState.nodes[data._index]);
             this.hoveredItem = data;
           } else if (this.hoveredItem) {
-            this.props.workerContext.setActiveWorker(undefined);
+            this.props.group.set(undefined);
             this.hoveredItem = undefined;
           }
         }
@@ -135,7 +135,7 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
 
     // Highlight segement on active worker change
     // Inspired by https://github.com/chartjs/Chart.js/issues/1768
-    this.props.workerContext.subscribe(activeWorker => {
+    this.props.group.subscribe(activeWorker => {
       // Activate new tooltip if necessary
       const datasets = this.chart.data.datasets as ChartDataSets[];
       if (datasets === undefined) {
@@ -144,16 +144,16 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
       const tooltip = (this.chart as any).tooltip;
       if (activeWorker !== undefined) {
         const workerIndex = this.chartState.nodes.indexOf(activeWorker);
-      // @ts-ignore: does not have complete .d.ts file
+        // @ts-ignore: does not have complete .d.ts file
         const activeSegment = datasets[0]._meta[1].data[workerIndex];
         tooltip.initialize();
         tooltip._active = [activeSegment];
-      // @ts-ignore: does not have complete .d.ts file
+        // @ts-ignore: does not have complete .d.ts file
         datasets[0]._meta[1].controller.setHoverStyle(activeSegment);
         this.hoveredSegment = activeSegment;
       } else {
         // Remove tooltip
-      // @ts-ignore: does not have complete .d.ts file
+        // @ts-ignore: does not have complete .d.ts file
         datasets[0]._meta[1].controller.removeHoverStyle(this.hoveredSegment);
         tooltip._active = [];
       }
@@ -180,7 +180,7 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
     // => Label/ value index is the index of the rank in the node array
     this.chartState.nodes.forEach(rank => {
       labels.push("Group " + rank);
-      colorSet.push(this.props.workerContext.getWorkerColor(rank));
+      colorSet.push(this.props.group.getColor(rank));
       values.push(this.chartState.progress.get(rank) as number);
     });
 

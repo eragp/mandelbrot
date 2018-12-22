@@ -1,5 +1,5 @@
 import { Point3D } from "../misc/Point";
-import { bounds, leafletBound } from "../Constants";
+import { bounds, LeafletBound } from "../Constants";
 import { Bounds } from "leaflet";
 
 /**
@@ -50,7 +50,7 @@ export const unproject = (real: number, imag: number, zoom: number): Point3D => 
  * @returns {Point3D} projected point
  */
 export const complexToLeaflet = (real: number, imag: number, zoom: number): Point3D => {
-  return new Point3D((imag * leafletBound) / bounds[1], (real * leafletBound) / bounds[0], zoom);
+  return new Point3D((imag * LeafletBound) / bounds[1], (real * LeafletBound) / bounds[0], zoom);
 };
 
 /**
@@ -61,7 +61,7 @@ export const complexToLeaflet = (real: number, imag: number, zoom: number): Poin
  * @returns {Point3D} projected point
  */
 export const leafletToComplex = (lat: number, lng: number, zoom: number): Point3D => {
-  return new Point3D((lng / leafletBound) * bounds[1], (lat / leafletBound) * bounds[0], zoom);
+  return new Point3D((lng / LeafletBound) * bounds[1], (lat / LeafletBound) * bounds[0], zoom);
 };
 
 /**
