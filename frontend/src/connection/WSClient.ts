@@ -69,7 +69,6 @@ export default class WebSocketClient {
     this.socket.close();
   }
 
-  // TODO typisize this parameter
   public sendRequest(request: {}) {
     const message = JSON.stringify(request);
     if (this.socket.readyState === this.socket.OPEN) {
