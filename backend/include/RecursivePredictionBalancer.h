@@ -4,17 +4,10 @@
 #include "Region.h"
 #include "Fractal.h"
 #include "Prediction.h"
+#include "BalancingContext.h"
 
 #include <vector>
 #include <string>
-
-struct BalancingContext {
-	Region* result;
-
-	int resultIndex;
-	int recCounter;
-	int onLowestLevel;
-};
 
 class RecursivePredictionBalancer : public Balancer {
 private:

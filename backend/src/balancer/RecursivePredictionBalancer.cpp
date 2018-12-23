@@ -23,7 +23,7 @@ Region *RecursivePredictionBalancer::balanceLoad(Region region, int nodeCount) {
 	// Deal with numbers that are not powers of 2
 	int onLowestLevel = (int) (nodeCount - pow(2, recCounter)) * 2;
 	recCounter++;
-	BalancingContext context = { allRegions, 0, recCounter, onLowestLevel };
+	BalancingContext context = { allRegions, 0, recCounter, onLowestLevel, prediction->deltaReal, prediction->deltaImaginary };
 	int partsMade = balancingHelper(region, prediction, context);
 
 	if (partsMade != nodeCount) {
