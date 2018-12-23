@@ -27,12 +27,12 @@ void MandelbrotSIMD32::calculateFractal(precision_t* cRealArray, precision_t* cI
     // f -> float
     // 32 bit vectorization
     // Load values from array to simd vector
-    float32x4_t cReal = vdupq_n_f32(0);// = vld4q_f32(cRealArray);
+    float32x4_t cReal = vdupq_n_f32(0);// = vld1q_f32(cRealArray); if casting weren't necessary this would work
     cReal = vsetq_lane_f32((float32_t) cRealArray[0], cReal, 0);
     cReal = vsetq_lane_f32((float32_t) cRealArray[1], cReal, 1);
     cReal = vsetq_lane_f32((float32_t) cRealArray[2], cReal, 2);
     cReal = vsetq_lane_f32((float32_t) cRealArray[3], cReal, 3);
-    float32x4_t cImaginary = vdupq_n_f32(0);// = vld4q_f32(cImaginaryArray);
+    float32x4_t cImaginary = vdupq_n_f32(0);// = vld1q_f32(cImaginaryArray);
     cImaginary = vsetq_lane_f32((float32_t) cImaginaryArray[0], cImaginary, 0);
     cImaginary = vsetq_lane_f32((float32_t) cImaginaryArray[1], cImaginary, 1);
     cImaginary = vsetq_lane_f32((float32_t) cImaginaryArray[2], cImaginary, 2);
