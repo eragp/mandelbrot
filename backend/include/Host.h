@@ -23,7 +23,7 @@ private:
     static int world_size;
     
     // Defines if a Node can or should be used
-    static bool* usableNodes;
+    static bool* usable_nodes;
 
     // Store for the current big region
     static Region current_big_region;
@@ -32,8 +32,8 @@ private:
 
     // Transfer region requests from Websocket-Thread to MPI-Thread
     static bool mpi_send_regions;
-    static std::map<int, Region> transmit_regions;
-    static std::mutex transmit_regions_lock;
+    static std::map<int, Region> websocket_request_to_mpi;
+    static std::mutex websocket_request_to_mpi_lock;
 
     // Transfer RegionData from MPI-Thread to Websocket-Result-Thread
     static std::vector<RegionData> mpi_to_websocket_result;

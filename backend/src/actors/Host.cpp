@@ -43,16 +43,16 @@ int Host::maxIteration = 200;
 int Host::world_size = 0;
 
 // Defines if a Node can or should be used
-bool* Host::usableNodes;
+bool* Host::usable_nodes;
 
 // Store for the current big region
 Region Host::current_big_region;
 std::mutex Host::current_big_region_lock;
 
-// Transfer region requests from Websocket-Thread to MPI-Thread
+// Transfer region requests from Websocket-Request-Thread to MPI-Thread
 bool Host::mpi_send_regions = false;
-std::map<int, Region> Host::transmit_regions;
-std::mutex Host::transmit_regions_lock;
+std::map<int, Region> Host::websocket_request_to_mpi;
+std::mutex Host::websocket_request_to_mpi_lock;
 
 // Transfer RegionData from MPI-Thread to Websocket-Result-Thread
 std::vector<RegionData> Host::mpi_to_websocket_result;
@@ -181,6 +181,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     nodeCount = newBlocks.size();
     std::cout << "There are " << nodeCount << " Regions to compute" << std::endl;
 
+    // Debug
     for (int i = 0; i < nodeCount; i++) {
         std::cout << "Region " << i << ": "
                   << " TopLeft: (" << blocks[i].minReal << ", " << blocks[i].maxImaginary << ") -> BottomRight: ("
@@ -190,10 +191,10 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
 
     // Send regions to MPI-Thread
     {
-        std::lock_guard<std::mutex> lock(transmit_regions_lock);
-        transmit_regions.clear();
+        std::lock_guard<std::mutex> lock(websocket_request_to_mpi_lock);
+        websocket_request_to_mpi.clear();
         for (int i = 0 ; i < nodeCount ; i++) {
-            transmit_regions[i] = blocks[i];
+            websocket_request_to_mpi[i] = blocks[i];
         }
         mpi_send_regions = true;
     }
@@ -203,7 +204,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     int region_to_worker[nodeCount];
     int counter = 0;
     for (int rank = 0 ; rank < world_size && counter < nodeCount ; rank++) {
-        if (usableNodes[rank] == true) {
+        if (usable_nodes[rank] == true) {
             std::cout << "Region " << counter << " will be computed by Worker " << rank << std::endl;
             region_to_worker[counter++] = rank;
         }
@@ -361,9 +362,9 @@ void Host::init(int world_rank, int world_size) {
     // Start Websocket-Result-Thread (sends RegionData filled with computed mandelbrot data to frontend)
     std::thread websocket_result(send);
 
-    // Init usableNodes and set Host as not usable
-    usableNodes = new bool[world_size];
-    usableNodes[world_rank] = false;
+    // Init usable_nodes and set Host as not usable
+    usable_nodes = new bool[world_size];
+    usable_nodes[world_rank] = false;
 
     // Test if all cores are available
     // We assume from programs side that all cores *are* available, this allows Workers to get the Host rank
@@ -375,16 +376,16 @@ void Host::init(int world_rank, int world_size) {
             MPI_Recv(&testReceive, 1, MPI_INT, rank, 11, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
             if (testSend == testReceive) {
                 std::cout << "Host: Core " << rank << " ready!" << std::endl;
-                usableNodes[rank] = true;
+                usable_nodes[rank] = true;
             } else {
                 std::cout << "Host: Core " << rank << " NOT ready! This core won't be used by default." << std::endl;
-                usableNodes[rank] = false;
+                usable_nodes[rank] = false;
             }
         }
     }
 
     // TODO: ENTFERNEN
-    // usableNodes[2] = false;
+    // usable_nodes[2] = false;
 
     // Approximately the time that MPI communication with one Worker has taken in microseconds
     std::chrono::high_resolution_clock::time_point *mpiCommunicationStart = new std::chrono::high_resolution_clock::time_point[world_size];
@@ -402,21 +403,21 @@ void Host::init(int world_rank, int world_size) {
     while (true) {
         // Send regions to cores deterministically using persistent asynchronous send
         {
-            std::lock_guard<std::mutex> lock(transmit_regions_lock);
+            std::lock_guard<std::mutex> lock(websocket_request_to_mpi_lock);
             if (mpi_send_regions == true) {
                 unsigned int transmit_counter = 0;
-                for (int rank = 0 ; rank < world_size && transmit_counter < transmit_regions.size() ; rank++) {
-                    if (usableNodes[rank] == true) {
+                for (int rank = 0 ; rank < world_size && transmit_counter < websocket_request_to_mpi.size() ; rank++) {
+                    if (usable_nodes[rank] == true) {
                         std::cout << "Host: Start invoking core " << rank << std::endl;
-                        // Copy requested Region from joint datastructure "transmit_regions" to MPI Send buffer "persistent_send_buffer"
-                        std::memcpy(&persistent_send_buffer[rank], &transmit_regions[transmit_counter++], sizeof(Region));
+                        // Copy requested Region from joint datastructure "websocket_request_to_mpi" to MPI Send buffer "persistent_send_buffer"
+                        std::memcpy(&persistent_send_buffer[rank], &websocket_request_to_mpi[transmit_counter++], sizeof(Region));
                         // Start the clock for MPI communication
                         mpiCommunicationStart[rank] = std::chrono::high_resolution_clock::now();
                         // Start send to one Worker using persistent asynchronous send
                         MPI_Start(&region_requests[rank]);
                     }
                 }
-                if (transmit_counter != transmit_regions.size()) {
+                if (transmit_counter != websocket_request_to_mpi.size()) {
                     std::cerr << "Not enough Workers to compute all subregions." << std::endl;
                 }
                 std::cout << "Host: Start invoking all cores done." << std::endl;
