@@ -51,6 +51,8 @@ Region* NaiveBalancer::balanceLoad(Region region, int nodeCount)
 		xQuantity -= spareCols;
 	}
 
+	int nodesWithExtendedWidth = (region.width - (partWidth * xQuantity)) / region.guaranteedDivisor;
+
 	int partHeight = (region.height / (region.guaranteedDivisor * yQuantity)) * region.guaranteedDivisor;	// Split Resolution for y, multiple of guaranteedDivisor
 
 	if (partHeight <= 0) {
@@ -65,9 +67,15 @@ Region* NaiveBalancer::balanceLoad(Region region, int nodeCount)
 		yQuantity -= spareRows;
 	}
 
-	double xDelta = ((region.maxReal - region.minReal) / region.width) * partWidth;		// xDelta = x dimension of every region (except maybe the last) this method returns
+	int nodesWithExtendedHeight = (region.height - (partHeight * yQuantity)) / region.guaranteedDivisor;
 
-	double yDelta = ((region.maxImaginary - region.minImaginary) / region.height) * partHeight;	//  yDelta = y dimension of every region (except maybe the last) this method returns
+	double xDelta = ((region.maxReal - region.minReal) / region.width);		// xDelta = x dimension of every region (except maybe the last) this method returns
+	double extendedXDelta = xDelta * (partWidth + region.guaranteedDivisor);
+	xDelta *= partWidth;
+
+	double yDelta = ((region.maxImaginary - region.minImaginary) / region.height);	//  yDelta = y dimension of every region (except maybe the last) this method returns
+	double extendedYDelta = yDelta * (partHeight + region.guaranteedDivisor);
+	yDelta *= partHeight;
 
 	int retPos = 0;	// Current position in the Array ret
 	for (int x = 0; x < xQuantity; x++) {
@@ -76,28 +84,37 @@ Region* NaiveBalancer::balanceLoad(Region region, int nodeCount)
 			ret[retPos].validation = region.validation;
 			ret[retPos].guaranteedDivisor = region.guaranteedDivisor;
 
-			ret[retPos].minReal = region.minReal + x * xDelta;
-			ret[retPos].maxImaginary = region.maxImaginary - y * yDelta;
-
-			ret[retPos].maxReal = region.minReal + (x + 1) * xDelta;
-			ret[retPos].minImaginary = region.maxImaginary - (y + 1) * yDelta;
-
-			ret[retPos].width = partWidth;
-			ret[retPos].height = partHeight;
-
-			ret[retPos].hOffset = x * partWidth;
-			ret[retPos].vOffset = y * partHeight;
-
-			// We want the same resolution as before, so the last part could be a bit larger
-			if (x + 1 == xQuantity) {
-				ret[retPos].width = region.width - ((xQuantity - 1) * partWidth);
-				ret[retPos].maxReal = region.maxReal;
+			if (x < nodesWithExtendedWidth) {
+				// Take one additional piece (width += region.guaranteedDivisor), all parts before were extended
+				ret[retPos].minReal = region.minReal + x * extendedXDelta;
+				ret[retPos].maxReal = region.minReal + (x + 1) * extendedXDelta;
+				ret[retPos].width = partWidth + region.guaranteedDivisor;
+				ret[retPos].hOffset = x * (partWidth + region.guaranteedDivisor);
+			} else {
+				// Normal width, take account of previous extended parts
+				ret[retPos].minReal = region.minReal + nodesWithExtendedWidth * extendedXDelta + (x - nodesWithExtendedWidth) * xDelta;
+				ret[retPos].maxReal = region.minReal + nodesWithExtendedWidth * extendedXDelta + (x - nodesWithExtendedWidth + 1) * xDelta;
+				ret[retPos].width = partWidth;
+				ret[retPos].hOffset = x * partWidth + nodesWithExtendedWidth * region.guaranteedDivisor;
 			}
 
-			if (y + 1 == yQuantity) {
-				ret[retPos].height = region.height - ((yQuantity - 1) * partHeight);
-				ret[retPos].minImaginary = region.minImaginary;
+			if (y < nodesWithExtendedHeight) {
+				// Take one additional piece (height += region.guaranteedDivisor), all parts before were extended
+				ret[retPos].maxImaginary = region.maxImaginary - y * extendedYDelta;
+				ret[retPos].minImaginary = region.maxImaginary - (y + 1) * extendedYDelta;
+				ret[retPos].height = partHeight + region.guaranteedDivisor;
+				ret[retPos].vOffset = y * (partHeight + region.guaranteedDivisor);
+			} else {
+				// Normal height, take account of previous extended parts
+				ret[retPos].maxImaginary = region.maxImaginary - nodesWithExtendedHeight * extendedYDelta - (y - nodesWithExtendedHeight) * yDelta;
+				ret[retPos].minImaginary = region.maxImaginary - nodesWithExtendedHeight * extendedYDelta - (y - nodesWithExtendedHeight + 1) * yDelta;
+				ret[retPos].height = partHeight;
+				ret[retPos].vOffset = y * partHeight + nodesWithExtendedHeight * region.guaranteedDivisor;
 			}
+			
+			// Special cases for parts at the end are no longer needed
+			// The above already makes sure that the whole width and height is covered
+			
 			retPos++;
 		}
 	}
