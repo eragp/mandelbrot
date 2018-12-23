@@ -8,7 +8,7 @@ class Fractal {
      * @param maxIteration maximum amount of iterations to perform
      * @return number of iterations for the given coordinates
      */
-    virtual int calculateFractal(long double cReal, long double cImaginary, int maxIteration) = 0;
+    virtual int calculateFractal(long double cReal, long double cImaginary, unsigned short int maxIteration) = 0;
     virtual ~Fractal();
 
     /**
