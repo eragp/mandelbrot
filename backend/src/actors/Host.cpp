@@ -400,6 +400,7 @@ void Host::init(int world_rank, int world_size) {
     }
   
     // MPI communication between Host and Workers (send region requests and receive computed data) and start websocket send
+    bool change = false;
     while (true) {
         // Send regions to cores deterministically using persistent asynchronous send
         {
@@ -425,6 +426,7 @@ void Host::init(int world_rank, int world_size) {
                 MPI_Waitall(world_size, region_requests, region_status);
                 std::cout << "Host: Waitall returned. All send operations are complete." << std::endl;
                 mpi_send_regions = false;
+                change = true;
             }
         }
         
@@ -434,7 +436,7 @@ void Host::init(int world_rank, int world_size) {
         MPI_Status status;
         int probe_flag;
         MPI_Iprobe(MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, &probe_flag, &status);
-        if (probe_flag == true) { // Rank: 2
+        if (probe_flag == true) { // Tag: 2
             probe_flag = 0;
             int recv_len;
             MPI_Get_count(&status, MPI_BYTE, &recv_len);
@@ -481,8 +483,13 @@ void Host::init(int world_rank, int world_size) {
 
             delete[] recv;
             // Note: worker_data will be deleted by Websocket-Result-Thread after the send operation is complete.
+            change = true;
         }
-        
+        if(!change){
+            // Sleep for 100 µs if no change occurred to reduce CPU usage
+            // note that MPI_recv (the blocking alternative) would do busy wait anyway
+            std::this_thread::sleep_for(std::chrono::microseconds(100));
+        }
     }
 
 }
