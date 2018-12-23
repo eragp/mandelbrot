@@ -92,6 +92,7 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
         }
       }
     } as ChartConfiguration);
+    this.groups = [];
     this.updateChart();
 
     this.initNodeProgress();
@@ -103,20 +104,11 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
       this.stopNodeProgress();
       // Stop corresponding group progress bar
       // assume that regionData is passed here
-      const workerRank = data.workerInfo.rank;
-      let group = this.groups.find(g => g.getRanks().some(r => r === workerRank));
-      if (!group) {
-        console.error("No group found with rank: " + workerRank);
-        return;
-      }
-      group.computationTime += data.workerInfo.computationTime;
       // Pay attention here that ranks begin from 1 as long as the host does not send data on his own
       // Do set exactly this region (part of the group) inactive
       this.chartState.active.set(data.workerInfo.rank, false);
       // insert correct µs time in node value
-      // Here lies a problem with the visualization: estimated and actual computation time differ quite strongly at some points
-      console.log("Diff: " + (group.computationTime - (this.chartState.progress.get(group.id) as number)));
-      this.chartState.progress.set(group.id, group.computationTime);
+      this.chartState.progress.set(data.workerInfo.rank, data.workerInfo.computationTime);
       this.updateChart(0);
       this.initNodeProgress();
     });
@@ -135,9 +127,8 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
         nodes.push(group.id);
         for (const region of group.getLeafs()) {
             active.set(region.id, true);
+            progress.set(region.id, animationDuration * 1000);
         }
-        progress.set(group.id, group.getLeafs().length * animationDuration * 1000);
-        group.computationTime = 0;
       }
       this.chartState = {
         nodes,
@@ -196,10 +187,18 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
     const values: number[] = [];
     const colorSet: string[] = [];
     // => Label/ value index is the index of the rank in the node array
+    const groupCompTime = (group: RegionGroup) => {
+        let compTime = 0;
+        for (const region of group.getLeafs()) {
+            compTime += this.chartState.progress.get(region.id) as number;
+        }
+        return compTime;
+    };
     this.chartState.nodes.forEach(rank => {
       labels.push("Group " + rank);
       colorSet.push(this.props.workerContext.getWorkerColor(rank));
-      values.push(this.chartState.progress.get(rank) as number);
+      const group = this.groups.find(g => g.id === rank);
+      values.push(group === undefined ? 1 : groupCompTime(group));
     });
 
     const usToString = (time: number) => {
@@ -242,21 +241,13 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
     this.interval = setInterval(
       (state: ChartState) => {
         let update = false;
-        state.progress.forEach((value, id) => {
+        this.groups.forEach(group => {
           // Check for all regions of the group
-          let activeRegions = 0;
-          const group = this.groups.find(g => g.id === id);
-          if (!group) {
-              return;
-          }
           for (const region of group.getLeafs()) {
               if (state.active.get(region.id) === true) {
-                  activeRegions += 1;
+                state.progress.set(region.id, (state.progress.get(region.id) as number) + intervalRate * 1000);
+                update = true;
               }
-          }
-          if (activeRegions > 0) {
-            state.progress.set(id, value + activeRegions * intervalRate * 1000);
-            update = true;
           }
         });
         if (update) {
