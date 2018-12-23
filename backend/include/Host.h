@@ -8,6 +8,7 @@
 #include <queue>
 #include <vector>
 #include <mutex>
+#include <condition_variable>
 
 #include "Region.h"
 #include "RegionData.h"
@@ -38,6 +39,7 @@ private:
     // Transfer RegionData from MPI-Thread to Websocket-Result-Thread
     static std::vector<RegionData> mpi_to_websocket_result;
     static std::mutex mpi_to_websocket_result_lock;
+    static std::condition_variable mpi_to_websocket_result_available;
 
     // Websocket server
     static websocketpp::server<websocketpp::config::asio> websocket_server;

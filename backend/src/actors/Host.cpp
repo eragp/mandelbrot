@@ -34,6 +34,7 @@
 #include <vector>
 #include <chrono>
 #include <thread>
+#include <condition_variable>
 
 using namespace rapidjson;
 
@@ -57,6 +58,7 @@ std::mutex Host::websocket_request_to_mpi_lock;
 // Transfer RegionData from MPI-Thread to Websocket-Result-Thread
 std::vector<RegionData> Host::mpi_to_websocket_result;
 std::mutex Host::mpi_to_websocket_result_lock;
+std::condition_variable Host::mpi_to_websocket_result_available;
 
 // Websocket server
 websocketpp::server<websocketpp::config::asio> Host::websocket_server;
@@ -278,15 +280,17 @@ void Host::send() {
         
         // Check if there is something to send. If not, sleep to reduce processor usage.
         {
-            std::lock_guard<std::mutex> lock(mpi_to_websocket_result_lock);
-            if (mpi_to_websocket_result.size() > 0) {
-                data = mpi_to_websocket_result.front();
-                mpi_to_websocket_result.erase(mpi_to_websocket_result.begin());
-                std::cout << "Host Websocket-Result-Thread: There are still " << mpi_to_websocket_result.size() << " elements left in the vector." << std::endl;
-            } else {
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
-                continue;
+            std::unique_lock<std::mutex> lock(mpi_to_websocket_result_lock);
+            // While there are no computed regions available, we block for them
+            // (while is necessary due to spurious wakes)
+            // https://en.cppreference.com/w/cpp/thread/condition_variable
+            while (mpi_to_websocket_result.size() == 0) {
+                mpi_to_websocket_result_available.wait(lock);
             }
+            data = mpi_to_websocket_result.front();
+            mpi_to_websocket_result.erase(mpi_to_websocket_result.begin());
+            std::cout << "Host Websocket-Result-Thread: There are still " << mpi_to_websocket_result.size() << " elements left in the vector." << std::endl;
+            // Automatic lock release by unique_lock deconstructor
         }
 
         // Extract WorkerInfo and Region
@@ -479,6 +483,9 @@ void Host::init(int world_rank, int world_size) {
             {
                 std::lock_guard<std::mutex> lock(mpi_to_websocket_result_lock);
                 mpi_to_websocket_result.push_back(region_data);
+                // Notify about newly available computed region
+                mpi_to_websocket_result_available.notify_one();
+                // Automatic lock release by lock_guard deconstructor
             }
 
             delete[] recv;
