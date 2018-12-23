@@ -114,6 +114,8 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
       // Do set exactly this region (part of the group) inactive
       this.chartState.active.set(data.workerInfo.rank, false);
       // insert correct µs time in node value
+      // Here lies a problem with the visualization: estimated and actual computation time differ quite strongly at some points
+      console.log("Diff: " + (group.computationTime - (this.chartState.progress.get(group.id) as number)));
       this.chartState.progress.set(group.id, group.computationTime);
       this.updateChart(0);
       this.initNodeProgress();
