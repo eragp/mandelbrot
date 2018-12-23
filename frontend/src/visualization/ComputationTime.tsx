@@ -11,14 +11,15 @@ import WebSocketClient from "../connection/WSClient";
 
 import "./ComputationTime.css";
 import WorkerContext from "../misc/GroupContext";
-import { RegionGroup } from "../misc/RegionGroup";
+import { RegionGroup, groupRegions} from "../misc/RegionGroup";
+import { WorkerInfo } from "../connection/ExchangeTypes";
 
 interface NodeProgressProps {
   workerContext: WorkerContext;
   wsClient: WebSocketClient;
 }
 interface ChartState {
-  nodes: number[];
+  nodes: RegionGroup[];
   active: Map<number, boolean>;
   progress: Map<number, number>;
 }
@@ -35,13 +36,28 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
   private hoveredSegment: any;
   private interval: NodeJS.Timer;
 
-  private groups: RegionGroup[];
-
   constructor(props: NodeProgressProps) {
     super(props);
     this.websocketClient = props.wsClient;
+    const pseudoWorker: WorkerInfo = {
+        rank: 0,
+        computationTime: 0,
+        region: {
+            guaranteedDivisor: 0,
+            hOffset: 0,
+            vOffset: 0,
+            height: 0,
+            maxImag: 0,
+            maxIteration: 0,
+            maxReal: 0,
+            minImag: 0,
+            minReal: 0,
+            validation: 0,
+            width: 0,
+        }
+    };
     this.chartState = {
-      nodes: [0],
+      nodes: groupRegions([pseudoWorker]),
       active: new Map([[0, false]]),
       // The computation time in microseconds
       progress: new Map([[0, 1]])
@@ -92,7 +108,6 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
         }
       }
     } as ChartConfiguration);
-    this.groups = [];
     this.updateChart();
 
     this.initNodeProgress();
@@ -114,17 +129,15 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
     });
 
     this.websocketClient.registerRegion(groups => {
-      this.groups = groups;
       // Stop redrawing
       this.stopNodeProgress();
       // Reset node progress
-      const nodes = [];
+      const nodes = groups;
       const active = new Map();
       const progress = new Map();
 
       const animationDuration = 750;
       for (const group of groups) {
-        nodes.push(group.id);
         for (const region of group.getLeafs()) {
             active.set(region.id, true);
             progress.set(region.id, animationDuration * 1000);
@@ -152,7 +165,7 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
       }
       const tooltip = (this.chart as any).tooltip;
       if (activeWorker !== undefined) {
-        const workerIndex = this.chartState.nodes.indexOf(activeWorker);
+        const workerIndex = this.chartState.nodes.findIndex(g => g.id === activeWorker);
         // @ts-ignore: does not have complete .d.ts file
         const activeSegment = datasets[0]._meta[1].data[workerIndex];
         tooltip.initialize();
@@ -194,11 +207,11 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
         }
         return compTime;
     };
-    this.chartState.nodes.forEach(rank => {
+    this.chartState.nodes.forEach(group => {
+      const rank = group.id;
       labels.push("Group " + rank);
       colorSet.push(this.props.workerContext.getWorkerColor(rank));
-      const group = this.groups.find(g => g.id === rank);
-      values.push(group === undefined ? 1 : groupCompTime(group));
+      values.push(groupCompTime(group));
     });
 
     const usToString = (time: number) => {
@@ -241,7 +254,7 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
     this.interval = setInterval(
       (state: ChartState) => {
         let update = false;
-        this.groups.forEach(group => {
+        this.chartState.nodes.forEach(group => {
           // Check for all regions of the group
           for (const region of group.getLeafs()) {
               if (state.active.get(region.id) === true) {

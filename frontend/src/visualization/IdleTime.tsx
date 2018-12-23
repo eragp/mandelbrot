@@ -12,7 +12,8 @@ import WebSocketClient from "../connection/WSClient";
 
 import "./IdleTime.css";
 import WorkerContext from "../misc/GroupContext";
-import { RegionGroup } from "../misc/RegionGroup";
+import { RegionGroup, groupRegions } from "../misc/RegionGroup";
+import { WorkerInfo } from "../connection/ExchangeTypes";
 
 interface IdleTimeProps {
   wsclient: WebSocketClient;
@@ -20,7 +21,7 @@ interface IdleTimeProps {
 }
 
 interface IdleTimeState {
-  nodes: number[];
+  nodes: RegionGroup[];
   active: Map<number, boolean>;
   progress: Map<number, number>;
 }
@@ -36,13 +37,29 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
   private hoveredItem: any;
   private hoveredSegment: any;
 
-  private groups: RegionGroup[];
 
   constructor(props: IdleTimeProps) {
     super(props);
 
+    const pseudoWorker: WorkerInfo = {
+        rank: 0,
+        computationTime: 0,
+        region: {
+            guaranteedDivisor: 0,
+            hOffset: 0,
+            vOffset: 0,
+            height: 0,
+            maxImag: 0,
+            maxIteration: 0,
+            maxReal: 0,
+            minImag: 0,
+            minReal: 0,
+            validation: 0,
+            width: 0,
+        }
+    };
     this.chartState = {
-      nodes: [0],
+      nodes: groupRegions([pseudoWorker]),
       active: new Map([[0, false]]),
       // The computation time in microseconds
       progress: new Map([[0, 1]])
@@ -125,7 +142,6 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
       }
     };
     this.chart = new Chart(ctx, config);
-    this.groups = [];
     this.updateChart();
 
     this.initNodeProgress();
@@ -151,17 +167,15 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
     });
 
     this.props.wsclient.registerRegion(groups => {
-      this.groups = groups;
       // Stop redrawing
       this.stopNodeProgress();
       // Reset node progress
-      const nodes = [];
+      const nodes = groups;
       const active = new Map();
       const progress = new Map();
 
       const animationDuration = 750;
       for (const group of groups) {
-        nodes.push(group.id);
         for (const region of group.getLeafs()) {
             active.set(region.id, true);
             progress.set(region.id, animationDuration * 1000);
@@ -184,7 +198,7 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
     this.props.workerContext.subscribe(activeWorker => {
       // Activate new tooltip if necessary
       if (activeWorker !== undefined) {
-        const workerIndex = this.chartState.nodes.indexOf(activeWorker);
+        const workerIndex = this.chartState.nodes.findIndex(g => g.id === activeWorker);
         // @ts-ignore: does not have complete .d.ts file
         const activeSegment = (this.chart.data.datasets as ChartDataSets[])[workerIndex]._meta[0]
           .data[0];
@@ -234,15 +248,15 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
         return compTime;
     };
     let maxComputationTime = 0;
-    for(const g of this.groups){
+    for(const g of this.chartState.nodes){
         const compTime = groupCompTime(g);
         if (compTime > maxComputationTime) {
             maxComputationTime = compTime;
         }
     }
     // Ensure that the order from the nodes array is kept for the datasets
-    this.chartState.nodes.forEach(rank => {
-      const group = this.groups.find(g => g.id === rank);
+    this.chartState.nodes.forEach(group => {
+      const rank = group.id;
       const idleTime = group === undefined ? 0 : ((maxComputationTime - (groupCompTime(group))) / 1000);
       datasets.push({
         label: "Group " + rank,
@@ -270,7 +284,7 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
     this.interval = setInterval(
       (state: IdleTimeState) => {
         let update = false;
-        this.groups.forEach(group => {
+        this.chartState.nodes.forEach(group => {
           for (const region of group.getLeafs()) {
             if (state.active.get(region.id)) {
                 state.progress.set(region.id, (state.progress.get(region.id) as number) + interval * 1000);
