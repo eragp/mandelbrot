@@ -5,8 +5,8 @@
 #include <iostream>
 
 #ifdef __ARM_NEON
-
 #include <arm_neon.h>
+#endif
 
 // Note that this is set for Raspi3 and Odroid (ARM Cortex A53)
 // According to https://developer.arm.com/technologies/neon and https://en.wikipedia.org/wiki/ARM_Cortex-A53
@@ -14,7 +14,8 @@
 
 // Probably more open to compiler optimization
 // vectorlength >= 1 !!
-void MandelbrotSIMD32::calculateFractal(precision_t* cRealArray, precision_t* cImaginaryArray, int maxIteration, int vectorLength, int* dest) {
+void MandelbrotSIMD32::calculateFractal(precision_t* cRealArray, precision_t* cImaginaryArray, unsigned short int maxIteration, int vectorLength, unsigned short int* dest) {
+    #ifdef __ARM_NEON
     if(vectorLength <= 0){
         throw std::invalid_argument("vectorLength may not be less than 1.");
     }
@@ -75,13 +76,9 @@ void MandelbrotSIMD32::calculateFractal(precision_t* cRealArray, precision_t* cI
     cImaginaryArray += 4;
     dest += 4;
     }
-}
-
-#else 
-
-void MandelbrotSIMD32::calculateFractal(precision_t* cReal, precision_t* cImaginary, int maxIteration, int vectorLength, int* dest) {
+    #else
     for(int j = 0; j < vectorLength; j++){
         dest[j] = 0;
     }
+    #endif
 }
-#endif

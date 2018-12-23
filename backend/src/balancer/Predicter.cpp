@@ -34,7 +34,7 @@ Prediction* Predicter::getPrediction(Region region, Fractal* fractal, int predic
             for (unsigned int y = 0; y < lowRes.height; y++) {
                 precision_t cReal = lowRes.minReal + x * deltaReal;
                 precision_t cImaginary = lowRes.maxImaginary - y * deltaImaginary;
-                int iterationCount;
+                unsigned short int iterationCount;
                 fractal->calculateFractal(&cReal,
                                           &cImaginary,
                                           lowRes.maxIteration,
@@ -84,7 +84,7 @@ Prediction* Predicter::getPrediction(Region region, Fractal* fractal, int predic
             for (unsigned int y = 0; y < lowRes.height; y++) {
                 precision_t cReal = lowRes.minReal + x * deltaReal;
                 precision_t cImaginary = lowRes.maxImaginary - y * deltaImaginary;
-                int iterationCount;
+                unsigned short int iterationCount;
                 fractal->calculateFractal(&cReal,
                                           &cImaginary,
                                           lowRes.maxIteration,

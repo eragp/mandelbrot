@@ -24,8 +24,8 @@ interface NetworkHoverEvent {
 }
 // TODO highlight node on workercontext active worker change
 
-const groupToNet = id => id + 2;
-const netToGroup = id => id - 2;
+const groupToNet = (id: number) => id + 2;
+const netToGroup = (id: number) => id - 2;
 
 export default class NetworkView extends React.Component<NetworkViewProps, {}> {
   private network: Network;

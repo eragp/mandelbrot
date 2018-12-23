@@ -17,17 +17,15 @@ int calculateFractalNonParallel64(precision_t cReal, precision_t cImaginary, int
     return i;
 }
 
-// Non-simd-izable version
-void Mandelbrot64::calculateFractal(precision_t* cReal, precision_t* cImaginary, int maxIteration, int vectorLength, int* dest) {
-    for(int j = 0; j < vectorLength; j++){
-        dest[j] = calculateFractalNonParallel64(cReal[j], cImaginary[j], maxIteration);
-    }
-}
-#else
+#endif
 
-void Mandelbrot64::calculateFractal(precision_t* cReal, precision_t* cImaginary, int maxIteration, int vectorLength, int* dest) {
+// Non-simd-izable version
+void Mandelbrot64::calculateFractal(precision_t* cReal, precision_t* cImaginary, unsigned short int maxIteration, int vectorLength, unsigned short int* dest) {
     for(int j = 0; j < vectorLength; j++){
+        #ifdef __ARM_NEON
+        dest[j] = calculateFractalNonParallel64(cReal[j], cImaginary[j], maxIteration);
+        #else
         dest[j] = 0;
+        #endif
     }
 }
-#endif 

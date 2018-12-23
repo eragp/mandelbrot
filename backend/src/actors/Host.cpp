@@ -161,7 +161,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         region.hOffset = 0;
         region.vOffset = 0;
 
-        region.maxIteration = request["region"]["maxIteration"].GetUint();
+        region.maxIteration = (unsigned short int) request["region"]["maxIteration"].GetUint();
         region.validation = request["region"]["validation"].GetInt();
         region.guaranteedDivisor = request["region"]["guaranteedDivisor"].GetUint();
 
@@ -441,7 +441,7 @@ void Host::init(int world_rank, int world_size) {
             MPI_Get_count(&status, MPI_BYTE, &recv_len);
             std::cout << "Host is receiving Data from Worker " << status.MPI_SOURCE << " Total length: " << recv_len << " Bytes." << std::endl;
             uint8_t* recv = new uint8_t[recv_len];
-            int ierr = MPI_Recv(recv, recv_len, MPI_BYTE, status.MPI_SOURCE, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE); // Rank: 2
+            int ierr = MPI_Recv(recv, recv_len, MPI_BYTE, status.MPI_SOURCE, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE); // Tag: 2
             if(ierr != MPI_SUCCESS){
                 std::cerr << "Error on receiving data from worker: " << std::endl;
                 char err_buffer[MPI_MAX_ERROR_STRING];
@@ -459,13 +459,13 @@ void Host::init(int world_rank, int world_size) {
             std::memcpy(&workerInfo, recv, sizeof(WorkerInfo));
 
             // Compute time approximately used for MPI communication
-            mpiCommunicationTime[workerInfo.rank] = std::chrono::duration_cast<std::chrono::microseconds>(mpiCommunicationEnd - mpiCommunicationStart[workerInfo.rank]).count() - workerInfo.computationTime;
+            mpiCommunicationTime[workerInfo.rank-1] = std::chrono::duration_cast<std::chrono::microseconds>(mpiCommunicationEnd - mpiCommunicationStart[workerInfo.rank]).count() - workerInfo.computationTime;
             std::cout << "Host: MPI communication with Worker " << workerInfo.rank << " took approximately " << mpiCommunicationTime[workerInfo.rank] << " microseconds." << std::endl;
         
             // Extract "worker_data" from the received message
             unsigned int region_size = workerInfo.region.getPixelCount();
-            int* worker_data = new int[region_size];
-            std::memcpy(worker_data, recv + sizeof(WorkerInfo), region_size * sizeof(int));
+            unsigned short int* worker_data = new unsigned short int[region_size];
+            std::memcpy(worker_data, recv + sizeof(WorkerInfo), region_size * sizeof(unsigned short int));
             std::cout << "Host: Receive from Worker " << workerInfo.rank << " complete." << std::endl;
         
             // Fill "region_data"

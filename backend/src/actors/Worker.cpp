@@ -69,7 +69,7 @@ void Worker::init(int world_rank, int world_size) {
 
             // Execute computations
             const unsigned int data_len = region.getPixelCount();
-            int* data = new int[data_len];
+            unsigned short int* data = new unsigned short int[data_len];
             
             int i = 0;
 
@@ -138,10 +138,10 @@ void Worker::init(int world_rank, int world_size) {
 				workerInfo.region = region;
 
                 // Pack "workerInfo" and the computed "data" in one coherent storage area "ret"
-                const unsigned int ret_len = sizeof(int) * data_len + sizeof(WorkerInfo);
+                const unsigned int ret_len = sizeof(unsigned short int) * data_len + sizeof(WorkerInfo);
                 uint8_t* ret = new uint8_t[ret_len];
                 std::memcpy(ret, &workerInfo, sizeof(WorkerInfo));
-                std::memcpy(ret + sizeof(WorkerInfo), data, data_len * sizeof(int));
+                std::memcpy(ret + sizeof(WorkerInfo), data, data_len * sizeof(unsigned short int));
                 
                 // Send "ret" to the Host using one MPI_Send operation
                 std::cout << "Worker " << world_rank << " is sending the data. Total length: " << ret_len << " Bytes. Elapsed time: " << elapsedTime << " microseconds." << std::endl;

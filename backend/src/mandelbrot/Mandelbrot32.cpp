@@ -3,7 +3,7 @@
 #ifdef __ARM_NEON
 #include <arm_neon.h>
 
-int calculateFractalNonParallel32(precision_t cReal, precision_t cImaginary, int maxIteration){
+int calculateFractalNonParallel32(precision_t cReal, precision_t cImaginary, unsigned short int maxIteration){
     int i = 0;
     float32_t zReal = 0.0;
     float32_t zImaginary = 0.0;
@@ -17,17 +17,15 @@ int calculateFractalNonParallel32(precision_t cReal, precision_t cImaginary, int
     return i;
 }
 
-// Non-simd-izable version
-void Mandelbrot32::calculateFractal(precision_t* cReal, precision_t* cImaginary, int maxIteration, int vectorLength, int* dest) {
-    for(int j = 0; j < vectorLength; j++){
-        dest[j] = calculateFractalNonParallel32(cReal[j], cImaginary[j], maxIteration);
-    }
-}
+#endif
 
-#else
-void Mandelbrot32::calculateFractal(precision_t* cReal, precision_t* cImaginary, int maxIteration, int vectorLength, int* dest) {
+// Non-simd-izable version
+void Mandelbrot32::calculateFractal(precision_t* cReal, precision_t* cImaginary, unsigned short int maxIteration, int vectorLength, unsigned short int* dest) {
     for(int j = 0; j < vectorLength; j++){
+        #ifdef __ARM_NEON
+        dest[j] = calculateFractalNonParallel32(cReal[j], cImaginary[j], maxIteration);
+        #else
         dest[j] = 0;
+        #endif
     }
 }
-#endif 

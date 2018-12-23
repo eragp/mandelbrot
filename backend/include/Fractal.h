@@ -21,7 +21,7 @@ class Fractal {
      * @param vectorLength number of coordinates to be calculated at once
      * @param dest memory position where result(number of iterations for coordinates) should be stored
      */
-    virtual void calculateFractal(precision_t* cReal, precision_t* cImaginary, int maxIteration, int vectorLength, int* dest) = 0;
+    virtual void calculateFractal(precision_t* cReal, precision_t* cImaginary, unsigned short int maxIteration, int vectorLength, unsigned short int* dest) = 0;
     virtual ~Fractal();
 
     /**

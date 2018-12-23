@@ -20,7 +20,7 @@ struct RegionData {
      * Size: region.width*region.height
      * Index: i (x,y) -> (region.width * y) + region.height
      */
-    int *data;
+    unsigned short int *data;
     int data_length;
 
 };

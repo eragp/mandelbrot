@@ -73,8 +73,8 @@ class Group implements RegionGroup {
 
   public getLeafs() {
     let leafs: Rectangle[] = [];
-    this.getChildren().forEach((child) => {
-        leafs = leafs.concat(child.getLeafs());
+    this.getChildren().forEach(child => {
+      leafs = leafs.concat(child.getLeafs());
     });
     return leafs;
   }
@@ -135,8 +135,8 @@ class Rectangle implements RegionGroup {
     return false;
   }
 
-  public getLeafs(){
-      return [this];
+  public getLeafs() {
+    return [this];
   }
 
   getRanks() {
@@ -144,21 +144,8 @@ class Rectangle implements RegionGroup {
   }
 }
 
-export const isEmptyRegion = (region: Region) => {
-  return (
-    region.width === 0 &&
-    region.height === 0 &&
-    region.minImag === 0 &&
-    region.maxImag === 0 &&
-    region.minReal === 0 &&
-    region.maxReal === 0 &&
-    region.hOffset === 0 &&
-    region.vOffset === 0
-  );
-};
 
-export const groupRegions = (regions: Regions): RegionGroup[] => {
-  let r = regions.regions.filter(r => !isEmptyRegion(r.region));
+export const groupRegions = (r: WorkerInfo[]): RegionGroup[] => {
   if (r.length <= MAX_DISPLAY_REGIONS) {
     return r.map(r => new Rectangle(r));
   }
@@ -183,5 +170,6 @@ export const groupRegions = (regions: Regions): RegionGroup[] => {
     }
     if (remainder.length > 0) groups.push(new Group(remainder, groupID++));
   }
+  console.log(groups);
   return groups;
 };
