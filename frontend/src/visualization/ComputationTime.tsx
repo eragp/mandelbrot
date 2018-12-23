@@ -100,6 +100,7 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
     // so that they are set inactive when the first tile/region
     // by them comes in
     this.websocketClient.registerRegionData(data => {
+      this.stopNodeProgress();
       // Stop corresponding group progress bar
       // assume that regionData is passed here
       const workerRank = data.workerInfo.rank;
@@ -110,10 +111,12 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
       }
       group.computationTime += data.workerInfo.computationTime;
       // Pay attention here that ranks begin from 1 as long as the host does not send data on his own
-      this.chartState.active.set(group.id, false);
+      // Do set exactly this region (part of the group) inactive
+      this.chartState.active.set(data.workerInfo.rank, false);
       // insert correct µs time in node value
       this.chartState.progress.set(group.id, group.computationTime);
-      this.updateChart();
+      this.updateChart(0);
+      this.initNodeProgress();
     });
 
     this.websocketClient.registerRegion(groups => {
@@ -126,10 +129,13 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
       const progress = new Map();
 
       const animationDuration = 750;
-      for (const region of groups) {
-        nodes.push(region.id);
-        active.set(region.id, true);
-        progress.set(region.id, animationDuration * 1000);
+      for (const group of groups) {
+        nodes.push(group.id);
+        for (const region of group.getLeafs()) {
+            active.set(region.id, true);
+        }
+        progress.set(group.id, group.getLeafs().length * animationDuration * 1000);
+        group.computationTime = 0;
       }
       this.chartState = {
         nodes,
@@ -234,9 +240,20 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
     this.interval = setInterval(
       (state: ChartState) => {
         let update = false;
-        state.progress.forEach((value, rank) => {
-          if (state.active.get(rank)) {
-            state.progress.set(rank, value + intervalRate * 1000);
+        state.progress.forEach((value, id) => {
+          // Check for all regions of the group
+          let activeRegions = 0;
+          const group = this.groups.find(g => g.id === id);
+          if (!group) {
+              return;
+          }
+          for (const region of group.getLeafs()) {
+              if (state.active.get(region.id) === true) {
+                  activeRegions += 1;
+              }
+          }
+          if (activeRegions > 0) {
+            state.progress.set(id, value + activeRegions * intervalRate * 1000);
             update = true;
           }
         });

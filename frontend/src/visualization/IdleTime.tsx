@@ -50,6 +50,7 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
   }
 
   public componentDidMount() {
+    // TODO does not work
     const customLabel = (tooltipItem: ChartTooltipItem, data: ChartData) => {
       if (!data.datasets || !tooltipItem.datasetIndex || !tooltipItem.index) {
         return "";
@@ -132,25 +133,28 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
     // so that they are set inactive when the first tile/region
     // by them comes in
     this.props.wsclient.registerRegionData(data => {
+      this.stopNodeProgress();
       // Stop corresponding worker progress bar
       // assume that regionData is passed here
       // Pay attention here that ranks begin from 1 as long as the host does not send data on his own
       const workerRank = data.workerInfo.rank;
-      let group = this.groups.find(g => g.getRanks().some(r => r === workerRank));
+      const group = this.groups.find(g => g.getRanks().some(r => r === workerRank));
       if (!group) {
         console.error("No group found with rank: " + workerRank);
         return;
       }
       // Note that it is not active anymore
-      this.chartState.active.set(group.id, false);
-      // group.computationTime += data.workerInfo.computationTime;
+      // especially this one worker (part of the whole group)
+      this.chartState.active.set(data.workerInfo.rank, false);
+      group.computationTime += data.workerInfo.computationTime;
       // insert correct µs time in node value
       this.chartState.progress.set(group.id, group.computationTime);
       this.updateChart(0);
+      this.initNodeProgress();
     });
 
-    this.props.wsclient.registerRegion(group => {
-      this.groups = group;
+    this.props.wsclient.registerRegion(groups => {
+      this.groups = groups;
       // Stop redrawing
       this.stopNodeProgress();
       // Reset node progress
@@ -158,11 +162,14 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
       const active = new Map();
       const progress = new Map();
 
-      let animationDuration = 750;
-      for (let region of group) {
-        nodes.push(region.id);
-        active.set(region.id, true);
-        progress.set(region.id, animationDuration * 1000);
+      const animationDuration = 750;
+      for (const group of groups) {
+        nodes.push(group.id);
+        for (const region of group.getLeafs()) {
+            active.set(region.id, true);
+        }
+        progress.set(group.id, group.getLeafs().length * animationDuration * 1000);
+        group.computationTime = 0;
       }
       this.chartState = {
         nodes: nodes,
@@ -234,7 +241,7 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
       let idleTime = maxComputationTime - (this.chartState.progress.get(rank) as number);
       idleTime = idleTime / 1000;
       datasets.push({
-        label: "Worker " + rank,
+        label: "Group " + rank,
         data: [idleTime],
         backgroundColor: this.props.workerContext.getWorkerColor(rank),
         stack: "idle-time"
@@ -259,9 +266,16 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
     this.interval = setInterval(
       (state: IdleTimeState) => {
         let update = false;
-        state.progress.forEach((value, rank) => {
-          if (state.active.get(rank)) {
-            state.progress.set(rank, value + interval * 1000);
+        state.progress.forEach((value, id) => {
+          let activeRegions = 0;
+          const group = this.groups.find(g => g.id === id) as RegionGroup;
+          for (const region of group.getLeafs()) {
+              if (state.active.get(region.id) === true) {
+                  activeRegions += 1;
+              }
+          }
+          if (activeRegions > 0) {
+            state.progress.set(id, value + activeRegions * interval * 1000);
             update = true;
           }
         });
