@@ -125,6 +125,7 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
       }
     };
     this.chart = new Chart(ctx, config);
+    this.groups = [];
     this.updateChart();
 
     this.initNodeProgress();
@@ -136,19 +137,15 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
       this.stopNodeProgress();
       // Stop corresponding worker progress bar
       // assume that regionData is passed here
-      // Pay attention here that ranks begin from 1 as long as the host does not send data on his own
-      const workerRank = data.workerInfo.rank;
-      const group = this.groups.find(g => g.getRanks().some(r => r === workerRank));
-      if (!group) {
-        console.error("No group found with rank: " + workerRank);
-        return;
-      }
+
       // Note that it is not active anymore
       // especially this one worker (part of the whole group)
       this.chartState.active.set(data.workerInfo.rank, false);
-      group.computationTime += data.workerInfo.computationTime;
       // insert correct µs time in node value
-      this.chartState.progress.set(group.id, group.computationTime);
+      // Problem: when setting progress for whole group, we remove the progress
+      // up to this point estimated for all other nodes of the group
+      // => store progress for each node separated
+      this.chartState.progress.set(data.workerInfo.rank, data.workerInfo.computationTime);
       this.updateChart(0);
       this.initNodeProgress();
     });
@@ -167,9 +164,8 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
         nodes.push(group.id);
         for (const region of group.getLeafs()) {
             active.set(region.id, true);
+            progress.set(region.id, animationDuration * 1000);
         }
-        progress.set(group.id, group.getLeafs().length * animationDuration * 1000);
-        group.computationTime = 0;
       }
       this.chartState = {
         nodes: nodes,
@@ -230,16 +226,24 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
 
   private updateChart(animationDuration?: number) {
     const datasets: ChartDataSets[] = [];
+    const groupCompTime = (group: RegionGroup) => {
+        let compTime = 0;
+        for (const region of group.getLeafs()) {
+            compTime += this.chartState.progress.get(region.id) as number;
+        }
+        return compTime;
+    };
     let maxComputationTime = 0;
-    this.chartState.progress.forEach(time => {
-      if (time > maxComputationTime) {
-        maxComputationTime = time;
-      }
-    });
+    for(const g of this.groups){
+        const compTime = groupCompTime(g);
+        if (compTime > maxComputationTime) {
+            maxComputationTime = compTime;
+        }
+    }
     // Ensure that the order from the nodes array is kept for the datasets
     this.chartState.nodes.forEach(rank => {
-      let idleTime = maxComputationTime - (this.chartState.progress.get(rank) as number);
-      idleTime = idleTime / 1000;
+      const group = this.groups.find(g => g.id === rank);
+      const idleTime = group === undefined ? 0 : ((maxComputationTime - (groupCompTime(group))) / 1000);
       datasets.push({
         label: "Group " + rank,
         data: [idleTime],
@@ -266,17 +270,12 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
     this.interval = setInterval(
       (state: IdleTimeState) => {
         let update = false;
-        state.progress.forEach((value, id) => {
-          let activeRegions = 0;
-          const group = this.groups.find(g => g.id === id) as RegionGroup;
+        this.groups.forEach(group => {
           for (const region of group.getLeafs()) {
-              if (state.active.get(region.id) === true) {
-                  activeRegions += 1;
-              }
-          }
-          if (activeRegions > 0) {
-            state.progress.set(id, value + activeRegions * interval * 1000);
-            update = true;
+            if (state.active.get(region.id)) {
+                state.progress.set(region.id, (state.progress.get(region.id) as number) + interval * 1000);
+                update = true;
+            }
           }
         });
         if (update) {
