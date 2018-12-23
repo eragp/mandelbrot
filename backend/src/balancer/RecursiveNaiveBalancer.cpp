@@ -43,7 +43,7 @@ int RecursiveNaiveBalancer::balancingHelper(Region region, BalancingContext cont
 	if (region.width <= region.guaranteedDivisor) {
 		halves = halveRegionHorizontally(region, context);
 	}
-	else if (region.height < region.guaranteedDivisor) {
+	else if (region.height <= region.guaranteedDivisor) {
 		halves = halveRegionVertically(region, context);
 	}
 	else if (context.recCounter % 2 == 0) {
