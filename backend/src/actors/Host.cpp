@@ -54,6 +54,10 @@ bool Host::mpi_send_regions = false;
 std::map<int, Region> Host::transmit_regions;
 std::mutex Host::transmit_regions_lock;
 
+// Transfer RegionData from MPI-Thread to Websocket-Result-Thread
+std::vector<RegionData> Host::mpi_to_websocket_result;
+std::mutex Host::mpi_to_websocket_result_lock;
+
 // Websocket server
 websocketpp::server<websocketpp::config::asio> Host::websocket_server;
 websocketpp::connection_hdl Host::client;
@@ -265,56 +269,83 @@ void Host::deregister_client(websocketpp::connection_hdl hdl) {
     // TODO maybe mock client or sth similar
 }
 
-void Host::send(RegionData data) {
-    WorkerInfo workerInfo = data.workerInfo;
-    Region region = data.workerInfo.region;
+void Host::send() {
+    std::cout << "Host: Websocket-Result-Thread is running." << std::endl;
 
-    // Create json value from returned
-    Document answer(kObjectType);
-    // answer[U("rank")] = json::value(data.world_rank);
-    Value rawDataJSON(kArrayType);
-    for (unsigned int index = 0; index < (region.width * region.height); index++) {
-        rawDataJSON.PushBack(data.data[index], answer.GetAllocator());
-    }
+    while (true) { 
+        RegionData data;
+        
+        // Check if there is something to send. If not, sleep to reduce processor usage.
+        {
+            std::lock_guard<std::mutex> lock(mpi_to_websocket_result_lock);
+            if (mpi_to_websocket_result.size() > 0) {
+                data = mpi_to_websocket_result.front();
+                mpi_to_websocket_result.erase(mpi_to_websocket_result.begin());
+                std::cout << "Host Websocket-Result-Thread: There are still " << mpi_to_websocket_result.size() << " elements left in the vector." << std::endl;
+            } else {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                continue;
+            }
+        }
 
-    Value workerInfoJSON(kObjectType);
-    workerInfoJSON.AddMember("rank", workerInfo.rank, answer.GetAllocator());
-    workerInfoJSON.AddMember("computationTime", Value().SetInt64(workerInfo.computationTime), answer.GetAllocator());
+        // Extract WorkerInfo and Region
+        WorkerInfo workerInfo = data.workerInfo;
+        Region region = data.workerInfo.region;
 
-    // Maybe put this into extra method
-    Value regionJSON;
-    regionJSON.SetObject();
-    regionJSON.AddMember("minReal", Value().SetDouble(region.minReal), answer.GetAllocator());
-    regionJSON.AddMember("maxImag", Value().SetDouble(region.maxImaginary), answer.GetAllocator());
+        std::cout << "Host Websocket-Result-Thread: Start to send RegionData from Worker " << workerInfo.rank << "." << std::endl;
 
-    regionJSON.AddMember("maxReal", Value().SetDouble(region.maxReal), answer.GetAllocator());
-    regionJSON.AddMember("minImag", Value().SetDouble(region.minImaginary), answer.GetAllocator());
+        // Create json value from returned
+        Document answer(kObjectType);
+        // answer[U("rank")] = json::value(data.world_rank);
+        Value rawDataJSON(kArrayType);
+        for (unsigned int index = 0; index < (region.width * region.height); index++) {
+            rawDataJSON.PushBack(data.data[index], answer.GetAllocator());
+        }
 
-    regionJSON.AddMember("width", region.width, answer.GetAllocator());
-    regionJSON.AddMember("height", region.height, answer.GetAllocator());
+        Value workerInfoJSON(kObjectType);
+        workerInfoJSON.AddMember("rank", workerInfo.rank, answer.GetAllocator());
+        workerInfoJSON.AddMember("computationTime", Value().SetInt64(workerInfo.computationTime), answer.GetAllocator());
 
-    regionJSON.AddMember("hOffset", region.hOffset, answer.GetAllocator());
-    regionJSON.AddMember("vOffset", region.vOffset, answer.GetAllocator());
+        // Maybe put this into extra method
+        Value regionJSON;
+        regionJSON.SetObject();
+        regionJSON.AddMember("minReal", Value().SetDouble(region.minReal), answer.GetAllocator());
+        regionJSON.AddMember("maxImag", Value().SetDouble(region.maxImaginary), answer.GetAllocator());
 
-    regionJSON.AddMember("maxIteration", region.maxIteration, answer.GetAllocator());
-    regionJSON.AddMember("validation", region.validation, answer.GetAllocator());
-    regionJSON.AddMember("guaranteedDivisor", region.guaranteedDivisor, answer.GetAllocator());
+        regionJSON.AddMember("maxReal", Value().SetDouble(region.maxReal), answer.GetAllocator());
+        regionJSON.AddMember("minImag", Value().SetDouble(region.minImaginary), answer.GetAllocator());
 
-    workerInfoJSON.AddMember("region", regionJSON, answer.GetAllocator());
+        regionJSON.AddMember("width", region.width, answer.GetAllocator());
+        regionJSON.AddMember("height", region.height, answer.GetAllocator());
 
-    answer.AddMember("workerInfo", workerInfoJSON, answer.GetAllocator());
-    answer.AddMember("data", rawDataJSON, answer.GetAllocator());
-    answer.AddMember("type", "regionData", answer.GetAllocator());
+        regionJSON.AddMember("hOffset", region.hOffset, answer.GetAllocator());
+        regionJSON.AddMember("vOffset", region.vOffset, answer.GetAllocator());
 
-    // Stringify reply
-    StringBuffer buffer;
-    Writer<StringBuffer> writer(buffer);
-    answer.Accept(writer);
+        regionJSON.AddMember("maxIteration", region.maxIteration, answer.GetAllocator());
+        regionJSON.AddMember("validation", region.validation, answer.GetAllocator());
+        regionJSON.AddMember("guaranteedDivisor", region.guaranteedDivisor, answer.GetAllocator());
 
-    try {
-        websocket_server.send(client, buffer.GetString(), websocketpp::frame::opcode::text);
-    } catch (websocketpp::exception &e) {
-        std::cerr << e.what() << "\n" << "Refresh websocket connection.\n";
+        workerInfoJSON.AddMember("region", regionJSON, answer.GetAllocator());
+
+        answer.AddMember("workerInfo", workerInfoJSON, answer.GetAllocator());
+        answer.AddMember("data", rawDataJSON, answer.GetAllocator());
+        answer.AddMember("type", "regionData", answer.GetAllocator());
+
+        // Stringify reply
+        StringBuffer buffer;
+        Writer<StringBuffer> writer(buffer);
+        answer.Accept(writer);
+
+        try {
+            websocket_server.send(client, buffer.GetString(), websocketpp::frame::opcode::text);
+        } catch (websocketpp::exception &e) {
+            std::cerr << e.what() << "\n" << "Refresh websocket connection.\n";
+        }
+
+        delete[] data.data;
+
+        std::cout << "Host Websocket-Result-Thread: Sending RegionData from Worker " << workerInfo.rank << " done." << std::endl;
+
     }
 }
 
@@ -326,6 +357,9 @@ void Host::init(int world_rank, int world_size) {
     // Websockets
     // Start a thread that hosts the server
     std::thread websocket_server(start_server);
+
+    // Start Websocket-Result-Thread (sends RegionData filled with computed mandelbrot data to frontend)
+    std::thread websocket_result(send);
 
     // Init usableNodes and set Host as not usable
     usableNodes = new bool[world_size];
@@ -432,16 +466,20 @@ void Host::init(int world_rank, int world_size) {
             std::memcpy(worker_data, recv + sizeof(WorkerInfo), region_size * sizeof(int));
             std::cout << "Host: Receive from Worker " << workerInfo.rank << " complete." << std::endl;
         
-            // Fill "region_data"
+            // Fill "RegionData"
             RegionData region_data{};
             region_data.data = worker_data;
             region_data.data_length = region_size;
             region_data.workerInfo = workerInfo;
 
-            Host::send(region_data);
+            // Send RegionData to Websocket-Result-Thread
+            {
+                std::lock_guard<std::mutex> lock(mpi_to_websocket_result_lock);
+                mpi_to_websocket_result.push_back(region_data);
+            }
 
             delete[] recv;
-            delete[] worker_data;
+            // Note: worker_data will be deleted by Websocket-Result-Thread after the send operation is complete.
         }
         
     }

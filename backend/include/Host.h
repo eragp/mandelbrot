@@ -35,13 +35,17 @@ private:
     static std::map<int, Region> transmit_regions;
     static std::mutex transmit_regions_lock;
 
+    // Transfer RegionData from MPI-Thread to Websocket-Result-Thread
+    static std::vector<RegionData> mpi_to_websocket_result;
+    static std::mutex mpi_to_websocket_result_lock;
+
     // Websocket server
     static websocketpp::server<websocketpp::config::asio> websocket_server;
     static void start_server();
     static websocketpp::connection_hdl client;
     static void register_client(websocketpp::connection_hdl conn);
     static void deregister_client(websocketpp::connection_hdl conn);
-    static void send(RegionData data);
+    static void send();
     static void handle_region_request(websocketpp::connection_hdl hdl, websocketpp::server<websocketpp::config::asio>::message_ptr msg);
 };
 #endif
