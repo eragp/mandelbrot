@@ -16,7 +16,7 @@ Region *RecursiveNaiveBalancer::balanceLoad(Region region, int nodeCount) {
 	int onLowestLevel = (int)(nodeCount - pow(2, recCounter)) * 2;
 	recCounter++;
 	
-	NaiveBalancingContext context = { allRegions, 0, recCounter, onLowestLevel, 0.0, 0.0 };
+	BalancingContext context = { allRegions, 0, recCounter, onLowestLevel, 0.0, 0.0 };
 	context.deltaReal = Fractal::deltaReal(region.maxReal, region.minReal, region.width);
 	context.deltaImaginary = Fractal::deltaImaginary(region.maxImaginary, region.minImaginary, region.height);
 
@@ -29,7 +29,7 @@ Region *RecursiveNaiveBalancer::balanceLoad(Region region, int nodeCount) {
 	return allRegions;
 }
 
-int RecursiveNaiveBalancer::balancingHelper(Region region, NaiveBalancingContext context) {
+int RecursiveNaiveBalancer::balancingHelper(Region region, BalancingContext context) {
 	// Store region in result
 	if (context.recCounter == 0 || (context.recCounter == 1 && context.resultIndex >= context.onLowestLevel)) {
 		context.result[context.resultIndex++] = region;

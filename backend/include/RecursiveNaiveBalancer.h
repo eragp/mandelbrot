@@ -4,23 +4,13 @@
 
 #include "Balancer.h"
 #include "Region.h"
+#include "BalancingContext.h"
 
 #include <string>
 
-struct NaiveBalancingContext {
-	Region* result;
-
-	int resultIndex;
-	int recCounter;
-	int onLowestLevel;
-
-	double deltaReal;
-	double deltaImaginary;
-};
-
 class RecursiveNaiveBalancer : public Balancer {
 private:
-	int balancingHelper(Region region, NaiveBalancingContext context);
+	int balancingHelper(Region region, BalancingContext context);
 
 public:
 	static const std::string NAME;
