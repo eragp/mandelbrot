@@ -46,8 +46,14 @@ int RecursivePredictionBalancer::balancingHelper(Region region, Prediction* pred
 	Prediction* halve1 = new Prediction();
 	Region* halves; // Will have length 2
 
-					// Check whether to divide vertically or horizontally
-	if (context.recCounter % 2 == 0) {
+	// Check whether to divide vertically or horizontally
+	if (region.width <= region.guaranteedDivisor) {
+		halves = halveRegionHorizontally(region, *prediction, halve0, halve1);
+	}
+	else if (region.height < region.guaranteedDivisor) {
+		halves = halveRegionVertically(region, *prediction, halve0, halve1);
+	}
+	else if (context.recCounter % 2 == 0) {
 		halves = halveRegionVertically(region, *prediction, halve0, halve1);
 	}
 	else {
