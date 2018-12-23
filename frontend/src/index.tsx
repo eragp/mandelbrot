@@ -1,4 +1,5 @@
-import registerServiceWorker from "./registerServiceWorker";
+import "bootstrap/dist/css/bootstrap.css";
+
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 
@@ -18,7 +19,7 @@ import { BalancerObservable, ImplementationObservable, GroupObservable } from ".
 // CSS
 import "./index.css";
 // Bootstrap
-import "bootstrap/dist/css/bootstrap.css";
+import registerServiceWorker from "./registerServiceWorker";
 
 class App extends React.Component<{}, {}> {
   render() {
