@@ -9,15 +9,17 @@ import {
 } from "chart.js";
 import WebSocketClient from "../connection/WSClient";
 
-import "./NodeProgress.css";
-import WorkerContext from "../misc/WorkerContext";
+import "./ComputationTime.css";
+import WorkerContext from "../misc/GroupContext";
+import { RegionGroup, groupRegions} from "../misc/RegionGroup";
+import { WorkerInfo } from "../connection/ExchangeTypes";
 
 interface NodeProgressProps {
   workerContext: WorkerContext;
   wsClient: WebSocketClient;
 }
 interface ChartState {
-  nodes: number[];
+  nodes: RegionGroup[];
   active: Map<number, boolean>;
   progress: Map<number, number>;
 }
@@ -37,8 +39,25 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
   constructor(props: NodeProgressProps) {
     super(props);
     this.websocketClient = props.wsClient;
+    const pseudoWorker: WorkerInfo = {
+        rank: 0,
+        computationTime: 0,
+        region: {
+            guaranteedDivisor: 0,
+            hOffset: 0,
+            vOffset: 0,
+            height: 0,
+            maxImag: 0,
+            maxIteration: 0,
+            maxReal: 0,
+            minImag: 0,
+            minReal: 0,
+            validation: 0,
+            width: 0,
+        }
+    };
     this.chartState = {
-      nodes: [0],
+      nodes: groupRegions([pseudoWorker]),
       active: new Map([[0, false]]),
       // The computation time in microseconds
       progress: new Map([[0, 1]])
@@ -97,29 +116,32 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
     // so that they are set inactive when the first tile/region
     // by them comes in
     this.websocketClient.registerRegionData(data => {
-      // Stop corresponding worker progress bar
+      this.stopNodeProgress();
+      // Stop corresponding group progress bar
       // assume that regionData is passed here
-      const workerID = data.workerInfo.rank;
       // Pay attention here that ranks begin from 1 as long as the host does not send data on his own
-      this.chartState.active.set(workerID, false);
+      // Do set exactly this region (part of the group) inactive
+      this.chartState.active.set(data.workerInfo.rank, false);
       // insert correct µs time in node value
-      this.chartState.progress.set(workerID, data.workerInfo.computationTime);
-      this.updateChart();
+      this.chartState.progress.set(data.workerInfo.rank, data.workerInfo.computationTime);
+      this.updateChart(0);
+      this.initNodeProgress();
     });
 
-    this.websocketClient.registerRegion(group => {
+    this.websocketClient.registerRegion(groups => {
       // Stop redrawing
       this.stopNodeProgress();
       // Reset node progress
-      const nodes = [];
+      const nodes = groups;
       const active = new Map();
       const progress = new Map();
 
       const animationDuration = 750;
-      for (const region of group) {
-        nodes.push(region.id);
-        active.set(region.id, true);
-        progress.set(region.id, animationDuration * 1000);
+      for (const group of groups) {
+        for (const region of group.getLeafs()) {
+            active.set(region.id, true);
+            progress.set(region.id, animationDuration * 1000);
+        }
       }
       this.chartState = {
         nodes,
@@ -143,17 +165,17 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
       }
       const tooltip = (this.chart as any).tooltip;
       if (activeWorker !== undefined) {
-        const workerIndex = this.chartState.nodes.indexOf(activeWorker);
-      // @ts-ignore: does not have complete .d.ts file
+        const workerIndex = this.chartState.nodes.findIndex(g => g.id === activeWorker);
+        // @ts-ignore: does not have complete .d.ts file
         const activeSegment = datasets[0]._meta[1].data[workerIndex];
         tooltip.initialize();
         tooltip._active = [activeSegment];
-      // @ts-ignore: does not have complete .d.ts file
+        // @ts-ignore: does not have complete .d.ts file
         datasets[0]._meta[1].controller.setHoverStyle(activeSegment);
         this.hoveredSegment = activeSegment;
       } else {
         // Remove tooltip
-      // @ts-ignore: does not have complete .d.ts file
+        // @ts-ignore: does not have complete .d.ts file
         datasets[0]._meta[1].controller.removeHoverStyle(this.hoveredSegment);
         tooltip._active = [];
       }
@@ -178,11 +200,29 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
     const values: number[] = [];
     const colorSet: string[] = [];
     // => Label/ value index is the index of the rank in the node array
-    this.chartState.nodes.forEach(rank => {
+    const groupCompTime = (group: RegionGroup) => {
+        let compTime = 0;
+        for (const region of group.getLeafs()) {
+            compTime += this.chartState.progress.get(region.id) as number;
+        }
+        return compTime;
+    };
+    this.chartState.nodes.forEach(group => {
+      const rank = group.id;
       labels.push("Group " + rank);
       colorSet.push(this.props.workerContext.getWorkerColor(rank));
-      values.push(this.chartState.progress.get(rank) as number);
+      values.push(groupCompTime(group));
     });
+
+    const usToString = (time: number) => {
+      const units = ["μs", "ms", "s"];
+      let i = 0;
+      while (i != units.length && time > 1000) {
+        time = time / 1000;
+        i++;
+      }
+      return (Math.round(time * 100) / 100).toFixed(2) + " " + units[i];
+    };
 
     const data = {
       labels,
@@ -199,8 +239,8 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
     this.chartState.progress.forEach(value => {
       computationTime += value;
     });
-    (((this.chart.config.options as ChartOptions).title as ChartTitleOptions).text as string[])[1] =
-      computationTime + " µs";
+    (((this.chart.config.options as ChartOptions).title as ChartTitleOptions)
+      .text as string[])[1] = usToString(computationTime);
 
     this.chart.update(animationDuration);
   }
@@ -214,10 +254,13 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
     this.interval = setInterval(
       (state: ChartState) => {
         let update = false;
-        state.progress.forEach((value, rank) => {
-          if (state.active.get(rank)) {
-            state.progress.set(rank, value + intervalRate * 1000);
-            update = true;
+        this.chartState.nodes.forEach(group => {
+          // Check for all regions of the group
+          for (const region of group.getLeafs()) {
+              if (state.active.get(region.id) === true) {
+                state.progress.set(region.id, (state.progress.get(region.id) as number) + intervalRate * 1000);
+                update = true;
+              }
           }
         });
         if (update) {

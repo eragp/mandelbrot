@@ -10,10 +10,10 @@ import WebSocketClient from "./connection/WSClient";
 import { getURLParams } from "./misc/URLParams";
 
 // Custom Components
-import NodeProgress from "./visualization/NodeProgress";
+import NodeProgress from "./visualization/ComputationTime";
 import BalancerChoice from "./visualization/BalancerChoice";
 import BalancerPolicy from "./misc/BalancerPolicy";
-import WorkerContext from "./misc/WorkerContext";
+import WorkerContext from "./misc/GroupContext";
 import NetworkView from "./visualization/NetworkView";
 import IdleTime from "./visualization/IdleTime";
 

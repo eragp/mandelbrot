@@ -1,4 +1,4 @@
-import { RegionData, Regions } from "./ExchangeTypes";
+import { RegionData, Regions, isEmptyRegion } from "./ExchangeTypes";
 import { groupRegions, RegionGroup } from "../misc/RegionGroup";
 
 const url = "ws://localhost:9002";
@@ -45,14 +45,22 @@ export default class WebSocketClient {
       const msg = JSON.parse(event.data);
       switch (msg.type) {
         case "regionData":
-          // Notify regionData/worker observers
-          workerCallback.forEach(call => {
-            call(<RegionData>msg);
-          });
+          {
+            // filter empty RegionData
+            let r = <RegionData>msg;
+            if (r.data.length == 0) return;
+            // Notify regionData/worker observers
+            workerCallback.forEach(call => call(r));
+          }
           break;
         case "region":
-          // Notify region subdivision listeners
-          regionCallback.forEach(call => call(groupRegions(<Regions>msg)));
+          {
+            // filter empty regions
+            let r = (<Regions>msg).regions.filter(r => !isEmptyRegion(r.region));
+            let g = groupRegions(r)
+            // Notify region subdivision listeners
+            regionCallback.forEach(call => call(g));
+          }
           break;
         default:
       }

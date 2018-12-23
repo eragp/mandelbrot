@@ -3,7 +3,7 @@ import { Point, LatLng, GeoJSON } from "leaflet";
 import { unproject } from "./Project";
 import { tileSize } from "../Constants";
 import WebSocketClient from "../connection/WSClient";
-import WorkerContext from "../misc/WorkerContext";
+import WorkerContext from "../misc/GroupContext";
 import { Feature, FeatureCollection } from "geojson";
 import { RegionGroup } from "../misc/RegionGroup";
 
