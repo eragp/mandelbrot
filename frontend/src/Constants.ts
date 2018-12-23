@@ -20,15 +20,19 @@ export const balancers: Balancer[] = [
     title: "Naive Balancer"
   },
   {
-    key: "column",
-    title: "Column Balancer"
-  },
-  {
     key: "prediction",
     title: "Prediction Balancer"
   },
   {
+    key: "naiveRecursive",
+    title: "Recursive Naive Balancer"
+  },
+  {
     key: "predictionRecursive",
     title: "Recursive Prediction Balancer"
-  }
+  },
+  {
+    key: "column",
+    title: "Column Balancer"
+  },
 ];
