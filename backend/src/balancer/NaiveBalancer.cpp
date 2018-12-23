@@ -87,7 +87,7 @@ Region* NaiveBalancer::balanceLoad(Region region, int nodeCount)
 			if (x < nodesWithExtendedWidth) {
 				// Take one additional piece (width += region.guaranteedDivisor), all parts before were extended
 				ret[retPos].minReal = region.minReal + x * extendedXDelta;
-				ret[retPos].maxReal = region.minReal + (x + 1) + extendedXDelta;
+				ret[retPos].maxReal = region.minReal + (x + 1) * extendedXDelta;
 				ret[retPos].width = partWidth + region.guaranteedDivisor;
 				ret[retPos].hOffset = x * (partWidth + region.guaranteedDivisor);
 			} else {
