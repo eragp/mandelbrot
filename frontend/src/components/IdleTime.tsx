@@ -113,7 +113,7 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
           if (data) {
             this.props.group.set(
               // @ts-ignore: data does not have complete .d.ts file
-              this.chartState.nodes[data._datasetIndex]
+              this.chartState.nodes[data._datasetIndex].id
             );
             this.hoveredItem = data;
           } else if (this.hoveredItem) {
@@ -195,10 +195,14 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
 
     // Highlight segement on active worker change
     // Inspired by https://github.com/chartjs/Chart.js/issues/1768
-    this.props.group.subscribe(activeWorker => {
+    this.props.group.subscribe(groupIndex => {
       // Activate new tooltip if necessary
-      if (activeWorker !== undefined) {
-        const workerIndex = this.chartState.nodes.findIndex(g => g.id === activeWorker);
+      if (groupIndex) {
+        console.log(this.chartState.nodes);
+        console.log(groupIndex);
+        const workerIndex = this.chartState.nodes.findIndex(g => g.id === groupIndex);
+        console.log(this.chart.data.datasets);
+        console.log(workerIndex);
         // @ts-ignore: does not have complete .d.ts file
         const activeSegment = (this.chart.data.datasets as ChartDataSets[])[workerIndex]._meta[0]
           .data[0];
