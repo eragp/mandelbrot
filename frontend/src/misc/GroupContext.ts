@@ -14,6 +14,7 @@ const colorSet = [
   "#EB8CC6",
 ];
 
+
 /**
  * Class to store which worker to focus on.
  * Offers subscription to changing focus.
@@ -83,5 +84,4 @@ export default class WorkerContext {
   private updateAll() {
     this.callbacks.forEach(cb => cb(this.activeWorker));
   }
-
 }

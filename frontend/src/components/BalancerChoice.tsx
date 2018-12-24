@@ -1,6 +1,6 @@
 import * as React from "react";
 import BalancerPolicy from "../misc/BalancerPolicy";
-import { balancers } from "../Constants";
+import { Balancers } from "../Constants";
 
 interface BalancerChoiceProps {
   balancerPolicy: BalancerPolicy;
@@ -22,7 +22,7 @@ export default class BalancerChoice extends React.Component<
 
     this.state = {
       active: this.props.balancerPolicy.getBalancer(),
-      items: balancers
+      items: Balancers
     };
   }
 

@@ -4,7 +4,6 @@ ENV HOME /home/username
 RUN mkdir -p ${HOME}/eragp-mandelbrot/backend
 # shared library path needs to be set
 ENV LD_LIBRARY_PATH /usr/local/lib
-
 WORKDIR ${HOME}/eragp-mandelbrot/backend
 # changes that depend on src/ only after this point
 COPY . ${HOME}/eragp-mandelbrot/backend

@@ -1,4 +1,16 @@
 #pragma once
+
+// Define the precision for computations globally
+typedef long double precision_t;
+
+enum fractal_type {
+    mandelbrot,
+    mandelbrot32,
+    mandelbrot64,
+    mandelbrotSIMD32,
+    mandelbrotSIMD64,
+};
+
 class Fractal {
    public:
     /**
@@ -6,9 +18,10 @@ class Fractal {
      * @param cReal real coordinate
      * @param cImaginary imaginary coordinate
      * @param maxIteration maximum amount of iterations to perform
-     * @return number of iterations for the given coordinates
+     * @param vectorLength number of coordinates to be calculated at once
+     * @param dest memory position where result(number of iterations for coordinates) should be stored
      */
-    virtual int calculateFractal(long double cReal, long double cImaginary, unsigned short int maxIteration) = 0;
+    virtual void calculateFractal(precision_t* cReal, precision_t* cImaginary, unsigned short int maxIteration, int vectorLength, unsigned short int* dest) = 0;
     virtual ~Fractal();
 
     /**
@@ -18,7 +31,7 @@ class Fractal {
      * @param xRes pixel resolution from minReal -> maxReal
      * @return step size on real axis
      */
-    static double deltaReal(double maxReal, double minReal, int xRes);
+    static precision_t deltaReal(precision_t maxReal, precision_t minReal, int xRes);
 
     /**
      * Calculates the step size of a single pixel in the y direction (imaginary) on the complex plane.
@@ -27,5 +40,5 @@ class Fractal {
      * @param yRes pixel resolution from minImaginary -> maxImaginary
      * @return step size on imaginary axis
      */
-    static double deltaImaginary(double maxImaginary, double minImaginary, int yRes);
+    static precision_t deltaImaginary(precision_t maxImaginary, precision_t minImaginary, int yRes);
 };

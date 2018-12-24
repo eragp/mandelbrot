@@ -19,8 +19,8 @@ Prediction* Predicter::getPrediction(Region region, Fractal* fractal, int predic
     std::vector<int> nRowSums(predictionLengthY);
     int nSum = 0;
 
-    double deltaReal = 0.0;
-    double deltaImaginary = 0.0;
+    precision_t deltaReal = 0.0;
+    precision_t deltaImaginary = 0.0;
 
     // predicitionAccuracy > 0: (predicitionAccuracy^2) pixel samples in each (divisor^2)-Block
     if (predictionAccuracy > 0) {
@@ -32,9 +32,14 @@ Prediction* Predicter::getPrediction(Region region, Fractal* fractal, int predic
 
         for (unsigned int x = 0; x < lowRes.width; x++) {
             for (unsigned int y = 0; y < lowRes.height; y++) {
-                int iterationCount = fractal->calculateFractal(lowRes.minReal + x * deltaReal,
-                                                         lowRes.maxImaginary - y * deltaImaginary,
-                                                         lowRes.maxIteration);
+                precision_t cReal = lowRes.minReal + x * deltaReal;
+                precision_t cImaginary = lowRes.maxImaginary - y * deltaImaginary;
+                unsigned short int iterationCount;
+                fractal->calculateFractal(&cReal,
+                                          &cImaginary,
+                                          lowRes.maxIteration,
+                                          1,
+                                          &iterationCount);
                 // Assign iteration count to a (divisor^2)-Block
                 n[x / predictionAccuracy][y / predictionAccuracy] += iterationCount;
                 // Sum over expected iteration per column
@@ -77,9 +82,14 @@ Prediction* Predicter::getPrediction(Region region, Fractal* fractal, int predic
 
         for (unsigned int x = 0; x < lowRes.width; x++) {
             for (unsigned int y = 0; y < lowRes.height; y++) {
-                int iterationCount = fractal->calculateFractal(lowRes.minReal + x * deltaReal,
-                                                         lowRes.maxImaginary - y * deltaImaginary,
-                                                         lowRes.maxIteration);
+                precision_t cReal = lowRes.minReal + x * deltaReal;
+                precision_t cImaginary = lowRes.maxImaginary - y * deltaImaginary;
+                unsigned short int iterationCount;
+                fractal->calculateFractal(&cReal,
+                                          &cImaginary,
+                                          lowRes.maxIteration,
+                                          1,
+                                          &iterationCount);
 
                 // Put iterationCount in every entry which belongs to this prediction part
                 int xStartIndex = x * predictionAccuracy;

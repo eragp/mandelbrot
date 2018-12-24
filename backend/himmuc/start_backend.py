@@ -82,7 +82,7 @@ if __name__ == '__main__':
             )
             print("\tws://himmuc.caps.in.tum.de:{}".format(args.port))
             try:
-                command = input("Press enter (in doubt, twice) to stop ")
+                command = input("Press enter (in doubt, twice) to stop - do *not* ctrl-c")
             except KeyboardInterrupt:
                 pass
             print_begin("Stopping port forwarding...")

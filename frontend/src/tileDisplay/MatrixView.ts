@@ -1,5 +1,5 @@
 import { Point3D } from "../misc/Point";
-import { tileSize } from "../Constants";
+import { TileSize } from "../Constants";
 import { getBottomRightPoint, getTopLeftPoint } from "./Project";
 import WebSocketClient from "../connection/WSClient";
 import { RegionData } from "../connection/ExchangeTypes";
@@ -52,10 +52,10 @@ export default class MatrixView {
             continue;
           }
           // only pass data of this region
-          const realX = x * tileSize;
-          const realY = y * tileSize;
+          const realX = x * TileSize;
+          const realY = y * TileSize;
           const tl = new Point3D(realX, realY);
-          const br = new Point3D(realX + tileSize, realY + tileSize);
+          const br = new Point3D(realX + TileSize, realY + TileSize);
 
           const roi = new RegionOfInterest(tl, br, msg.data, region.width, region.height);
           render(roi);
@@ -71,8 +71,8 @@ export default class MatrixView {
     const handleNewView = (map: LeafletMap) => {
       const bounds = map.getPixelBounds();
       this.zoom = map.getZoom();
-      this.topLeft = getTopLeftPoint(bounds, tileSize, this.zoom);
-      this.bottomRight = getBottomRightPoint(bounds, tileSize, this.zoom);
+      this.topLeft = getTopLeftPoint(bounds, TileSize, this.zoom);
+      this.bottomRight = getBottomRightPoint(bounds, TileSize, this.zoom);
     };
 
     /**

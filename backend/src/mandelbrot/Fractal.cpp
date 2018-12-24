@@ -2,11 +2,11 @@
 
 Fractal::~Fractal() {}
 
-double Fractal::deltaReal(double maxReal, double minReal, int xRes) {
+precision_t Fractal::deltaReal(precision_t maxReal, precision_t minReal, int xRes) {
     return (maxReal - minReal) / xRes;
 }
 
-double Fractal::deltaImaginary(double maxImaginary, double minImaginary, int yRes) {
+precision_t Fractal::deltaImaginary(precision_t maxImaginary, precision_t minImaginary, int yRes) {
     return (maxImaginary - minImaginary) / yRes;
 }
 
