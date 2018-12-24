@@ -37,31 +37,20 @@ int RecursiveNaiveBalancer::balancingHelper(Region region, BalancingContext cont
 	}
 
 	// Alloc memory for regions
-	Region* halves = new Region[2]; // Will have length 2
-	halves[0] = halves[1] = region;
+	Region* halves; // Will have length 2
 
 	// Check whether to divide vertically or horizontally
-	if (context.recCounter % 2 == 0) {
-		// Calculate new widths
-		halves[1].width = ((region.width / region.guaranteedDivisor) / 2) * region.guaranteedDivisor;
-		halves[0].width = region.width - halves[1].width;
-
-		// Calculate new hOffset
-		halves[1].hOffset = region.hOffset + halves[0].width;
-
-		// Set complex bounds accordingly
-		halves[0].maxReal = halves[1].minReal = region.minReal + (halves[0].width * context.deltaReal);
+	if (region.width <= region.guaranteedDivisor) {
+		halves = halveRegionHorizontally(region, context);
+	}
+	else if (region.height <= region.guaranteedDivisor) {
+		halves = halveRegionVertically(region, context);
+	}
+	else if (context.recCounter % 2 == 0) {
+		halves = halveRegionVertically(region, context);
 	}
 	else {
-		// Calculate new heights
-		halves[1].height = ((region.height / region.guaranteedDivisor) / 2) * region.guaranteedDivisor;
-		halves[0].height = region.height - halves[1].height;
-
-		// Calculate new vOffset
-		halves[1].vOffset = region.vOffset + halves[0].height;
-
-		// Set complex bounds accordingly
-		halves[0].minImaginary = halves[1].maxImaginary = region.maxImaginary - (halves[0].height * context.deltaImaginary);
+		halves = halveRegionHorizontally(region, context);
 	}
 
 	// Explicitly set halves[1] to zero, if needed (not needed for halves[0] since in this case also region is 0)
@@ -84,4 +73,38 @@ int RecursiveNaiveBalancer::balancingHelper(Region region, BalancingContext cont
 	// Allocated in halveRegionV/H --> halves is the only pointer left
 	delete[] halves;
 	return context.resultIndex;
+}
+
+Region *RecursiveNaiveBalancer::halveRegionVertically(Region region, BalancingContext context) {
+	Region* halves = new Region[2];
+	halves[0] = halves[1] = region;
+
+	// Calculate new widths
+	halves[1].width = ((region.width / region.guaranteedDivisor) / 2) * region.guaranteedDivisor;
+	halves[0].width = region.width - halves[1].width;
+
+	// Calculate new hOffset
+	halves[1].hOffset = region.hOffset + halves[0].width;
+
+	// Set complex bounds accordingly
+	halves[0].maxReal = halves[1].minReal = region.minReal + (halves[0].width * context.deltaReal);
+
+	return halves;
+}
+
+Region *RecursiveNaiveBalancer::halveRegionHorizontally(Region region, BalancingContext context) {
+	Region* halves = new Region[2];
+	halves[0] = halves[1] = region;
+	
+	// Calculate new heights
+	halves[1].height = ((region.height / region.guaranteedDivisor) / 2) * region.guaranteedDivisor;
+	halves[0].height = region.height - halves[1].height;
+
+	// Calculate new vOffset
+	halves[1].vOffset = region.vOffset + halves[0].height;
+
+	// Set complex bounds accordingly
+	halves[0].minImaginary = halves[1].maxImaginary = region.maxImaginary - (halves[0].height * context.deltaImaginary);
+
+	return halves;
 }

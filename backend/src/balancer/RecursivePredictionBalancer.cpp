@@ -46,8 +46,14 @@ int RecursivePredictionBalancer::balancingHelper(Region region, Prediction* pred
 	Prediction* halve1 = new Prediction();
 	Region* halves; // Will have length 2
 
-					// Check whether to divide vertically or horizontally
-	if (context.recCounter % 2 == 0) {
+	// Check whether to divide vertically or horizontally
+	if (region.width <= region.guaranteedDivisor) {
+		halves = halveRegionHorizontally(region, *prediction, halve0, halve1);
+	}
+	else if (region.height <= region.guaranteedDivisor) {
+		halves = halveRegionVertically(region, *prediction, halve0, halve1);
+	}
+	else if (context.recCounter % 2 == 0) {
 		halves = halveRegionVertically(region, *prediction, halve0, halve1);
 	}
 	else {
@@ -58,6 +64,7 @@ int RecursivePredictionBalancer::balancingHelper(Region region, Prediction* pred
 	delete prediction;
 
 	context.recCounter--;
+	
 	context.resultIndex = balancingHelper(halves[0], halve0, context);
 	context.resultIndex = balancingHelper(halves[1], halve1, context);
 	// Allocated in halveRegionV/H --> halves is the only pointer left
@@ -83,7 +90,7 @@ Region *RecursivePredictionBalancer::halveRegionVertically(Region region, Predic
 		currentN += prediction.nColSums[i];
 		left->nColSums[i] = prediction.nColSums[i];
 		// Reached 1/2 of nSum or there is only one piece of prediction left for the other half
-		if (currentN >= desiredN || prediction.predictionLengthX - i <= 1) {
+		if (currentN >= desiredN || prediction.predictionLengthX - (i + 1) <= 1) {
 			halves[0].maxReal = region.minReal + (i + 1) * prediction.deltaReal;
 			halves[0].width = region.guaranteedDivisor * (i + 1);
 
@@ -173,9 +180,9 @@ Region *RecursivePredictionBalancer::halveRegionHorizontally(Region region, Pred
 
 	for (int i = 0; i < prediction.predictionLengthY; i++) {
 		currentN += prediction.nRowSums[i];
-		top->nRowSums.push_back(prediction.nRowSums[i]);
+		top->nRowSums[i] = prediction.nRowSums[i];
 		// Reached 1/2 of nSum or there is only one piece of prediction left for the other half
-		if (currentN >= desiredN || prediction.predictionLengthY - i <= 1) {
+		if (currentN >= desiredN || prediction.predictionLengthY - (i + 1) <= 1) {
 			halves[0].minImaginary = region.maxImaginary - (i + 1) * prediction.deltaImaginary;
 			halves[0].height = region.guaranteedDivisor * (i + 1);
 

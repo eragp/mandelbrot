@@ -8,9 +8,14 @@
 
 #include <string>
 
+
 class RecursiveNaiveBalancer : public Balancer {
 private:
 	int balancingHelper(Region region, BalancingContext context);
+
+	Region *halveRegionVertically(Region region, BalancingContext context);
+
+	Region *halveRegionHorizontally(Region region, BalancingContext context);
 
 public:
 	static const std::string NAME;
