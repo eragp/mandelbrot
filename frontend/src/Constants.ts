@@ -45,6 +45,10 @@ export const Balancers: Balancer[] = [
     description: "Uses a low resolution of the mandelbrot set to determine an optimal division."
   },
   {
+    key: "naiveRecursive",
+    title: "Recursive Naive Balancer"
+  },
+  {
     key: "predictionRecursive",
     title: "Recursive Prediction Balancer",
     description: "TODO: add doc"
