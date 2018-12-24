@@ -122,30 +122,30 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
 
     Region region{};
     const char* balancer;
-    enum fractal_type fractal;
+    enum fractal_type fractal_type;
     Fractal* fractal_bal = nullptr;
     try {
         balancer = request["balancer"].GetString();
         const char * fractal_str = request["fractal"].GetString();
         // Case insensitive compares (just convenience for frontend devs)
         if(boost::iequals(fractal_str, "mandelbrot32")){
-            fractal = mandelbrot32;
+            fractal_type = mandelbrot32;
             fractal_bal = new Mandelbrot32();
         }
         else if(boost::iequals(fractal_str, "mandelbrot64")){
-            fractal = mandelbrot64;
+            fractal_type = mandelbrot64;
             fractal_bal = new Mandelbrot64();
         }
         else if(boost::iequals(fractal_str, "mandelbrotsimd32")){
-            fractal = mandelbrotSIMD32;
+            fractal_type = mandelbrotSIMD32;
             fractal_bal = new Mandelbrot32();
         }
         else if(boost::iequals(fractal_str, "mandelbrotsimd64")){
-            fractal = mandelbrotSIMD64;
+            fractal_type = mandelbrotSIMD64;
             fractal_bal = new Mandelbrot64();
         }
         else if(boost::iequals(fractal_str, "mandelbrot")){
-            fractal = mandelbrot;
+            fractal_type = mandelbrot;
             fractal_bal = new Mandelbrot();
         } else {
             std::cerr << "Inclompletely specified region requested: " << request_string;
@@ -227,6 +227,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         std::lock_guard<std::mutex> lock(websocket_request_to_mpi_lock);
         websocket_request_to_mpi.clear();
         for (int i = 0 ; i < nodeCount ; i++) {
+            blocks[i].fractal = fractal_type;
             websocket_request_to_mpi[i] = blocks[i];
         }
         mpi_send_regions = true;
