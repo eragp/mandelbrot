@@ -259,7 +259,9 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
       const rank = group.id;
       // Display idle time in seconds
       const factor = 1000000;
-      const idleTime = group === undefined ? 0 : ((maxComputationTime - (groupCompTime(group))) / factor);
+      const groupSize = group.getLeafs().length;
+      // IdleTime is displayed in seconds, averaged over the size of the group
+      const idleTime = ((maxComputationTime - (groupCompTime(group))) / (groupSize * factor)) ;
       datasets.push({
         label: "Group " + rank,
         data: [idleTime],
