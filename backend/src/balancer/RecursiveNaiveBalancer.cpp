@@ -40,18 +40,15 @@ int RecursiveNaiveBalancer::balancingHelper(Region region, BalancingContext cont
 	Region* halves; // Will have length 2
 
 	// Check whether to divide vertically or horizontally
-	if (region.width <= region.guaranteedDivisor) {
+	if (region.height > region.width) {
 		halves = halveRegionHorizontally(region, context);
 	}
-	else if (region.height <= region.guaranteedDivisor) {
+	else if (region.width >= region.height) {
 		halves = halveRegionVertically(region, context);
 	}
-	else if (context.recCounter % 2 == 0) {
-		halves = halveRegionVertically(region, context);
-	}
-	else {
-		halves = halveRegionHorizontally(region, context);
-	}
+    else {
+        std::cerr << "Some case missed :/ w: "<< region.width << ", h:" << region.height << std::endl;
+    }
 
 	// Explicitly set halves[1] to zero, if needed (not needed for halves[0] since in this case also region is 0)
 	if (halves[1].width == 0 || halves[1].height == 0) {
