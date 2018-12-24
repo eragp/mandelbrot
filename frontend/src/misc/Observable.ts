@@ -59,11 +59,6 @@ export class GroupObservable extends Observable<number | undefined> {
   }
 
   set(nodeID: number | undefined) {
-    if (!nodeID || nodeID < 0) {
-      // console.error(`Invalid nodeID ${nodeID}`);
-      return false;
-    } else {
-      return super.set(nodeID);
-    }
+    return super.set(nodeID);
   }
 }

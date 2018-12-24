@@ -36,27 +36,27 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
 
   private hoveredItem: any;
   private hoveredSegment: any;
-
+  private hoveredCount: number = 0;
 
   constructor(props: IdleTimeProps) {
     super(props);
 
     const pseudoWorker: WorkerInfo = {
-        rank: 0,
-        computationTime: 0,
-        region: {
-            guaranteedDivisor: 0,
-            hOffset: 0,
-            vOffset: 0,
-            height: 0,
-            maxImag: 0,
-            maxIteration: 0,
-            maxReal: 0,
-            minImag: 0,
-            minReal: 0,
-            validation: 0,
-            width: 0,
-        }
+      rank: 0,
+      computationTime: 0,
+      region: {
+        guaranteedDivisor: 0,
+        hOffset: 0,
+        vOffset: 0,
+        height: 0,
+        maxImag: 0,
+        maxIteration: 0,
+        maxReal: 0,
+        minImag: 0,
+        minReal: 0,
+        validation: 0,
+        width: 0
+      }
     };
     this.chartState = {
       nodes: groupRegions([pseudoWorker]),
@@ -177,8 +177,8 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
       const animationDuration = 750;
       for (const group of groups) {
         for (const region of group.getLeafs()) {
-            active.set(region.id, true);
-            progress.set(region.id, animationDuration * 1000);
+          active.set(region.id, true);
+          progress.set(region.id, animationDuration * 1000);
         }
       }
       this.chartState = {
@@ -198,25 +198,20 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
     this.props.group.subscribe(groupIndex => {
       // Activate new tooltip if necessary
       if (groupIndex) {
-        console.log(this.chartState.nodes);
-        console.log(groupIndex);
-        const workerIndex = this.chartState.nodes.findIndex(g => g.id === groupIndex);
-        console.log(this.chart.data.datasets);
-        console.log(workerIndex);
+        const index = this.chartState.nodes.findIndex(g => g.id === groupIndex);
         // @ts-ignore: does not have complete .d.ts file
-        const activeSegment = (this.chart.data.datasets as ChartDataSets[])[workerIndex]._meta[0]
-          .data[0];
+        const activeSegment = (this.chart.data.datasets as ChartDataSets[])[index]._meta[0].data[0];
         // @ts-ignore: does not have complete .d.ts file
         this.chart.tooltip.initialize();
         // @ts-ignore: does not have complete .d.ts file
         this.chart.tooltip._active = [activeSegment];
+
         (this.chart.data.datasets as ChartDataSets[])[
-          workerIndex
+          index
           // @ts-ignore: does not have complete .d.ts file
         ]._meta[0].controller.setHoverStyle(activeSegment);
         this.hoveredSegment = activeSegment;
       } else {
-        // Remove tooltip
         // @ts-ignore: does not have complete .d.ts file
         (this.chart.data.datasets as ChartDataSets[])[0]._meta[0].controller.removeHoverStyle(
           this.hoveredSegment
@@ -245,27 +240,27 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
   private updateChart(animationDuration?: number) {
     const datasets: ChartDataSets[] = [];
     const groupCompTime = (group: RegionGroup) => {
-        let compTime = 0;
-        for (const region of group.getLeafs()) {
-            compTime += this.chartState.progress.get(region.id) as number;
-        }
-        return compTime;
+      let compTime = 0;
+      for (const region of group.getLeafs()) {
+        compTime += this.chartState.progress.get(region.id) as number;
+      }
+      return compTime;
     };
     let maxComputationTime = 0;
-    for(const g of this.chartState.nodes){
-        const compTime = groupCompTime(g);
-        if (compTime > maxComputationTime) {
-            maxComputationTime = compTime;
-        }
+    for (const g of this.chartState.nodes) {
+      const compTime = groupCompTime(g);
+      if (compTime > maxComputationTime) {
+        maxComputationTime = compTime;
+      }
     }
     // Ensure that the order from the nodes array is kept for the datasets
     this.chartState.nodes.forEach(group => {
       const rank = group.id;
       // Display idle time in seconds
-      const factor = 1000000;
+      const factor = 1e6;
       const groupSize = group.getLeafs().length;
       // IdleTime is displayed in seconds, averaged over the size of the group
-      const idleTime = ((maxComputationTime - (groupCompTime(group))) / (groupSize * factor)) ;
+      const idleTime = (maxComputationTime - groupCompTime(group)) / (groupSize * factor);
       datasets.push({
         label: "Group " + rank,
         data: [idleTime],
@@ -295,8 +290,11 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
         this.chartState.nodes.forEach(group => {
           for (const region of group.getLeafs()) {
             if (state.active.get(region.id)) {
-                state.progress.set(region.id, (state.progress.get(region.id) as number) + interval * 1000);
-                update = true;
+              state.progress.set(
+                region.id,
+                (state.progress.get(region.id) as number) + interval * 1000
+              );
+              update = true;
             }
           }
         });

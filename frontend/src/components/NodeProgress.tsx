@@ -21,6 +21,16 @@ interface ChartState {
   active: Map<number, boolean>;
   progress: Map<number, number>;
 }
+const usToString = (time: number) => {
+  const units = ["μs", "ms", "s"];
+  let i = 0;
+  while (i != units.length && time > 1000) {
+    time = time / 1000;
+    i++;
+  }
+  return (Math.round(time * 100) / 100).toFixed(2) + " " + units[i];
+};
+
 /**
  * Shows the computation time of invoked workers
  * Additional documentation on the type of used chart: https://www.chartjs.org/docs/latest/
@@ -47,17 +57,10 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
 
   public componentDidMount() {
     const ctx = document.getElementById("nodeProgress") as HTMLCanvasElement;
-    const customLabel = (tooltipItem: any, data: any) => {
-      let label = data.labels[tooltipItem.index];
-
-      if (label) {
-        label += ": ";
-      } else {
-        label = "";
-      }
-      label += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index] + " µs";
-      return label;
-    };
+    const customLabel = (tooltipItem: any, data: any) =>
+      `${data.labels[tooltipItem.index]}: ${usToString(
+        data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index] * 10
+      )}`;
 
     this.chart = new Chart(ctx, {
       type: "doughnut",
@@ -199,8 +202,8 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
     this.chartState.progress.forEach(value => {
       computationTime += value;
     });
-    (((this.chart.config.options as ChartOptions).title as ChartTitleOptions).text as string[])[1] =
-      computationTime + " µs";
+    (((this.chart.config.options as ChartOptions).title as ChartTitleOptions)
+      .text as string[])[1] = usToString(computationTime);
 
     this.chart.update(animationDuration);
   }
