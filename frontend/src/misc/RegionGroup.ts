@@ -49,13 +49,12 @@ class Group implements RegionGroup {
   }
 
   /**
-   * Convex hull of all children computed with Graham scan Algorithm:
+   * Concave hull of all children computed with Graham scan Algorithm:
    * https://en.wikipedia.org/wiki/Graham_scan
+   * Then all non 90Deg angles are removed.
    */
   public bounds() {
     let points = this.children.map(c => c.bounds()).reduce((acc, curr) => acc.concat(curr));
-    console.log(`Group ${this.id} child points:`);
-    console.log(points);
     // Find the pivot with min y value
     let start = points.reduce((acc, curr) =>
       // min y, if acc.y == curr.y find min x
@@ -85,8 +84,6 @@ class Group implements RegionGroup {
     }
     convex.length = len;
     convex.push(convex[0]);
-    console.log(`Group ${this.id} convex hull:`);
-    console.log(convex);
 
     // add points for concave hull
     let concave: Point2D[] = [];
@@ -94,19 +91,15 @@ class Group implements RegionGroup {
       let p0 = convex[i];
       let p1 = convex[i + 1];
       concave.push(p0);
+      // if a triangle has been created, add the point left / right
+      // of the edge to create a 90Deg corner
       if (p0.x !== p1.x && p0.y !== p1.y) {
         let d0 = new Point2D(p0.x, p1.y);
         let d1 = new Point2D(p1.x, p0.y);
-        if (points.some(p => p.equals(d0))) {
-          concave.push(d0);
-        } else {
-          concave.push(d1);
-        }
+        concave.push(points.some(p => p.equals(d0)) ? d0 : d1);
       }
     }
     concave.push(convex[convex.length - 1]);
-    console.log(`Group ${this.id} concave hull:`);
-    console.log(concave);
     return concave;
   }
 
