@@ -1,8 +1,6 @@
 import { WorkerInfo, Region } from "../connection/ExchangeTypes";
 import { Point2D } from "./Point";
 import { MAX_DISPLAY_REGIONS } from "../Constants";
-import { Children } from "react";
-import { Graph2d } from "vis";
 
 export interface RegionGroup {
   id: number;
@@ -55,10 +53,8 @@ class Group implements RegionGroup {
    * https://en.wikipedia.org/wiki/Graham_scan
    */
   public bounds() {
-    let points: Point2D[] = this.children
-      .map(c => c.bounds())
-      .reduce((acc, curr) => acc.concat(curr));
-    console.log("points:");
+    let points = this.children.map(c => c.bounds()).reduce((acc, curr) => acc.concat(curr));
+    console.log(`Group ${this.id} child points:`);
     console.log(points);
     // Find the pivot with min y value
     let start = points.reduce((acc, curr) =>
@@ -71,11 +67,11 @@ class Group implements RegionGroup {
     points.sort((a, b) => (angle(a) === angle(b) ? a.x - b.x : angle(a) - angle(b)));
 
     // Adding points to the result if they "turn left"
-    let hull = [start],
+    let convex = [start],
       len = 1;
     for (let i = 1; i < points.length; i++) {
-      let a = hull[len - 2],
-        b = hull[len - 1],
+      let a = convex[len - 2],
+        b = convex[len - 1],
         c = points[i];
       while (
         (len === 1 && b.x === c.x && b.y === c.y) ||
@@ -83,14 +79,35 @@ class Group implements RegionGroup {
       ) {
         len--;
         b = a;
-        a = hull[len - 2];
+        a = convex[len - 2];
       }
-      hull[len++] = c;
+      convex[len++] = c;
     }
-    hull.length = len;
-    console.log("hull:");
-    console.log(hull);
-    return hull;
+    convex.length = len;
+    convex.push(convex[0]);
+    console.log(`Group ${this.id} convex hull:`);
+    console.log(convex);
+
+    // add points for concave hull
+    let concave: Point2D[] = [];
+    for (let i = 0; i < convex.length - 1; i++) {
+      let p0 = convex[i];
+      let p1 = convex[i + 1];
+      concave.push(p0);
+      if (p0.x !== p1.x && p0.y !== p1.y) {
+        let d0 = new Point2D(p0.x, p1.y);
+        let d1 = new Point2D(p1.x, p0.y);
+        if (points.some(p => p.equals(d0))) {
+          concave.push(d0);
+        } else {
+          concave.push(d1);
+        }
+      }
+    }
+    concave.push(convex[convex.length - 1]);
+    console.log(`Group ${this.id} concave hull:`);
+    console.log(concave);
+    return concave;
   }
 
   public getChildren() {
