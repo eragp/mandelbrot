@@ -13,7 +13,7 @@ export interface RegionGroup {
   hOffset: number;
   vOffset: number;
   /**
-   * returns closed polyline of the Region (first point is the same as the last).
+   * returns polygon of the Region
    */
   bounds(): Point2D[];
   getChildren(): RegionGroup[] | null;
@@ -112,11 +112,7 @@ class Group implements RegionGroup {
   }
 
   public getLeafs() {
-    let leafs: Rectangle[] = [];
-    this.getChildren().forEach(child => {
-      leafs = leafs.concat(child.getLeafs());
-    });
-    return leafs;
+    return this.children.map(c => c.getLeafs()).reduce((acc, curr) => acc.concat(curr));
   }
 
   public getRanks() {
@@ -162,8 +158,7 @@ class Rectangle implements RegionGroup {
       new Point2D(this.minReal, this.maxImag),
       new Point2D(this.maxReal, this.maxImag),
       new Point2D(this.maxReal, this.minImag),
-      new Point2D(this.minReal, this.minImag),
-      new Point2D(this.minReal, this.maxImag)
+      new Point2D(this.minReal, this.minImag)
     ];
   }
 
@@ -185,22 +180,24 @@ class Rectangle implements RegionGroup {
 }
 
 export const groupRegions = (r: WorkerInfo[]): RegionGroup[] => {
-  console.log(r);
   if (r.length <= MAX_DISPLAY_REGIONS) {
     return r.map(r => new Rectangle(r));
   }
   let groupSize = Math.ceil(r.length / MAX_DISPLAY_REGIONS);
-  let groups: Group[] = [];
+  let groups: WorkerInfo[][] = [];
   let groupID = 1;
 
+  // expand from each region to <= groupSize
   let rects = r;
   do {
-    let g = expandGroup(rects[0], rects, groupSize);
-    rects = sub(rects, g);
-    groups.push(new Group(g, groupID++));
+    let w = expandGroup(rects[0], rects, groupSize);
+    rects = sub(rects, w);
+    groups.push(w);
   } while (rects.length != 0);
-  console.log(groups);
-  return groups;
+  // console.log(groups);
+  // merge groups with too few elements
+  // TODO: Merge Groups
+  return groups.map(g => new Group(g, groupID++));
 };
 
 const regionEquals = (a: Region, b: Region) =>
@@ -222,21 +219,21 @@ const expandGroup = (start: WorkerInfo, rects: WorkerInfo[], size: number): Work
     ];
   };
   const hasOverlap = (a: Point2D[], b: Point2D[]) => a.some(i => b.some(j => i.equals(j)));
-  let n = rects.filter(
+  let neigh = rects.filter(
     w =>
       hasOverlap(getBounds(start.region), getBounds(w.region)) &&
       !regionEquals(start.region, w.region)
   );
-  if (n.length == 0) {
-    return [];
-  } else if (n.length < size) {
+  if (neigh.length == 0) {
+    return [start];
+  } else if (neigh.length < size) {
     let expanded: WorkerInfo[] = [];
-    for (let i = 0; i < n.length; i++) {
-      expanded = expandGroup(n[i++], sub(rects, n), size - n.length);
-      if (expanded.length != 0) break;
+    for (let i = 0; i < neigh.length; i++) {
+      expanded = expandGroup(neigh[i], sub(rects, neigh), size - neigh.length);
+      if (expanded.length > 1) break;
     }
-    return n.concat(expanded);
+    return neigh.concat(expanded);
   } else {
-    return n.slice(0, size);
+    return neigh.slice(0, size);
   }
 };
