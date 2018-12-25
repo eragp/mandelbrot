@@ -67,9 +67,9 @@ export default class WorkerLayer extends L.GeoJSON {
       if (feature.properties !== null && feature.properties.isGroup) {
         regionStyle = Object.assign(regionStyle, {
           fillColor: workerContext.getColor(feature.properties.node),
-          fillOpacity: 0,
-          weight: 10,
-          dashArray: "0",
+          // fillOpacity: 0,
+          // weight: 10,
+          // dashArray: "0",
           color: "red"
         });
       } else {

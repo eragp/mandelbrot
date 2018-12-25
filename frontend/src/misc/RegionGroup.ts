@@ -1,6 +1,8 @@
-import { Regions, WorkerInfo, Region, regionEquals } from "../connection/ExchangeTypes";
+import { WorkerInfo, Region } from "../connection/ExchangeTypes";
 import { Point2D } from "./Point";
 import { MAX_DISPLAY_REGIONS } from "../Constants";
+import { Children } from "react";
+import { Graph2d } from "vis";
 
 export interface RegionGroup {
   id: number;
@@ -49,18 +51,46 @@ class Group implements RegionGroup {
   }
 
   /**
-   * bound of a group will return a rectangle fitting all of it's children
+   * Convex hull of all children computed with Graham scan Algorithm:
+   * https://en.wikipedia.org/wiki/Graham_scan
    */
   public bounds() {
-    const tl = this.children[0].bounds()[0];
-    const br = this.children[this.children.length - 1].bounds()[2];
-    return [
-      new Point2D(tl.x, tl.y),
-      new Point2D(br.x, tl.y),
-      new Point2D(br.x, br.y),
-      new Point2D(tl.x, br.y),
-      new Point2D(tl.x, tl.y)
-    ];
+    let points: Point2D[] = this.children
+      .map(c => c.bounds())
+      .reduce((acc, curr) => acc.concat(curr));
+    console.log("points:");
+    console.log(points);
+    // Find the pivot with min y value
+    let start = points.reduce((acc, curr) =>
+      // min y, if acc.y == curr.y find min x
+      curr.y < acc.y || (curr.y === acc.y && curr.x < acc.x) ? curr : acc
+    );
+
+    const angle = (p: Point2D) => Math.atan2(p.y - start.y, p.x - start.x);
+    // sort by (angle, x)
+    points.sort((a, b) => (angle(a) === angle(b) ? a.x - b.x : angle(a) - angle(b)));
+
+    // Adding points to the result if they "turn left"
+    let hull = [start],
+      len = 1;
+    for (let i = 1; i < points.length; i++) {
+      let a = hull[len - 2],
+        b = hull[len - 1],
+        c = points[i];
+      while (
+        (len === 1 && b.x === c.x && b.y === c.y) ||
+        (len > 1 && (b.x - a.x) * (c.y - a.y) <= (b.y - a.y) * (c.x - a.x))
+      ) {
+        len--;
+        b = a;
+        a = hull[len - 2];
+      }
+      hull[len++] = c;
+    }
+    hull.length = len;
+    console.log("hull:");
+    console.log(hull);
+    return hull;
   }
 
   public getChildren() {
@@ -144,8 +174,8 @@ class Rectangle implements RegionGroup {
   }
 }
 
-
 export const groupRegions = (r: WorkerInfo[]): RegionGroup[] => {
+  console.log(r);
   if (r.length <= MAX_DISPLAY_REGIONS) {
     return r.map(r => new Rectangle(r));
   }
@@ -154,41 +184,45 @@ export const groupRegions = (r: WorkerInfo[]): RegionGroup[] => {
   let groupID = 1;
 
   let rects = r;
-  let not: WorkerInfo[] = [];
   do {
-    let g = expandGroup(rects[0], rects, not, groupSize);
+    let g = expandGroup(rects[0], rects, groupSize);
     rects = sub(rects, g);
-    not = not.concat(g);
     groups.push(new Group(g, groupID++));
   } while (rects.length != 0);
   console.log(groups);
   return groups;
 };
 
+const regionEquals = (a: Region, b: Region) =>
+  a.minReal === b.minReal &&
+  a.maxReal === b.maxReal &&
+  a.minImag === b.minImag &&
+  a.maxImag === b.maxImag;
+
 const sub = (a: WorkerInfo[], b: WorkerInfo[]) =>
   a.filter(i => !b.some(j => regionEquals(i.region, j.region)));
 
-const expandGroup = (
-  start: WorkerInfo,
-  rects: WorkerInfo[],
-  not: WorkerInfo[],
-  size: number
-): WorkerInfo[] => {
-  let n = rects.filter(w => {
-    let m =
-      start.region.minImag === w.region.minImag ||
-      start.region.maxImag === w.region.maxImag ||
-      start.region.minReal === w.region.minReal ||
-      start.region.maxReal === w.region.maxReal;
-    let n = !not.some(r => regionEquals(r.region, w.region));
-    return m && n;
-  });
+const expandGroup = (start: WorkerInfo, rects: WorkerInfo[], size: number): WorkerInfo[] => {
+  const getBounds = (r: Region) => {
+    return [
+      new Point2D(r.minReal, r.minImag),
+      new Point2D(r.minReal, r.maxImag),
+      new Point2D(r.maxReal, r.minImag),
+      new Point2D(r.maxReal, r.maxImag)
+    ];
+  };
+  const hasOverlap = (a: Point2D[], b: Point2D[]) => a.some(i => b.some(j => i.equals(j)));
+  let n = rects.filter(
+    w =>
+      hasOverlap(getBounds(start.region), getBounds(w.region)) &&
+      !regionEquals(start.region, w.region)
+  );
   if (n.length == 0) {
     return [];
   } else if (n.length < size) {
     let expanded: WorkerInfo[] = [];
     for (let i = 0; i < n.length; i++) {
-      expanded = expandGroup(n[i++], rects, not.concat(n), size - n.length);
+      expanded = expandGroup(n[i++], sub(rects, n), size - n.length);
       if (expanded.length != 0) break;
     }
     return n.concat(expanded);

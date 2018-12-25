@@ -46,15 +46,10 @@ export default class WebSocketClient {
       switch (msg.type) {
         case "regionData":
           {
-<<<<<<< HEAD
             // filter empty RegionData
             let r = <RegionData>msg;
             if (r.data.length == 0) return;
             // Notify regionData/worker observers
-=======
-            // Notify regionData/worker observers
-            let r = <RegionData>msg;
->>>>>>> dcdc64fea9f0118cc0eccb68a5a1a08c1e90ec0c
             workerCallback.forEach(call => call(r));
           }
           break;
