@@ -25,6 +25,15 @@ interface IdleTimeState {
   active: Map<number, boolean>;
   progress: Map<number, number>;
 }
+const usToString = (time: number) => {
+  const units = ["μs", "ms", "s"];
+  let i = 0;
+  while (i != units.length && time > 1000) {
+    time = time / 1000;
+    i++;
+  }
+  return (Math.round(time * 100) / 100).toFixed(2) + " " + units[i];
+};
 /**
  * Shows the computation time of invoked workers
  * Additional documentation on the type of used chart: https://www.chartjs.org/docs/latest/
@@ -36,7 +45,6 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
 
   private hoveredItem: any;
   private hoveredSegment: any;
-  private hoveredCount: number = 0;
 
   constructor(props: IdleTimeProps) {
     super(props);
@@ -68,25 +76,9 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
 
   public componentDidMount() {
     // TODO does not work
-    const customLabel = (tooltipItem: ChartTooltipItem, data: ChartData) => {
-      if (!data.datasets || !tooltipItem.datasetIndex || !tooltipItem.index) {
-        return "";
-      }
-      const dataset = data.datasets[tooltipItem.datasetIndex];
-      if (!dataset.data) {
-        return "";
-      }
-      let label = dataset.label;
-
-      if (label) {
-        label += ": ";
-      } else {
-        label = "";
-      }
-      label += dataset.data[tooltipItem.index];
-      label += " ms";
-      return label;
-    };
+    const customLabel = (tooltipItem: any, data: any) =>
+    // TODO: fix the * 1e6 hack
+      usToString(data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index] * 1e6);
 
     const ctx = document.getElementById("idleTime") as HTMLCanvasElement;
     const config: ChartConfiguration = {
