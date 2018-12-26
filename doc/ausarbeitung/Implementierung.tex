@@ -73,7 +73,7 @@ Dies geschieht allerdings ohne Beachtung der eventuell unterschiedlichen Rechenz
 Die naive Strategie wurde hier in einer nicht-rekursiven  und einer rekursiven Variante implementiert.
 
 \paragraph*{}
-
+%non-recursive naive
 Zur nicht-rekursiven Aufteilung wird zuerst die Anzahl der zu erstellenden Spalten und Zeilen berechnet.
 Dazu wird der größte Teiler der Anzahl der Worker bestimmt. Dieser gibt die Anzahl der Spalten an, das Ergebnis der Division ist die Anzahl der Zeilen.
 Damit ist sichergestellt, dass die Region in die richtige Menge von Teilregionen unterteilt wird.
@@ -104,5 +104,30 @@ Die Teilregionen werden in einem Ergebnisarray gespeichert, welches dann zurück
 % recursiveNaive
 
 \subsubsection*{Strategie mit Vorhersage}
+
+Bei dieser Strategie (zu finden in den Klassen PredictionBalancer und RecursivePredictionBalancer) basiert die Aufteilung der Region auf einer Vorhersage über die Rechenzeit.
+Die Teilregionen werden so gewählt, dass sie, entsprechend der Vorhersage, etwa einen ähnlichen Rechenaufwand haben.
+
+Die Vorhersage (struct Prediction) wird von der Klasse Predicter berechnet.
+Dazu wird die Region in einer sehr viel geringeren Auflösung berechnet.
+Die benötigte Anzahl an Iterationen wird jeweils pro Kachel (Breite und Höhe sind der garantierte Teiler) abgespeichert.
+So wird sichergestellt, dass der garantierte Teiler auch nach der Aufteilung noch gilt, da die Balancierer die Vorhersage Eintrag für Eintrag verarbeiten.
+Die Genauigkeit der Vorhersage kann über das Attribut $predictionAccuracy$ gesteuert werden:
+\begin{itemize}
+	\item $predictionAccuracy > 0$: $(predictionAccuracy)^2$ Pixel werden pro Kachel berechnet. Die Summe der Iterationen für die einzelnen Pixel ergibt die Vorhersage für die Kachel.
+	\item $predictionAccuracy < 0$: Für $(predictionAccuracy)^2$ Kacheln wird ein Pixel in der Vorhersage berechnet. Es erhalten also mehrere Kacheln diesselbe Vorhersage.
+	\item $predictionAccuracy = 0$: Unzulässig, es wird ein Null-Pointer zurückgegeben.
+\end{itemize}
+Zusätzlich beinhaltet die Vorhersage die Summen der benötigten Iterationen pro Spalte und Zeile, sowie die Gesamtsumme.
+Auch die Deltas für Real- und Imaginärteil der einzelnen Kacheln werden angegeben.
+
+Auch die Strategie mit Vorhersage wurde in einer rekursiven und in einer nicht-rekursiven Variante implementiert.
+
+\paragraph*{}
+% non-recursive prediction
+
+\paragraph*{}
+% recursive prediction
+
 \subsubsection*{Erweiterung}
 \label{lastbalancierung_erweiterung}
