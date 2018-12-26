@@ -88,7 +88,7 @@ Es ist zu beachten, dass es sich hier um eine Ganzzahldivision handelt, deren Re
 Die Höhe berechnet sich analog.
 
 Bevor die eigentliche Aufteilung beginnt werden noch die Deltas für Real- und Imaginärteil bestimmt.
-Diese geben an, wei groß der Bereich der komplexen Ebene ist, den ein Pixel der Region überdeckt.
+Diese geben an, wie breit bzw. hoch der Bereich der komplexen Ebene ist, den ein Pixel der Region überdeckt.
 Die Deltas können über Methoden der Klasse Fractal berechnet werden.
 
 Zur Aufteilung wird nun mittels zweier verschachtelter Schleifen über die Zeilen und Spalten iteriert.
@@ -125,6 +125,27 @@ Auch die Strategie mit Vorhersage wurde in einer rekursiven und in einer nicht-r
 
 \paragraph*{}
 % non-recursive prediction
+Für die nicht-rekursive Variante wird zuerst die benötigte Anzahl an Zeilen und Spalten bestimmt.
+Dies geschieht genauso wie bei der naiven Strategie.
+
+Die erzeugten Teilregionen sollen in etwa den gleichen Rechenaufwand haben. Dieser berechnet sich durch:
+\begin{equation} \label{lastbalancierung_vorhersage_formel}
+	desiredN = \frac{nSum}{nodeCount}
+\end{equation}
+Dabei ist $nSum$ die Gesamtsumme der Vorhersage und $nodeCount$ wieder die Anzahl der Worker.
+
+Danach wird die Region erst, entsprechend der Vorhersage, in Spalten aufgeteilt. In einem zweiten Schritt wird die horizontale Unterteilung in Teilregionen vorgenommen. 
+
+Zur Aufteilung wird über die Spaltensummen in der Vorhersage iteriert. Diese werden aufaddiert und bilden so den Zähler $currentN$.
+Sobald $currentN$ $\geq desiredN$ gilt oder für alle restlichen Spalten nur noch je ein Eintrag in den Spaltensummen vorhanden ist wird eine Spalte abgeschlossen.
+Dazu werden $maxReal$ und $width$ berechnet. $minReal$ und $hOffset$ stehen bereits in $tmp$, die Werte wurden bei der Berechnung der vorhergehenden Spalte bereits gesetzt.
+Jetzt wird $tmp$ für die nächste Spalte vorbereitet, das heißt $tmp.minReal$ wird auf $tmp.maxReal$ gesetzt und $tmp.hOffset$ wird um $tmp.width$ erhöht. Ersteres vermeidet das Entstehen von Lücken zuverlässig.
+Außerdem wird $desiredN$ für die verbleibenden Spalten nach (\ref{lastbalancierung_vorhersage_formel}) neu berechnet und die Zähler werden zurückgesetzt.
+Bevor die Aufteilung der Spalte in Teilregionen startet, wird eine Kopie der Vorhersage erstellt, die nur die Werte für die aktuelle Spalte enthält.
+Das Aufteilen in Teilregion geschieht analog zum Aufteilen in Spalten.
+
+Die letzte Spalte wird gesondert behandelt: Sie muss so gewählt werden, dass sie den gesamten Rest der Eingaberegion abdeckt, ansonsten können Lücken entstehen.
+Dies gilt genauso bei der Unterteilung der einzelnen Spalten.
 
 \paragraph*{}
 % recursive prediction
