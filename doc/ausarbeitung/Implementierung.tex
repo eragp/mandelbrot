@@ -66,13 +66,13 @@ Was dabei genau beachtet werden muss findet sich im Teil \hyperref[lastbalancier
 \\
 Damit die Unterschiede zwischen guter und schlechter Lastverteilung deutlich werden, wurden hier verschiedene Strategien zur Lastbalancierung implementiert.
 
-\subsubsection*{Naive Strategie}
+\subsubsection{Naive Strategie}
 
 Bei der naiven Strategie (zu finden in den Klassen NaiveBalancer und RecursiveNaiveBalancer) wird versucht den einzelnen Workern etwa gleich große Teilregionen zuzuweisen.
 Dies geschieht allerdings ohne Beachtung der eventuell unterschiedlichen Rechenzeiten innerhalb der Teilregionen.
 Die naive Strategie wurde hier in einer nicht-rekursiven  und einer rekursiven Variante implementiert.
 
-\paragraph*{}
+\paragraph*{} \label{lastbalancierung_naiv}
 %non-recursive naive
 Zur nicht-rekursiven Aufteilung wird zuerst die Anzahl der zu erstellenden Spalten und Zeilen berechnet.
 Dazu wird der größte Teiler der Anzahl der Worker bestimmt. Dieser gibt die Anzahl der Spalten an, das Ergebnis der Division ist die Anzahl der Zeilen.
@@ -102,8 +102,32 @@ Die Teilregionen werden in einem Ergebnisarray gespeichert, welches dann zurück
 
 \paragraph*{}
 % recursiveNaive
+Die Grundidee der rekursiven Balancierung ist, die Region solange zu halbieren, bis man genug Teile für jeden Worker hat.
+Dies funktioniert sehr gut, wenn die Anzahl der Worker eine 2er-Potenz ist. Wenn das nicht der Fall ist, so müssen für einige Worker die Regionen öfters geteilt werden als für andere.
+Die Anzahl der Blätter des Rekursionsbaumes muss also der Anzahl der Worker entsprechen.
+Die Rekursionstiefe kann man also wie folgt berechnen:
+\begin{equation*}
+	recCounter = \lfloor\log_2 nodeCount\rfloor + 1
+\end{equation*}
+Und die Anzahl der Teilregionen auf der untersten Ebene des Rekursionsbaumes ergibt sich als:
+\begin{equation*}
+	onLowestLevel = (nodeCount - 2^{\lfloor\log_2 nodeCount\rfloor}) * 2
+\end{equation*}
+Auch hier ist $nodeCount$ die Anzahl der Worker.
 
-\subsubsection*{Strategie mit Vorhersage}
+Aus $recCounter$ und $onLowestLevel$ kann auch die Abbruchbedingung der Rekursion gefolgert werden:
+\begin{equation} \label{lastbalancierung_rekursion_abbruch}
+	recCounter = 0 \vee (recCounter = 1 \wedge resultIndex \geq onLowestLevel) \equiv true
+\end{equation}
+$resultIndex$ ist hierbei der Index in das Ergebnisarray, beschreibt also die Anzahl der bereits erstellten teilregionen.
+
+Ist die Abbruchbedingung (\ref{lastbalancierung_rekursion_abbruch}) erfüllt, so genügt es die übergebene Region in das Ergebnisarray einzutragen und $resultIndex$ zu inkrementieren.
+Ansonsten muss die Region halbiert werden. Ist die Region vertikal oder horizontal nicht mehr teilbar (d.h. $region.width$ bzw. $region.height$ $\leq region.guaranteedDivisor$), so wird in die andere Richtung geteilt.
+Kann die Region in beide Richtungen geteilt werden, so wird abwechselnd vertikal und horizontal geteilt. Dies gewährleistet, dass der Balancierer in beide Richtungen aufteilt, sofern das möglich ist.
+
+Die beiden Hälften berechnen sich wie bei der Aufteilung auf 2 Worker mit der \hyperref[lastbalancierung_naiv]{nicht-rekursiven Strategie}.
+
+\subsubsection{Strategie mit Vorhersage}
 
 Bei dieser Strategie (zu finden in den Klassen PredictionBalancer und RecursivePredictionBalancer) basiert die Aufteilung der Region auf einer Vorhersage über die Rechenzeit.
 Die Teilregionen werden so gewählt, dass sie, entsprechend der Vorhersage, etwa einen ähnlichen Rechenaufwand haben.
@@ -150,5 +174,4 @@ Dies gilt genauso bei der Unterteilung der einzelnen Spalten.
 \paragraph*{}
 % recursive prediction
 
-\subsubsection*{Erweiterung}
-\label{lastbalancierung_erweiterung}
+\subsubsection{Erweiterung} \label{lastbalancierung_erweiterung}
