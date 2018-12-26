@@ -115,6 +115,8 @@ Und die Anzahl der Teilregionen auf der untersten Ebene des Rekursionsbaumes erg
 \end{equation*}
 Auch hier ist $nodeCount$ die Anzahl der Worker.
 
+Um diese Werte einfach durch die Rekursionsebenen zu reichen wurde die Struktur BalancingContext definiert, welche zusätzlich noch die beiden Deltas, den Index in das Ergebnisarray und einen Zeiger auf das Array selbst abspeichert.
+
 Aus $recCounter$ und $onLowestLevel$ kann auch die Abbruchbedingung der Rekursion gefolgert werden:
 \begin{equation} \label{lastbalancierung_rekursion_abbruch}
 	recCounter = 0 \vee (recCounter = 1 \wedge resultIndex \geq onLowestLevel) \equiv true
