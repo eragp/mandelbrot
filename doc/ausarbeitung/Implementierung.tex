@@ -60,7 +60,7 @@
 \subsection{Lastbalancierung}
 Um die Mandelbrotmenge effizient parallel zu berechnen, muss die Last gleichmäßig auf die Worker verteilt werden.
 Die Aufgabe der Lastbalancierung besteht darin zu einer gegebenen Region und einer Anzahl von Workern eine solche Unterteilung in sogenannte Teilregionen zu finden.
-Wichtig dabei ist, dass der garantierte Teiler von Höhe und Breite der Teilregionen dem der angeforderten Region entspricht, da es sonst im Frontend zu Schwierigkeiten bei der Darstellungf kommt.
+Wichtig dabei ist, dass der garantierte Teiler von Höhe und Breite der Teilregionen dem der angeforderten Region entspricht, da es sonst im Frontend zu Schwierigkeiten bei der Darstellung kommt.
 Die Klassenstruktur der Lastbalancierer entspricht dem Strategy-Pattern. So kann der Balancierer zur Laufzeit leicht gewechselt werden und auch die Erweiterung des Projekts um eine weitere Strategie gestaltet sich einfach.
 Was dabei genau beachtet werden muss findet sich im Teil \hyperref[lastbalancierung_erweiterung]{Erweiterung}.
 \\
@@ -95,7 +95,7 @@ Zur Aufteilung wird nun mittels zweier verschachtelter Schleifen über die Zeile
 Die benötigten Start- und Endpunkt der Teilregionen (also die linke obere Ecke und die rechte untere Ecke auf der komplexen Ebene) können nun mithilfe der Schleifenzähler und der Deltas bestimmt werden.
 Zusätzlich wird noch der vertikale und horizontale Offset der Teilregion vom Startpunkt der Eingaberegion abgespeichert. Diese Information ermöglicht es die Region im Frontend einfach anzuzeigen.
 
-Falls die aktuell betrachtete Teiregionen zu den Breiteren und/oder Höheren gehört, müssen alle Werte entsprechend angepasst werden.
+Falls die aktuell betrachtete Teiregionen zu den Breiteren und/oder Höheren (s.o.) gehört, müssen alle Werte entsprechend angepasst werden.
 Die letzte Teilregion einer Spalte bzw. Zeile wird immer so gewählt, dass sie auf jeden Fall mit dem Rand der Eingaberegion abschließt.
 
 Die Teilregionen werden in einem Ergebnisarray gespeichert, welches dann zurückgegeben wird.
@@ -104,16 +104,19 @@ Die Teilregionen werden in einem Ergebnisarray gespeichert, welches dann zurück
 % recursiveNaive
 Die Grundidee der rekursiven Balancierung ist, die Region solange zu halbieren, bis man genug Teile für jeden Worker hat.
 Dies funktioniert sehr gut, wenn die Anzahl der Worker eine 2er-Potenz ist. Wenn das nicht der Fall ist, so müssen für einige Worker die Regionen öfters geteilt werden als für andere.
-Die Anzahl der Blätter des Rekursionsbaumes muss also der Anzahl der Worker entsprechen.
-Die Rekursionstiefe kann man also wie folgt berechnen:
+Die Anzahl der Blätter des Rekursionsbaumes (hier ein Binärbaum) muss also der Anzahl der Worker entsprechen.
+Die Rekursionstiefe kann man wie folgt berechnen:
 \begin{equation} \label{lastbalancierung_rekursion_tiefe}
 	recCounter = \lfloor\log_2 nodeCount\rfloor + 1
 \end{equation}
 Und die Anzahl der Teilregionen auf der untersten Ebene des Rekursionsbaumes ergibt sich als:
+\begin{equation*}
+	missing = nodeCount - 2^{\lfloor\log_2 nodeCount\rfloor}
+\end{equation*}
 \begin{equation} \label{lastbalancierung_rekursion_ebene}
-	onLowestLevel = (nodeCount - 2^{\lfloor\log_2 nodeCount\rfloor}) * 2
+	onLowestLevel = missing * 2
 \end{equation}
-Auch hier ist $nodeCount$ die Anzahl der Worker.
+Auch hier ist $nodeCount$ die Anzahl der Worker. Die Multiplikation mit 2 ist nötig, da nochmal $missing$ Blätter aufgeteilt werden müssen, um $missing$ zusätzliche Blätter zu erzeugen.
 
 Um diese Werte einfach durch die Rekursionsebenen zu reichen wurde die Struktur BalancingContext definiert, welche zusätzlich noch die beiden Deltas, den Index in das Ergebnisarray und einen Zeiger auf das Array selbst abspeichert.
 
@@ -121,7 +124,7 @@ Aus $recCounter$ und $onLowestLevel$ kann auch die Abbruchbedingung der Rekursio
 \begin{equation} \label{lastbalancierung_rekursion_abbruch}
 	recCounter = 0 \vee (recCounter = 1 \wedge resultIndex \geq onLowestLevel) \equiv true
 \end{equation}
-$resultIndex$ ist hierbei der Index in das Ergebnisarray, beschreibt also die Anzahl der bereits erstellten teilregionen.
+$resultIndex$ ist hierbei der Index in das Ergebnisarray, beschreibt also die Anzahl der bereits erstellten Teilregionen.
 
 Ist die Abbruchbedingung (\ref{lastbalancierung_rekursion_abbruch}) erfüllt, so genügt es die übergebene Region in das Ergebnisarray einzutragen und $resultIndex$ zu inkrementieren.
 Ansonsten muss die Region halbiert werden. Ist die Region vertikal oder horizontal nicht mehr teilbar (d.h. $region.width$ bzw. $region.height$ $\leq region.guaranteedDivisor$), so wird in die andere Richtung geteilt.
