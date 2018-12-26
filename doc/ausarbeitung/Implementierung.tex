@@ -56,3 +56,53 @@
 %        Project.ts
 %    visualization -> Niels
 %    misc -> Max
+
+\subsection{Lastbalancierung}
+Um die Mandelbrotmenge effizient parallel zu berechnen, muss die Last gleichmäßig auf die Worker verteilt werden.
+Die Aufgabe der Lastbalancierung besteht darin zu einer gegebenen Region und einer Anzahl von Workern eine solche Unterteilung in sogenannte Teilregionen zu finden.
+Wichtig dabei ist, dass der garantierte Teiler von Höhe und Breite der Teilregionen dem der angeforderten Region entspricht, da es sonst im Frontend zu Schwierigkeiten bei der Darstellungf kommt.
+Die Klassenstruktur der Lastbalancierer entspricht dem Strategy-Pattern. So kann der Balancierer zur Laufzeit leicht gewechselt werden und auch die Erweiterung des Projekts um eine weitere Strategie gestaltet sich einfach.
+Was dabei genau beachtet werden muss findet sich im Teil \hyperref[lastbalancierung_erweiterung]{Erweiterung}.
+\\
+Damit die Unterschiede zwischen guter und schlechter Lastverteilung deutlich werden, wurden hier verschiedene Strategien zur Lastbalancierung implementiert.
+
+\subsubsection*{Naive Strategie}
+
+Bei der naiven Strategie (zu finden in den Klassen NaiveBalancer und RecursiveNaiveBalancer) wird versucht den einzelnen Workern etwa gleich große Teilregionen zuzuweisen.
+Dies geschieht allerdings ohne Beachtung der eventuell unterschiedlichen Rechenzeiten innerhalb der Teilregionen.
+Die naive Strategie wurde hier in einer nicht-rekursiven  und einer rekursiven Variante implementiert.
+
+\paragraph*{}
+
+Zur nicht-rekursiven Aufteilung wird zuerst die Anzahl der zu erstellenden Spalten und Zeilen berechnet.
+Dazu wird der größte Teiler der Anzahl der Worker bestimmt. Dieser gibt die Anzahl der Spalten an, das Ergebnis der Division ist die Anzahl der Zeilen.
+Damit ist sichergestellt, dass die Region in die richtige Menge von Teilregionen unterteilt wird.
+
+Als nächstes wird die Breite und Höhe der Teilregionen berechnet. Hierbei ist wichtig, dass der garantierte Teiler erhalten wird.
+Die Breite berechnet sich also durch:
+\begin{equation*}
+	\frac{region.width}{region.guaranteedDivisor * nodeCount} * region.guaranteedDivisor
+\end{equation*}
+Dabei ist $nodeCount$ die Anzahl der Worker und $region$ die zu unterteilende Region.
+Es ist zu beachten, dass es sich hier um eine Ganzzahldivision handelt, deren Rest angibt, wie viele Teilregionen um $region.guaranteedDivisor$ breiter sind.
+Die Höhe berechnet sich analog.
+
+Bevor die eigentliche Aufteilung beginnt werden noch die Deltas für Real- und Imaginärteil bestimmt.
+Diese geben an, wei groß der Bereich der komplexen Ebene ist, den ein Pixel der Region überdeckt.
+Die Deltas können über Methoden der Klasse Fractal berechnet werden.
+
+Zur Aufteilung wird nun mittels zweier verschachtelter Schleifen über die Zeilen und Spalten iteriert.
+Die benötigten Start- und Endpunkt der Teilregionen (also die linke obere Ecke und die rechte untere Ecke auf der komplexen Ebene) können nun mithilfe der Schleifenzähler und der Deltas bestimmt werden.
+Zusätzlich wird noch der vertikale und horizontale Offset der Teilregion vom Startpunkt der Eingaberegion abgespeichert. Diese Information ermöglicht es die Region im Frontend einfach anzuzeigen.
+
+Falls die aktuell betrachtete Teiregionen zu den Breiteren und/oder Höheren gehört, müssen alle Werte entsprechend angepasst werden.
+Die letzte Teilregion einer Spalte bzw. Zeile wird immer so gewählt, dass sie auf jeden Fall mit dem Rand der Eingaberegion abschließt.
+
+Die Teilregionen werden in einem Ergebnisarray gespeichert, welches dann zurückgegeben wird.
+
+\paragraph*{}
+% recursiveNaive
+
+\subsubsection*{Strategie mit Vorhersage}
+\subsubsection*{Erweiterung}
+\label{lastbalancierung_erweiterung}
