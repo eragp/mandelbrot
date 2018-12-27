@@ -57,6 +57,26 @@
 %    visualization -> Niels
 %    misc -> Max
 
+\subsection{Aufsetzen des Backends}
+
+\subsubsection{Schnellstart}
+
+Um das System schnell zum laufen zu bekommen, muss das Repository auf das eigene System geklont werden.
+Im Unterverzeichnis
+=> README aus backend/himmuc übertragen
+
+\subsection{Implementierung der Mandelbrotberechnung}
+
+Zur hardwarenahe Berechnung der Mandelbrotmenge wird ein sogenanntes Backend gestartet.
+Das in C++ programmierte Teilprojekt nimmt Rechenaufträge von einem Nutzer durch ein Frontend entgegen (auch
+ein solches wird bereitgestellt), zerlegt sie und verteilt sie per MPI auf dedizierte Rechenknoten.
+Dazu besteht das Backend aus zwei ausführbaren Dateien, host und worker. % Code-mäßiges highlighten möglich??
+
+\subsection{Inkludierte Header und CMake Anweisungen}
+
+Die zusammenstellung der ausführbaren Dateien wird in CMake definiert.
+Dabei unterscheiden sich diese lediglich in den eingebundenen Quelldateien
+
 \subsection{Lastbalancierung}
 Um die Mandelbrotmenge effizient parallel zu berechnen, muss die Last gleichmäßig auf die Worker verteilt werden.
 Die Aufgabe der Lastbalancierung besteht darin zu einer gegebenen Region und einer Anzahl von Workern eine solche Unterteilung in sogenannte Teilregionen zu finden.

@@ -1,7 +1,7 @@
 import * as React from "react";
 import WebSocketClient from "../connection/WSClient";
 
-import { DataSet, Network, Node, Edge, Options as NetworkOptions} from "vis";
+import { DataSet, Network, Node, Edge, Options as NetworkOptions } from "vis";
 
 import "./NetworkView.css";
 // TODO include material design icon copyright notice
@@ -9,10 +9,11 @@ import "./NetworkView.css";
 import workerImage from "./img/worker.backgroundCircle.svg";
 import serverImage from "./img/server.backgroundCircle.svg";
 import applicationImage from "./img/application.backgroundCircle.svg";
-import WorkerContext from "../misc/WorkerContext";
+import { RegionGroup } from "../misc/RegionGroup";
+import { GroupObservable } from "../misc/Observable";
 
 interface NetworkViewProps {
-  workerContext: WorkerContext;
+  group: GroupObservable;
   wsclient: WebSocketClient;
 }
 
@@ -23,12 +24,12 @@ interface NetworkHoverEvent {
 }
 // TODO highlight node on workercontext active worker change
 
-export default class NetworkView extends React.Component<NetworkViewProps, {}> {
+const groupToNet = (id: number) => id + 2;
+const netToGroup = (id: number) => id - 2;
 
+export default class NetworkView extends React.Component<NetworkViewProps, {}> {
   private network: Network;
-  private networkState: {
-    nodes: number[];
-  }
+  private groups: RegionGroup[];
 
   public componentDidMount() {
     const options: NetworkOptions = {
@@ -37,20 +38,20 @@ export default class NetworkView extends React.Component<NetworkViewProps, {}> {
         enabled: true,
         solver: "forceAtlas2Based",
         hierarchicalRepulsion: {
-          centralGravity: 10,
-        },
+          centralGravity: 10
+        }
       },
       edges: {
         smooth: false,
         color: {
-          color: "black",
-        },
+          color: "black"
+        }
       },
       layout: {
         hierarchical: {
           enabled: true,
           direction: "LR",
-          sortMethod: "directed",
+          sortMethod: "directed"
         }
       },
       interaction: {
@@ -58,7 +59,7 @@ export default class NetworkView extends React.Component<NetworkViewProps, {}> {
         dragView: false,
         hover: true,
         zoomView: false,
-        selectable: false,
+        selectable: false
       }
     };
 
@@ -68,35 +69,29 @@ export default class NetworkView extends React.Component<NetworkViewProps, {}> {
         nodes: new DataSet(),
         edges: new DataSet()
       },
-      options,
+      options
     );
 
     this.network.on("hoverNode", (node: NetworkHoverEvent) => {
       if (node.node >= 2) {
-        this.props.workerContext.setActiveWorker(this.networkState.nodes[node.node - 2]);
+        this.props.group.set(node.node - 2);
       }
     });
     this.network.on("blurNode", node => {
       if (node.node >= 2) {
-        this.props.workerContext.setActiveWorker(undefined);
+        this.props.group.set(undefined);
       }
     });
 
-    this.networkState = {
-      nodes: [0]
-    };
+    this.groups = [];
     this.renderNetwork();
 
     /**
      * Redraw graph when information about backend becomes available
      */
-    this.props.wsclient.registerRegion(data => {
-      const nodes = [];
-      for (const worker of data.regions) {
-        nodes.push(worker.rank);
-      }
-      if (this.networkState.nodes !== nodes) {
-        this.networkState.nodes = nodes;
+    this.props.wsclient.registerRegion(groups => {
+      if (this.groups !== groups) {
+        this.groups = groups;
         this.renderNetwork();
       }
     });
@@ -104,13 +99,13 @@ export default class NetworkView extends React.Component<NetworkViewProps, {}> {
     /**
      * Register for changing active worker
      */
-    this.props.workerContext.subscribe(activeNode => {
-      if (activeNode !== undefined) {
-        this.network.selectNodes([this.networkState.nodes.indexOf(activeNode) + 2]);
-      } else {
-        this.network.unselectAll();
-      }
-    });
+    // this.props.group.subscribe(activeNode => {
+    //   if (activeNode) {
+    //     this.network.selectNodes([activeNode + 2]);
+    //   } else {
+    //     this.network.unselectAll();
+    //   }
+    // });
   }
 
   public render() {
@@ -122,14 +117,16 @@ export default class NetworkView extends React.Component<NetworkViewProps, {}> {
    */
   private renderNetwork() {
     const nodes: Node[] = [];
+    const edges: Edge[] = [];
 
+    // set nodes for frontend and Backend host
     nodes.push({
       id: 0,
       label: "Frontend",
       image: applicationImage,
       shape: "image",
       level: 0,
-      fixed: true,
+      fixed: true
     });
     nodes.push({
       id: 1,
@@ -139,34 +136,59 @@ export default class NetworkView extends React.Component<NetworkViewProps, {}> {
       level: 1,
       fixed: true
     });
-
-    const edges: Edge[] = [];
     edges.push({
       from: 0,
       to: 1
     });
-    this.networkState.nodes.forEach((rank, i) => {
-      const color = this.props.workerContext.getWorkerColor(rank);
+
+    this.groups.forEach((group, i) => {
+      const color = this.props.group.getColor(group.id);
       const level = Math.floor(i / 2) + 2;
+      const id = group.id + 2;
+      // push group node
       nodes.push({
-        id: i + 2,
-        label: `Worker ${rank}`,
+        id: id,
+        label: group.isGroup() ? `Group ${group.id}` : `Worker ${group.id}`,
         image: workerImage,
         shape: "image",
         font: {
-          color: color,
+          color: color
         },
-        level,
+        level
       });
       edges.push({
         from: 1,
-        to: i + 2,
+        to: id,
         color: {
           color: color,
           hover: color,
           highlight: color
-        },
+        }
       });
+      // if (i == 0) {
+      //   // push nodes
+      //   group.getRanks().forEach((r, i) => {
+      //     nodes.push({
+      //       id: group.id * 100 + r,
+      //       label: `Worker ${r}`,
+      //       image: workerImage,
+      //       shape: "image",
+      //       font: {
+      //         color: color
+      //       },
+      //       level: level
+      //     });
+      //     edges.push({
+      //       from: group.id + 2,
+      //       to: group.id * 100 + r,
+      //       color: {
+      //         color: color,
+      //         hover: color,
+      //         highlight: color
+      //       }
+      //     });
+      //   });
+      // }
     });
 
     this.network.setData({

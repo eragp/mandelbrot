@@ -2,17 +2,23 @@
 
 ## Environment
 
-> IMPORTANT: When using strings in cpprestsdk prefix them with the `U()` Makro:
-> ```cpp
->listener(U("http://localhost/restdemo"))
-> ```
-
 ## Quick Start
+
+On Unix-like machines, make sure to have `rsync`, `ssh` and `python3` (3.5 or newer) installed.
+
+Also make sure to have copied your ssh-key to the vm-schulz when using `-b` (build).
+
+From this folder (`backend`) run
+```bash
+./run_himmuc.sh -h
+```
+
+For running from other hosts and more details, please refer to the documentation in `himmuc`.
+
+### Development
 
 To run the build pipeline a current version of `docker` needs to 
 be installed on the host system
-
-### Development
 
 For testing the app on the local machine just run the `build` script `backend/run.sh`.
 
