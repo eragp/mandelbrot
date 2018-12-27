@@ -75,7 +75,24 @@ Dazu besteht das Backend aus zwei ausführbaren Dateien, host und worker. % Code
 \subsection{Inkludierte Header und CMake Anweisungen}
 
 Die zusammenstellung der ausführbaren Dateien wird in CMake definiert.
-Dabei unterscheiden sich diese lediglich in den eingebundenen Quelldateien
+Dabei unterscheiden sich diese lediglich in den eingebundenen Quelldateien:
+In die Datei host werden host.main.cpp und actors/Host.cpp eingebunden, während
+in worker worker.main.cpp und actors/Worker.cpp eingebunden werden.
+
+Diese und alle weiteren Build-Vorgaben werden in der Datei CMakeLists.txt für 
+cmake\footnote{Ein Programm, welches die Erstellung von Makefiles vereinfacht in dem es sie automatisch an die Umgebung des Build-Systems anpasst. \url{https://cmake.org/}}
+in der hier beschriebenen Reihenfolge spezifiert.
+
+Es sollte hierbeit eine CMake-Version über 3.7.0 gewählt werden, und für das Projekt "Mandelbrot" werden alle
+Dateien im Order include eingebunden. In diesem Ordner liegen die Header-Dateien für alle projektinternen C++-Quelldateien.
+Anschließend werden alle C++-Quelldateien (Endung ".cpp") aus dem Ordner src in einer Liste gesammelt, mit Ausnahme jedoch der oben genannten, exklusiven Quelldateien.
+Die erzeugte Liste und die jeweils exklusiven Dateien werden dann den ausführbaren Dateien host und worker zugeordnet.
+
+Um die verwendeten Biblioteken verfügbar zu machen werden anschließend die Header der installierten MPI-Bibliotek
+sowie die Header der Bibliotheken rapidjson\footnote{\url{http://rapidjson.org}}, websocketpp\footnote{\url{https://github.com/zaphoyd/websocketpp}} und boost\footnote{\url{https://www.boost.org/}}
+Diese werden respektive verwendet um JSON zu parsen und enkodieren, Websocket-Verbindungen aufzubauen und darüber zu kommunieren sowie um diese Bibliothek zu unterstützen.
+Da für die boost Bibliothek dabei Header nicht genügen und die systemweite Verfügbarkeit der kompilierten boost-Bibliothek nicht garantiert werden kann, wird die Teilbibliothek boost\_system statisch
+in die ausführbaren Dateien eingebunden.
 
 \subsection{Lastbalancierung}
 Um die Mandelbrotmenge effizient parallel zu berechnen, muss die Last gleichmäßig auf die Worker verteilt werden.
@@ -83,7 +100,8 @@ Die Aufgabe der Lastbalancierung besteht darin zu einer gegebenen Region und ein
 Wichtig dabei ist, dass der garantierte Teiler von Höhe und Breite der Teilregionen dem der angeforderten Region entspricht, da es sonst im Frontend zu Schwierigkeiten bei der Darstellung kommt.
 Die Klassenstruktur der Lastbalancierer entspricht dem Strategy-Pattern. So kann der Balancierer zur Laufzeit leicht gewechselt werden und auch die Erweiterung des Projekts um eine weitere Strategie gestaltet sich einfach.
 Was dabei genau beachtet werden muss findet sich im Teil \hyperref[lastbalancierung_erweiterung]{Erweiterung}.
-\\
+
+
 Damit die Unterschiede zwischen guter und schlechter Lastverteilung deutlich werden, wurden hier verschiedene Strategien zur Lastbalancierung implementiert.
 
 \subsubsection{Naive Strategie}
