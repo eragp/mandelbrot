@@ -184,7 +184,7 @@ export const groupRegions = (r: WorkerInfo[]): RegionGroup[] => {
     return r.map(r => new Rectangle(r));
   }
   let groupSize = Math.ceil(r.length / MAX_DISPLAY_REGIONS);
-  let groups: WorkerInfo[][] = [];
+  let groups: Group[] = [];
   let groupID = 1;
 
   // expand from each region to <= groupSize
@@ -192,12 +192,15 @@ export const groupRegions = (r: WorkerInfo[]): RegionGroup[] => {
   do {
     let w = expandGroup(rects[0], rects, groupSize);
     rects = sub(rects, w);
-    groups.push(w);
+    // if the last group is too large add all remaining items
+    if (groupID === MAX_DISPLAY_REGIONS && rects.length !== 0) {
+      w = w.concat(rects);
+      rects = [];
+    }
+    groups.push(new Group(w, groupID++));
   } while (rects.length != 0);
-  // console.log(groups);
-  // merge groups with too few elements
-  // TODO: Merge Groups
-  return groups.map(g => new Group(g, groupID++));
+  console.log(groups);
+  return groups;
 };
 
 const regionEquals = (a: Region, b: Region) =>
