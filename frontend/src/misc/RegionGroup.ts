@@ -222,18 +222,17 @@ const expandGroup = (start: WorkerInfo, rects: WorkerInfo[], size: number): Work
     ];
   };
   const hasOverlap = (a: Point2D[], b: Point2D[]) => a.some(i => b.some(j => i.equals(j)));
-  let neigh = rects.filter(
-    w =>
-      hasOverlap(getBounds(start.region), getBounds(w.region)) &&
-      !regionEquals(start.region, w.region)
-  );
-  if (neigh.length == 0) {
-    return [start];
+  const neigh = rects.filter(w => hasOverlap(getBounds(start.region), getBounds(w.region)));
+  if (neigh.length === 0) {
+    return [];
   } else if (neigh.length < size) {
     let expanded: WorkerInfo[] = [];
-    for (let i = 0; i < neigh.length; i++) {
-      expanded = expandGroup(neigh[i], sub(rects, neigh), size - neigh.length);
-      if (expanded.length > 1) break;
+    // const currLevel = neigh.push(start);
+    for (const n of neigh.filter(n => !regionEquals(n.region, start.region))) {
+      expanded = expandGroup(n, sub(rects, neigh), size - neigh.length);
+      if (expanded.length > 0) {
+        break;
+      }
     }
     return neigh.concat(expanded);
   } else {
