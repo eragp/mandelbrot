@@ -142,10 +142,42 @@ erfolgreichen Initialisierung der eigentliche \hyperref[cls:Host]{Host-Prozess} 
 \subsubsection{Websocketverbindung}
 
 Direkt nach der Initialisierung des Host-Programmes in \autoref{src:Host.cpp::init.websocket}, wird ein separater Thread gestartet, der über Websocket
-Anfragen zur Berechnung einer Region entgegennimmt und ein Thread, der berechnete Regionen an den verbundenen Client übergibt.
+Anfragen zur Berechnung einer Region entgegennimmt sowie ein Thread, der berechnete Regionen an den verbundenen Client übergibt.
+Die Methode Host::start\_server initialisiert dabei lediglich den Websocketserver mit den Methoden zum Behandeln geöffneter und geschlossener Verbindungen und
+einer Methode um Nachrichten des Clients zu behandeln, Host::handle\_region\_request.
 
 \begin{figure}
     \lstinputlisting[caption={Starten des Websocketservers bei der Initialisierung des Host-Programmes in Host.cpp}, label={src:Host.cpp::init.websocket}, firstline=387, lastline=398, firstnumber=387]{../../backend/src/actors/Host.cpp}
+\end{figure}
+
+Diese Methode versucht, den Inhalt der empfangenen Nachricht als JSON zu dekodieren und entnimmt die für das struct Region
+notwendigen Werte unter gleichem Namen dem Objekt, das unter dem Schlüssel "region" in der geparsten Anfrage gespeichert ist.
+Außerdem erwartet es unter dem Schlüssel "balancer" einen String, der den zu wählenden Lastbalancierer bestimmt und unter dem Schlüssel "type" den String "regionRequest".
+Mögliche Zeichenketten hierfür sind in den Klassen der Balancierer unter backend/src/balancer in der globalen Variable
+\textit{Klassenname}::NAME gespeichert. Ein Beispiel für einen Namen kann in \autoref{src:PredictionBalancer.NAME} gefunden werden:
+
+\begin{figure}
+    \lstinputlisting[caption={Namensdefinition des PredictionBalancers}, label={src:PredictionBalancer.NAME}, firstline=11, firstnumber=11, lastline=11]{../../backend/src/balancer/PredictionBalancer.cpp}
+\end{figure}
+
+Ein Beispiel für eine gültige Regionsanfrage ist in \autoref{src:regionRequest.json} zu finden.
+
+\begin{figure}
+    \lstinputlisting[caption={Eine gültige Anfrage einer Region in JSON}, label={src:regionRequest.json}, language=json]{regionRequest.json}
+\end{figure}
+
+Nach dem Parsen der Nachricht wird die Region global festgelegt und beim korrekten Lastbalancierer eine Zerlegung der angefragten Region über \textit{balanceLoad} gestartet.
+Aus dem Ergebnis werden leere Regionen werden anschließend aussortiert und alle anderen in eine per mutex Thread-gesicherte Datenstruktur
+gelegt. Der MPI verwendende Thread, der diese Regionen anschließend an die Worker sendet wird über das Setzen eines boolschen Wertes
+auf \textit{true} darüber informiert, dass neue Regionen zum versenden zur Verfügung stehen.
+Dabei ist der Rang des Workers, der eine Region berechnen soll genau der Index der Region in der Datenstruktur sein.
+Ist ein Worker nicht verfügbar, so werden alle folgenden Ränge um eins erhöht.
+Damit kann der Websocketprozess unabhängig von der tatsächlichen Verteilung den Rang des berechnenden Worker-Prozesses
+bestimmen und in der Antwort an den Client zu der Aufteilung der Prozesse einfügen.
+Die Struktur und eine gültige Antwort des Websocketservers kann \autoref{src:region.json} entnommen werden.
+
+\begin{figure}
+    \lstinputlisting[caption={Eine gültige Antwort auf die Region aus \autoref{src:regionRequest.json} in JSON}, label={src:region.json}, language=json]{region.json}
 \end{figure}
 
 \subsection{Lastbalancierung}
