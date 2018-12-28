@@ -146,7 +146,7 @@
            {~}{{\tttilde}}1
            {:)}{{\rotatebox{270}{\hspace{-.5em}\rmfamily :)}}}2
 }
-\renewcommand{\lstlistingname}{Quellcode}% Listing -> Quellcode
+\renewcommand{\lstlistingname}{Quelltext}% Listing -> Quelltext
 
 % Clear author macro so that we can check whether an author is set
 \def\@author{}
