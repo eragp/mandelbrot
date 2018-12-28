@@ -107,7 +107,7 @@ root@9cc2d5ac2cd1:~/eragp-mandelbrot/backend# exit
         \end{lstlisting}
 \end{figure}
 
-Das \verb|run_docker.sh| Skript läd das benötigte Basis Image, welches alle benötigen Bibliotheken bereits enthält, herunter und erstellt basierend darauf
+Das \verb|run_docker.sh| Skript lädt das benötigte Basis Image, welches alle benötigen Bibliotheken bereits enthält, herunter und erstellt basierend darauf
 den Entwicklungscontainer. In diesen werden dann die Aktuellen Quelldateien hinein kopiert und kompiliert, wonach das Backend mit Adresse
 \verb|ws://localhost:9002| gestartet wird.
 
@@ -150,29 +150,29 @@ URL zu öffnen.
 Zur hardwarenahe Berechnung der Mandelbrotmenge wird ein sogenanntes Backend gestartet.
 Das in C++ programmierte Teilprojekt nimmt Rechenaufträge von einem Nutzer durch ein Frontend entgegen (auch
 ein solches wird bereitgestellt), zerlegt sie und verteilt sie per MPI auf dedizierte Rechenknoten.
-Dazu besteht das Backend aus zwei ausführbaren Dateien, host und worker. % Code-mäßiges highlighten möglich??
+Dazu besteht das Backend aus zwei ausführbaren Dateien, \verb|host| und \verb|worker|.
 
 \subsubsection{Inkludierte Header und CMake Anweisungen}
 
 Die zusammenstellung der ausführbaren Dateien wird in CMake definiert.
 Dabei unterscheiden sich diese lediglich in den eingebundenen Quelldateien:
-In die Datei host werden host.main.cpp und actors/Host.cpp eingebunden, während
-in worker worker.main.cpp und actors/Worker.cpp eingebunden werden.
+In die Datei \verb|host| werden \verb|host.main.cpp| und \verb|actors/Host.cpp| eingebunden, während
+in \verb|worker| \verb|worker.main.cpp| und \verb|actors/Worker.cpp| eingebunden werden.
 
-Diese und alle weiteren Build-Vorgaben werden in der Datei CMakeLists.txt für
-cmake\footnote{Ein Programm, welches die Erstellung von Makefiles vereinfacht in dem es sie automatisch an die Umgebung des Build-Systems anpasst. \url{https://cmake.org/}}
+Diese und alle weiteren Build-Vorgaben werden in der Datei \verb|CMakeLists.txt| für
+\verb|cmake|\footnote{Ein Programm, welches die Erstellung von Makefiles vereinfacht in dem es sie automatisch an die Umgebung des Build-Systems anpasst. \url{https://cmake.org/}}
 in der hier beschriebenen Reihenfolge spezifiert.
 Es sollte hierbeit eine CMake-Version über 3.7.0 gewählt werden und die C++11 Standarts\footnote{\url{https://isocpp.org/wiki/faq/cpp11}} werden vorrausgesetzt.
-Zudem werden für das Projekt "Mandelbrot" werden alle Dateien im Order include eingebunden.
+Zudem werden für das Projekt "Mandelbrot" werden alle Dateien im Order \verb|include| eingebunden.
 In diesem Ordner liegen die Header-Dateien für alle projektinternen C++-Quelldateien.
-Anschließend werden alle C++-Quelldateien (Endung ".cpp") aus dem Ordner src in einer Liste gesammelt, mit Ausnahme jedoch der oben genannten, exklusiven Quelldateien.
-Die erzeugte Liste und die jeweils exklusiven Dateien werden dann den ausführbaren Dateien host und worker zugeordnet.
+Anschließend werden alle C++-Quelldateien (Endung "\verb|.cpp|") aus dem Ordner \verb|src| in einer Liste gesammelt, mit Ausnahme jedoch der oben genannten, exklusiven Quelldateien.
+Die erzeugte Liste und die jeweils exklusiven Dateien werden dann den ausführbaren Dateien \verb|host| und \verb|worker| zugeordnet.
 
 Um die verwendeten Biblioteken verfügbar zu machen werden anschließend die Header der installierten MPI-Bibliotek
 sowie die Header der Bibliotheken rapidjson\footnote{\url{http://rapidjson.org}}, websocketpp\footnote{\url{https://github.com/zaphoyd/websocketpp}} und boost\footnote{\url{https://www.boost.org/}}
 Diese werden respektive verwendet um JSON zu parsen und enkodieren, Websocket-Verbindungen aufzubauen und darüber zu kommunizieren sowie um diese Bibliothek zu unterstützen.
 Da für die boost Bibliothek dabei Header nicht genügen und die systemweite Verfügbarkeit der kompilierten boost-Bibliothek nicht garantiert werden kann, wird die Teilbibliothek boost\_system statisch
-in die ausführbaren Datei host eingebunden.
+in die ausführbaren Datei \verb|host| eingebunden.
 
 Zuletzt werden über Compilerflags alle Kompilierfehler und -warnungen aktiviert sowie die POSIX-Thread-Bibliothek eingebunden
 und spezielle Flags für die Websocketlibrary und MPI gesetzt.
@@ -187,7 +187,7 @@ Die Funktion muss als Parameter den Rang bzw. die Id des aktuellen MPI-Prozesses
 Prozesse entgegen nehmen.
 
 Ein beispielhafter Aufruf ist in \autoref{src:host.main.cpp} zu sehen. Damit wird MPI initialisiert und nach der
-erfolgreichen Initialisierung der eigentliche \hyperref[cls:Host]{Host-Prozess} über Host::init gestartet.
+erfolgreichen Initialisierung der eigentliche \hyperref[cls:Host]{Host-Prozess} über \verb|Host::init| gestartet.
 
 \begin{figure}
 	\lstinputlisting[caption={Initialisierung der MPI-Prozesse in init.cpp}, label={src:init.cpp}, firstline=15, lastline=39, firstnumber=15]{../../backend/src/init.cpp}
@@ -204,18 +204,18 @@ erfolgreichen Initialisierung der eigentliche \hyperref[cls:Host]{Host-Prozess} 
 
 Direkt nach der Initialisierung des Host-Programmes in \autoref{src:Host.cpp::init.websocket}, wird ein separater Thread gestartet, der über Websocket
 Anfragen zur Berechnung einer Region entgegennimmt sowie ein Thread, der berechnete Regionen an den verbundenen Client übergibt.
-Die Methode Host::start\_server initialisiert dabei lediglich den Websocketserver mit den Methoden zum Behandeln geöffneter und geschlossener Verbindungen und
-einer Methode um Nachrichten des Clients zu behandeln, Host::handle\_region\_request.
+Die Methode \verb|Host::start_server| initialisiert dabei lediglich den Websocketserver mit den Methoden zum Behandeln geöffneter und geschlossener Verbindungen und
+einer Methode um Nachrichten des Clients zu behandeln, \verb|Host::handle_region_request|.
 
 \begin{figure}
 	\lstinputlisting[caption={Starten des Websocketservers bei der Initialisierung des Host-Programmes in Host.cpp}, label={src:Host.cpp::init.websocket}, firstline=387, lastline=398, firstnumber=387]{../../backend/src/actors/Host.cpp}
 \end{figure}
 
 Diese Methode versucht, den Inhalt der empfangenen Nachricht als JSON zu dekodieren und entnimmt die für das struct Region
-notwendigen Werte unter gleichem Namen dem Objekt, das unter dem Schlüssel "region" in der geparsten Anfrage gespeichert ist.
-Außerdem erwartet es unter dem Schlüssel "balancer" einen String, der den zu wählenden Lastbalancierer bestimmt und unter dem Schlüssel "type" den String "regionRequest".
-Mögliche Zeichenketten hierfür sind in den Klassen der Balancierer unter backend/src/balancer in der globalen Variable
-\textit{Klassenname}::NAME gespeichert. Ein Beispiel für einen Namen kann in \autoref{src:PredictionBalancer.NAME} gefunden werden:
+notwendigen Werte unter gleichem Namen dem Objekt, das unter dem Schlüssel \verb|"region"| in der geparsten Anfrage gespeichert ist.
+Außerdem erwartet es unter dem Schlüssel \verb|"balancer"| einen String, der den zu wählenden Lastbalancierer bestimmt und unter dem Schlüssel \verb|"type"| den String \verb|"regionRequest"|.
+Mögliche Zeichenketten hierfür sind in den Klassen der Balancierer unter \verb|backend/src/balancer| in der globalen Variable
+\verb|Klassenname::NAME| gespeichert. Ein Beispiel für einen Namen kann in \autoref{src:PredictionBalancer.NAME} gefunden werden:
 
 \begin{figure}
     \lstinputlisting[caption={Namensdefinition des PredictionBalancers}, label={src:PredictionBalancer.NAME}, firstline=11, firstnumber=11, lastline=11]{../../backend/src/balancer/PredictionBalancer.cpp}
@@ -227,10 +227,10 @@ Ein Beispiel für eine gültige Regionsanfrage ist in \autoref{src:regionRequest
     \lstinputlisting[caption={Eine gültige Anfrage einer Region in JSON}, label={src:regionRequest.json}, language=json]{regionRequest.json}
 \end{figure}
 
-Nach dem Parsen der Nachricht wird die Region global festgelegt und beim korrekten Lastbalancierer eine Zerlegung der angefragten Region über \textit{balanceLoad} gestartet.
+Nach dem Parsen der Nachricht wird die Region global festgelegt und beim korrekten Lastbalancierer eine Zerlegung der angefragten Region über \verb|Balancer::balanceLoad| gestartet.
 Aus dem Ergebnis werden leere Regionen werden anschließend aussortiert und alle anderen in eine per mutex Thread-gesicherte Datenstruktur
 gelegt. Der MPI verwendende Thread, der diese Regionen anschließend an die Worker sendet wird über das Setzen eines boolschen Wertes
-auf \textit{true} darüber informiert, dass neue Regionen zum versenden zur Verfügung stehen.
+auf \verb|true| darüber informiert, dass neue Regionen zum versenden zur Verfügung stehen.
 Dabei ist der Rang des Workers, der eine Region berechnen soll genau der Index der Region in der Datenstruktur sein.
 Ist ein Worker nicht verfügbar, so werden alle folgenden Ränge um eins erhöht.
 Damit kann der Websocketprozess unabhängig von der tatsächlichen Verteilung den Rang des berechnenden Worker-Prozesses
