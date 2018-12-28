@@ -2,8 +2,14 @@ import { RegionData, Regions, isEmptyRegion } from "./ExchangeTypes";
 import { groupRegions, RegionGroup } from "../misc/RegionGroup";
 
 const url = "ws://localhost:9002";
+export interface WS {
+  sendRequest(request: any): void;
+  registerRegion(fun: (groups: RegionGroup[]) => any): Promise<any>;
+  registerRegionData(fun: (groups: RegionData) => any): Promise<any>;
+  close(): void;
+}
 
-export default class WebSocketClient {
+export default class WebSocketClient implements WS {
   private regionCallback: Array<((data: RegionGroup[]) => void)> = [];
   private workerCallback: Array<((data: RegionData) => void)> = [];
   private regionRequests: string[];
@@ -57,7 +63,7 @@ export default class WebSocketClient {
           {
             // filter empty regions
             let r = (<Regions>msg).regions.filter(r => !isEmptyRegion(r.region));
-            let g = groupRegions(r)
+            let g = groupRegions(r);
             // Notify region subdivision listeners
             regionCallback.forEach(call => call(g));
           }
@@ -84,32 +90,33 @@ export default class WebSocketClient {
   /**
    * Registers a callback to call when the region subdivision is returned
    */
-  public registerRegion(fun: (data: RegionGroup[]) => any) {
-    this.registerCallback(this.regionCallback, fun);
+  public registerRegion(fun: (groups: RegionGroup[]) => any) {
+    return registerCallback(this.regionCallback, fun);
   }
 
   /**
    * Registers a callback to call when the region data is returned
    */
   public registerRegionData(fun: (data: RegionData) => any) {
-    this.registerCallback(this.workerCallback, fun);
-  }
-
-  /**
-   * Registers an observer to a list
-   */
-  private registerCallback(list: any[], fun: (data: any) => any) {
-    let promise: any;
-    const render = (data: any) => {
-      promise = new Promise((resolve, error) => {
-        try {
-          resolve(fun(data));
-        } catch (err) {
-          error(err);
-        }
-      });
-    };
-    list.push(render);
-    return promise;
+    return registerCallback(this.workerCallback, fun);
   }
 }
+/**
+ * Registers an observer to a list
+ * @param list list of callbacks
+ * @param fun function to add to list
+ * @returns Promise wrapping the return value of fun
+ */
+export const registerCallback = (list: Array<((data: any) => any)>, fun: (data: any) => any) => {
+  return new Promise((resolve, error) => {
+    try {
+      list.push((data: any) => {
+        const ret = fun(data);
+        resolve(ret);
+        return ret;
+      });
+    } catch (e) {
+      error(e);
+    }
+  });
+};

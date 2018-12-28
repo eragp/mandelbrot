@@ -1,0 +1,16 @@
+{
+   "screen": {
+      "width": 1920,
+      "height": 1080
+    },
+    "balancers": ["naive", "prediction"],
+    "implementations": ["default", "SIMD64"],
+    "nodeCount": 10,
+    "description": "This is a test",
+    "pois": [
+      { "real": 0.0, "imag": 0.0, "zoom": 0 },
+      { "real": 0.0, "imag": 0.0, "zoom": 0 },
+      { "real": 0.0, "imag": 0.0, "zoom": 0 },
+      { "real": 0.0, "imag": 0.0, "zoom": 0 }
+    ]
+  }
