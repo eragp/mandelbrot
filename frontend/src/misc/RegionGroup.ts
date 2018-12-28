@@ -1,6 +1,7 @@
-import { Regions, WorkerInfo, Region } from "../connection/ExchangeTypes";
+import { WorkerInfo, Region } from "../connection/ExchangeTypes";
 import { Point2D } from "./Point";
 import { MAX_DISPLAY_REGIONS } from "../Constants";
+import { Point } from "leaflet";
 
 export interface RegionGroup {
   id: number;
@@ -13,7 +14,7 @@ export interface RegionGroup {
   hOffset: number;
   vOffset: number;
   /**
-   * returns closed polyline of the Region (first point is the same as the last).
+   * returns polygon of the Region
    */
   bounds(): Point2D[];
   getChildren(): RegionGroup[] | null;
@@ -26,15 +27,15 @@ export interface RegionGroup {
  * Dynamically groups the returned Regions from the backend for cleaner display to the user.
  */
 class Group implements RegionGroup {
-  id: number;
-  computationTime: number;
-  guaranteedDivisor: number;
-  width: number;
-  height: number;
-  validation: number;
-  maxIteration: number;
-  hOffset: number;
-  vOffset: number;
+  public id: number;
+  public computationTime: number;
+  public guaranteedDivisor: number;
+  public width: number;
+  public height: number;
+  public validation: number;
+  public maxIteration: number;
+  public hOffset: number;
+  public vOffset: number;
   private children: RegionGroup[];
 
   constructor(regions: WorkerInfo[], groupID: number) {
@@ -49,18 +50,58 @@ class Group implements RegionGroup {
   }
 
   /**
-   * bound of a group will return a rectangle fitting all of it's children
+   * Concave hull of all children computed with Graham scan Algorithm:
+   * https://en.wikipedia.org/wiki/Graham_scan
+   * Then all non 90Deg angles are removed.
    */
   public bounds() {
-    const tl = this.children[0].bounds()[0];
-    const br = this.children[this.children.length - 1].bounds()[2];
-    return [
-      new Point2D(tl.x, tl.y),
-      new Point2D(br.x, tl.y),
-      new Point2D(br.x, br.y),
-      new Point2D(tl.x, br.y),
-      new Point2D(tl.x, tl.y)
-    ];
+    let points = this.children.map(c => c.bounds()).reduce((acc, curr) => acc.concat(curr));
+    // Find the pivot with min y value
+    let start = points.reduce((acc, curr) =>
+      // min y, if acc.y == curr.y find min x
+      curr.y < acc.y || (curr.y === acc.y && curr.x < acc.x) ? curr : acc
+    );
+
+    const angle = (p: Point2D) => Math.atan2(p.y - start.y, p.x - start.x);
+    // sort by (angle, x)
+    points.sort((a, b) => (angle(a) === angle(b) ? a.x - b.x : angle(a) - angle(b)));
+
+    // Adding points to the result if they "turn left"
+    const convex = [start];
+    let len = 1;
+    for (let i = 1; i < points.length; i++) {
+      let a = convex[len - 2];
+      let b = convex[len - 1];
+      let c = points[i];
+      while (
+        (len === 1 && b.x === c.x && b.y === c.y) ||
+        (len > 1 && (b.x - a.x) * (c.y - a.y) <= (b.y - a.y) * (c.x - a.x))
+      ) {
+        len--;
+        b = a;
+        a = convex[len - 2];
+      }
+      convex[len++] = c;
+    }
+    convex.length = len;
+    convex.push(convex[0]);
+
+    // add points for concave hull
+    let concave: Point2D[] = [];
+    for (let i = 0; i < convex.length - 1; i++) {
+      let p0 = convex[i];
+      let p1 = convex[i + 1];
+      concave.push(p0);
+      // if a triangle has been created, add the point left / right
+      // of the edge to create a 90Deg corner
+      if (p0.x !== p1.x && p0.y !== p1.y) {
+        let d0 = new Point2D(p0.x, p1.y);
+        let d1 = new Point2D(p1.x, p0.y);
+        concave.push(points.some(p => p.equals(d0)) ? d0 : d1);
+      }
+    }
+    concave.push(convex[convex.length - 1]);
+    return concave;
   }
 
   public getChildren() {
@@ -72,11 +113,7 @@ class Group implements RegionGroup {
   }
 
   public getLeafs() {
-    let leafs: Rectangle[] = [];
-    this.getChildren().forEach(child => {
-      leafs = leafs.concat(child.getLeafs());
-    });
-    return leafs;
+    return this.children.map(c => c.getLeafs()).reduce((acc, curr) => acc.concat(curr));
   }
 
   public getRanks() {
@@ -122,8 +159,7 @@ class Rectangle implements RegionGroup {
       new Point2D(this.minReal, this.maxImag),
       new Point2D(this.maxReal, this.maxImag),
       new Point2D(this.maxReal, this.minImag),
-      new Point2D(this.minReal, this.minImag),
-      new Point2D(this.minReal, this.maxImag)
+      new Point2D(this.minReal, this.minImag)
     ];
   }
 
@@ -144,32 +180,36 @@ class Rectangle implements RegionGroup {
   }
 }
 
-
 export const groupRegions = (r: WorkerInfo[]): RegionGroup[] => {
   if (r.length <= MAX_DISPLAY_REGIONS) {
     return r.map(r => new Rectangle(r));
   }
-  let groupSize = Math.ceil(r.length / MAX_DISPLAY_REGIONS);
-  let groups = [];
+  const groupSize = Math.ceil(r.length / MAX_DISPLAY_REGIONS);
+  const groups: WorkerInfo[][] = [];
   let groupID = 1;
-  let i = 0,
-    j = 0;
-  for (; i < Math.floor(r.length / groupSize); i++) {
-    let group = [];
-    for (j = 0; j < groupSize; j++) {
-      group.push(r[i * groupSize + j]);
-    }
-    groups.push(new Group(group, groupID++));
+  const center = (r: Region) =>
+    new Point2D((r.minReal + r.maxReal) / 2, (r.minImag + r.maxImag) / 2);
+  const sub = (a: WorkerInfo[], b: WorkerInfo[]) =>
+    a.filter(i => !b.some(j => regionEquals(i.region, j.region)));
+
+  let rect = r;
+  // sort regions by midpoint
+  rect.sort((a, b) =>
+    center(a.region).x - center(b.region).x !== 0
+      ? center(b.region).x - center(a.region).x
+      : center(a.region).y - center(b.region).y
+  );
+  while (rect.length > 0) {
+    const w = rect.slice(0, Math.min(groupSize, rect.length));
+    rect = sub(rect, w);
+    groups.push(w);
   }
-  {
-    let remainder = [];
-    j = 0;
-    while (i * groupSize + j < r.length) {
-      remainder.push(r[i * groupSize + j]);
-      j++;
-    }
-    if (remainder.length > 0) groups.push(new Group(remainder, groupID++));
-  }
-  console.log(groups);
-  return groups;
+  // console.log(groups);
+  return groups.map(g => new Group(g, groupID++));
 };
+
+const regionEquals = (a: Region, b: Region) =>
+  a.minReal === b.minReal &&
+  a.maxReal === b.maxReal &&
+  a.minImag === b.minImag &&
+  a.maxImag === b.maxImag;

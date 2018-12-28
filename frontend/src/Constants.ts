@@ -46,7 +46,8 @@ export const Balancers: Balancer[] = [
   },
   {
     key: "naiveRecursive",
-    title: "Recursive Naive Balancer"
+    title: "Recursive Naive Balancer",
+    description: "TODO: add doc"
   },
   {
     key: "predictionRecursive",
