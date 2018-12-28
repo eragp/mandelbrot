@@ -1,6 +1,7 @@
 import { WorkerInfo, Region } from "../connection/ExchangeTypes";
 import { Point2D } from "./Point";
 import { MAX_DISPLAY_REGIONS } from "../Constants";
+import { Point } from "leaflet";
 
 export interface RegionGroup {
   id: number;
@@ -66,12 +67,12 @@ class Group implements RegionGroup {
     points.sort((a, b) => (angle(a) === angle(b) ? a.x - b.x : angle(a) - angle(b)));
 
     // Adding points to the result if they "turn left"
-    let convex = [start],
-      len = 1;
+    const convex = [start];
+    let len = 1;
     for (let i = 1; i < points.length; i++) {
-      let a = convex[len - 2],
-        b = convex[len - 1],
-        c = points[i];
+      let a = convex[len - 2];
+      let b = convex[len - 1];
+      let c = points[i];
       while (
         (len === 1 && b.x === c.x && b.y === c.y) ||
         (len > 1 && (b.x - a.x) * (c.y - a.y) <= (b.y - a.y) * (c.x - a.x))
@@ -183,24 +184,28 @@ export const groupRegions = (r: WorkerInfo[]): RegionGroup[] => {
   if (r.length <= MAX_DISPLAY_REGIONS) {
     return r.map(r => new Rectangle(r));
   }
-  let groupSize = Math.ceil(r.length / MAX_DISPLAY_REGIONS);
-  let groups: Group[] = [];
+  const groupSize = Math.ceil(r.length / MAX_DISPLAY_REGIONS);
+  const groups: WorkerInfo[][] = [];
   let groupID = 1;
+  const center = (r: Region) =>
+    new Point2D((r.minReal + r.maxReal) / 2, (r.minImag + r.maxImag) / 2);
+  const sub = (a: WorkerInfo[], b: WorkerInfo[]) =>
+    a.filter(i => !b.some(j => regionEquals(i.region, j.region)));
 
-  // expand from each region to <= groupSize
-  let rects = r;
-  do {
-    let w = expandGroup(rects[0], rects, groupSize);
-    rects = sub(rects, w);
-    // if the last group is too large add all remaining items
-    if (groupID === MAX_DISPLAY_REGIONS && rects.length !== 0) {
-      w = w.concat(rects);
-      rects = [];
-    }
-    groups.push(new Group(w, groupID++));
-  } while (rects.length != 0);
-  console.log(groups);
-  return groups;
+  let rect = r;
+  // sort regions by midpoint
+  rect.sort((a, b) =>
+    center(a.region).x - center(b.region).x !== 0
+      ? center(b.region).x - center(a.region).x
+      : center(a.region).y - center(b.region).y
+  );
+  while (rect.length > 0) {
+    const w = rect.slice(0, Math.min(groupSize, rect.length));
+    rect = sub(rect, w);
+    groups.push(w);
+  }
+  // console.log(groups);
+  return groups.map(g => new Group(g, groupID++));
 };
 
 const regionEquals = (a: Region, b: Region) =>
@@ -208,34 +213,3 @@ const regionEquals = (a: Region, b: Region) =>
   a.maxReal === b.maxReal &&
   a.minImag === b.minImag &&
   a.maxImag === b.maxImag;
-
-const sub = (a: WorkerInfo[], b: WorkerInfo[]) =>
-  a.filter(i => !b.some(j => regionEquals(i.region, j.region)));
-
-const expandGroup = (start: WorkerInfo, rects: WorkerInfo[], size: number): WorkerInfo[] => {
-  const getBounds = (r: Region) => {
-    return [
-      new Point2D(r.minReal, r.minImag),
-      new Point2D(r.minReal, r.maxImag),
-      new Point2D(r.maxReal, r.minImag),
-      new Point2D(r.maxReal, r.maxImag)
-    ];
-  };
-  const hasOverlap = (a: Point2D[], b: Point2D[]) => a.some(i => b.some(j => i.equals(j)));
-  const neigh = rects.filter(w => hasOverlap(getBounds(start.region), getBounds(w.region)));
-  if (neigh.length === 0) {
-    return [];
-  } else if (neigh.length < size) {
-    let expanded: WorkerInfo[] = [];
-    // const currLevel = neigh.push(start);
-    for (const n of neigh.filter(n => !regionEquals(n.region, start.region))) {
-      expanded = expandGroup(n, sub(rects, neigh), size - neigh.length);
-      if (expanded.length > 0) {
-        break;
-      }
-    }
-    return neigh.concat(expanded);
-  } else {
-    return neigh.slice(0, size);
-  }
-};
