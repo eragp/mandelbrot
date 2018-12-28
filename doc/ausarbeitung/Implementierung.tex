@@ -1,12 +1,9 @@
 \section{Dokumentation der Implementierung}
-\begin{itemize}
-	\item Sollte größter Teil werden
-	\item \begin{enumerate}
-		      \item High level overview?
-		      \item Wie läuft das auf meinem System?
-		      \item Code Dokumentation / Entwicklerdokumentation
-	      \end{enumerate}
-\end{itemize}
+
+% Sollte größter Teil werden
+% - High level overview?
+% - Wie läuft das auf meinem System?
+% - Code Dokumentation / Entwicklerdokumentation
 
 %%%%%%%%
 % Highlevel
@@ -57,6 +54,27 @@
 %    visualization -> Niels
 %    misc -> Max
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Abschnitt - Grober Überblick
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Überblick}
+
+% TODO Ein bisschen mehr details
+Das Problem fordert eine Unterteilung in drei wesentliche Bausteine, wie sie in \autoref{fig:architekturuebersicht} zu sehen sind.
+Eine Benutzeroberfläche in einem Web Browser des Benutzers (“Frontend”), welches die Benutzerinteraktionen entgegennimmt und mit dem Backend kommuniziert.
+Ein Backend-Host übernimmt dazu die Kommunikationsfunktion, verwaltet die eingehenden Rechenaufträge und verteilt sie an die Backend-Worker. Das Ergebnis dieser Berechnung sendet der Host dann an das Frontend zurück.
+Die Backend-Worker nehmen die zugewiesenen Rechenaufträge entgegen und führen die eigentlichen Berechnungen verteilt aus.
+
+\begin{figure}
+    % Bindet das als PDF exportierte pptx ein -> vektorgrafik
+    % -> pptx bearbeiten statt pdf
+    \centering
+        \includegraphics[width=0.98\linewidth]{img/Implementierung/Kommunikation.pdf}
+        \caption{Architekturübersicht}
+    \label{fig:architekturuebersicht}
+\end{figure}
+
 \subsection{Aufsetzen des Backends}
 
 \subsubsection{Schnellstart}
@@ -72,7 +90,7 @@ Das in C++ programmierte Teilprojekt nimmt Rechenaufträge von einem Nutzer durc
 ein solches wird bereitgestellt), zerlegt sie und verteilt sie per MPI auf dedizierte Rechenknoten.
 Dazu besteht das Backend aus zwei ausführbaren Dateien, host und worker. % Code-mäßiges highlighten möglich??
 
-\subsection{Inkludierte Header und CMake Anweisungen}
+\subsubsection{Inkludierte Header und CMake Anweisungen}
 
 Die zusammenstellung der ausführbaren Dateien wird in CMake definiert.
 Dabei unterscheiden sich diese lediglich in den eingebundenen Quelldateien:
@@ -98,7 +116,7 @@ in die ausführbaren Datei host eingebunden.
 Zuletzt werden über Compilerflags alle Kompilierfehler und -warnungen aktiviert sowie die POSIX-Thread-Bibliothek eingebunden
 und spezielle Flags für die Websocketlibrary und MPI gesetzt.
 
-\subsection{Mainfunktion und Initialisierung}
+\subsubsection{Mainfunktion und Initialisierung}
 
 Zur Initialisierung der Prozesse muss zunächst die MPI-Umgebung aktiviert und abgerufen werden.
 Dies geschieht für beide Programme gleich, über die Initialisierungsfunktion in \autoref{src:init.cpp}.
