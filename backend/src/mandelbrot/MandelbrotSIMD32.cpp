@@ -48,7 +48,7 @@ void MandelbrotSIMD32::calculateFractal(precision_t* cRealArray, precision_t* cI
     uint32x4_t n = vdupq_n_u32(0);
     uint32x4_t absLesserThanTwo = vdupq_n_u32(1);
     int i = 0;
-    while(i < maxIteration && vaddvq_u32(absLesserThanTwo) != 0){
+    while(i < maxIteration && vaddvq_u32(absLesserThanTwo) > 0){
         // add a b -> a+b
         // mls a b c -> a - b*c
         // mul a b -> a*b
@@ -59,7 +59,7 @@ void MandelbrotSIMD32::calculateFractal(precision_t* cRealArray, precision_t* cI
         zImaginary = nextZImaginary;
         // Square of the absolute value -> determine when to stop
         float32x4_t absSquare = vmlaq_f32(vmulq_f32(zReal, zReal), zImaginary, zImaginary);
-        // If square of the absolute is less than 4, abs<2 holds -> 1
+        // If square of the absolute is less than 4, abs<2 holds -> 1 else 0
         absLesserThanTwo = vandq_u32(vcltq_f32(absSquare, four), one);
         // if any value is 1 in the vector (abs<2) then dont break
         // addv => sum all elements of the vector

@@ -109,11 +109,14 @@ Prozesse entgegen nehmen.
 
 Ein beispielhafter Aufruf ist in \autoref{src:host.main.cpp} zu sehen.
 
+\begin{figure}
+    \lstinputlisting[caption={Initialisierung der MPI-Prozesse in init.cpp}, label={src:init.cpp}, firstline=15, lastline=39]{../../backend/src/init.cpp}
+\end{figure}
 
-\lstinputlisting[caption={Initialisierung der MPI-Prozesse in init.cpp}, label={src:init.cpp}, firstline=15, lastline=39]{../../backend/src/init.cpp}
 
-\lstinputlisting[caption={Initialisierung des Host-Prozesses in host.main.cpp}, label={src:host.main.cpp}]{../../backend/src/host.main.cpp}
-
+\begin{figure}
+    \lstinputlisting[caption={Initialisierung des Host-Prozesses in host.main.cpp}, label={src:host.main.cpp}]{../../backend/src/host.main.cpp}
+\end{figure}
 
 \subsection{Lastbalancierung}
 Um die Mandelbrotmenge effizient parallel zu berechnen, muss die Last gleichmäßig auf die Worker verteilt werden.
@@ -251,3 +254,30 @@ Es ist hierbei auch wichtig die Vorhersage so zu teilen, dass es für jede Hälf
 \subsubsection{Leere Regionen} \label{lastbalancierung_leereregion}
 
 \subsubsection{Erweiterung} \label{lastbalancierung_erweiterung}
+
+\subsection{Berechnung der Mandelbrotmenge}
+
+\subsubsection{Berechnung mithilfe von SIMD}
+
+Um die Berechnungen intern noch zu beschleunigen, kann SIMD zur parallelen Bearbeitung mehrerer Punkte verwendet werden.
+Dazu ist es hilfreich, sich zunächst vor Augen zu führen, wie ein Vektor komplexer Koordinaten ohne SIMD verarbeitet würde.
+Dies ist in \autoref{src:MandelbrotVect.cpp} zu sehen.
+Die Berechnung der einzelnen Kooridnaten bleibt gleich, nur die Abbruchbedingung wird auf alle bearbeiteten Koordinaten erweitert.
+Sofern nur eine Koordinate nicht abschließend bearbeitet wurde, muss über den gesamten Vektor weiter iteriert werden.
+Da jedoch $z_n$, deren Iteration abgebrochen wurde nicht erneut Betragsmäßig unter $2$ kommen\cite{424331}, steigt ihre Iterationszahl nicht weiter,
+denn die Iterationszahl wird lediglich erhöht wenn der Betrag des z-Wertes wieder unter 2 liegt.
+
+\begin{figure}
+    \lstinputlisting[caption={Bearbeitung eines Vektors komplexer Koordinaten in C++}, label={src:MandelbrotVect.cpp}, firstline=8, lastline=46]{../../backend/src/mandelbrot/MandelbrotVect.cpp}
+\end{figure}
+
+Damit kann die Berechnung relativ simpel via Arm NEON Compiler Intrinsics\footnote{Details im Abschnitt "Compiler Intrinsics" unter \url{https://developer.arm.com/technologies/neon}} implementiert werden (siehe dazu \autoref{src:MandelbrotSIMD32.cpp}).
+Dabei wurden Optimierungen mithilfe der NEON-nativen multiply-add und multiply-subtract Befehle vorgenommen.
+Zudem kann der parallele Vergleich zweier Vektoren ausgenutzt werden, wobei als Ergebnis jedoch nicht 1 und 0 ausgegeben werden,
+sondern alle Bits des Ergebnisvektors auf 1 gesetzt werden sofern die Bedingung erfüllt ist und sonst auf 0.
+Um diese im weiteren Verlauf einfach aufzuaddieren, sodass die Summe der Anzahl nicht abgeschlossener Berechnungen entspricht,
+wird daher der Ergebnisvektor des Vergleiches mit 1 verundet.
+
+\begin{figure}
+    \lstinputlisting[caption={Parallelisierte Bearbeitung eines Vectors komplexer Koordinaten  in C++}, label={src:MandelbrotSIMD32.cpp}, firstline=23, lastline=73]{../../backend/src/mandelbrot/MandelbrotSIMD32.cpp}
+\end{figure}
