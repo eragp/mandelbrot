@@ -107,14 +107,12 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
 
     Document request;
     request.Parse(request_string.c_str());
-    /* TODO
-        try{
-        } catch (ParseErrorCode error){
-            std::cerr << "Error " << error. << "on parsing request: " << error.message() << "\n on "
-                    << request_string << std::endl;
-            return;
-        }
-        */
+    if(request.HasParseError()){
+        auto error = request.GetParseError();
+        std::cerr << "Error " << error << " on parsing request\n on "
+                << request_string << std::endl;
+        return;
+    }
 
     if(std::strcmp(request["type"].GetString(), "regionRequest") != 0){
         return;
@@ -182,10 +180,6 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
 
     {
         std::lock_guard<std::mutex> lock(current_big_region_lock);
-//        if (region == current_big_region) {
-//            std::cerr << "region has not changed" << std::endl;
-//            return;
-//        }
         current_big_region = region;
     }
 
@@ -240,7 +234,8 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     for (int rank = 0 ; rank < world_size && counter < nodeCount ; rank++) {
         if (usable_nodes[rank] == true) {
             std::cout << "Region " << counter << " will be computed by Worker " << rank << std::endl;
-            region_to_worker[counter++] = rank;
+            region_to_worker[counter] = rank;
+            counter ++;
         }
     }
 
