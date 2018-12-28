@@ -198,11 +198,7 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
     this.props.group.subscribe(groupIndex => {
       // Activate new tooltip if necessary
       if (groupIndex) {
-        console.log(this.chartState.nodes);
-        console.log(groupIndex);
         const workerIndex = this.chartState.nodes.findIndex(g => g.id === groupIndex);
-        console.log(this.chart.data.datasets);
-        console.log(workerIndex);
         // @ts-ignore: does not have complete .d.ts file
         const activeSegment = (this.chart.data.datasets as ChartDataSets[])[workerIndex]._meta[0]
           .data[0];

@@ -49,6 +49,7 @@ export default class WorkerLayer extends L.GeoJSON {
   private nodeLayers: Map<number, GeoJSON<any>>;
   private nodeGroups: Map<number, RegionGroup>;
   private currentGroup: RegionGroup[];
+  private workerContext: GroupObservable;
 
   constructor(
     wsclient: WebSocketClient,
@@ -64,7 +65,7 @@ export default class WorkerLayer extends L.GeoJSON {
         dashArray: "3",
         fillOpacity: 0.3
       };
-      if (feature.properties !== null && feature.properties.isGroup) {
+      if (feature.properties && feature.properties.isGroup) {
         regionStyle = Object.assign(regionStyle, {
           fillColor: workerContext.getColor(feature.properties.node)
         });
@@ -101,6 +102,7 @@ export default class WorkerLayer extends L.GeoJSON {
 
     this.nodeLayers = new Map();
     this.nodeGroups = new Map();
+    this.workerContext = workerContext;
 
     const onNewRegion = (group: RegionGroup[]) => {
       this.clearLayers();
@@ -117,7 +119,7 @@ export default class WorkerLayer extends L.GeoJSON {
       this.nodeLayers.forEach((layer: GeoJSON) => {
         this.resetStyle(layer);
       });
-      if (worker !== undefined) {
+      if (worker) {
         const layer = this.nodeLayers.get(worker);
         if (layer) {
           layer.setStyle({
