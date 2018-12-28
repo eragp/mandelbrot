@@ -28,10 +28,10 @@
 
 % Zuordnung klasse -> Dokumentation
 % backend
-%   *.main.cpp, init -> Niels
-%   include Ordner und CMake -> Niels
+%   *.main.cpp, init -> Niels DONE
+%   include Ordner und CMake -> Niels DONE
 %   balancer + tests -> Florian
-%   mandelbrot -> Florian (außer MandelbrotSIMD -> Niels)
+%   mandelbrot -> Florian (außer MandelbrotSIMD -> Niels DONE)
 %   actors
 %      Worker -> Tobi
 %      Host
@@ -109,7 +109,7 @@ Die erzeugte Liste und die jeweils exklusiven Dateien werden dann den ausführba
 
 Um die verwendeten Biblioteken verfügbar zu machen werden anschließend die Header der installierten MPI-Bibliotek
 sowie die Header der Bibliotheken rapidjson\footnote{\url{http://rapidjson.org}}, websocketpp\footnote{\url{https://github.com/zaphoyd/websocketpp}} und boost\footnote{\url{https://www.boost.org/}}
-Diese werden respektive verwendet um JSON zu parsen und enkodieren, Websocket-Verbindungen aufzubauen und darüber zu kommunieren sowie um diese Bibliothek zu unterstützen.
+Diese werden respektive verwendet um JSON zu parsen und enkodieren, Websocket-Verbindungen aufzubauen und darüber zu kommunizieren sowie um diese Bibliothek zu unterstützen.
 Da für die boost Bibliothek dabei Header nicht genügen und die systemweite Verfügbarkeit der kompilierten boost-Bibliothek nicht garantiert werden kann, wird die Teilbibliothek boost\_system statisch
 in die ausführbaren Datei host eingebunden.
 
@@ -125,15 +125,27 @@ die erst zurückkehrt, wenn das Programm abgeschlossen ist und MPI beendet werde
 Die Funktion muss als Parameter den Rang bzw. die Id des aktuellen MPI-Prozesses und die Anzahl der initialisierten
 Prozesse entgegen nehmen.
 
-Ein beispielhafter Aufruf ist in \autoref{src:host.main.cpp} zu sehen.
+Ein beispielhafter Aufruf ist in \autoref{src:host.main.cpp} zu sehen. Damit wird MPI initialisiert und nach der
+erfolgreichen Initialisierung der eigentliche \hyperref[cls:Host]{Host-Prozess} über Host::init gestartet.
 
 \begin{figure}
-    \lstinputlisting[caption={Initialisierung der MPI-Prozesse in init.cpp}, label={src:init.cpp}, firstline=15, lastline=39]{../../backend/src/init.cpp}
+    \lstinputlisting[caption={Initialisierung der MPI-Prozesse in init.cpp}, label={src:init.cpp}, firstline=15, lastline=39, firstnumber=15]{../../backend/src/init.cpp}
 \end{figure}
 
 
 \begin{figure}
     \lstinputlisting[caption={Initialisierung des Host-Prozesses in host.main.cpp}, label={src:host.main.cpp}]{../../backend/src/host.main.cpp}
+\end{figure}
+
+\subsection{Host Funktionalitäten} \label{cls:Host}
+
+\subsubsection{Websocketverbindung}
+
+Direkt nach der Initialisierung des Host-Programmes in \autoref{src:Host.cpp::init.websocket}, wird ein separater Thread gestartet, der über Websocket
+Anfragen zur Berechnung einer Region entgegennimmt und ein Thread, der berechnete Regionen an den verbundenen Client übergibt.
+
+\begin{figure}
+    \lstinputlisting[caption={Starten des Websocketservers bei der Initialisierung des Host-Programmes in Host.cpp}, label={src:Host.cpp::init.websocket}, firstline=387, lastline=398, firstnumber=387]{../../backend/src/actors/Host.cpp}
 \end{figure}
 
 \subsection{Lastbalancierung}
@@ -288,7 +300,7 @@ Iterationszahl nur hochgezählt wird solange das $z_n$ der Koordinate Betragsmä
 Dies gilt, da alle $|z_{n+i}| > 2$ sofern $|z_n| > 2$ \cite{424331}.
 
 \begin{figure}
-    \lstinputlisting[caption={Bearbeitung eines Vektors komplexer Koordinaten in C++}, label={src:MandelbrotVect.cpp}, firstline=8, lastline=46]{../../backend/src/mandelbrot/MandelbrotVect.cpp}
+    \lstinputlisting[caption={Bearbeitung eines Vektors komplexer Koordinaten in C++}, label={src:MandelbrotVect.cpp}, firstline=8, lastline=46, firstnumber=8]{../../backend/src/mandelbrot/MandelbrotVect.cpp}
 \end{figure}
 
 Damit kann die Berechnung relativ simpel via Arm NEON Compiler Intrinsics\footnote{Details im Abschnitt "Compiler Intrinsics" unter \url{https://developer.arm.com/technologies/neon}} implementiert werden (siehe dazu \autoref{src:MandelbrotSIMD32.cpp}).
@@ -311,5 +323,5 @@ Das Ergbenis des Vergleiches und der Verundung ist ein Vektor vorzeichenloser 32
 Postfix für diese Operationen \textit{u32} oder \textit{u64} lautet.
 
 \begin{figure}
-    \lstinputlisting[caption={Parallelisierte Bearbeitung eines Vektors komplexer Koordinaten in 32 bit Gleitkommapräzision in C++ mit Arm NEON Compiler Intrinsics für SIMD}, label={src:MandelbrotSIMD32.cpp}, firstline=29, lastline=72]{../../backend/src/mandelbrot/MandelbrotSIMD32.cpp}
+    \lstinputlisting[caption={Parallelisierte Bearbeitung eines Vektors komplexer Koordinaten in 32 bit Gleitkommapräzision in C++ mit Arm NEON Compiler Intrinsics für SIMD}, label={src:MandelbrotSIMD32.cpp}, firstline=29, lastline=72, firstnumber=29]{../../backend/src/mandelbrot/MandelbrotSIMD32.cpp}
 \end{figure}
