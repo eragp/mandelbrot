@@ -58,7 +58,8 @@
 % Abschnitt - Grober Überblick
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsection{Überblick}
+
+\subsection{Übersicht}
 
 % TODO Ein bisschen mehr details
 Das Problem fordert eine Unterteilung in drei wesentliche Bausteine, wie sie in \autoref{fig:architekturuebersicht} zu sehen sind.
@@ -75,13 +76,64 @@ Die Backend-Worker nehmen die zugewiesenen Rechenaufträge entgegen und führen 
     \label{fig:architekturuebersicht}
 \end{figure}
 
-\subsection{Aufsetzen des Backends}
+\subsection{Installieren der Anwendung}
 
-\subsubsection{Schnellstart}
+Um das System zu installieren, muss das Repository mit git lokal geklont werden. Dabei werden die Quelldateien für
+das Front- sowie Backend heruntergeladen.
 
-Um das System schnell zum laufen zu bekommen, muss das Repository auf das eigene System geklont werden.
-Im Unterverzeichnis
-=> README aus backend/himmuc übertragen
+\begin{figure}[h!]
+    \begin{lstlisting}[language=bash, caption={Klonen des Repositorys}]
+$ git clone https://gitlab.lrz.de/lrr-tum/students/eragp-mandelbrot.git
+        \end{lstlisting}
+\end{figure}
+% Bachend 
+\subsubsection{Lokales Backend}
+Eine lokale Installation des Backends zu Entwicklungszwecken ist durch einen Docker \footnote{\url{https://www.docker.com/}} Container möglich.
+Dieser bietet eine ähnliche Umgebung zu der des Clusters und ermöglicht schnellere Feedbackzyklen.
+
+\begin{figure}[h!]
+    \begin{lstlisting}[language=bash, caption={Starten der Entwicklungsumbegung}]
+# Systemabhängige Installation der Docker Anwendung
+$ sudo apt install docker
+$ cd backend && ./run_docker.sh
+Starting the Build Process
+...
+Host: Core 37 ready!
+# ^C beendet das Backend und verbindet sich mit der shell des Containers
+^C[mpiexec@9cc2d5ac2cd1] Sending Ctrl-C to processes as requested
+[mpiexec@9cc2d5ac2cd1] Press Ctrl-C again to force abort
+# exit schliesst die shell des Containers
+root@9cc2d5ac2cd1:~/eragp-mandelbrot/backend# exit
+        \end{lstlisting}
+\end{figure}
+
+Das \verb|run_docker.sh| Skript läd das benötigte Basis Image, welches alle benötigen Bibliotheken bereits enthält, herunter und erstellt basierend darauf
+den Entwicklungscontainer. In diesen werden dann die Aktuellen Quelldateien hinein kopiert und kompiliert, wonach das Backend mit Adresse
+\verb|ws://localhost:9002| gestartet wird.
+
+\subsubsection{Backend auf HIMMUC Cluster}
+% Frontend
+\begin{figure}[h!]
+    \begin{lstlisting}[language=bash, caption={Starten der Entwicklungsumbegung}]
+# Systemabhängige Installation der npm Paketverwaltung
+$ sudo apt install npm
+# Installiert benötigte Bibliotheken und startet WebServer
+$ cd frontend && npm install ; npm start
+...
+Version: webpack 4.25.1
+Time: 7230ms
+Built at: 12/28/2018 10:48:32 PM
+        Asset      Size  Chunks             Chunk Names
+   index.html  1.65 KiB          [emitted]
+mandelbrot.js  11.7 MiB    main  [emitted]  main
+    style.css   519 KiB    main  [emitted]  main
+Entrypoint main = style.css mandelbrot.js
+...
+        \end{lstlisting}
+\end{figure}
+
+
+\subsection{Erläuterung des Backends}
 
 \subsection{Implementierung der Mandelbrotberechnung}
 
@@ -325,3 +377,6 @@ Postfix für diese Operationen \textit{u32} oder \textit{u64} lautet.
 \begin{figure}
     \lstinputlisting[caption={Parallelisierte Bearbeitung eines Vektors komplexer Koordinaten in 32 bit Gleitkommapräzision in C++ mit Arm NEON Compiler Intrinsics für SIMD}, label={src:MandelbrotSIMD32.cpp}, firstline=29, lastline=72, firstnumber=29]{../../backend/src/mandelbrot/MandelbrotSIMD32.cpp}
 \end{figure}
+
+
+\subsection{Erläuterung des Frontends}
