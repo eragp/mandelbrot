@@ -121,7 +121,7 @@
 \ohead{\pagemark}
 
 \lstset{ %
-  language=C,
+  language=C++,
   basicstyle=\upshape\footnotesize\ttfamily,
   numbers=left,                   % where to put the line-numbers
   numberstyle=\tiny\color{gray},  % the style that is used for the line-numbers
@@ -146,6 +146,7 @@
            {~}{{\tttilde}}1
            {:)}{{\rotatebox{270}{\hspace{-.5em}\rmfamily :)}}}2
 }
+\renewcommand{\lstlistingname}{Quellcode}% Listing -> Quellcode
 
 % Clear author macro so that we can check whether an author is set
 \def\@author{}

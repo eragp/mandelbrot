@@ -83,8 +83,9 @@ Diese und alle weiteren Build-Vorgaben werden in der Datei CMakeLists.txt für
 cmake\footnote{Ein Programm, welches die Erstellung von Makefiles vereinfacht in dem es sie automatisch an die Umgebung des Build-Systems anpasst. \url{https://cmake.org/}}
 in der hier beschriebenen Reihenfolge spezifiert.
 
-Es sollte hierbeit eine CMake-Version über 3.7.0 gewählt werden, und für das Projekt "Mandelbrot" werden alle
-Dateien im Order include eingebunden. In diesem Ordner liegen die Header-Dateien für alle projektinternen C++-Quelldateien.
+Es sollte hierbeit eine CMake-Version über 3.7.0 gewählt werden und die C++11 Standarts\footnote{\url{https://isocpp.org/wiki/faq/cpp11}} werden vorrausgesetzt.
+Zudem werden für das Projekt "Mandelbrot" werden alle Dateien im Order include eingebunden.
+In diesem Ordner liegen die Header-Dateien für alle projektinternen C++-Quelldateien.
 Anschließend werden alle C++-Quelldateien (Endung ".cpp") aus dem Ordner src in einer Liste gesammelt, mit Ausnahme jedoch der oben genannten, exklusiven Quelldateien.
 Die erzeugte Liste und die jeweils exklusiven Dateien werden dann den ausführbaren Dateien host und worker zugeordnet.
 
@@ -92,7 +93,27 @@ Um die verwendeten Biblioteken verfügbar zu machen werden anschließend die Hea
 sowie die Header der Bibliotheken rapidjson\footnote{\url{http://rapidjson.org}}, websocketpp\footnote{\url{https://github.com/zaphoyd/websocketpp}} und boost\footnote{\url{https://www.boost.org/}}
 Diese werden respektive verwendet um JSON zu parsen und enkodieren, Websocket-Verbindungen aufzubauen und darüber zu kommunieren sowie um diese Bibliothek zu unterstützen.
 Da für die boost Bibliothek dabei Header nicht genügen und die systemweite Verfügbarkeit der kompilierten boost-Bibliothek nicht garantiert werden kann, wird die Teilbibliothek boost\_system statisch
-in die ausführbaren Dateien eingebunden.
+in die ausführbaren Datei host eingebunden.
+
+Zuletzt werden über Compilerflags alle Kompilierfehler und -warnungen aktiviert sowie die POSIX-Thread-Bibliothek eingebunden
+und spezielle Flags für die Websocketlibrary und MPI gesetzt.
+
+\subsection{Mainfunktion und Initialisierung}
+
+Zur Initialisierung der Prozesse muss zunächst die MPI-Umgebung aktiviert und abgerufen werden.
+Dies geschieht für beide Programme gleich, über die Initialisierungsfunktion in \autoref{src:init.cpp}.
+Sie erwartet lediglich eine Beschreibung des Prozesses für den Log und eine Initialisierungsfunktion,
+die erst zurückkehrt, wenn das Programm abgeschlossen ist und MPI beendet werden soll.
+Die Funktion muss als Parameter den Rang bzw. die Id des aktuellen MPI-Prozesses und die Anzahl der initialisierten
+Prozesse entgegen nehmen.
+
+Ein beispielhafter Aufruf ist in \autoref{src:host.main.cpp} zu sehen.
+
+
+\lstinputlisting[caption={Initialisierung der MPI-Prozesse in init.cpp}, label={src:init.cpp}, firstline=15, lastline=39]{../../backend/src/init.cpp}
+
+\lstinputlisting[caption={Initialisierung des Host-Prozesses in host.main.cpp}, label={src:host.main.cpp}]{../../backend/src/host.main.cpp}
+
 
 \subsection{Lastbalancierung}
 Um die Mandelbrotmenge effizient parallel zu berechnen, muss die Last gleichmäßig auf die Worker verteilt werden.
