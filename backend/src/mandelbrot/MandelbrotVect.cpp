@@ -14,12 +14,12 @@ void MandelbrotVect::calculateFractal(precision_t* cReal, precision_t* cImaginar
     precision_t* zImaginary = new precision_t[vectorLength];
     precision_t* nextZReal = new precision_t[vectorLength];
     precision_t* nextZImaginary = new precision_t[vectorLength];
-    // Factor that is multiplied on iteration count and computation 
+    // Factor that is added on iteration count
     // is 0 or 1 and determines whether that point is still being computed
     bool* factor = new bool[vectorLength];
     std::fill_n(factor, vectorLength, 1);
-    // Bool storing information about whether any abs value that is being computed
-    // is still below two => continue computation
+    // Integer storing number of Z components with absolute value
+    // below two => continue computation
     unsigned int lessThanTwo = vectorLength; // as we begin with ZReal/ZImag as 0
     int i = 0;
     while (i < maxIteration && lessThanTwo > 0){
@@ -31,10 +31,10 @@ void MandelbrotVect::calculateFractal(precision_t* cReal, precision_t* cImaginar
             zReal[k] = nextZReal[k];
             zImaginary[k] = nextZImaginary[k];
             // Determine whether to stop
-            factor[k] = (factor[k] && zReal[k] * zReal[k] + zImaginary[k] * zImaginary[k] < 4.0) ? 1 : 0;
+            factor[k] = (zReal[k] * zReal[k] + zImaginary[k] * zImaginary[k] < 4.0) ? 1 : 0;
             // sum => if any number is still less than two, we need to continue
             lessThanTwo += factor[k];
-            // increase number of iterations if this number hasnt aborted yet
+            // increase number of iterations if this number wasnt aborted yet
             dest[k] += factor[k];
         }
     }

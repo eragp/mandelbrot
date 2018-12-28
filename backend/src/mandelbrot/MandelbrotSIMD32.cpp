@@ -23,16 +23,16 @@ void MandelbrotSIMD32::calculateFractal(precision_t* cRealArray, precision_t* cI
     // General form of vector commands
     // v<cmd>q_f<pr>
     // v -> vector command
-    // q -> double amount of used registers (quad=>4)
+    // q -> double amount of used registers
     // f -> float
     // 32 bit vectorization
-    // Load values from array to simd vector
+    // Load casted values from array to simd vector
     float32x4_t cReal = vdupq_n_f32(0);// = vld1q_f32(cRealArray); if casting weren't necessary this would work
     cReal = vsetq_lane_f32((float32_t) cRealArray[0], cReal, 0);
     cReal = vsetq_lane_f32((float32_t) cRealArray[1], cReal, 1);
     cReal = vsetq_lane_f32((float32_t) cRealArray[2], cReal, 2);
     cReal = vsetq_lane_f32((float32_t) cRealArray[3], cReal, 3);
-    float32x4_t cImaginary = vdupq_n_f32(0);// = vld1q_f32(cImaginaryArray);
+    float32x4_t cImaginary = vdupq_n_f32(0);
     cImaginary = vsetq_lane_f32((float32_t) cImaginaryArray[0], cImaginary, 0);
     cImaginary = vsetq_lane_f32((float32_t) cImaginaryArray[1], cImaginary, 1);
     cImaginary = vsetq_lane_f32((float32_t) cImaginaryArray[2], cImaginary, 2);
@@ -40,18 +40,18 @@ void MandelbrotSIMD32::calculateFractal(precision_t* cRealArray, precision_t* cI
     // The z values
     float32x4_t zReal = vdupq_n_f32(0);
     float32x4_t zImaginary = vdupq_n_f32(0);
-    // determines if computation will be continued
+    // Helper variables
     float32x4_t two = vdupq_n_f32(2);
     float32x4_t four = vdupq_n_f32(4);
-    // result iterations
     uint32x4_t one = vdupq_n_u32(1);
+    // result iterations
     uint32x4_t n = vdupq_n_u32(0);
+    // vector with 1 if absolute value of component is less than two
     uint32x4_t absLesserThanTwo = vdupq_n_u32(1);
     int i = 0;
+    // addv => sum all elements of the vector
     while(i < maxIteration && vaddvq_u32(absLesserThanTwo) > 0){
-        // add a b -> a+b
         // mls a b c -> a - b*c
-        // mul a b -> a*b
         float32x4_t nextZReal = vaddq_f32(vmlsq_f32(vmulq_f32(zReal, zReal), zImaginary, zImaginary), cReal);
         // mla a b c -> a + b*c
         float32x4_t nextZImaginary = vmlaq_f32(cImaginary, two, vmulq_f32(zReal, zImaginary));
@@ -62,7 +62,6 @@ void MandelbrotSIMD32::calculateFractal(precision_t* cRealArray, precision_t* cI
         // If square of the absolute is less than 4, abs<2 holds -> 1 else 0
         absLesserThanTwo = vandq_u32(vcltq_f32(absSquare, four), one);
         // if any value is 1 in the vector (abs<2) then dont break
-        // addv => sum all elements of the vector
         n = vaddq_u32(n, absLesserThanTwo);
         i++;
     }
