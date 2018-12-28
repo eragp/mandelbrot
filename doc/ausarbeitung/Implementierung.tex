@@ -58,7 +58,8 @@
 % Abschnitt - Grober Überblick
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsection{Überblick}
+
+\subsection{Übersicht}
 
 % TODO Ein bisschen mehr details
 Das Problem fordert eine Unterteilung in drei wesentliche Bausteine, wie sie in \autoref{fig:architekturuebersicht} zu sehen sind.
@@ -67,21 +68,82 @@ Ein Backend-Host übernimmt dazu die Kommunikationsfunktion, verwaltet die einge
 Die Backend-Worker nehmen die zugewiesenen Rechenaufträge entgegen und führen die eigentlichen Berechnungen verteilt aus.
 
 \begin{figure}
-    % Bindet das als PDF exportierte pptx ein -> vektorgrafik
-    % -> pptx bearbeiten statt pdf
-    \centering
-        \includegraphics[width=0.98\linewidth]{img/Implementierung/Kommunikation.pdf}
-        \caption{Architekturübersicht}
-    \label{fig:architekturuebersicht}
+	% Bindet das als PDF exportierte pptx ein -> vektorgrafik
+	% -> pptx bearbeiten statt pdf
+	\centering
+	\includegraphics[width=0.98\linewidth]{img/Implementierung/Kommunikation.pdf}
+	\caption{Architekturübersicht}
+	\label{fig:architekturuebersicht}
 \end{figure}
 
-\subsection{Aufsetzen des Backends}
+\subsection{Installation der Anwendung}
 
-\subsubsection{Schnellstart}
+Um das System zu installieren, muss das Repository mit git lokal geklont werden. Dabei werden die Quelldateien für
+das Front- sowie Backend heruntergeladen.
 
-Um das System schnell zum laufen zu bekommen, muss das Repository auf das eigene System geklont werden.
-Im Unterverzeichnis
-=> README aus backend/himmuc übertragen
+\begin{figure}[h!]
+	\begin{lstlisting}[language=bash, caption={Klonen des Repositorys}]
+$ git clone https://gitlab.lrz.de/lrr-tum/students/eragp-mandelbrot.git
+        \end{lstlisting}
+\end{figure}
+
+\subsubsection{Lokales Backend}
+Eine lokale Installation des Backends zu Entwicklungszwecken ist durch einen Docker \footnote{\url{https://www.docker.com/}} Container möglich.
+Dieser bietet eine ähnliche Umgebung zu der des Clusters und ermöglicht schnellere Feedbackzyklen.
+
+\begin{figure}[h!]
+	\begin{lstlisting}[language=bash, caption={Starten der Entwicklungsumbegung des Backends}]
+# Systemabhängige Installation der Docker Anwendung
+$ sudo apt install docker
+$ cd backend/ && ./run_docker.sh
+Starting the Build Process
+...
+Host: Core 37 ready!
+# ^C beendet das Backend und verbindet sich mit der shell des Containers
+^C[mpiexec@9cc2d5ac2cd1] Sending Ctrl-C to processes as requested
+[mpiexec@9cc2d5ac2cd1] Press Ctrl-C again to force abort
+# exit schliesst die shell des Containers
+root@9cc2d5ac2cd1:~/eragp-mandelbrot/backend# exit
+        \end{lstlisting}
+\end{figure}
+
+Das \verb|run_docker.sh| Skript läd das benötigte Basis Image, welches alle benötigen Bibliotheken bereits enthält, herunter und erstellt basierend darauf
+den Entwicklungscontainer. In diesen werden dann die Aktuellen Quelldateien hinein kopiert und kompiliert, wonach das Backend mit Adresse
+\verb|ws://localhost:9002| gestartet wird.
+
+\subsubsection{Backend auf HIMMUC Cluster}
+% TODO
+
+\subsubsection{Installation des Frontends}
+Das Frontend ist in TypeScript\footnote{\url{https://www.typescriptlang.org/}} (erweiterung von JavaScript\footnote{\url{https://en.wikipedia.org/wiki/JavaScript}})
+geschrien und kann somit auf einem beliebigen Endgerät mit einem modernen Webbrowser ausgeführt werden.
+Um eine Version lokal zu starten, muss die Paketverwaltung npm\footnote{\url{https://www.npmjs.com/}} installiert werden. Diese verwaltet alle
+für das Frontend benötigten Bibliotheken und installiert diese lokal.
+
+\begin{figure}[h!]
+	\begin{lstlisting}[language=bash, caption={Starten des Frontends}]
+# Systemabhängige Installation der npm Paketverwaltung
+$ sudo apt install npm
+# Installiert benötigte Bibliotheken und startet WebServer
+$ cd frontend/ && npm install ; npm start
+...
+Version: webpack 4.25.1
+Time: 7230ms
+Built at: 12/28/2018 10:48:32 PM
+        Asset      Size  Chunks             Chunk Names
+   index.html  1.65 KiB          [emitted]
+mandelbrot.js  11.7 MiB    main  [emitted]  main
+    style.css   519 KiB    main  [emitted]  main
+Entrypoint main = style.css mandelbrot.js
+...
+        \end{lstlisting}
+\end{figure}
+
+Das Kommando \verb|npm start| startet dabei einen lokalen WebServer, welcher eine kompilierte Version des Frontends
+unter der Adresse \verb|http://localhost:3000| anbietet. Danach wird der standard Webbrowser des System verwendet, um diese
+URL zu öffnen.
+
+\subsection{Erläuterung des Backends}
 
 \subsection{Implementierung der Mandelbrotberechnung}
 
@@ -97,10 +159,9 @@ Dabei unterscheiden sich diese lediglich in den eingebundenen Quelldateien:
 In die Datei host werden host.main.cpp und actors/Host.cpp eingebunden, während
 in worker worker.main.cpp und actors/Worker.cpp eingebunden werden.
 
-Diese und alle weiteren Build-Vorgaben werden in der Datei CMakeLists.txt für 
+Diese und alle weiteren Build-Vorgaben werden in der Datei CMakeLists.txt für
 cmake\footnote{Ein Programm, welches die Erstellung von Makefiles vereinfacht in dem es sie automatisch an die Umgebung des Build-Systems anpasst. \url{https://cmake.org/}}
 in der hier beschriebenen Reihenfolge spezifiert.
-
 Es sollte hierbeit eine CMake-Version über 3.7.0 gewählt werden und die C++11 Standarts\footnote{\url{https://isocpp.org/wiki/faq/cpp11}} werden vorrausgesetzt.
 Zudem werden für das Projekt "Mandelbrot" werden alle Dateien im Order include eingebunden.
 In diesem Ordner liegen die Header-Dateien für alle projektinternen C++-Quelldateien.
@@ -129,12 +190,12 @@ Ein beispielhafter Aufruf ist in \autoref{src:host.main.cpp} zu sehen. Damit wir
 erfolgreichen Initialisierung der eigentliche \hyperref[cls:Host]{Host-Prozess} über Host::init gestartet.
 
 \begin{figure}
-    \lstinputlisting[caption={Initialisierung der MPI-Prozesse in init.cpp}, label={src:init.cpp}, firstline=15, lastline=39, firstnumber=15]{../../backend/src/init.cpp}
+	\lstinputlisting[caption={Initialisierung der MPI-Prozesse in init.cpp}, label={src:init.cpp}, firstline=15, lastline=39, firstnumber=15]{../../backend/src/init.cpp}
 \end{figure}
 
 
 \begin{figure}
-    \lstinputlisting[caption={Initialisierung des Host-Prozesses in host.main.cpp}, label={src:host.main.cpp}]{../../backend/src/host.main.cpp}
+	\lstinputlisting[caption={Initialisierung des Host-Prozesses in host.main.cpp}, label={src:host.main.cpp}]{../../backend/src/host.main.cpp}
 \end{figure}
 
 \subsection{Host Funktionalitäten} \label{cls:Host}
@@ -147,7 +208,7 @@ Die Methode Host::start\_server initialisiert dabei lediglich den Websocketserve
 einer Methode um Nachrichten des Clients zu behandeln, Host::handle\_region\_request.
 
 \begin{figure}
-    \lstinputlisting[caption={Starten des Websocketservers bei der Initialisierung des Host-Programmes in Host.cpp}, label={src:Host.cpp::init.websocket}, firstline=387, lastline=398, firstnumber=387]{../../backend/src/actors/Host.cpp}
+	\lstinputlisting[caption={Starten des Websocketservers bei der Initialisierung des Host-Programmes in Host.cpp}, label={src:Host.cpp::init.websocket}, firstline=387, lastline=398, firstnumber=387]{../../backend/src/actors/Host.cpp}
 \end{figure}
 
 Diese Methode versucht, den Inhalt der empfangenen Nachricht als JSON zu dekodieren und entnimmt die für das struct Region
@@ -290,7 +351,7 @@ Die erzeugten Teilregionen sollen in etwa den gleichen Rechenaufwand haben. Dies
 \end{equation}
 Dabei ist $nSum$ die Gesamtsumme der Vorhersage und $nodeCount$ wieder die Anzahl der Worker.
 
-Danach wird die Region erst in Spalten aufgeteilt und in einem zweiten Schritt wird dann die horizontale Unterteilung in Teilregionen vorgenommen. 
+Danach wird die Region erst in Spalten aufgeteilt und in einem zweiten Schritt wird dann die horizontale Unterteilung in Teilregionen vorgenommen.
 
 Zur Aufteilung wird über die Spaltensummen in der Vorhersage iteriert. Diese werden aufaddiert und bilden so den Zähler $currentN$.
 Sobald $currentN$ $\geq desiredN$ gilt oder für alle restlichen Spalten nur noch je ein Eintrag in den Spaltensummen vorhanden ist, wird eine Spalte abgeschlossen.
@@ -327,12 +388,12 @@ Dies ist in \autoref{src:MandelbrotVect.cpp} zu sehen.
 Die Berechnung der einzelnen Kooridnaten bleibt gleich, nur die Abbruchbedingung wird auf alle bearbeiteten Koordinaten erweitert.
 
 Es muss dabei solange weiter iteriert werden, bis für alle Komponenten die Berechnung abgebrochen werden darf.
-Hierbei ist es kein Problem, mit den abgebrochenen Punkten weiter zu rechnen, sofern die 
+Hierbei ist es kein Problem, mit den abgebrochenen Punkten weiter zu rechnen, sofern die
 Iterationszahl nur hochgezählt wird solange das $z_n$ der Koordinate Betragsmäßig kleiner gleich $2$ ist.
 Dies gilt, da alle $|z_{n+i}| > 2$ sofern $|z_n| > 2$ \cite{424331}.
 
 \begin{figure}
-    \lstinputlisting[caption={Bearbeitung eines Vektors komplexer Koordinaten in C++}, label={src:MandelbrotVect.cpp}, firstline=8, lastline=46, firstnumber=8]{../../backend/src/mandelbrot/MandelbrotVect.cpp}
+	\lstinputlisting[caption={Bearbeitung eines Vektors komplexer Koordinaten in C++}, label={src:MandelbrotVect.cpp}, firstline=8, lastline=46, firstnumber=8]{../../backend/src/mandelbrot/MandelbrotVect.cpp}
 \end{figure}
 
 Damit kann die Berechnung relativ simpel via Arm NEON Compiler Intrinsics\footnote{Details im Abschnitt "Compiler Intrinsics" unter \url{https://developer.arm.com/technologies/neon}} implementiert werden (siehe dazu \autoref{src:MandelbrotSIMD32.cpp}).
@@ -355,5 +416,8 @@ Das Ergbenis des Vergleiches und der Verundung ist ein Vektor vorzeichenloser 32
 Postfix für diese Operationen \textit{u32} oder \textit{u64} lautet.
 
 \begin{figure}
-    \lstinputlisting[caption={Parallelisierte Bearbeitung eines Vektors komplexer Koordinaten in 32 bit Gleitkommapräzision in C++ mit Arm NEON Compiler Intrinsics für SIMD}, label={src:MandelbrotSIMD32.cpp}, firstline=29, lastline=72, firstnumber=29]{../../backend/src/mandelbrot/MandelbrotSIMD32.cpp}
+	\lstinputlisting[caption={Parallelisierte Bearbeitung eines Vektors komplexer Koordinaten in 32 bit Gleitkommapräzision in C++ mit Arm NEON Compiler Intrinsics für SIMD}, label={src:MandelbrotSIMD32.cpp}, firstline=29, lastline=72, firstnumber=29]{../../backend/src/mandelbrot/MandelbrotSIMD32.cpp}
 \end{figure}
+
+
+\subsection{Erläuterung des Frontends}
