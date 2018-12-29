@@ -88,7 +88,7 @@ $ git clone https://gitlab.lrz.de/lrr-tum/students/eragp-mandelbrot.git
 \end{figure}
 
 \subsubsection{Lokales Backend}
-Eine lokale Installation des Backends zu Entwicklungszwecken ist durch einen Docker \footnote{\url{https://www.docker.com/}} Container möglich.
+Eine lokale Installation des Backends zu Entwicklungszwecken ist durch einen Docker\footnote{\url{https://www.docker.com/}} Container möglich.
 Dieser bietet eine ähnliche Umgebung zu der des Clusters und ermöglicht schnellere Feedbackzyklen.
 
 \begin{figure}[h!]
@@ -161,14 +161,14 @@ in \verb|worker| \verb|worker.main.cpp| und \verb|actors/Worker.cpp| eingebunden
 
 Diese und alle weiteren Build-Vorgaben werden in der Datei \verb|CMakeLists.txt| für
 \verb|cmake|\footnote{Ein Programm, welches die Erstellung von Makefiles vereinfacht in dem es sie automatisch an die Umgebung des Build-Systems anpasst. \url{https://cmake.org/}}
-in der hier beschriebenen Reihenfolge spezifiert.
-Es sollte hierbeit eine CMake-Version über 3.7.0 gewählt werden und die C++11 Standarts\footnote{\url{https://isocpp.org/wiki/faq/cpp11}} werden vorrausgesetzt.
+in der hier beschriebenen Reihenfolge spezifiziert.
+Es sollte hierbei eine CMake-Version über 3.7.0 gewählt werden und die C++11 Standards\footnote{\url{https://isocpp.org/wiki/faq/cpp11}} werden vorrausgesetzt.
 Zudem werden für das Projekt "Mandelbrot" werden alle Dateien im Order \verb|include| eingebunden.
 In diesem Ordner liegen die Header-Dateien für alle projektinternen C++-Quelldateien.
 Anschließend werden alle C++-Quelldateien (Endung "\verb|.cpp|") aus dem Ordner \verb|src| in einer Liste gesammelt, mit Ausnahme jedoch der oben genannten, exklusiven Quelldateien.
 Die erzeugte Liste und die jeweils exklusiven Dateien werden dann den ausführbaren Dateien \verb|host| und \verb|worker| zugeordnet.
 
-Um die verwendeten Biblioteken verfügbar zu machen werden anschließend die Header der installierten MPI-Bibliotek
+Um die verwendeten Bibliotheken verfügbar zu machen werden anschließend die Header der installierten MPI-Bibliothek
 sowie die Header der Bibliotheken rapidjson\footnote{\url{http://rapidjson.org}}, websocketpp\footnote{\url{https://github.com/zaphoyd/websocketpp}} und boost\footnote{\url{https://www.boost.org/}}
 Diese werden respektive verwendet um JSON zu parsen und enkodieren, Websocket-Verbindungen aufzubauen und darüber zu kommunizieren sowie um diese Bibliothek zu unterstützen.
 Da für die boost Bibliothek dabei Header nicht genügen und die systemweite Verfügbarkeit der kompilierten boost-Bibliothek nicht garantiert werden kann, wird die Teilbibliothek boost\_system statisch
@@ -202,16 +202,21 @@ erfolgreichen Initialisierung der eigentliche \hyperref[cls:Host]{Host-Prozess} 
 
 \subsubsection{Websocketverbindung}
 
-Direkt nach der Initialisierung des Host-Programmes in \autoref{src:Host.cpp::init.websocket}, wird ein separater Thread gestartet, der über Websocket
+Direkt nach der Initialisierung des Host-Programms in \autoref{src:Host.cpp::init.websocket}, wird ein separater Thread gestartet, der über Websocket
 Anfragen zur Berechnung einer Region entgegennimmt sowie ein Thread, der berechnete Regionen an den verbundenen Client übergibt.
 Die Methode \verb|Host::start_server| initialisiert dabei lediglich den Websocketserver mit den Methoden zum Behandeln geöffneter und geschlossener Verbindungen und
-einer Methode um Nachrichten des Clients zu behandeln, \verb|Host::handle_region_request|.
+einer Methode um Nachrichten des Clients zu behandeln, \hyperref[cls:Host::handle_region_request]{\texttt{Host::handle\_region\_request}}.
+Der zweite gestartete Thread führt die Methode \hyperref[cls:Host::send]{\texttt{Host::send}} aus.
+Zudem wird der Websocketserver mit \verb|server.init_asio()| mit der Transport Policy "transport::asio"
+konfiguriert, sodass Multithreadzugriff auf Sende- und Empfangsmethoden problemlos möglich ist \cite{websocketppManual}.
 
 \begin{figure}
-	\lstinputlisting[caption={Starten des Websocketservers bei der Initialisierung des Host-Programmes in Host.cpp}, label={src:Host.cpp::init.websocket}, firstline=387, lastline=398, firstnumber=387]{../../backend/src/actors/Host.cpp}
+	\lstinputlisting[caption={Starten des Websocketservers bei der Initialisierung des Host-Programmes in Host.cpp}, label={src:Host.cpp::init.websocket}, firstline=382, lastline=393, firstnumber=382]{../../backend/src/actors/Host.cpp}
 \end{figure}
 
-Diese Methode versucht, den Inhalt der empfangenen Nachricht als JSON zu dekodieren und entnimmt die für das struct Region
+\paragraph{Host::handle\_region\_request}\label{cls:Host::handle_region_request}
+
+Die Methode versucht, den Inhalt der empfangenen Nachricht als JSON zu dekodieren und entnimmt die für das struct Region
 notwendigen Werte unter gleichem Namen dem Objekt, das unter dem Schlüssel \verb|"region"| in der geparsten Anfrage gespeichert ist.
 Außerdem erwartet es unter dem Schlüssel \verb|"balancer"| einen String, der den zu wählenden Lastbalancierer bestimmt und unter dem Schlüssel \verb|"type"| den String \verb|"regionRequest"|.
 Mögliche Zeichenketten hierfür sind in den Klassen der Balancierer unter \verb|backend/src/balancer| in der globalen Variable
@@ -229,16 +234,36 @@ Ein Beispiel für eine gültige Regionsanfrage ist in \autoref{src:regionRequest
 
 Nach dem Parsen der Nachricht wird die Region global festgelegt und beim korrekten Lastbalancierer eine Zerlegung der angefragten Region über \verb|Balancer::balanceLoad| gestartet.
 Aus dem Ergebnis werden leere Regionen werden anschließend aussortiert und alle anderen in eine per mutex Thread-gesicherte Datenstruktur
-gelegt. Der MPI verwendende Thread, der diese Regionen anschließend an die Worker sendet wird über das Setzen eines boolschen Wertes
+gelegt. Der MPI verwendende Thread, der diese Regionen anschließend an die Worker sendet wird über das Setzen des booleschen Wertes \verb|mpi_set_regions|
 auf \verb|true| darüber informiert, dass neue Regionen zum versenden zur Verfügung stehen.
 Dabei ist der Rang des Workers, der eine Region berechnen soll genau der Index der Region in der Datenstruktur sein.
-Ist ein Worker nicht verfügbar, so werden alle folgenden Ränge um eins erhöht.
+Ist ein Worker nicht verfügbar, so werden alle folgenden Ränge um eins erhöht (siehe \autoref{src:Host.cpp.handle_region_request}).
 Damit kann der Websocketprozess unabhängig von der tatsächlichen Verteilung den Rang des berechnenden Worker-Prozesses
 bestimmen und in der Antwort an den Client zu der Aufteilung der Prozesse einfügen.
 Die Struktur und eine gültige Antwort des Websocketservers kann \autoref{src:region.json} entnommen werden.
 
 \begin{figure}
+    \lstinputlisting[caption={Algorithmus zur Zuordnung von Regionen auf Worker in Host.cpp}, label={src:Host.cpp.handle_region_request}, firstline=231, firstnumber=231, lastline=240]{../../backend/src/actors/Host.cpp}
+\end{figure}
+
+\begin{figure}
     \lstinputlisting[caption={Eine gültige Antwort auf die Region aus \autoref{src:regionRequest.json} in JSON}, label={src:region.json}, language=json]{region.json}
+\end{figure}
+
+\paragraph{Host::send}\label{cls:Host::send}
+
+Während ein Thread das Empfangen von Nachrichten übernimmt, behandelt diese Methode von den Workern fertig berechnete Regionen.
+Er versendet in einer Dauerschleife Regionsdaten an den aktuell verbundenen Client.
+Nach jedem Durchlauf oder wenn der Thread per \verb|notify| (oder auch durch mögliche andere Nebeneffekte) aufgeweckt wird,
+überprüft er auf das Vorhandensein neuer Regionen, wählt die erste aus und entfernt sie aus der Datenstruktur.
+Nachdem das Lock auf die geteilte Datenstruktur gelöst wurde, werden die Regionsdaten JSON codiert versendet.
+Ein Beispiel für versendete Regionsdaten kann \autoref{src:regionData.json} entnommen werden.
+Ist keine Region in der Datenstruktur abgelegt wird per \verb|wait| auf eine Änderung gewartet.
+Mithilfe der \verb|condition_variable|\footnote{\url{https://en.cppreference.com/w/cpp/thread/condition_variable}} \verb|Host::mpi_to_websocket_result_available|
+nutzt sie die C++11 nativen mutex-Mechanismen um über das Vorhandensein neuer Regionen informiert zu werden.
+
+\begin{figure}
+    \lstinputlisting[caption={Beispiel für die Daten einer versendeten Teilregion}, label={src:regionData.json}, language=json]{regionData.short.json}
 \end{figure}
 
 \subsection{Lastbalancierung}
