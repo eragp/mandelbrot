@@ -1,4 +1,5 @@
 import { Balancers, Implementations, ColorSet } from "../Constants";
+import { Point3D } from "./Point";
 
 class Observable<T> {
   private data: T;
@@ -65,5 +66,11 @@ export class GroupObservable extends Observable<number | undefined> {
     } else {
       return super.set(nodeID);
     }
+  }
+}
+
+export class ViewCenterObservable extends Observable<Point3D> {
+  constructor() {
+    super(null, null);
   }
 }

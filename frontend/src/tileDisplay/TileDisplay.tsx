@@ -17,7 +17,14 @@ import WebSocketClient from "../connection/WSClient";
 import WorkerLayer from "./WorkerLayer";
 import { setURLParams } from "../misc/URLParams";
 import RegionOfInterest from "./RegionOfInterest";
-import { BalancerObservable, GroupObservable, ImplementationObservable } from "../misc/Observable";
+import {
+  BalancerObservable,
+  GroupObservable,
+  ImplementationObservable,
+  ViewCenterObservable
+} from "../misc/Observable";
+import { registerCallback } from "../misc/registerCallback";
+import { StatsCollector } from "../eval/StatsCollector";
 
 // custom stylesheet
 import "./TileDisplay.css";
@@ -27,30 +34,20 @@ interface TileDisplayProps {
   balancer: BalancerObservable;
   group: GroupObservable;
   implementation: ImplementationObservable;
-  viewCenter: Point3D;
+  viewCenter: ViewCenterObservable;
+  stats?: StatsCollector;
 }
 export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
   private map: Map;
   private newViewObservers: Array<(map: Map) => any>;
   private regionDrawer: MatrixView;
-  private viewCenter: Point3D;
+  private center: Point3D;
 
   /**
    * Invoke the given callback, when the view of the map has changed
    */
-  public registerNewView(callback: (data: Map) => any) {
-    let promise;
-    const fun = (data: Map) => {
-      promise = new Promise((resolve, error) => {
-        try {
-          resolve(callback(data));
-        } catch (err) {
-          error(err);
-        }
-      });
-    };
-    this.newViewObservers.push(fun);
-    return promise;
+  public registerNewView(fun: (data: Map) => any) {
+    return registerCallback(this.newViewObservers, fun);
   }
 
   public render() {
@@ -58,9 +55,6 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
   }
 
   public componentDidMount() {
-    /**
-     * Functions to call, when a new region is issued
-     */
     this.newViewObservers = [];
     this.regionDrawer = new MatrixView(this, this.props.wsclient);
 
@@ -84,11 +78,12 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
     const map = this.map;
     const websocketClient = this.props.wsclient;
     const regionDrawer = this.regionDrawer;
+    const stats = this.props.stats;
 
     // Request a new region subdivision via websocket on view change
     this.registerNewView((curMap: Map) => {
       const r = requestRegion(curMap, this.props.balancer.get(), this.props.implementation.get());
-      if (r !== undefined) {
+      if (r) {
         websocketClient.sendRequest(r);
       }
     });
@@ -136,6 +131,10 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
          * (see RegionDrawer)
          */
         const drawTile = (tileData: RegionOfInterest) => {
+          // start timer
+          const timeID = p.toString();
+          const t0 = performance.now();
+
           const ctx = tile.getContext("2d", { alpha: false });
           if (!ctx) {
             return;
@@ -151,8 +150,14 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
               drawPixel(imgData, x, y, r, g, b, 255);
             }
           }
-
           ctx.putImageData(imgData, 0, 0);
+
+          // end timer
+          const t1 = performance.now();
+          if (stats) {
+            stats.setDrawTiming(timeID, (t1 - t0) * 1000);
+          }
+
           done(null, tile);
         };
         regionDrawer.registerTile(p, drawTile);
@@ -207,14 +212,13 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
 
     L.control.layers(baseLayer, overlayLayers).addTo(map);
 
-    this.viewCenter = this.props.viewCenter;
-    map.setView([this.viewCenter.x, this.viewCenter.y], this.viewCenter.z);
-    // change URL params when region changes
-    this.registerNewView((curMap: Map) => {
-      const center = curMap.getCenter();
-      const zoom = curMap.getZoom();
-      this.viewCenter = new Point3D(center.lat, center.lng, zoom);
-      setURLParams(this.viewCenter);
+    // change URL params & map center when view center changes
+    this.props.viewCenter.subscribe(pt => {
+      if (!pt.equals(this.center)) {
+        map.setView([pt.x, pt.y], pt.z);
+      }
+      const center = this.map.getCenter();
+      setURLParams(new Point3D(center.lat, center.lng, this.map.getZoom()));
     });
 
     map.addControl(
@@ -223,9 +227,14 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
         title: "Box area zoom"
       })
     );
+    this.center = this.props.viewCenter.get();
+    this.map.setView([this.center.x, this.center.y], this.center.z);
   }
 
   private updateAllViews() {
+    const center = this.map.getCenter();
+    this.center = new Point3D(center.x, center.y, this.map.getZoom());
+    this.props.viewCenter.set(this.center);
     this.newViewObservers.forEach(callback => callback(this.map));
   }
 }

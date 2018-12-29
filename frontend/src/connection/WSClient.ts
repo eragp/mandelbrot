@@ -1,5 +1,7 @@
 import { RegionData, Regions, isEmptyRegion } from "./ExchangeTypes";
 import { groupRegions, RegionGroup } from "../misc/RegionGroup";
+import { registerCallback } from "../misc/registerCallback";
+import { StatsCollector } from "../eval/StatsCollector";
 
 const url = "ws://localhost:9002";
 export interface WS {
@@ -15,7 +17,7 @@ export default class WebSocketClient implements WS {
   private regionRequests: string[];
   private socket: WebSocket;
 
-  constructor() {
+  constructor(stats?: StatsCollector) {
     /**
      * Callbacks for any methods interested in new region subdivisions or regionData (=result of one worker)
      */
@@ -53,8 +55,12 @@ export default class WebSocketClient implements WS {
         case "regionData":
           {
             // filter empty RegionData
-            let r = <RegionData>msg;
+            let r = msg as RegionData;
             if (r.data.length == 0) return;
+            // collect timing data
+            if (stats) {
+              stats.setNetworkTiming(r.workerInfo.rank, r.workerInfo.computationTime);
+            }
             // Notify regionData/worker observers
             workerCallback.forEach(call => call(r));
           }
@@ -62,7 +68,7 @@ export default class WebSocketClient implements WS {
         case "region":
           {
             // filter empty regions
-            let r = (<Regions>msg).regions.filter(r => !isEmptyRegion(r.region));
+            let r = (msg as Regions).regions.filter(r => !isEmptyRegion(r.region));
             let g = groupRegions(r);
             // Notify region subdivision listeners
             regionCallback.forEach(call => call(g));
@@ -101,22 +107,3 @@ export default class WebSocketClient implements WS {
     return registerCallback(this.workerCallback, fun);
   }
 }
-/**
- * Registers an observer to a list
- * @param list list of callbacks
- * @param fun function to add to list
- * @returns Promise wrapping the return value of fun
- */
-export const registerCallback = (list: Array<((data: any) => any)>, fun: (data: any) => any) => {
-  return new Promise((resolve, error) => {
-    try {
-      list.push((data: any) => {
-        const ret = fun(data);
-        resolve(ret);
-        return ret;
-      });
-    } catch (e) {
-      error(e);
-    }
-  });
-};

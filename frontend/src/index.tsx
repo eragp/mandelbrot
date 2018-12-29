@@ -5,7 +5,12 @@ import * as ReactDOM from "react-dom";
 
 import TileDisplay from "./tileDisplay/TileDisplay";
 import WebSocketClient from "./connection/WSClient";
-import { BalancerObservable, ImplementationObservable, GroupObservable } from "./misc/Observable";
+import {
+  BalancerObservable,
+  ImplementationObservable,
+  GroupObservable,
+  ViewCenterObservable
+} from "./misc/Observable";
 import { getURLParams } from "./misc/URLParams";
 
 import { startTour } from "./eval/Tour";
@@ -20,15 +25,22 @@ import SelectBox from "./components/SelectBox";
 import "./index.css";
 // Bootstrap
 import registerServiceWorker from "./registerServiceWorker";
+import { StatsCollector } from "./eval/StatsCollector";
 
 class App extends React.Component<{}, {}> {
   render() {
-    const ws = new WebSocketClient();
+    const stats = new StatsCollector();
+
+    const ws = new WebSocketClient(stats);
+
     const balancer = new BalancerObservable();
     const group = new GroupObservable();
     const impl = new ImplementationObservable();
+    const viewCenter = new ViewCenterObservable();
 
-    startTour(ws, balancer, group, impl);
+    viewCenter.set(getURLParams());
+
+    startTour(stats, viewCenter, balancer, impl);
     return (
       <div className="index">
         <div className="mainTop">
@@ -37,7 +49,8 @@ class App extends React.Component<{}, {}> {
             wsclient={ws}
             balancer={balancer}
             implementation={impl}
-            viewCenter={getURLParams()}
+            viewCenter={viewCenter}
+            stats={stats}
           />
         </div>
         <div className="mainBottom row">
