@@ -111,7 +111,66 @@ Das \verb|run_docker.sh| Skript lädt das benötigte Basis Image, welches alle b
 den Entwicklungscontainer. In diesen werden dann die Aktuellen Quelldateien hinein kopiert und kompiliert, wonach das Backend mit Adresse
 \verb|ws://localhost:9002| gestartet wird.
 
-\subsubsection{Backend auf HIMMUC Cluster}
+\subsubsection{Backend auf HimMUC Cluster}
+
+\begin{quotation}
+    [Der] HimMUC ist ein flexibler Cluster von ARM-Geräten, bestehend aus 40 Raspberry Pi 3 sowie 40 ODroid C2 SIngle-Board-Computers (SBC).
+    \footnote{\url{http://www.caps.in.tum.de/himmuc/}}
+\end{quotation}
+
+\paragraph{Schnellstart}
+
+Um das Programm auf dem HimMUC Cluster zu starten, wurde ein 
+Python Skript erstellt, das alle notwendigen Schritte übernimmt.
+Es führt die Befehle aus \autoref{par:detailed_himmuc} aus, es kann daher bei Fehlern dort nachgeschaut werden.
+
+Stellen sie zunächst sicher, dass sie ein Konto mit Zugangsberechtigungen auf dem HimMUC Cluster besitzen.
+Um den eigenen Quellcode auf dem Cluster zu kompilieren muss für die korrekte Funktionsweise des Skriptes zudem
+ihr SSH-Key auf dem Cluster abgelegt sein\footnote{siehe \href{https://www.ssh.com/ssh/copy-id}{\texttt{ssh-copy-id}}}.
+
+Außerdem sollte folgende Programme lokal installiert sein:
+\begin{itemize}
+    \item \verb|rsync|
+    \item \verb|ssh|
+    \item \verb|python3| (3.5 oder neuer)
+\end{itemize}
+
+Starten sie anschließend aus dem Ordner \verb|backend| den Befehl aus \autoref{shell:start_himmuc}
+
+\begin{figure}[h!]
+    \begin{lstlisting}[language=bash, caption={Start der Entwicklungsumbegung auf dem HimMUC}, label={shell:start_himmuc}]
+$ python3 himmuc/start_himmuc.py <Rechnerkennung> <Anzahl Prozesse> <Anzahl Rechenknoten> 
+    \end{lstlisting}
+\end{figure}
+
+Das Ergebnis wird ähnlich zu \autoref{shell:start_himmuc_example} aussehen.
+Details zu weiteren Optionen des Skripts sind via \verb|--help| verfügbar.
+
+\begin{figure}
+    \begin{lstlisting}[language=bash, caption={Start der Entwicklungsumbegung auf dem HimMUC}, label={shell:start_himmuc_example}]
+eragp-mandelbrot/backend$ python3 himmuc/start_himmuc.py muendler 10 9
+Uploading backend...  sending incremental file list
+backend/himmuc/start_backend.py
+          3,897 100%    3.05MB/s    0:00:00 (xfr#1, to-chk=35/62)
+done
+Start mandelbrot with 1 host and 9 workers on 9 nodes... started mandelbrot
+Search host node... srun: error: Could not find executable worker
+odr00 found
+Establish port 9002 forwarding to host node odr00:9002 ... established
+System running. Websocket connection to backend is now available at
+        ws://himmuc.caps.in.tum.de:9002
+Press enter (in doubt, twice) to stop Warning: Permanently added the ED25519 host key for IP address '10.42.0.54' to the list of known hosts.
+# Enter
+
+Stopping port forwarding... stopped (-9)
+Stopping mandelbrot host and workers... stopped (-9)
+    \end{lstlisting}
+\end{figure}
+    
+<<<<<<< HEAD
+\paragraph{Detaillierter Start} \label{par:detailed_himmuc}
+=======
+>>>>>>> 63f93c7bf69da1e5c439ad6c4945a989d5072d72
 % TODO
 
 \subsubsection{Installation des Frontends}
@@ -189,13 +248,12 @@ Prozesse entgegen nehmen.
 Ein beispielhafter Aufruf ist in \autoref{src:host.main.cpp} zu sehen. Damit wird MPI initialisiert und nach der
 erfolgreichen Initialisierung der eigentliche \hyperref[cls:Host]{Host-Prozess} über \verb|Host::init| gestartet.
 
-\begin{figure}
-	\lstinputlisting[caption={Initialisierung der MPI-Prozesse in init.cpp}, label={src:init.cpp}, firstline=15, lastline=39, firstnumber=15]{../../backend/src/init.cpp}
+\begin{figure}[h]
+	\lstinputlisting[caption={Initialisierung des Host-Prozesses in host.main.cpp}, label={src:host.main.cpp}]{../../backend/src/host.main.cpp}
 \end{figure}
 
-
 \begin{figure}
-	\lstinputlisting[caption={Initialisierung des Host-Prozesses in host.main.cpp}, label={src:host.main.cpp}]{../../backend/src/host.main.cpp}
+	\lstinputlisting[caption={Initialisierung der MPI-Prozesse in init.cpp}, label={src:init.cpp}, firstline=15, lastline=39, firstnumber=15]{../../backend/src/init.cpp}
 \end{figure}
 
 \subsection{Host Funktionalitäten} \label{cls:Host}
@@ -220,9 +278,10 @@ Die Methode versucht, den Inhalt der empfangenen Nachricht als JSON zu dekodiere
 notwendigen Werte unter gleichem Namen dem Objekt, das unter dem Schlüssel \verb|"region"| in der geparsten Anfrage gespeichert ist.
 Außerdem erwartet es unter dem Schlüssel \verb|"balancer"| einen String, der den zu wählenden Lastbalancierer bestimmt und unter dem Schlüssel \verb|"type"| den String \verb|"regionRequest"|.
 Mögliche Zeichenketten hierfür sind in den Klassen der Balancierer unter \verb|backend/src/balancer| in der globalen Variable
-\verb|Klassenname::NAME| gespeichert. Ein Beispiel für einen Namen kann in \autoref{src:PredictionBalancer.NAME} gefunden werden:
+\verb|Klassenname::NAME| gespeichert.
+Ein Beispiel für einen Namen kann in \autoref{src:PredictionBalancer.NAME} gefunden werden:
 
-\begin{figure}
+\begin{figure}[h]
     \lstinputlisting[caption={Namensdefinition des PredictionBalancers}, label={src:PredictionBalancer.NAME}, firstline=11, firstnumber=11, lastline=11]{../../backend/src/balancer/PredictionBalancer.cpp}
 \end{figure}
 
@@ -247,7 +306,7 @@ Die Struktur und eine gültige Antwort des Websocketservers kann \autoref{src:re
 \end{figure}
 
 \begin{figure}
-    \lstinputlisting[caption={Eine gültige Antwort auf die Region aus \autoref{src:regionRequest.json} in JSON}, label={src:region.json}, language=json]{region.json}
+    \lstinputlisting[caption={Ausschnitt aus einer gültigen Antwort auf die Region aus \autoref{src:regionRequest.json} in JSON}, label={src:region.json}, language=json]{region.json}
 \end{figure}
 
 \paragraph{Host::send}\label{cls:Host::send}
@@ -263,7 +322,7 @@ Mithilfe der \verb|condition_variable|\footnote{\url{https://en.cppreference.com
 nutzt sie die C++11 nativen mutex-Mechanismen um über das Vorhandensein neuer Regionen informiert zu werden.
 
 \begin{figure}
-    \lstinputlisting[caption={Beispiel für die Daten einer versendeten Teilregion}, label={src:regionData.json}, language=json]{regionData.short.json}
+    \lstinputlisting[caption={Ausschnitt aus den Daten einer versendeten Teilregion}, label={src:regionData.json}, language=json]{regionData.short.json}
 \end{figure}
 
 \subsection{Lastbalancierung}
