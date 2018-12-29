@@ -63,10 +63,16 @@ export default class WebSocketClient implements WS {
             }
             // Notify regionData/worker observers
             workerCallback.forEach(call => call(r));
+            if (stats) {
+              stats.setWaiting(stats.getWaiting() - 1);
+            }
           }
           break;
         case "region":
           {
+            if (stats) {
+              stats.setWaiting(msg.regionCount);
+            }
             // filter empty regions
             let r = (msg as Regions).regions.filter(r => !isEmptyRegion(r.region));
             let g = groupRegions(r);

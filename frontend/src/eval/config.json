@@ -5,11 +5,11 @@
   },
   "balancers":[
      "naive",
-     "prediction"
+     "prediction",
+     "naiveRecursive"
   ],
   "implementations":[
-     "default",
-     "SIMD64"
+     "mandelbrot"
   ],
   "nodeCount":10,
   "description":"This is a test",

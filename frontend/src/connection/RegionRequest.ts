@@ -34,6 +34,7 @@ export const request = (map: Map, balancer: string, implementation: string) => {
   currentTopLeft = topLeft;
   currentBottomRight = botRight;
   currentBalancer = balancer;
+  currentImplementation = implementation;
 
   const tlComplex = project(topLeft.x, topLeft.y, topLeft.z, 0, 0, TileSize);
   const brComplex = project(botRight.x, botRight.y, botRight.z, 0, 0, TileSize);
@@ -65,7 +66,6 @@ export const request = (map: Map, balancer: string, implementation: string) => {
     balancer,
     fractal: implementation
   };
-  // console.log("sending Region request: ");
-  console.log(region);
+  console.log("sending Region request: ", region);
   return region;
 };

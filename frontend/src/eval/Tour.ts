@@ -55,7 +55,7 @@ interface Config {
   impl: string;
   poi: PoI;
 }
-let configs: Config[] = [];
+// let configs: Config[] = [];
 export const startTour = (
   stats: StatsCollector,
   viewCenter: ViewCenterObservable,
@@ -63,47 +63,50 @@ export const startTour = (
   impl: ImplementationObservable
 ) => {
   const tour = require("./config.json") as Tour;
+  stats.done();
 
+  let cfgs: Config[] = [];
   const out: Output = { config: tour, datapoints: [] };
   for (const balancer of tour.balancers) {
     for (const impl of tour.implementations) {
       for (const poi of tour.pois) {
-        configs.push({ balancer, impl, poi });
+        cfgs.push({ balancer, impl, poi });
       }
     }
   }
-  // console.log("set center ", poi);
-  // viewCenter.set(new Point3D(poi.real, poi.imag, poi.zoom));
-
-  const cont = (output: Output) => {
+  console.log(cfgs);
+  window.resizeTo(tour.screen.width, tour.screen.height);
+  const runConfig = (output: Output, configs: Config[]) => {
     if (configs.length === 0) {
-      console.log(output);
+      // console.log(output);
+      // console.log(JSON.stringify(output));
       return;
     }
     const c = configs.pop() as Config;
-    configs = configs.slice(0, configs.length - 1);
+    console.log("Tour: Changing config to: ", c);
 
     balancer.set(c.balancer);
     impl.set(c.impl);
-    let p = new Point3D(c.poi.real, c.poi.imag, c.poi.zoom);
-    viewCenter.set(p);
+    viewCenter.set(new Point3D(c.poi.real, c.poi.imag, c.poi.zoom));
 
-    stats.registerDone(stats => {
-      out.datapoints.push({
-        balancer: c.balancer,
-        implementation: c.impl,
-        data: {
-          poi: c.poi,
-          balancer: {
-            time: 0,
-            emptyRegions: 0
-          },
-          workers: Array.from(stats.worker.values())
-        }
-      });
-      cont(out);
-    });
+    stats.registerDone(stats =>
+      setTimeout(() => {
+        output.datapoints.push({
+          balancer: c.balancer,
+          implementation: c.impl,
+          data: {
+            poi: c.poi,
+            balancer: {
+              time: 0,
+              emptyRegions: 0
+            },
+            workers: Array.from(stats.worker.values())
+          }
+        });
+        console.log(output);
+        runConfig(output, configs.slice(0, -1));
+      }, 5000)
+    );
   };
-  cont(out);
-  // const str = JSON.stringify(out);
+  runConfig(out, cfgs);
 };
