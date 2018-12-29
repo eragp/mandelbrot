@@ -1,9 +1,16 @@
-import WebSocketClient, { WS, registerCallback } from "../connection/WSClient";
+import WebSocketClient, { WS } from "../connection/WSClient";
 import { RegionData } from "../connection/ExchangeTypes";
 import { RegionGroup } from "../misc/RegionGroup";
-import { BalancerObservable, GroupObservable, ImplementationObservable } from "../misc/Observable";
+import {
+  BalancerObservable,
+  GroupObservable,
+  ImplementationObservable,
+  ViewCenterObservable
+} from "../misc/Observable";
 import { setURLParams } from "../misc/URLParams";
 import { Point3D } from "../misc/Point";
+import { registerCallback } from "../misc/registerCallback";
+import { StatsCollector } from "./StatsCollector";
 
 interface Tour {
   screen: ScreenOpts;
@@ -49,7 +56,7 @@ interface WorkerTime {
   drawTime: number;
 }
 
-const data: Run = {
+const run: Run = {
   balancer: "naive",
   implementation: "default",
   data: [
@@ -72,43 +79,13 @@ const data: Run = {
   ]
 };
 
-const defaultTour: Tour = {
-  screen: {
-    width: 1920,
-    height: 1080
-  },
-  balancers: ["naive", "prediction"],
-  implementations: ["default", "SIMD64"],
-  nodeCount: 10,
-  description: "",
-  pois: [{ real: 0.0, imag: 0.0, zoom: 0 }, { real: 0.5, imag: 0.0, zoom: 0 }]
-};
-
 export const startTour = (
-  wsClient: WebSocketClient,
+  stats: StatsCollector,
+  viewCenter: ViewCenterObservable,
   balancer: BalancerObservable,
-  group: GroupObservable,
   impl: ImplementationObservable
 ) => {
-  const client = new WSDecorator(wsClient);
-  const tour = defaultTour;
-
-  let b: BalancerTime = null;
-  client.registerRegion(groups => {
-    b = { time: 1234, emptyRegions: groups.length };
-  });
-
-  let w: WorkerTime[] = [];
-  client.registerRegionData(data => {
-    const wi = data.workerInfo;
-    w.push({
-      id: wi.rank,
-      computationTime: wi.computationTime,
-      mpiTime: wi.computationTime,
-      networkTime: wi.computationTime,
-      drawTime: -1 // cannot determine draw time here
-    });
-  });
+  const tour = require("./config.json") as Tour;
 
   const out: Output = { config: tour, datapoints: [] };
   for (const balancerType of tour.balancers) {
@@ -116,62 +93,12 @@ export const startTour = (
     for (const implType of tour.implementations) {
       impl.set(implType);
       for (const poi of tour.pois) {
-        const wait = async () => {
-          setURLParams(new Point3D(poi.real, poi.imag, poi.zoom));
-          await client.registerDone(() => null);
-        };
-        wait();
-        out.datapoints.push({
-          balancer: balancerType,
-          implementation: implType,
-          data: [
-            {
-              poi,
-              balancer: b,
-              workers: w
-            }
-          ]
-        });
+        console.log("set center ", poi);
+        viewCenter.set(new Point3D(poi.real, poi.imag, poi.zoom));
       }
     }
   }
 
-  const str = JSON.stringify(out);
-  console.log(str);
+  console.log(out);
+  // const str = JSON.stringify(out);
 };
-
-class WSDecorator implements WS {
-  private doneCallback: Array<() => void> = [];
-  private waiting = 0;
-  private ws: WebSocketClient;
-
-  constructor(ws: WebSocketClient) {
-    this.ws = ws;
-    ws.registerRegion(groups => {
-      this.waiting = groups.map(g => g.getLeafs().length).reduce((acc, curr) => acc + curr);
-    });
-    ws.registerRegionData(() => {
-      this.waiting--;
-      if (this.waiting === 0) {
-        this.doneCallback.forEach(cb => cb());
-      }
-    });
-  }
-
-  public registerDone(fun: () => void) {
-    return registerCallback(this.doneCallback, fun);
-  }
-
-  public sendRequest(request: any): void {
-    return this.ws.sendRequest(request);
-  }
-  public registerRegion(fun: (groups: RegionGroup[]) => any): Promise<any> {
-    return this.ws.registerRegion(fun);
-  }
-  public registerRegionData(fun: (groups: RegionData) => any): Promise<any> {
-    return this.ws.registerRegionData(fun);
-  }
-  public close(): void {
-    this.ws.close();
-  }
-}
