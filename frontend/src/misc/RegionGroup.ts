@@ -205,7 +205,11 @@ export const groupRegions = (r: WorkerInfo[]): RegionGroup[] => {
     groups.push(w);
   }
   // console.log(groups);
+<<<<<<< HEAD
   return groups.map(g => new Group(g, groupID++));
+=======
+  return groups;
+>>>>>>> 9ce5d8779705500cd48de400a11c398bfbd63314
 };
 
 const regionEquals = (a: Region, b: Region) =>
