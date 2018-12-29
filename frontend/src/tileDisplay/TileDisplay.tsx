@@ -7,7 +7,7 @@ import "leaflet-zoombox/L.Control.ZoomBox.css";
 import { Map } from "leaflet";
 
 import Shader from "./Shader";
-import { project, unproject } from "./Project";
+import { project, unproject, complexToLeaflet, leafletToComplex } from "./Project";
 import { request as requestRegion } from "../connection/RegionRequest";
 
 import { TileSize, LeafletBound } from "../Constants";
@@ -125,7 +125,9 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
         tile.width = size.x;
         tile.height = size.y;
         const p = new Point3D(coords.x, coords.y, zoom);
-
+        if (stats) {
+          stats.incWaiting();
+        }
         /**
          * Draw tile callback, asserts tileData to be RegionOfInterest object
          * (see RegionDrawer)
@@ -212,14 +214,16 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
 
     L.control.layers(baseLayer, overlayLayers).addTo(map);
 
-    // change URL params & map center when view center changes
     this.props.viewCenter.subscribe(pt => {
+      console.log("set view center to ", pt);
       if (!pt.equals(this.center)) {
-        map.setView([pt.x, pt.y], pt.z);
+        const p = complexToLeaflet(pt.x, pt.y, pt.z);
+        map.setView([p.x, p.y], p.z);
+        this.updateAllViews();
       }
-      const center = this.map.getCenter();
-      setURLParams(new Point3D(center.lat, center.lng, this.map.getZoom()));
     });
+    // change URL params when region changes
+    this.props.viewCenter.subscribe(center => setURLParams(center));
 
     map.addControl(
       L.control.zoomBox({
@@ -233,7 +237,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
 
   private updateAllViews() {
     const center = this.map.getCenter();
-    this.center = new Point3D(center.x, center.y, this.map.getZoom());
+    this.center = leafletToComplex(center.lat, center.lng, this.map.getZoom());
     this.props.viewCenter.set(this.center);
     this.newViewObservers.forEach(callback => callback(this.map));
   }

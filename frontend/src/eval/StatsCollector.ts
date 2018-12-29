@@ -1,24 +1,25 @@
+interface Worker {
+  rank: number;
+  computationTime: number;
+  mpiTime: number;
+  networkTime: number;
+  drawTime: number;
+}
+
 interface Stats {
-  network: Map<number, number>;
+  worker: Map<number, Worker>;
   draw: Map<string, number>;
 }
 
-// enum StatTypes {
-//   net = "NET",
-//   balancer = "BAL",
-//   mpi = "MPI",
-//   draw = "DRAW"
-// }
-
 export class StatsCollector {
-  private data: Stats;
+  public data: Stats;
   private waiting: number;
 
   private doneCallbacks: Array<((data: Stats) => any)>;
 
   constructor() {
     this.data = {
-      network: new Map(),
+      worker: new Map(),
       draw: new Map()
     };
     this.waiting = 0;
@@ -35,8 +36,19 @@ export class StatsCollector {
    * @param id
    * @param time in us
    */
-  public setNetworkTiming(id: number, time: number) {
-    this.data.network.set(id, time);
+  public setNetworkTiming(rank: number, time: number) {
+    let w = this.data.worker.get(rank);
+    if (!w) {
+      w = {
+        rank,
+        computationTime: -1,
+        mpiTime: -1,
+        networkTime: -1,
+        drawTime: -1
+      };
+      this.data.worker.set(rank, w);
+    }
+    w.networkTime = time;
   }
 
   public incWaiting() {
@@ -55,9 +67,10 @@ export class StatsCollector {
   }
 
   private done() {
+    console.log("done rendering tiles");
     this.doneCallbacks.forEach(fn => fn(this.data));
 
-    this.data.network.clear();
+    this.data.worker.clear();
     this.data.draw.clear();
   }
 }
