@@ -50,6 +50,7 @@ export interface WorkerInfo {
 
 export interface Regions {
   type: string;
+  regionCount: number;
   regions: WorkerInfo[];
 }
 

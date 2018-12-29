@@ -40,7 +40,6 @@ class App extends React.Component<{}, {}> {
 
     viewCenter.set(getURLParams());
 
-    startTour(stats, viewCenter, balancer, impl);
     return (
       <div className="index">
         <div className="mainTop">
@@ -54,6 +53,9 @@ class App extends React.Component<{}, {}> {
           />
         </div>
         <div className="mainBottom row">
+          <div className="col-1">
+            <button onClick={() => startTour(stats, viewCenter, balancer, impl)}>Start Tour</button>
+          </div>
           <div className="col-3">
             <SelectBox balancer={balancer} implementation={impl} />
           </div>

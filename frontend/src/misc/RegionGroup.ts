@@ -170,6 +170,6 @@ export const groupRegions = (r: WorkerInfo[]): RegionGroup[] => {
     }
     if (remainder.length > 0) groups.push(new Group(remainder, groupID++));
   }
-  console.log(groups);
+  // console.log(groups);
   return groups;
 };

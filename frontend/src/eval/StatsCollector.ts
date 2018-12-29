@@ -1,3 +1,6 @@
+import { registerCallback } from "../misc/registerCallback";
+import { ADDRCONFIG } from "dns";
+
 interface Worker {
   rank: number;
   computationTime: number;
@@ -8,7 +11,6 @@ interface Worker {
 
 interface Stats {
   worker: Map<number, Worker>;
-  draw: Map<string, number>;
 }
 
 export class StatsCollector {
@@ -19,8 +21,7 @@ export class StatsCollector {
 
   constructor() {
     this.data = {
-      worker: new Map(),
-      draw: new Map()
+      worker: new Map()
     };
     this.waiting = 0;
 
@@ -28,7 +29,7 @@ export class StatsCollector {
   }
 
   public registerDone(fun: (data: Stats) => any) {
-    this.doneCallbacks.push(fun);
+    return registerCallback(this.doneCallbacks, fun);
   }
 
   /**
@@ -37,40 +38,52 @@ export class StatsCollector {
    * @param time in us
    */
   public setNetworkTiming(rank: number, time: number) {
-    let w = this.data.worker.get(rank);
-    if (!w) {
-      w = {
-        rank,
-        computationTime: -1,
-        mpiTime: -1,
-        networkTime: -1,
-        drawTime: -1
-      };
-      this.data.worker.set(rank, w);
-    }
+    let w = this.addRank(rank);
     w.networkTime = time;
-  }
-
-  public incWaiting() {
-    this.waiting++;
   }
 
   /**
    *
-   * @param id
+   * @param rank
    * @param time in us
    */
-  public setDrawTiming(id: string, time: number) {
-    this.data.draw.set(id, time);
-    this.waiting--;
-    if (this.waiting === 0) this.done();
+  public setDrawTiming(rank: number, time: number) {
+    let w = this.addRank(rank);
+    w.drawTime += time;
   }
 
-  private done() {
+  public getWaiting() {
+    return this.waiting;
+  }
+
+  public setWaiting(w: number) {
+    this.waiting = w;
+    if (this.waiting === 0) {
+      this.done();
+    }
+  }
+  
+  public done() {
     console.log("done rendering tiles");
     this.doneCallbacks.forEach(fn => fn(this.data));
 
     this.data.worker.clear();
-    this.data.draw.clear();
+    this.waiting = 0;
   }
+
+  private addRank(rank: number) {
+    let w = this.data.worker.get(rank);
+    if (!w) {
+      w = {
+        rank,
+        computationTime: 0,
+        mpiTime: 0,
+        networkTime: 0,
+        drawTime: 0
+      };
+      this.data.worker.set(rank, w);
+    }
+    return w;
+  }
+
 }

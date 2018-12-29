@@ -125,16 +125,12 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
         tile.width = size.x;
         tile.height = size.y;
         const p = new Point3D(coords.x, coords.y, zoom);
-        if (stats) {
-          stats.incWaiting();
-        }
         /**
          * Draw tile callback, asserts tileData to be RegionOfInterest object
          * (see RegionDrawer)
          */
         const drawTile = (tileData: RegionOfInterest) => {
           // start timer
-          const timeID = p.toString();
           const t0 = performance.now();
 
           const ctx = tile.getContext("2d", { alpha: false });
@@ -157,7 +153,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
           // end timer
           const t1 = performance.now();
           if (stats) {
-            stats.setDrawTiming(timeID, (t1 - t0) * 1000);
+            stats.setDrawTiming(tileData.rank , (t1 - t0) * 1000);
           }
 
           done(null, tile);
@@ -215,8 +211,8 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
     L.control.layers(baseLayer, overlayLayers).addTo(map);
 
     this.props.viewCenter.subscribe(pt => {
-      console.log("set view center to ", pt);
       if (!pt.equals(this.center)) {
+        console.log("set view center to ", pt);
         const p = complexToLeaflet(pt.x, pt.y, pt.z);
         map.setView([p.x, p.y], p.z);
         this.updateAllViews();
@@ -232,7 +228,8 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
       })
     );
     this.center = this.props.viewCenter.get();
-    this.map.setView([this.center.x, this.center.y], this.center.z);
+    const p = complexToLeaflet(this.center.x, this.center.y, this.center.z);
+    this.map.setView([p.x, p.y], p.z);
   }
 
   private updateAllViews() {
