@@ -12,7 +12,7 @@ import WebSocketClient from "../connection/WSClient";
 import { GroupObservable } from "../misc/Observable";
 
 import "./IdleTime.css";
-import { RegionGroup, groupRegions } from "../misc/RegionGroup";
+import { RegionGroup, groupRegions } from "../connection/RegionGroup";
 import { WorkerInfo } from "../connection/ExchangeTypes";
 
 interface IdleTimeProps {

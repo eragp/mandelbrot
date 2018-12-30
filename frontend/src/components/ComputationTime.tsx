@@ -11,7 +11,7 @@ import WebSocketClient from "../connection/WSClient";
 
 import "./ComputationTime.css";
 import WorkerContext from "../misc/GroupContext";
-import { RegionGroup, groupRegions} from "../misc/RegionGroup";
+import { RegionGroup, groupRegions} from "../connection/RegionGroup";
 import { WorkerInfo } from "../connection/ExchangeTypes";
 
 interface NodeProgressProps {

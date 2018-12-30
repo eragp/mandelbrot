@@ -4,7 +4,7 @@ import { unproject } from "./Project";
 import { TileSize } from "../Constants";
 import WebSocketClient from "../connection/WSClient";
 import { Feature, FeatureCollection } from "geojson";
-import { RegionGroup } from "../misc/RegionGroup";
+import { RegionGroup } from "../connection/RegionGroup";
 import { GroupObservable } from "../misc/Observable";
 
 /**

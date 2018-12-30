@@ -1,5 +1,5 @@
 import { RegionData, Regions, isEmptyRegion } from "./ExchangeTypes";
-import { groupRegions, RegionGroup } from "../misc/RegionGroup";
+import { groupRegions, RegionGroup } from "./RegionGroup";
 
 const url = "ws://localhost:9002";
 
@@ -57,6 +57,7 @@ export default class WebSocketClient {
           {
             // filter empty regions
             let r = (<Regions>msg).regions.filter(r => !isEmptyRegion(r.region));
+            // Pre-Grouping
             let g = groupRegions(r)
             // Notify region subdivision listeners
             regionCallback.forEach(call => call(g));

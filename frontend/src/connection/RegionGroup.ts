@@ -1,5 +1,5 @@
-import { WorkerInfo, Region } from "../connection/ExchangeTypes";
-import { Point2D } from "./Point";
+import { WorkerInfo, Region } from "./ExchangeTypes";
+import { Point2D } from "../misc/Point";
 import { MAX_DISPLAY_REGIONS } from "../Constants";
 import { Point } from "leaflet";
 

@@ -652,3 +652,38 @@ Postfix für diese Operationen \textit{u32} oder \textit{u64} lautet.
 
 
 \subsection{Erläuterung des Frontends}
+
+\subsubsection{Kommunikation mit dem Backend}
+
+Zur Kommunikation mit dem Backend wird im Frontend ein Objekt der Klasse \texttt{WebSocketClient} erzeugt.
+Die zur Verbindung verwendeten Codestücke liegen dabei alle in dem Ordner \verb|connection|, die genannte Klasse wird in
+\verb|WSClient.ts| definiert.
+
+Die dort definierte Klasse \verb|WebSocketClient| abstrahiert von dem JavaScript-nativen Websocketinterface \verb|WebSocket|\footnote{\url{https://developer.mozilla.org/en-US/docs/Web/API/WebSocket}}.
+Bei der Initialisierung baut das erzeugte Objekt eine Verbindung zu der lokalen Adresse \url{ws://localhost:9002} auf\footnote{
+    Faktisch wird eine Verbindung geöffnet, geschlossen und erneut geöffnet.
+    Dies ist durch ein ungelöstes Problem beim Verbindungsaufbau bedingt, das dafür sorgt, dass ein Verbindungsaufbau
+    erst bei der zweiten erzeugten Websocketverbindung fehlerfrei gelingt.
+}.
+Dort sollte das Backend bereit sein, eine Websocketverbindung anzunehmen.
+
+Zudem bietet die Klasse die Methode \texttt{sendRequest}, welche ein übergebenes Objekt JSON-kodiert und versendet.
+
+Wichtig für den Rest des Frontends sind die Methoden \texttt{registerRegion} und \texttt{registerRegionData}.
+An diese Methoden können Callbacks übergeben werden, die aufgerufen werden, wenn das Frontend über die Websocketverbindung
+respektive ein \texttt{Region}-Objekt oder ein \texttt{RegionData}-Objekt empfängt.
+Diese sind respektive die Aufteilung einer angefragten Region (siehe \autoref{src:region.json})
+oder die berechneten Iterationswerte einer Region (siehe \autoref{src:regionData.json}).
+Die übergebenen Callbacks erhalten als Parameter respektive die vorgruppierte Aufteilung als ein Array von Workergruppen (\texttt{RegionGroup})
+oder das JSON-dekodierte \verb|RegionData|-Objekt.
+
+Die Definitionen der zugehörigen Objekt-Interfaces finden sich in den Dateien \texttt{RegionGroup.ts} und \texttt{ExchangeTypes.ts}.
+
+Als weitere Hilfsfunktion wird in \verb|RegionRequest.ts| \verb|request| bereitgestellt.
+Diese extrahiert aus der übergebenen Sicht auf die Mandelbrotmenge, die in der Leaflet-Karte gespeichert ist,
+die Parameter zum Anfragen einer Region.
+Dazu werden mithilfe des aktuellen Zooms der linke obere und rechte untere Punkt des Sichtbereiches
+in dem Leaflet-internen Koordinatensystem auf entsprechende Punkte in der komplexen Ebene projeziert.
+Da zum Erzeugen des passenden Objektes auch der gewünschte Lastbalancierer und der Fraktaltyp notwendig sind,
+werden diese als weitere Parameter übergeben.
+Die Funktion gibt direkt ein Objekt zurück, dass das Interface \verb|RegionRequest| erfüllt.
