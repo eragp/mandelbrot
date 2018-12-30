@@ -147,7 +147,7 @@ Das Ergebnis wird ähnlich zu \autoref{shell:start_himmuc_example} aussehen.
 Details zu weiteren Optionen des Skripts sind via \verb|--help| verfügbar.
 
 \begin{figure}
-    \begin{lstlisting}[language=bash, caption={Start der Entwicklungsumbegung auf dem HimMUC}, label={shell:start_himmuc_example}]
+    \begin{lstlisting}[language=bash, caption={Beispielausgabe bei Start der Entwicklungsumbegung auf dem HimMUC}, label={shell:start_himmuc_example}]
 eragp-mandelbrot/backend$ python3 himmuc/start_himmuc.py muendler 10 9
 Uploading backend...  sending incremental file list
 backend/himmuc/start_backend.py
@@ -167,10 +167,157 @@ Stopping mandelbrot host and workers... stopped (-9)
     \end{lstlisting}
 \end{figure}
     
-<<<<<<< HEAD
 \paragraph{Detaillierter Start} \label{par:detailed_himmuc}
-=======
->>>>>>> 63f93c7bf69da1e5c439ad6c4945a989d5072d72
+
+Um die Programme manuell auf dem Host-System zu installieren,
+müssen zunächst die notwendigen Bibliotheken installiert werden.
+Eine Anleitung dazu findet sich in \autoref{par:himmuc_install_libs}.
+Dies muss nur einmal ausgeführt werden, anschließend können die
+Programme wie in \autoref{par:himmuc_build_backend} beschrieben kompiliert werden.
+Ist dies nicht gewünscht oder erledigt muss das Backend lediglich noch wie
+in \autoref{par:himmuc_run_backend} beschrieben gestartet werden.
+
+\begin{figure}[h!]
+    \begin{lstlisting}[language=bash]
+$ mkdir ~/.eragp-mandelbrot
+    \end{lstlisting}
+    
+\end{figure}
+
+\paragraph{Lokale Installation der Bibliotheken}\label{par:himmuc_install_libs}
+
+Da hierbei davon ausgegangen wird, dass keine root-Rechte auf dem
+Server existieren, werden die Bibliotheken hier lokal in \verb|~/.eragp-mandelbrot|
+installiert.
+Achten Sie darauf, dass sie Schreibrechte auf dem Ordner haben und
+falls sie einen anderen Ordner verwenden wollen,
+ersetzen sie jedes Vorkommen des Pfades durch ihren Pfad (insbesondere in der Datei \verb|CMakeLists.txt|).
+Die MPI-Bibliothek ist auf dem HimMUC Cluster bereits vorinstalliert
+und muss daher nicht mehr aufgesetzt werden.
+
+Aus der Bibliothek \verb|boost| muss die Teilbibliothek \verb|boost_system| lokal kompiliert werden
+Dazu werden die Befehle aus \autoref{shell:install_boost} ausgeführt,
+um die Version 1.67.0 herunterzuladen, zu entpacken und lokal zu installieren.
+
+\begin{figure}[h!]
+    \begin{lstlisting}[language=bash, caption={Lokale Installation der Bibliothek boost.}, label={shell:install_boost}]
+$ mkdir "~/.eragp-mandelbrot/install"
+$ mkdir "~/.eragp-mandelbrot/local"
+$ cd "~/.eragp-mandelbrot/install"
+$ wget "https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.bz2"
+$ tar --bzip2 -xf boost_1_67_0.tar.bz2
+$ cd boost_1_67_0
+$ ./bootstrap.sh --prefix="$HOME/.eragp-mandelbrot/local/" --with-libraries=system
+$ ./b2 install
+    \end{lstlisting}
+\end{figure}
+
+Die Headerlibraries \verb|websocketpp| und \verb|rapidjson| müssen
+lediglich an einen fixen Ort geklont werden.
+Dies erledigen die Befehle aus \autoref{shell:install_header_libs}.
+
+\begin{figure}[h!]
+    \begin{lstlisting}[language=bash, caption={Lokale Installation der Bibliotheken \texttt{websocketpp} und \texttt{rapidjson}.}, label={shell:install_header_libs}]
+$ mkdir "~/.eragp-mandelbrot/install"
+$ cd "~/.eragp-mandelbrot/install"
+# Install websocketpp
+$ git clone --branch 0.7.0 https://github.com/zaphoyd/websocketpp.git websocketpp --depth 1
+# Install rapidjson
+$ git clone https://github.com/Tencent/rapidjson/
+    \end{lstlisting}
+\end{figure}
+
+\paragraph{Kompilieren des Backends}\label{par:himmuc_build_backend}
+
+Stellen Sie zunächst sicher, dass auf dem Cluster die Quelldateien des Backendes (im Ordner \verb|backend|) liegen
+(zum Beispiel über \verb|rsync| oder indem sie das Repository dort auch klonen)
+Zum Kompilieren des Backends sollte sich auf einen Raspberry Pi oder ODroid
+per ssh eingeloggt werden\footnote{Es existiert ein Entwicklerzugang zu einem geteilten Raspberry Pi über die Adresse \url{sshgate-gepasp.in.tum.de}. Dieser wird auch vom Pythonskript genutzt}
+
+Auf dem Board, aus dem Ordner des Backendquellcodes müssen sie zum kompilieren
+des Backendes die Befehle aus \autoref{shell:himmuc_compile_backend} ausführen.
+
+\begin{figure}[h!]
+    \begin{lstlisting}[language=bash, caption={Kompilieren des Backends}, label={shell:himmuc_compile_backend}]
+# Erstellen und betreten eines build Ordners
+$ mkdir build
+$ cd build
+# Aktivieren der MPI Bibliothek
+$ module load mpi
+# Kompilieren
+$ cmake ..
+$ make
+    \end{lstlisting}
+\end{figure}
+
+
+\paragraph{Ausführen des Backends}\label{par:himmuc_run_backend}
+
+Um das Backend auf dem HimMUC Cluster laufen zu lassen, muss sich zunächst darauf per ssh eingeloggt werden.
+Damit für das Frontend kein Unterschied dazwischen besteht, ob das Backend im Dockercontainer lokal läuft, oder
+auf einem externen Server, wird bei der ssh-Verbindung der Port 9002
+des \verb|himmuc.caps.in.tum.de|-Servers an den lokalen Port 9002 gebunden.
+So ist das Backend stets unter \url{localhost:9002} verfügbar.
+Der zugehörige Befehl zum Login lautet demnach
+
+\begin{lstlisting}[language=bash]
+$ ssh <login>@himmuc.caps.in.tum.de -L localhost:9002:localhost:9002
+\end{lstlisting}
+
+wobei \verb|<login>| durch die Rechnerkennung zu ersetzen ist.
+
+Anschließend muss aus dem Ordner, in dem die ausführbaren Dateien liegen,
+für gewöhnlich also der \verb|build| Ordner im Quelldateienverzeichnis,
+folgender Befehl ausgeführt werden
+
+\begin{lstlisting}[language=bash]
+$ srun -p <odr|rpi> -n <number of workers+1> -N <number of nodes/raspis> -l --multi-prog <path to eragp-mandelbrot/backend>/himmuc/run.conf &
+$ ssh -L 0.0.0.0:9002:localhost:9002 -fN -M -S .tunnel.ssh <odr|rpi><host number>
+\end{lstlisting}
+
+Dabei bestimmt \verb|-n| die Anzahl der laufenden Prozesse (Also Hostprozess und Workerprozesse)
+und \verb|-N| die Anzahl zu verwendender Rechenknoten.
+Damit anschließend noch alle Anfragen an den Websocketserver auf dem Hostknoten weitergeleitet werden,
+muss noch der Port 9002 des \url{himmuc.in.caps.tum.de}-Servers an den Port 9002 des Rechenknotens gebunden werden,
+auf dem der Hostprozess läuft.
+Der korrekte Knoten ist dabei der Ausgabe des \verb|srun|-Befehles zu entnehmen.
+Eine beispielhafte Ausgabe ist in \autoref{shell:himmuc_running_backend_example} zu sehen.
+
+\begin{figure}[h]
+    \begin{lstlisting}[language=bash, caption={Beispielhafter Start des Backends. Hierbei ist der Knoten des Hostprozesses \texttt{rpi03}.}, label={shell:himmuc_running_backend_example}]
+muendler@vmschulz8:~/eragp-mandelbrot/backend/build$ srun -N4 -n5 -l --multi-prog ../himmuc/run.conf
+srun: error: Could not find executable worker
+4: Worker: 4 of 5 on node rpi06
+2: Worker: 2 of 5 on node rpi04
+3: Worker: 3 of 5 on node rpi05
+0: Host: 0 of 5 on node rpi03
+0: Host init 5
+1: Worker: 1 of 5 on node rpi03
+0: Core 1 ready!
+1: Worker 1 is ready to receive Data.
+2: Worker 2 is ready to receive Data.
+0: Listening for connections on to websocket server on 9002
+0: Core 2 ready!
+3: Worker 3 is ready to receive Data.
+0: Core 3 ready!
+4: Worker 4 is ready to receive Data.
+0: Core 4 ready!
+muendler@vmschulz8:~/eragp-mandelbrot/backend/build$ ssh ssh -L 0.0.0.0:9002:localhost:9002 -fN -M -S .tunnel.ssh rpi03
+    \end{lstlisting}
+\end{figure}
+
+\paragraph{Stoppend des Backends}
+
+Um das Backend wieder zu stoppen, müssen der ssh-Tunnel zur Verbindung der Ports
+und der \verb|srun|-Prozess gestoppt werden.
+Letzterer lässt sich nach dem dämonisieren im vorigen Aufruf nur über die Prozess-ID finden.
+Diese zeigt das Tool \verb|ps| an.
+\begin{lstlisting}[language=bash]
+$ ssh -S .tunnel.ssh -O exit rpi<host number>
+# To stop the node allocation
+$ ps -eo comm,pid | grep srun
+$ kill <srun pid>
+\end{lstlisting}
 % TODO
 
 \subsubsection{Installation des Frontends}
