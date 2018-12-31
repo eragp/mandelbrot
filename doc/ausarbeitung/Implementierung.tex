@@ -470,7 +470,7 @@ nutzt sie die C++11 nativen mutex-Mechanismen um über das Vorhandensein neuer R
 	\lstinputlisting[caption={Ausschnitt aus den Daten einer versendeten Teilregion}, label={src:regionData.json}, language=json]{regionData.short.json}
 \end{figure}
 
-\subsection{Lastbalancierung}
+\subsection{Lastbalancierung} \label{sec:load_balancing}
 Um die Mandelbrotmenge effizient parallel zu berechnen, muss die Last gleichmäßig auf die Worker verteilt werden.
 Die Aufgabe der Lastbalancierung besteht darin zu einer gegebenen Region und einer Anzahl von Workern eine solche Unterteilung in sogenannte Teilregionen zu finden.
 Wichtig dabei ist, dass der garantierte Teiler von Höhe und Breite der Teilregionen dem der angeforderten Region entspricht, da es sonst im Frontend zu Schwierigkeiten bei der Darstellung kommt.
@@ -603,6 +603,7 @@ Bei dieser Strategie werden die Regionen allerdings nicht einfach halbiert, sond
 Dazu wird so vorgegangen, wie bei der \hyperref[lastbalancierung_vorhersage]{nicht-rekursiven Variante} für die Aufteilung auf zwei Worker.
 Es ist hierbei auch wichtig die Vorhersage so zu teilen, dass es für jede Hälfte eine Vorhersage gibt, die dann an den rekursiven Aufruf übergeben werden kann.
 
+% Let's remove this part. It's being handled in Host transparently and only a minor issue
 \subsubsection{Leere Regionen} \label{lastbalancierung_leereregion}
 
 \subsubsection{Erweiterung} \label{lastbalancierung_erweiterung}
@@ -625,7 +626,7 @@ Dies gilt, da alle $|z_{n+i}| > 2$ sofern $|z_n| > 2$ \cite{424331}.
 	\lstinputlisting[caption={Bearbeitung eines Vektors komplexer Koordinaten in C++}, label={src:MandelbrotVect.cpp}, firstline=8, lastline=46, firstnumber=8]{../../backend/src/mandelbrot/MandelbrotVect.cpp}
 \end{figure}
 
-Damit kann die Berechnung relativ simpel via Arm NEON Compiler Intrinsics\footnote{Details im Abschnitt "Compiler Intrinsics" unter \url{https://developer.arm.com/technologies/neon}} implementiert werden (siehe dazu \autoref{src:MandelbrotSIMD32.cpp}).
+Damit kann die Berechnung relativ simpel via Arm NEON Compiler Intrinsics\footnote{Details im Abschnitt 'Compiler Intrinsics' unter \url{https://developer.arm.com/technologies/neon}} implementiert werden (siehe dazu \autoref{src:MandelbrotSIMD32.cpp}).
 Diese Intrinsics ermöglichen eine Verwendung der nativen SIMD-Befehle, wobei der Compiler sich um die Verwendung der SIMD-Register kümmert.
 Dadurch wird lesbarer Code ermöglicht, der sich stärker am zu implementierenden Algorithmus orientiert.
 
@@ -651,7 +652,28 @@ Postfix für diese Operationen \textit{u32} oder \textit{u64} lautet.
 
 \subsection{Erläuterung des Frontends}
 
-\subsubsection{Kommunikation mit dem Backend}
+\begin{figure}
+	\centering
+	\includegraphics[width=0.98\linewidth]{img/Implementierung/UI-Screenshot}
+	\caption{Benutzeroberfläche der Mandelbrot Anwendung}
+	\label{fig:ui-screenshot}
+\end{figure}
+Um das Frontend zu implementieren, wurde sich für die Programmiersprache TypeScript\footnote{\url{https://www.typescriptlang.org/}}(Erweiterung von JavaScript um Typisierung) entschieden.
+Da diese zu JavaScript kompiliert, werden die Vortele von JavaScript, wie Ausführung im Webbrowser des Benutzers und eine vielzahl verfügbarer Bibliotheken,
+mit den Vorteilen einer typisierten Programmiersprache vereint.
+
+Für die graphische Benutzeroberfläche wurde ebenfalls TypeScript mit dem React Framework\footnote{\url{https://reactjs.org/}} verwendet, welches es ermöglicht,
+graphische Komponenten nativ in TypeScript zu erstellen und verändern. 
+Es wurde für jede Komponente eine eigene TypeScript Klasse zu erstellt, welche dann den betreffenden 
+das betreffende Verhalten und dessen Darstellung enthält. 
+
+Um das Fraktal darzustellen wird die Leaflet\footnote{\url{https://leafletjs.com/}} Bibliothek verwendet. 
+Diese, für Onlinekarten konzipierte, Bibliothek stellt den Bereich der komplexen Ebene, auf der die Mandelbrotmenge liegt dar.
+Dabei wird der momentan sichtbare Ausschnitt der Menge mit Hilfe der WebSockets Verbindung (\autoref{sec:fontend_communication}) an das Backend versendet und vom ausgewählten Lastbalancierer in Teilregionen unterteilt (\autoref{sec:load_balancing}). 
+Jeder der vom Backend berechneten Teilregionen wird, sobald diese empfangen wurden, im Frontend angezeigt und die Komponenten
+zu Visualisierung der Rechenzeit aktualisiert.
+
+\subsubsection{Kommunikation mit dem Backend}\label{sec:fontend_communication}
 
 Zur Kommunikation mit dem Backend wird im Frontend ein Objekt der Klasse \texttt{WebSocketClient} erzeugt.
 Die zur Verbindung verwendeten Codestücke liegen dabei alle in dem Ordner \verb|connection|, die genannte Klasse wird in
@@ -685,3 +707,9 @@ in dem Leaflet-internen Koordinatensystem auf entsprechende Punkte in der komple
 Da zum Erzeugen des passenden Objektes auch der gewünschte Lastbalancierer und der Fraktaltyp notwendig sind,
 werden diese als weitere Parameter übergeben.
 Die Funktion gibt direkt ein Objekt zurück, dass das Interface \verb|RegionRequest| erfüllt.
+
+\subsubsection{Anzeigen der Regionsdaten} % tileDisplay/
+
+\subsubsection{Darstellung der Rechenzeiten} % components/
+
+\subsubsection{MISC} % misc/
