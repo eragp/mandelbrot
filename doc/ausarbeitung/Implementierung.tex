@@ -51,7 +51,7 @@ das Front- sowie Backend heruntergeladen.
 
 \begin{figure}[h!]
 	\begin{lstlisting}[language=bash, caption={Klonen des Repositorys}]
-$ git clone https://gitlab.lrz.de/lrr-tum/students/eragp-mandelbrot.git
+git clone https://gitlab.lrz.de/lrr-tum/students/eragp-mandelbrot.git
         \end{lstlisting}
 \end{figure}
 
@@ -63,7 +63,7 @@ Dieser bietet eine ähnliche Umgebung zu der des Clusters und ermöglicht schnel
 	\begin{lstlisting}[language=bash, caption={Starten der Entwicklungsumbegung des Backends}]
 # Systemabhängige Installation der Docker Anwendung
 $ sudo apt install docker
-$ cd backend/ && ./run_docker.sh
+cd backend/ && ./run_docker.sh
 Starting the Build Process
 ...
 Host: Core 37 ready!
@@ -95,18 +95,18 @@ Stellen sie zunächst sicher, dass sie ein Konto mit Zugangsberechtigungen auf d
 Um den eigenen Quellcode auf dem Cluster zu kompilieren muss für die korrekte Funktionsweise des Skriptes zudem
 ihr SSH-Key auf dem Cluster abgelegt sein\footnote{siehe \href{https://www.ssh.com/ssh/copy-id}{\texttt{ssh-copy-id}}}.
 
-Außerdem sollte folgende Programme lokal installiert sein:
+Außerdem sollten folgende Programme lokal installiert sein:
 \begin{itemize}
 	\item \verb|rsync|
 	\item \verb|ssh|
 	\item \verb|python3| (3.5 oder neuer)
 \end{itemize}
 
-Starten sie anschließend aus dem Ordner \verb|backend| den Befehl aus \autoref{shell:start_himmuc}
+Starten sie anschließend aus dem Ordner \verb|backend/| den Befehl aus \autoref{shell:start_himmuc}
 
 \begin{figure}[h!]
 	\begin{lstlisting}[language=bash, caption={Start der Entwicklungsumbegung auf dem HimMUC}, label={shell:start_himmuc}]
-$ python3 himmuc/start_himmuc.py <Rechnerkennung> <Anzahl Prozesse> <Anzahl Rechenknoten> 
+python3 himmuc/start_himmuc.py <Rechnerkennung> <Anzahl Prozesse> <Anzahl Rechenknoten> 
     \end{lstlisting}
 \end{figure}
 
@@ -115,7 +115,7 @@ Details zu weiteren Optionen des Skripts sind via \verb|--help| verfügbar.
 
 \begin{figure}
 	\begin{lstlisting}[language=bash, caption={Beispielausgabe bei Start der Entwicklungsumbegung auf dem HimMUC}, label={shell:start_himmuc_example}]
-eragp-mandelbrot/backend$ python3 himmuc/start_himmuc.py muendler 10 9
+$ eragp-mandelbrot/backend$ python3 himmuc/start_himmuc.py muendler 10 9
 Uploading backend...  sending incremental file list
 backend/himmuc/start_backend.py
           3,897 100%    3.05MB/s    0:00:00 (xfr#1, to-chk=35/62)
@@ -136,7 +136,7 @@ Stopping mandelbrot host and workers... stopped (-9)
 
 \paragraph{Detaillierter Start} \label{par:detailed_himmuc}
 
-Um die Programme manuell auf dem Host-System zu installieren,
+Um Mandelbrot manuell auf dem Host-System zu installieren,
 müssen zunächst die notwendigen Bibliotheken installiert werden.
 Eine Anleitung dazu findet sich in \autoref{par:himmuc_install_libs}.
 Dies muss nur einmal ausgeführt werden, anschließend können die
@@ -144,14 +144,9 @@ Programme wie in \autoref{par:himmuc_build_backend} beschrieben kompiliert werde
 Ist dies nicht gewünscht oder erledigt muss das Backend lediglich noch wie
 in \autoref{par:himmuc_run_backend} beschrieben gestartet werden.
 
-\begin{figure}[h!]
-	\begin{lstlisting}[language=bash]
-$ mkdir ~/.eragp-mandelbrot
-    \end{lstlisting}
-
-\end{figure}
 
 \paragraph{Lokale Installation der Bibliotheken}\label{par:himmuc_install_libs}
+
 
 Da hierbei davon ausgegangen wird, dass keine root-Rechte auf dem
 Server existieren, werden die Bibliotheken hier lokal in \verb|~/.eragp-mandelbrot|
@@ -161,6 +156,11 @@ falls sie einen anderen Ordner verwenden wollen,
 ersetzen sie jedes Vorkommen des Pfades durch ihren Pfad (insbesondere in der Datei \verb|CMakeLists.txt|).
 Die MPI-Bibliothek ist auf dem HimMUC Cluster bereits vorinstalliert
 und muss daher nicht mehr aufgesetzt werden.
+\begin{figure}[h!]
+	\begin{lstlisting}[language=bash, caption={Erstellen des Installationsordners}]
+mkdir ~/.eragp-mandelbrot
+    \end{lstlisting}
+\end{figure}
 
 Aus der Bibliothek \verb|boost| muss die Teilbibliothek \verb|boost_system| lokal kompiliert werden
 Dazu werden die Befehle aus \autoref{shell:install_boost} ausgeführt,
@@ -168,35 +168,35 @@ um die Version 1.67.0 herunterzuladen, zu entpacken und lokal zu installieren.
 
 \begin{figure}[h!]
 	\begin{lstlisting}[language=bash, caption={Lokale Installation der Bibliothek boost.}, label={shell:install_boost}]
-$ mkdir "~/.eragp-mandelbrot/install"
-$ mkdir "~/.eragp-mandelbrot/local"
-$ cd "~/.eragp-mandelbrot/install"
-$ wget "https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.bz2"
-$ tar --bzip2 -xf boost_1_67_0.tar.bz2
-$ cd boost_1_67_0
-$ ./bootstrap.sh --prefix="$HOME/.eragp-mandelbrot/local/" --with-libraries=system
-$ ./b2 install
+mkdir "~/.eragp-mandelbrot/install"
+mkdir "~/.eragp-mandelbrot/local"
+cd "~/.eragp-mandelbrot/install"
+wget "https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.bz2"
+tar --bzip2 -xf boost_1_67_0.tar.bz2
+cd boost_1_67_0
+./bootstrap.sh --prefix="$HOME/.eragp-mandelbrot/local/" --with-libraries=system
+./b2 install
     \end{lstlisting}
 \end{figure}
 
-Die Headerlibraries \verb|websocketpp| und \verb|rapidjson| müssen
-lediglich an einen fixen Ort geklont werden.
+Die 'Header-only' Libraries \verb|websocketpp| und \verb|rapidjson| müssen
+lediglich an einen fixen Ort kopiert werden.
 Dies erledigen die Befehle aus \autoref{shell:install_header_libs}.
 
 \begin{figure}[h!]
 	\begin{lstlisting}[language=bash, caption={Lokale Installation der Bibliotheken \texttt{websocketpp} und \texttt{rapidjson}.}, label={shell:install_header_libs}]
-$ mkdir "~/.eragp-mandelbrot/install"
-$ cd "~/.eragp-mandelbrot/install"
-# Install websocketpp
-$ git clone --branch 0.7.0 https://github.com/zaphoyd/websocketpp.git websocketpp --depth 1
-# Install rapidjson
-$ git clone https://github.com/Tencent/rapidjson/
+mkdir "~/.eragp-mandelbrot/install"
+cd "~/.eragp-mandelbrot/install"
+# Installation von websocketpp
+git clone --branch 0.7.0 https://github.com/zaphoyd/websocketpp.git websocketpp --depth 1
+# Installation von rapidjson
+git clone https://github.com/Tencent/rapidjson/
     \end{lstlisting}
 \end{figure}
 
 \paragraph{Kompilieren des Backends}\label{par:himmuc_build_backend}
 
-Stellen Sie zunächst sicher, dass auf dem Cluster die Quelldateien des Backendes (im Ordner \verb|backend|) liegen
+Stellen Sie zunächst sicher, dass auf dem Cluster die Quelldateien des Backendes (im Ordner \verb|backend/|) liegen
 (zum Beispiel über \verb|rsync| oder indem sie das Repository dort auch klonen)
 Zum Kompilieren des Backends sollte sich auf einen Raspberry Pi oder ODroid
 per ssh eingeloggt werden\footnote{Es existiert ein Entwicklerzugang zu einem geteilten Raspberry Pi über die Adresse \url{sshgate-gepasp.in.tum.de}. Dieser wird auch vom Pythonskript genutzt}
@@ -207,13 +207,13 @@ des Backendes die Befehle aus \autoref{shell:himmuc_compile_backend} ausführen.
 \begin{figure}[h!]
 	\begin{lstlisting}[language=bash, caption={Kompilieren des Backends}, label={shell:himmuc_compile_backend}]
 # Erstellen und betreten eines build Ordners
-$ mkdir build
-$ cd build
+mkdir build
+cd build
 # Aktivieren der MPI Bibliothek
-$ module load mpi
+module load mpi
 # Kompilieren
-$ cmake ..
-$ make
+cmake ..
+make
     \end{lstlisting}
 \end{figure}
 
@@ -221,25 +221,23 @@ $ make
 \paragraph{Ausführen des Backends}\label{par:himmuc_run_backend}
 
 Um das Backend auf dem HimMUC Cluster laufen zu lassen, muss sich zunächst darauf per ssh eingeloggt werden.
-Damit für das Frontend kein Unterschied dazwischen besteht, ob das Backend im Dockercontainer lokal läuft, oder
-auf einem externen Server, wird bei der ssh-Verbindung der Port 9002
+Damit für das Frontend kein Unterschied dazwischen besteht, ob das Backend im Dockercontainer , oder
+auf einem externen Server ausgeführt wird, ist bei der ssh-Verbindung der Port 9002
 des \verb|himmuc.caps.in.tum.de|-Servers an den lokalen Port 9002 gebunden.
 So ist das Backend stets unter \url{localhost:9002} verfügbar.
-Der zugehörige Befehl zum Login lautet demnach
+Der zugehörige Befehl zum Login lautet demnach:
 
 \begin{lstlisting}[language=bash]
-$ ssh <login>@himmuc.caps.in.tum.de -L localhost:9002:localhost:9002
+ssh <rechnerkennung>@himmuc.caps.in.tum.de -L localhost:9002:localhost:9002
 \end{lstlisting}
 
-wobei \verb|<login>| durch die Rechnerkennung zu ersetzen ist.
-
 Anschließend muss aus dem Ordner, in dem die ausführbaren Dateien liegen,
-für gewöhnlich also der \verb|build| Ordner im Quelldateienverzeichnis,
-folgender Befehl ausgeführt werden
+für gewöhnlich also der \verb|~/.eragp-mandelbrot/build/| Ordner,
+folgender Befehl ausgeführt werden:
 
 \begin{lstlisting}[language=bash]
-$ srun -p <odr|rpi> -n <number of workers+1> -N <number of nodes/raspis> -l --multi-prog <path to eragp-mandelbrot/backend>/himmuc/run.conf &
-$ ssh -L 0.0.0.0:9002:localhost:9002 -fN -M -S .tunnel.ssh <odr|rpi><host number>
+srun -p <odr|rpi> -n <number of workers+1> -N <number of nodes/raspis> -l --multi-prog <path to eragp-mandelbrot/backend>/himmuc/run.conf &
+ssh -L 0.0.0.0:9002:localhost:9002 -fN -M -S .tunnel.ssh <odr|rpi><host number>
 \end{lstlisting}
 
 Dabei bestimmt \verb|-n| die Anzahl der laufenden Prozesse (Also Hostprozess und Workerprozesse)
@@ -280,10 +278,10 @@ und der \verb|srun|-Prozess gestoppt werden.
 Letzterer lässt sich nach dem dämonisieren im vorigen Aufruf nur über die Prozess-ID finden.
 Diese zeigt das Tool \verb|ps| an.
 \begin{lstlisting}[language=bash]
-$ ssh -S .tunnel.ssh -O exit rpi<host number>
+ssh -S .tunnel.ssh -O exit rpi<host number>
 # To stop the node allocation
-$ ps -eo comm,pid | grep srun
-$ kill <srun pid>
+ps -eo comm,pid | grep srun
+kill <srun pid>
 \end{lstlisting}
 % TODO
 
@@ -294,11 +292,11 @@ Um eine Version lokal zu starten, muss die Paketverwaltung npm\footnote{\url{htt
 für das Frontend benötigten Bibliotheken und installiert diese lokal.
 
 \begin{figure}[h!]
-	\begin{lstlisting}[language=bash, caption={Starten des Frontends}]
+	\begin{lstlisting}[language=bash, caption={Starten des Frontends mit beispielhafter Ausgabe}]
 # Systemabhängige Installation der npm Paketverwaltung
-$ sudo apt install npm
+sudo apt install npm
 # Installiert benötigte Bibliotheken und startet WebServer
-$ cd frontend/ && npm install ; npm start
+cd frontend/ && npm install ; npm start
 ...
 Version: webpack 4.25.1
 Time: 7230ms
@@ -313,7 +311,7 @@ Entrypoint main = style.css mandelbrot.js
 \end{figure}
 
 Das Kommando \verb|npm start| startet dabei einen lokalen WebServer, welcher eine kompilierte Version des Frontends
-unter der Adresse \verb|http://localhost:3000| anbietet. Danach wird der standard Webbrowser des System verwendet, um diese
+unter der Adresse \verb|http://localhost:3000| anbietet. Danach wird der Standardwebbrowser des Systems verwendet, um diese
 URL zu öffnen.
 
 %%%%%%%%
