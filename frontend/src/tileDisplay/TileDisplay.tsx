@@ -153,7 +153,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
           // end timer
           const t1 = performance.now();
           if (stats) {
-            stats.setDrawTiming(tileData.rank , (t1 - t0) * 1000);
+            stats.setDrawTime(tileData.rank , (t1 - t0) * 1000);
           }
 
           done(null, tile);

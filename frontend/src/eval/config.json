@@ -5,7 +5,7 @@
    },
    "balancers":[
       "naive",
-      "prediction"
+      "predictionRecursive"
    ],
    "implementations":[
       "mandelbrot"

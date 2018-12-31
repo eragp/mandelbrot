@@ -41,8 +41,8 @@ export class StatsCollector {
    * @param id
    * @param time in us
    */
-  public setNetworkTiming(rank: number, time: number) {
-    this.addRank(rank).networkTime = Math.floor(time);
+  public setComputationTime(rank: number, time: number) {
+    this.addRank(rank).computationTime = Math.floor(time);
   }
 
   /**
@@ -50,7 +50,7 @@ export class StatsCollector {
    * @param rank
    * @param time in us
    */
-  public setDrawTiming(rank: number, time: number) {
+  public setDrawTime(rank: number, time: number) {
     this.addRank(rank).drawTime += Math.floor(time);
   }
 

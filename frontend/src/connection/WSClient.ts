@@ -1,4 +1,4 @@
-import { RegionData, Regions, isEmptyRegion } from "./ExchangeTypes";
+import { RegionData, Regions } from "./ExchangeTypes";
 import { groupRegions, RegionGroup } from "../misc/RegionGroup";
 import { registerCallback } from "../misc/registerCallback";
 import { StatsCollector } from "../eval/StatsCollector";
@@ -57,7 +57,7 @@ export default class WebSocketClient implements WS {
             const r = msg as RegionData;
             // collect timing data
             if (stats) {
-              stats.setNetworkTiming(r.workerInfo.rank, r.workerInfo.computationTime);
+              stats.setComputationTime(r.workerInfo.rank, r.workerInfo.computationTime);
             }
             // Notify regionData/worker observers
             workerCallback.forEach(fn => fn(r));

@@ -54,7 +54,9 @@ class App extends React.Component<{}, {}> {
         </div>
         <div className="mainBottom row">
           <div className="col-1">
-            <button onClick={() => startTour(stats, viewCenter, balancer, impl)}>Start Tour</button>
+            <button onClick={() => startTour(stats, viewCenter, balancer, impl)}>
+              Start Evaluation
+            </button>
           </div>
           <div className="col-3">
             <SelectBox balancer={balancer} implementation={impl} />

@@ -1,7 +1,6 @@
 import { WorkerInfo, Region } from "../connection/ExchangeTypes";
 import { Point2D } from "./Point";
 import { MAX_DISPLAY_REGIONS } from "../Constants";
-import { Point } from "leaflet";
 
 export interface RegionGroup {
   id: number;

@@ -1,5 +1,4 @@
 import { Point3D } from "./Point";
-import { complexToLeaflet, leafletToComplex } from "../tileDisplay/Project";
 
 export const getURLParams = () => {
   const params = new URLSearchParams(document.location.search);
@@ -9,7 +8,7 @@ export const getURLParams = () => {
   if (!real || !imag || !zoom) {
     return new Point3D(0, 0, 0);
   }
-  return complexToLeaflet(real, imag, zoom);
+  return new Point3D(real, imag, zoom);
 };
 
 /**
