@@ -28,10 +28,10 @@ Außerdem soll ersichtlich sein, wie die verwendete Aufteilung bestimmt wird.
 % Warum die Mandelbrotmenge
 \subsection{Verwendung der Mandelbrotmenge}
 
-Die Mandelbrotmenge ist eine Teilmenge der komplexen Zahlen. 
+Die Mandelbrotmenge ist eine Teilmenge der komplexen Zahlen.
 Um sie zu berechnen wendet man folgende Formel wiederholt auf jede komplexe Zahl $c$ an:
 \begin{equation}
-    z_{n+1} = z_{n}^2 + c, \quad z_0 = 0
+	z_{n+1} = z_{n}^2 + c, \quad z_0 = 0
 \end{equation}
 In der Mandelbrotmenge befinden sich alle $c$, für die der Betrag von $z_n$ für beliebig große $n$ endlich bleibt.
 Wenn der Betrag von $z$ nach einer Iteration größer als 2 ist, so strebt $z$ gegen unendlich, das zugehörige $c$ liegt also nicht in der Menge.
@@ -48,8 +48,8 @@ jeder anderen Zahl.
 
 Diese Eigenschaften ermöglichen es, zweierlei Dinge zu kontrollieren:
 \begin{itemize}
-    \item Die Dauer der Berechnung
-    \item Die Aufteilung der Berechnung auf unterschiedliche Rechenkerne
+	\item Die Dauer der Berechnung
+	\item Die Aufteilung der Berechnung auf unterschiedliche Rechenkerne
 \end{itemize}
 
 Somit kann gesichert werden, dass eine wahrnehmbare Zeit (100-200 ms) zur Berechnung benötigt wird.
@@ -73,10 +73,10 @@ Das entstehende Fraktal ist aufgrund seiner Form auch als “Apfelmännchen” b
 Die Menge ist zusammenhängend, jedoch bilden sich an ihren Rändern viele kleine und sehr komplexe Formen, die visuell ansprechend sind. Es eignet sich daher gut, um optisch Interesse am Projekt zu wecken.
 
 \begin{figure}
-    \centering
-        \includegraphics[width=0.9\linewidth]{img/Einleitung/Mandelbrot_visualization_example.png}
-    \caption{Die Mandelbrotmenge, visualisiert in einem Ausschnitt des komplexen Zahlenraumes.}
-    \label{fig:mandelbrot_visualisierung_beispiel}
+	\centering
+	\includegraphics[width=0.9\linewidth]{img/Einleitung/Mandelbrot_visualization_example.png}
+	\caption{Die Mandelbrotmenge, visualisiert in einem Ausschnitt des komplexen Zahlenraumes.}
+	\label{fig:mandelbrot_visualisierung_beispiel}
 \end{figure}
 
 % Was ist MPI
@@ -99,8 +99,8 @@ Die Gestaltung von MPI erlaubt dabei beliebige Zuordnungen, von Kernen auf einem
 % Qualitative Ziele
 \subsection{Qualitätsanforderungen}
 
-Die Benutzeroberfläche soll so leicht und intuitiv wie möglich zu bedienen sein. 
-Hierbei soll zudem darauf geachtet werden, dass alle Funktionen nur mit einer minimalen 
+Die Benutzeroberfläche soll so leicht und intuitiv wie möglich zu bedienen sein.
+Hierbei soll zudem darauf geachtet werden, dass alle Funktionen nur mit einer minimalen
 Anzahl an Mausklicks auszuführen sind und die Oberfläche nicht überladen wird.
 
 Zudem soll das System robust gestaltet werden.

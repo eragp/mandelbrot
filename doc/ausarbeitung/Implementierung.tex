@@ -5,60 +5,18 @@
 % - Wie läuft das auf meinem System?
 % - Code Dokumentation / Entwicklerdokumentation
 
-%%%%%%%%
-% Highlevel
-% ca 1-2 Seiten
-% Buzzwords, grober Überriss
 
-%%%%%%%%
-% Middle level
-% ca 2-3 Seiten
-% Skripte, libraries/packages, Setup
-% beispielbilder /output
-% getestete Systeme (ARM/Raspi, Debian stretch, x86)
-% mindeste was in README.md im master liegen sollte
-% viel bereits in READMEs der zugehörigen Ordner zusammengefasst
-% backend-deployment -> Niels
-% frontend-deployment -> Max
 
-%%%%%%%%
-% Low level
-% was muss ich als entwickler wissen
-% tiles, parallelisierung, structs/klassen, struktur des projekts
-
-% Zuordnung klasse -> Dokumentation
-% backend
-%   *.main.cpp, init -> Niels DONE
-%   include Ordner und CMake -> Niels DONE
-%   balancer + tests -> Florian
-%   mandelbrot -> Florian (außer MandelbrotSIMD -> Niels DONE)
-%   actors
-%      Worker -> Tobi
-%      Host
-%         websocket-funktionen -> Niels
-%         Rest -> Tobi
-%           + Parallelisierungskonzept (+ welche MPI Method, warum)
-%   structs/Netzwerk -> Tobi/Niels/Florian
-%   dev-environment (was ist docker und wie/warum) -> Max
-% frontend
-%    connection -> Niels
-%    tileDisplay -> Max
-%        TileDisplay.ts
-%            Prinzip 
-%            genauer Ablauf/Funktionen
-%               + Shader
-%        WorkerLayer.ts
-%           + Gruppierung
-%        MatrixView.ts + RegionOfInterest.ts
-%        Project.ts
-%    visualization -> Niels
-%    misc -> Max
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Abschnitt - Grober Überblick
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+%%%%%%%%
+% Highlevel
+% ca 1-2 Seiten
+% Buzzwords, grober Überriss
 \subsection{Übersicht}
 
 % TODO Ein bisschen mehr details
@@ -76,6 +34,16 @@ Die Backend-Worker nehmen die zugewiesenen Rechenaufträge entgegen und führen 
 	\label{fig:architekturuebersicht}
 \end{figure}
 
+%%%%%%%%
+% Middle level
+% ca 2-3 Seiten
+% Skripte, libraries/packages, Setup
+% beispielbilder /output
+% getestete Systeme (ARM/Raspi, Debian stretch, x86)
+% mindeste was in README.md im master liegen sollte
+% viel bereits in READMEs der zugehörigen Ordner zusammengefasst
+% backend-deployment -> Niels
+% frontend-deployment -> Max
 \subsection{Installation der Anwendung}
 
 Um das System zu installieren, muss das Repository mit \verb|git|\footnote{\url{https://git-scm.com/}} lokal geklont werden. Dabei werden die Quelldateien für
@@ -114,14 +82,14 @@ den Entwicklungscontainer. In diesen werden dann die Aktuellen Quelldateien hine
 \subsubsection{Backend auf HimMUC Cluster}
 
 \begin{quotation}
-    [Der] HimMUC ist ein flexibler Cluster von ARM-Geräten, bestehend aus 40 Raspberry Pi 3 sowie 40 ODroid C2 Single-Board-Computers (SBC).\footnote{\url{http://www.caps.in.tum.de/himmuc/}}
+	[Der] HimMUC ist ein flexibler Cluster von ARM-Geräten, bestehend aus 40 Raspberry Pi 3 sowie 40 ODroid C2 Single-Board-Computers (SBC).\footnote{\url{http://www.caps.in.tum.de/himmuc/}}
 \end{quotation}
 
 \paragraph{Schnellstart}
 
-Um das Programm auf dem HimMUC Cluster zu starten, wurde ein 
+Um das Programm auf dem HimMUC Cluster zu starten, wurde ein
 Python Skript erstellt, das alle notwendigen Schritte übernimmt.
-Es führt die Befehle aus \autoref{par:detailed_himmuc} aus, es kann daher bei Fehlern dort nachgeschaut werden.
+Es führt die Befehle aus \autoref{par:detailed_himmuc} aus, es kann daher bei Problemen zur Fehlerbehebung herangezogen werden.
 
 Stellen sie zunächst sicher, dass sie ein Konto mit Zugangsberechtigungen auf dem HimMUC Cluster besitzen.
 Um den eigenen Quellcode auf dem Cluster zu kompilieren muss für die korrekte Funktionsweise des Skriptes zudem
@@ -129,15 +97,15 @@ ihr SSH-Key auf dem Cluster abgelegt sein\footnote{siehe \href{https://www.ssh.c
 
 Außerdem sollte folgende Programme lokal installiert sein:
 \begin{itemize}
-    \item \verb|rsync|
-    \item \verb|ssh|
-    \item \verb|python3| (3.5 oder neuer)
+	\item \verb|rsync|
+	\item \verb|ssh|
+	\item \verb|python3| (3.5 oder neuer)
 \end{itemize}
 
 Starten sie anschließend aus dem Ordner \verb|backend| den Befehl aus \autoref{shell:start_himmuc}
 
 \begin{figure}[h!]
-    \begin{lstlisting}[language=bash, caption={Start der Entwicklungsumbegung auf dem HimMUC}, label={shell:start_himmuc}]
+	\begin{lstlisting}[language=bash, caption={Start der Entwicklungsumbegung auf dem HimMUC}, label={shell:start_himmuc}]
 $ python3 himmuc/start_himmuc.py <Rechnerkennung> <Anzahl Prozesse> <Anzahl Rechenknoten> 
     \end{lstlisting}
 \end{figure}
@@ -146,7 +114,7 @@ Das Ergebnis wird ähnlich zu \autoref{shell:start_himmuc_example} aussehen.
 Details zu weiteren Optionen des Skripts sind via \verb|--help| verfügbar.
 
 \begin{figure}
-    \begin{lstlisting}[language=bash, caption={Beispielausgabe bei Start der Entwicklungsumbegung auf dem HimMUC}, label={shell:start_himmuc_example}]
+	\begin{lstlisting}[language=bash, caption={Beispielausgabe bei Start der Entwicklungsumbegung auf dem HimMUC}, label={shell:start_himmuc_example}]
 eragp-mandelbrot/backend$ python3 himmuc/start_himmuc.py muendler 10 9
 Uploading backend...  sending incremental file list
 backend/himmuc/start_backend.py
@@ -165,7 +133,7 @@ Stopping port forwarding... stopped (-9)
 Stopping mandelbrot host and workers... stopped (-9)
     \end{lstlisting}
 \end{figure}
-    
+
 \paragraph{Detaillierter Start} \label{par:detailed_himmuc}
 
 Um die Programme manuell auf dem Host-System zu installieren,
@@ -177,10 +145,10 @@ Ist dies nicht gewünscht oder erledigt muss das Backend lediglich noch wie
 in \autoref{par:himmuc_run_backend} beschrieben gestartet werden.
 
 \begin{figure}[h!]
-    \begin{lstlisting}[language=bash]
+	\begin{lstlisting}[language=bash]
 $ mkdir ~/.eragp-mandelbrot
     \end{lstlisting}
-    
+
 \end{figure}
 
 \paragraph{Lokale Installation der Bibliotheken}\label{par:himmuc_install_libs}
@@ -199,7 +167,7 @@ Dazu werden die Befehle aus \autoref{shell:install_boost} ausgeführt,
 um die Version 1.67.0 herunterzuladen, zu entpacken und lokal zu installieren.
 
 \begin{figure}[h!]
-    \begin{lstlisting}[language=bash, caption={Lokale Installation der Bibliothek boost.}, label={shell:install_boost}]
+	\begin{lstlisting}[language=bash, caption={Lokale Installation der Bibliothek boost.}, label={shell:install_boost}]
 $ mkdir "~/.eragp-mandelbrot/install"
 $ mkdir "~/.eragp-mandelbrot/local"
 $ cd "~/.eragp-mandelbrot/install"
@@ -216,7 +184,7 @@ lediglich an einen fixen Ort geklont werden.
 Dies erledigen die Befehle aus \autoref{shell:install_header_libs}.
 
 \begin{figure}[h!]
-    \begin{lstlisting}[language=bash, caption={Lokale Installation der Bibliotheken \texttt{websocketpp} und \texttt{rapidjson}.}, label={shell:install_header_libs}]
+	\begin{lstlisting}[language=bash, caption={Lokale Installation der Bibliotheken \texttt{websocketpp} und \texttt{rapidjson}.}, label={shell:install_header_libs}]
 $ mkdir "~/.eragp-mandelbrot/install"
 $ cd "~/.eragp-mandelbrot/install"
 # Install websocketpp
@@ -237,7 +205,7 @@ Auf dem Board, aus dem Ordner des Backendquellcodes müssen sie zum kompilieren
 des Backendes die Befehle aus \autoref{shell:himmuc_compile_backend} ausführen.
 
 \begin{figure}[h!]
-    \begin{lstlisting}[language=bash, caption={Kompilieren des Backends}, label={shell:himmuc_compile_backend}]
+	\begin{lstlisting}[language=bash, caption={Kompilieren des Backends}, label={shell:himmuc_compile_backend}]
 # Erstellen und betreten eines build Ordners
 $ mkdir build
 $ cd build
@@ -283,7 +251,7 @@ Der korrekte Knoten ist dabei der Ausgabe des \verb|srun|-Befehles zu entnehmen.
 Eine beispielhafte Ausgabe ist in \autoref{shell:himmuc_running_backend_example} zu sehen.
 
 \begin{figure}[h]
-    \begin{lstlisting}[language=bash, caption={Beispielhafter Start des Backends. Hierbei ist der Knoten des Hostprozesses \texttt{rpi03}.}, label={shell:himmuc_running_backend_example}]
+	\begin{lstlisting}[language=bash, caption={Beispielhafter Start des Backends. Hierbei ist der Knoten des Hostprozesses \texttt{rpi03}.}, label={shell:himmuc_running_backend_example}]
 muendler@vmschulz8:~/eragp-mandelbrot/backend/build$ srun -N4 -n5 -l --multi-prog ../himmuc/run.conf
 srun: error: Could not find executable worker
 4: Worker: 4 of 5 on node rpi06
@@ -347,6 +315,39 @@ Entrypoint main = style.css mandelbrot.js
 Das Kommando \verb|npm start| startet dabei einen lokalen WebServer, welcher eine kompilierte Version des Frontends
 unter der Adresse \verb|http://localhost:3000| anbietet. Danach wird der standard Webbrowser des System verwendet, um diese
 URL zu öffnen.
+
+%%%%%%%%
+% Low level
+% was muss ich als entwickler wissen
+% tiles, parallelisierung, structs/klassen, struktur des projekts
+
+% Zuordnung klasse -> Dokumentation
+% backend
+%   *.main.cpp, init -> Niels DONE
+%   include Ordner und CMake -> Niels DONE
+%   balancer + tests -> Florian
+%   mandelbrot -> Florian (außer MandelbrotSIMD -> Niels DONE)
+%   actors
+%      Worker -> Tobi
+%      Host
+%         websocket-funktionen -> Niels
+%         Rest -> Tobi
+%           + Parallelisierungskonzept (+ welche MPI Method, warum)
+%   structs/Netzwerk -> Tobi/Niels/Florian
+%   dev-environment (was ist docker und wie/warum) -> Max
+% frontend
+%    connection -> Niels
+%    tileDisplay -> Max
+%        TileDisplay.ts
+%            Prinzip 
+%            genauer Ablauf/Funktionen
+%               + Shader
+%        WorkerLayer.ts
+%           + Gruppierung
+%        MatrixView.ts + RegionOfInterest.ts
+%        Project.ts
+%    visualization -> Niels
+%    misc -> Max
 
 \subsection{Erläuterung des Backends}
 
@@ -428,13 +429,13 @@ Mögliche Zeichenketten hierfür sind in den Klassen der Balancierer unter \verb
 Ein Beispiel für einen Namen kann in \autoref{src:PredictionBalancer.NAME} gefunden werden:
 
 \begin{figure}[h]
-    \lstinputlisting[caption={Namensdefinition des PredictionBalancers}, label={src:PredictionBalancer.NAME}, firstline=11, firstnumber=11, lastline=11]{../../backend/src/balancer/PredictionBalancer.cpp}
+	\lstinputlisting[caption={Namensdefinition des PredictionBalancers}, label={src:PredictionBalancer.NAME}, firstline=11, firstnumber=11, lastline=11]{../../backend/src/balancer/PredictionBalancer.cpp}
 \end{figure}
 
 Ein Beispiel für eine gültige Regionsanfrage ist in \autoref{src:regionRequest.json} zu finden.
 
 \begin{figure}
-    \lstinputlisting[caption={Eine gültige Anfrage einer Region in JSON}, label={src:regionRequest.json}, language=json]{regionRequest.json}
+	\lstinputlisting[caption={Eine gültige Anfrage einer Region in JSON}, label={src:regionRequest.json}, language=json]{regionRequest.json}
 \end{figure}
 
 Nach dem Parsen der Nachricht wird die Region global festgelegt und beim korrekten Lastbalancierer eine Zerlegung der angefragten Region über \verb|Balancer::balanceLoad| gestartet.
@@ -448,11 +449,11 @@ bestimmen und in der Antwort an den Client zu der Aufteilung der Prozesse einfü
 Die Struktur und eine gültige Antwort des Websocketservers kann \autoref{src:region.json} entnommen werden.
 
 \begin{figure}
-    \lstinputlisting[caption={Algorithmus zur Zuordnung von Regionen auf Worker in Host.cpp}, label={src:Host.cpp.handle_region_request}, firstline=231, firstnumber=231, lastline=240]{../../backend/src/actors/Host.cpp}
+	\lstinputlisting[caption={Algorithmus zur Zuordnung von Regionen auf Worker in Host.cpp}, label={src:Host.cpp.handle_region_request}, firstline=231, firstnumber=231, lastline=240]{../../backend/src/actors/Host.cpp}
 \end{figure}
 
 \begin{figure}
-    \lstinputlisting[caption={Ausschnitt aus einer gültigen Antwort auf die Region aus \autoref{src:regionRequest.json} in JSON}, label={src:region.json}, language=json]{region.json}
+	\lstinputlisting[caption={Ausschnitt aus einer gültigen Antwort auf die Region aus \autoref{src:regionRequest.json} in JSON}, label={src:region.json}, language=json]{region.json}
 \end{figure}
 
 \paragraph{Host::send}\label{cls:Host::send}
@@ -468,7 +469,7 @@ Mithilfe der \verb|condition_variable|\footnote{\url{https://en.cppreference.com
 nutzt sie die C++11 nativen mutex-Mechanismen um über das Vorhandensein neuer Regionen informiert zu werden.
 
 \begin{figure}
-    \lstinputlisting[caption={Ausschnitt aus den Daten einer versendeten Teilregion}, label={src:regionData.json}, language=json]{regionData.short.json}
+	\lstinputlisting[caption={Ausschnitt aus den Daten einer versendeten Teilregion}, label={src:regionData.json}, language=json]{regionData.short.json}
 \end{figure}
 
 \subsection{Lastbalancierung}
@@ -660,9 +661,9 @@ Die zur Verbindung verwendeten Codestücke liegen dabei alle in dem Ordner \verb
 
 Die dort definierte Klasse \verb|WebSocketClient| abstrahiert von dem JavaScript-nativen Websocketinterface \verb|WebSocket|\footnote{\url{https://developer.mozilla.org/en-US/docs/Web/API/WebSocket}}.
 Bei der Initialisierung baut das erzeugte Objekt eine Verbindung zu der lokalen Adresse \url{ws://localhost:9002} auf\footnote{
-    Faktisch wird eine Verbindung geöffnet, geschlossen und erneut geöffnet.
-    Dies ist durch ein ungelöstes Problem beim Verbindungsaufbau bedingt, das dafür sorgt, dass ein Verbindungsaufbau
-    erst bei der zweiten erzeugten Websocketverbindung fehlerfrei gelingt.
+	Faktisch wird eine Verbindung geöffnet, geschlossen und erneut geöffnet.
+	Dies ist durch ein ungelöstes Problem beim Verbindungsaufbau bedingt, das dafür sorgt, dass ein Verbindungsaufbau
+	erst bei der zweiten erzeugten Websocketverbindung fehlerfrei gelingt.
 }.
 Dort sollte das Backend bereit sein, eine Websocketverbindung anzunehmen.
 
