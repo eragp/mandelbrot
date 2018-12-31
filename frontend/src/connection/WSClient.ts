@@ -54,15 +54,13 @@ export default class WebSocketClient implements WS {
       switch (msg.type) {
         case "regionData":
           {
-            // filter empty RegionData
-            let r = msg as RegionData;
-            if (r.data.length == 0) return;
+            const r = msg as RegionData;
             // collect timing data
             if (stats) {
               stats.setNetworkTiming(r.workerInfo.rank, r.workerInfo.computationTime);
             }
             // Notify regionData/worker observers
-            workerCallback.forEach(call => call(r));
+            workerCallback.forEach(fn => fn(r));
             if (stats) {
               stats.setWaiting(stats.getWaiting() - 1);
             }
@@ -70,14 +68,13 @@ export default class WebSocketClient implements WS {
           break;
         case "region":
           {
+            const r = msg as Regions;
             if (stats) {
-              stats.setWaiting(msg.regionCount);
+              stats.setWaiting(r.regionCount);
             }
-            // filter empty regions
-            let r = (msg as Regions).regions.filter(r => !isEmptyRegion(r.region));
-            let g = groupRegions(r);
+            const g = groupRegions(r.regions);
             // Notify region subdivision listeners
-            regionCallback.forEach(call => call(g));
+            regionCallback.forEach(fn => fn(g));
           }
           break;
         default:

@@ -5,14 +5,13 @@
   },
   "balancers":[
      "naive",
-     "prediction",
-     "naiveRecursive"
+     "prediction"
   ],
   "implementations":[
      "mandelbrot"
   ],
   "nodeCount":10,
-  "description":"This is a test",
+  "description":"Testing the naive and prediction recursive balancer on a default set of PoIs",
   "pois":[
      {
         "real":0.0,
@@ -33,6 +32,26 @@
         "real":-0.7428462728857994,
         "imag":0.2057771115182378,
         "zoom":12
+     },
+     {
+      "real":-0.10538328811526299,
+      "imag":0.9246602339954608,
+      "zoom":12
+     },
+     {
+      "real":-0.11273874342441559,
+      "imag":0.9306590888545648,
+      "zoom":11
+     },
+     {
+      "real":-1.7914929389953613,
+      "imag":0.007840128847674543,
+      "zoom":5
+     },
+     {
+      "real":-1.7767410716041923,
+      "imag":0.008209272087905154,
+      "zoom":15
      }
   ]
 }

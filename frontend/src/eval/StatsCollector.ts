@@ -1,5 +1,4 @@
 import { registerCallback } from "../misc/registerCallback";
-import { ADDRCONFIG } from "dns";
 
 interface Worker {
   rank: number;
@@ -14,7 +13,7 @@ interface Stats {
 }
 
 export class StatsCollector {
-  public data: Stats;
+  private data: Stats;
   private waiting: number;
 
   private doneCallbacks: Array<((data: Stats) => any)>;
@@ -28,7 +27,12 @@ export class StatsCollector {
     this.doneCallbacks = [];
   }
 
-  public registerDone(fun: (data: Stats) => any) {
+  /**
+   *
+   * @param fun callback to be executed ONCE when stats
+   * collection is done for the current region
+   */
+  public onDone(fun: (data: Stats) => any) {
     return registerCallback(this.doneCallbacks, fun);
   }
 
@@ -38,8 +42,7 @@ export class StatsCollector {
    * @param time in us
    */
   public setNetworkTiming(rank: number, time: number) {
-    let w = this.addRank(rank);
-    w.networkTime = time;
+    this.addRank(rank).networkTime = Math.floor(time);
   }
 
   /**
@@ -48,8 +51,7 @@ export class StatsCollector {
    * @param time in us
    */
   public setDrawTiming(rank: number, time: number) {
-    let w = this.addRank(rank);
-    w.drawTime += time;
+    this.addRank(rank).drawTime += Math.floor(time);
   }
 
   public getWaiting() {
@@ -57,16 +59,15 @@ export class StatsCollector {
   }
 
   public setWaiting(w: number) {
-    this.waiting = w;
-    if (this.waiting === 0) {
+    if ((this.waiting = w) === 0) {
       this.done();
     }
   }
-  
-  public done() {
-    console.log("done rendering tiles");
-    this.doneCallbacks.forEach(fn => fn(this.data));
 
+  public done() {
+    const cb = this.doneCallbacks;
+    this.doneCallbacks = [];
+    cb.forEach(fn => fn(this.data));
     this.data.worker.clear();
     this.waiting = 0;
   }
@@ -85,5 +86,4 @@ export class StatsCollector {
     }
     return w;
   }
-
 }

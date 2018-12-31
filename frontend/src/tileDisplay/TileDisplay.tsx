@@ -212,7 +212,6 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
 
     this.props.viewCenter.subscribe(pt => {
       if (!pt.equals(this.center)) {
-        console.log("set view center to ", pt);
         const p = complexToLeaflet(pt.x, pt.y, pt.z);
         map.setView([p.x, p.y], p.z);
         this.updateAllViews();
