@@ -255,7 +255,7 @@ void Host::send(RegionData data, unsigned long mpiCommunicationTime) {
     Value workerInfoJSON(kObjectType);
     workerInfoJSON.AddMember("rank", workerInfo.rank, answer.GetAllocator());
     workerInfoJSON.AddMember("computationTime", Value().SetInt64(workerInfo.computationTime), answer.GetAllocator());
-    workerInfoJSON.AddMember("mpiCummunicationTime", Value().SetInt64(mpiCommunicationTime), answer.GetAllocator());
+    workerInfoJSON.AddMember("mpiTime", Value().SetInt64(mpiCommunicationTime), answer.GetAllocator());
 
     // Maybe put this into extra method
     Value regionJSON;
