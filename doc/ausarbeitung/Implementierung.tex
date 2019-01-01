@@ -715,29 +715,58 @@ nur Quadrate einer vordefinierten Größe (\verb|Tiles|) angezeigt werden könne
 eigenes Koordinatensystem, unter welchem jede angezeigte Tile eindeutig mit dem Tripel \( (x, y, zoom) \)
 identifiziert wird. Somit ist eine Übersetzung zwischen den Daten des Backends und den von leaflet erwarteten nötig.
 
-\paragraph{MatrixView.ts, RegionOfInterest.ts}
+\paragraph{MatrixView.ts, RegionOfInterest.ts} \label{par:matrixView}
 Die Klasse \verb|MatrixView.ts| implementiert die Umsetzung einer vom Backend versendeten Region zu
 den von leaflet erwarteten Tiles. Dafür registrieren sich alle sichtbaren Tiles durch die Methode
-\verb|registerTile(point, draw)| mit einem Callback, welcher ausgeführt wird, sobald die anzuzeigenden Daten für die 
-entsprechende Tile verfügbar sind. Diese Iterationswerte des Backends werden dabei der Callbackfunktion als Parameter
+\verb|registerTile(point, draw)| mit dem Callback \verb|draw|, welcher ausgeführt wird, sobald die anzuzeigenden Daten für die 
+entsprechende Tile verfügbar sind. Diese Iterationswerte des Backends werden dabei der \verb|draw| Funktion als Parameter
 in Form eines \verb|RegionOfInterest| Objekts übergeben. 
 
 Ein \verb|RegionOfInterest| Objekt implementiert wiederum die Übersetzung von lokalen \( (x,y) \) Pixel-Werten
-einer Tile zu Indizes in die vom Backend gesendeten Regionsdaten (siehe \autoref{src:regionData.json}).
+einer Tile zu Indizes in die vom Backend gesendeten Regionsdaten (siehe \autoref{src:regionData.json}). Dabei gibt die 
+\verb|get(x, y)| Methode, für einen Tile \( (x,y) \) Pixel-Wert die benötigte Iterationsanzahl zurück (siehe \autoref{src:RegionOfInterest.ts}).
 
 \begin{figure}[h!]
-	\lstinputlisting[caption={Ubersetzung der}, label={src:RegionOfInterest.ts}, language=json, firstline=39, lastline=46, firstnumber=39]{../../frontend/src/tileDisplay/RegionOfInterest.ts}
+	\lstinputlisting[caption={Umsetzung von Pixel-Werten der Tiles zu Indizes in Regionsdaten}, label={src:RegionOfInterest.ts}, language=TypeScript, firstline=39, lastline=46, firstnumber=39]{../../frontend/src/tileDisplay/RegionOfInterest.ts}
 \end{figure}
 
-
-
-
-
-
 \paragraph{TileDisplay.tsx}
+Die Klasse \verb|TileDisplay.tsx| verwendet die leaflet Bibliothek direkt, um die Regionsdaten darzustellen.
+Dabei wird dieser die WebSocket Verbindung in Form eines \verb|WebSocketClient|, sowie der vom Nutzer gewählte Balancer, 
+die Implementierung und Gruppierung durch \verb|Observable| Klassen (siehe \autoref{par:observables}) übergeben. Ebenfalls wird der anzuzeigende Ausschnitt der 
+Mandelbrotmenge übergeben.
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=0.5\linewidth]{img/Implementierung/leafletTiles}
+	\caption{Verhältnis von Backend Regionen zu leaflet Tiles}
+	\label{fig:leafletTiles}
+\end{figure}
+Da das Backend die berechneten Teilbereiche der Mandelbrotmenge als Regionen zurück gibt, dessen Höhe und Breite 
+Vielfache der leaflet Tile-Größe sind, wird eine Region durch mehrere Tiles dem Benutzer dargestellt.
+Dieses Verhältnis wird in \autoref{fig:leafletTiles} dargestellt. Dabei ist beispielhaft eine Region des Backends
+weiß eingezeichnet, alle leaflet Tiles sind rot umrandet angegeben. Eine detailliertere Version dieser Anzeige kann
+durch die Auswahl des \verb|DebugLayer|s jederzeit im Frontend eingeblendet werden.
+
+Dargestellt werden die Tiles in einer eigenen Ebene der leaflet Karte, dem \verb|MandelbrotLayer|. 
+Dieser hat wiederum Zugriffauf das \verb|MatrixView| Objekt (siehe \autoref{par:matrixView}), womit die 
+Iterationswerte für jeden Pixel ausgelesen werden können. Die Darstellung dieser Werte erfolgt durch ein 
+\verb|HTML5 canvas|\footnote{\url{https://developer.mozilla.org/kab/docs/Web/API/Canvas_API}} Objekt, welches es
+ermöglicht, für jeden Pixel einen \( (r,g,b) \) Farbwert zu definierten und anzuzeigen.
+
+\paragraph{Shader.ts} Berechnet für einen Iterationswert der Mandelbrotmenge ein Tripel \( (r,g,b) \) von Farbwerten.
+Implementiert ist eine simple Funktion, welche den Iterationswert für jeden Farbkanal mit einer Konstante multipliziert 
+und auf den zulässigen ganzzahligen Wertebereich \( [0,255] \) abbildet (siehe \autoref{src:Shader.ts}).
+
+\begin{figure}[h!]
+	\lstinputlisting[caption={Berechnung der \( (r,g,b) \) Farbwerte}, label={src:Shader.ts}, language=TypeScript, firstline=2, lastline=7, firstnumber=2]{../../frontend/src/tileDisplay/Shader.ts}
+\end{figure}
 
 \paragraph{Project.ts}
+
 \paragraph{WorkerLayer.ts}
+
 \subsubsection{Visualisierung der Rechenzeiten} % components/
 
 \subsubsection{MISC} % misc/
+\paragraph{Observable.ts} \label{par:observables}
