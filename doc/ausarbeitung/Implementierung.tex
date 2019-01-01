@@ -134,7 +134,7 @@ Stopping mandelbrot host and workers... stopped (-9)
     \end{lstlisting}
 \end{figure}
 
-\paragraph{Detaillierter Start} \label{par:detailed_himmuc}
+\paragraph{Detaillierter Start}\label{par:detailed_himmuc}
 
 Um Mandelbrot manuell auf dem Host-System zu installieren,
 müssen zunächst die notwendigen Bibliotheken installiert werden.
@@ -401,7 +401,7 @@ erfolgreichen Initialisierung der eigentliche \hyperref[cls:Host]{Host-Prozess} 
 	\lstinputlisting[caption={Initialisierung der MPI-Prozesse in init.cpp}, label={src:init.cpp}, firstline=15, lastline=39, firstnumber=15]{../../backend/src/init.cpp}
 \end{figure}
 
-\subsection{Host Funktionalitäten} \label{cls:Host}
+\subsection{Host Funktionalitäten}\label{cls:Host}
 
 \subsubsection{Websocketverbindung}
 
@@ -470,7 +470,7 @@ nutzt sie die C++11 nativen mutex-Mechanismen um über das Vorhandensein neuer R
 	\lstinputlisting[caption={Ausschnitt aus den Daten einer versendeten Teilregion}, label={src:regionData.json}, language=json]{regionData.short.json}
 \end{figure}
 
-\subsection{Lastbalancierung} \label{sec:load_balancing}
+\subsection{Lastbalancierung}\label{sec:load_balancing}
 Um die Mandelbrotmenge effizient parallel zu berechnen, muss die Last gleichmäßig auf die Worker verteilt werden.
 Die Aufgabe der Lastbalancierung besteht darin zu einer gegebenen Region und einer Anzahl von Workern eine solche Unterteilung in sogenannte Teilregionen zu finden.
 Wichtig dabei ist, dass der garantierte Teiler von Höhe und Breite der Teilregionen dem der angeforderten Region entspricht, da es sonst im Frontend zu Schwierigkeiten bei der Darstellung kommt.
@@ -486,7 +486,7 @@ Bei der naiven Strategie (zu finden in den Klassen \verb|NaiveBalancer| und \\ \
 Dies geschieht allerdings ohne Beachtung der eventuell unterschiedlichen Rechenzeiten innerhalb der Teilregionen.
 Die naive Strategie wurde hier in einer nicht-rekursiven  und einer rekursiven Variante implementiert.
 
-\paragraph*{} \label{lastbalancierung_naiv}
+\paragraph*{}\label{lastbalancierung_naiv}
 %non-recursive naive
 Zur nicht-rekursiven Aufteilung wird zuerst die Anzahl der zu erstellenden Spalten und Zeilen berechnet.
 Dazu wird der größte Teiler der Anzahl der Worker bestimmt. Dieser gibt die Anzahl der Spalten an, das Ergebnis der Division ist die Anzahl der Zeilen.
@@ -514,20 +514,20 @@ Die letzte Teilregion einer Spalte bzw. Zeile wird immer so gewählt, dass sie a
 
 Die Teilregionen werden in einem Ergebnisarray gespeichert, welches dann zurückgegeben wird.
 
-\paragraph*{} \label{lastbalancierung_naiv_rekursion}
+\paragraph*{}\label{lastbalancierung_naiv_rekursion}
 % recursiveNaive
 Die Grundidee der rekursiven Balancierung ist, die Region solange zu halbieren, bis man genug Teile für jeden Worker hat.
 Dies funktioniert sehr gut, wenn die Anzahl der Worker eine 2er-Potenz ist. Wenn das nicht der Fall ist, so müssen für einige Worker die Regionen öfters geteilt werden als für andere.
 Die Anzahl der Blätter des Rekursionsbaumes (hier ein Binärbaum) muss also der Anzahl der Worker entsprechen.
 Die Rekursionstiefe kann man wie folgt berechnen:
-\begin{equation} \label{lastbalancierung_rekursion_tiefe}
+\begin{equation}\label{lastbalancierung_rekursion_tiefe}
 	recCounter = \lfloor\log_2 nodeCount\rfloor + 1
 \end{equation}
 Und die Anzahl der Teilregionen auf der untersten Ebene des Rekursionsbaumes ergibt sich als:
 \begin{equation*}
 	missing = nodeCount - 2^{\lfloor\log_2 nodeCount\rfloor}
 \end{equation*}
-\begin{equation} \label{lastbalancierung_rekursion_ebene}
+\begin{equation}\label{lastbalancierung_rekursion_ebene}
 	onLowestLevel = missing * 2
 \end{equation}
 Auch hier ist \verb|nodeCount| die Anzahl der Worker. Die Multiplikation mit 2 ist nötig, da bei der Unterteilung einer Region immer zwei neue entstehen. Es müssen also $missing$ Regionen aufgeteilt werden müssen, um die richtige Anzahl an Teilregion zu erzeugen.
@@ -535,7 +535,7 @@ Auch hier ist \verb|nodeCount| die Anzahl der Worker. Die Multiplikation mit 2 i
 Um diese Werte einfach durch die Rekursionsebenen zu reichen wurde die Struktur BalancingContext definiert, welche zusätzlich noch die beiden Deltas, den Index in das Ergebnisarray und einen Zeiger auf das Array selbst abspeichert.
 
 Aus \verb|recCounter| und \verb|onLowestLevel| kann auch die Abbruchbedingung der Rekursion gefolgert werden:
-\begin{equation} \label{lastbalancierung_rekursion_abbruch}
+\begin{equation}\label{lastbalancierung_rekursion_abbruch}
 	recCounter = 0 \vee (recCounter = 1 \wedge resultIndex \geq onLowestLevel) \equiv true
 \end{equation}
 \verb|resultIndex| ist hierbei der Index in das Ergebnisarray, beschreibt also die Anzahl der bereits erstellten Teilregionen.
@@ -569,13 +569,13 @@ Auch die Deltas für Real- und Imaginärteil pro Kachel und die Anzahl der Zeile
 
 Auch die Strategie mit Vorhersage wurde in einer rekursiven und in einer nicht-rekursiven Variante implementiert.
 
-\paragraph*{} \label{lastbalancierung_vorhersage}
+\paragraph*{}\label{lastbalancierung_vorhersage}
 % non-recursive prediction
 Für die nicht-rekursive Variante wird zuerst die benötigte Anzahl an Zeilen und Spalten bestimmt.
 Dies geschieht genauso wie bei der naiven Strategie.
 
 Die erzeugten Teilregionen sollen in etwa den gleichen Rechenaufwand haben. Dieser berechnet sich durch:
-\begin{equation} \label{lastbalancierung_vorhersage_formel}
+\begin{equation}\label{lastbalancierung_vorhersage_formel}
 	desiredN = \frac{nSum}{nodeCount}
 \end{equation}
 Dabei ist \verb|nSum| die Gesamtsumme der Vorhersage und \verb|nodeCount| wieder die Anzahl der Worker.
@@ -603,7 +603,7 @@ Bei dieser Strategie werden die Regionen allerdings nicht einfach halbiert, sond
 Dazu wird so vorgegangen, wie bei der \hyperref[lastbalancierung_vorhersage]{nicht-rekursiven Variante} für die Aufteilung auf zwei Worker.
 Es ist hierbei auch wichtig die Vorhersage so zu teilen, dass es für jede Hälfte eine Vorhersage gibt, die dann an den rekursiven Aufruf übergeben werden kann.
 
-\subsubsection{Erweiterung} \label{lastbalancierung_erweiterung}
+\subsubsection{Erweiterung}\label{lastbalancierung_erweiterung}
 
 \subsection{Berechnung der Mandelbrotmenge}
 
@@ -660,13 +660,13 @@ Da diese zu JavaScript kompiliert, werden die Vortele von JavaScript, wie Ausfü
 mit den Vorteilen einer typisierten Programmiersprache vereint.
 
 Für die graphische Benutzeroberfläche wurde ebenfalls TypeScript mit dem React Framework\footnote{\url{https://reactjs.org/}} verwendet, welches es ermöglicht,
-graphische Komponenten nativ in TypeScript zu erstellen und verändern. 
-Es wurde für jede Komponente eine eigene TypeScript Klasse zu erstellt, welche dann den betreffenden 
-das betreffende Verhalten und dessen Darstellung enthält. 
+graphische Komponenten nativ in TypeScript zu erstellen und verändern.
+Es wurde für jede Komponente eine eigene TypeScript Klasse zu erstellt, welche dann den betreffenden
+das betreffende Verhalten und dessen Darstellung enthält.
 
-Um das Fraktal darzustellen wird die Leaflet\footnote{\url{https://leafletjs.com/}} Bibliothek verwendet. 
+Um das Fraktal darzustellen wird die Leaflet\footnote{\url{https://leafletjs.com/}} Bibliothek verwendet.
 Diese, für Onlinekarten konzipierte, Bibliothek stellt den Bereich der komplexen Ebene, auf der die Mandelbrotmenge liegt dar.
-Dabei wird der momentan sichtbare Ausschnitt der Menge mit Hilfe der WebSockets Verbindung (siehe \autoref{sec:fontend_communication}) an das Backend versendet und vom ausgewählten Lastbalancierer in Teilregionen unterteilt (siehe \autoref{sec:load_balancing}). 
+Dabei wird der momentan sichtbare Ausschnitt der Menge mit Hilfe der WebSockets Verbindung (siehe \autoref{sec:fontend_communication}) an das Backend versendet und vom ausgewählten Lastbalancierer in Teilregionen unterteilt (siehe \autoref{sec:load_balancing}).
 Jeder der vom Backend berechneten Teilregionen wird, sobald diese empfangen wurden, im Frontend angezeigt und die Komponenten
 zu Visualisierung der Rechenzeit aktualisiert.
 
@@ -694,7 +694,7 @@ oder die berechneten Iterationswerte einer Region (siehe \autoref{src:regionData
 Die übergebenen Callbacks erhalten als Parameter respektive die vorgruppierte Aufteilung als ein Array von Workergruppen (\texttt{RegionGroup})
 oder das JSON-dekodierte \verb|RegionData|-Objekt.
 
-Die Definitionen der zugehörigen Objekt-Interfaces finden sich in den Dateien \texttt{RegionGroup.ts} und \texttt{ExchangeTypes.ts}.
+Die Definitionen der zugehörigen Objekt-Interfaces finden sich in den Dateien \verb|RegionGroup.ts| und \verb|ExchangeTypes.ts|.
 
 Als weitere Hilfsfunktion wird in \verb|RegionRequest.ts| \verb|request| bereitgestellt.
 Diese extrahiert aus der übergebenen Sicht auf die Mandelbrotmenge, die in der Leaflet-Karte gespeichert ist,
@@ -707,20 +707,20 @@ Die Funktion gibt direkt ein Objekt zurück, dass das Interface \verb|RegionRequ
 
 \subsubsection{Darstellung der Regionsdaten} % tileDisplay/
 
-Die für die Darstellung der Mandelbrotmenge verwendete Bibliothek (leaflet) hat die Einschränkung, dass 
-nur Quadrate einer vordefinierten Größe (\verb|Tiles|) angezeigt werden können. Ebenfalls verwendet diese ein 
+Die für die Darstellung der Mandelbrotmenge verwendete Bibliothek (leaflet) hat die Einschränkung, dass
+nur Quadrate einer vordefinierten Größe (\verb|Tiles|) angezeigt werden können. Ebenfalls verwendet diese ein
 eigenes Koordinatensystem, unter welchem jede angezeigte Tile eindeutig mit dem Tripel \( (x, y, zoom) \)
 identifiziert wird. Somit ist eine Übersetzung zwischen den Daten des Backends und den von leaflet erwarteten nötig.
 
-\paragraph{MatrixView.ts, RegionOfInterest.ts} \label{par:matrixView}
+\paragraph{MatrixView.ts, RegionOfInterest.ts}\label{par:matrixView}
 Die Klasse \verb|MatrixView.ts| implementiert die Umsetzung einer vom Backend versendeten Region zu
 den von leaflet erwarteten Tiles. Dafür registrieren sich alle sichtbaren Tiles durch die Methode
-\verb|registerTile(point, draw)| mit dem Callback \verb|draw|, welcher ausgeführt wird, sobald die anzuzeigenden Daten für die 
+\verb|registerTile(point, draw)| mit dem Callback \verb|draw|, welcher ausgeführt wird, sobald die anzuzeigenden Daten für die
 entsprechende Tile verfügbar sind. Diese Iterationswerte des Backends werden dabei der \verb|draw| Funktion als Parameter
-in Form eines \verb|RegionOfInterest| Objekts übergeben. 
+in Form eines \verb|RegionOfInterest| Objekts übergeben.
 
 Ein \verb|RegionOfInterest| Objekt implementiert wiederum die Übersetzung von lokalen \( (x,y) \) Pixel-Werten
-einer Tile zu Indizes in die vom Backend gesendeten Regionsdaten (siehe \autoref{src:regionData.json}). Dabei gibt die 
+einer Tile zu Indizes in die vom Backend gesendeten Regionsdaten (siehe \autoref{src:regionData.json}). Dabei gibt die
 \verb|get(x, y)| Methode, für einen Tile \( (x,y) \) Pixel-Wert die benötigte Iterationsanzahl zurück (siehe \autoref{src:RegionOfInterest.ts}).
 
 \begin{figure}[h!]
@@ -729,8 +729,8 @@ einer Tile zu Indizes in die vom Backend gesendeten Regionsdaten (siehe \autoref
 
 \paragraph{TileDisplay.tsx}
 Die Klasse \verb|TileDisplay.tsx| verwendet die leaflet Bibliothek direkt, um die Regionsdaten darzustellen.
-Dabei wird dieser die WebSocket Verbindung in Form eines \verb|WebSocketClient|, sowie der vom Nutzer gewählte Balancer, 
-die Implementierung und Gruppierung durch \verb|Observable| Klassen (siehe \autoref{par:observables}) übergeben. Ebenfalls wird der anzuzeigende Ausschnitt der 
+Dabei wird dieser die WebSocket Verbindung in Form eines \verb|WebSocketClient|, sowie der vom Nutzer gewählte Balancer,
+die Implementierung und Gruppierung durch \verb|Observable| Klassen (siehe \autoref{par:observables}) übergeben. Ebenfalls wird der anzuzeigende Ausschnitt der
 Mandelbrotmenge übergeben.
 
 \begin{figure}[h!]
@@ -739,20 +739,26 @@ Mandelbrotmenge übergeben.
 	\caption{Verhältnis von Backend Regionen zu leaflet Tiles}
 	\label{fig:leafletTiles}
 \end{figure}
-Da das Backend die berechneten Teilbereiche der Mandelbrotmenge als Regionen zurück gibt, dessen Höhe und Breite 
+
+Da das Backend die berechneten Teilbereiche der Mandelbrotmenge als Regionen zurück gibt, dessen Höhe und Breite
 Vielfache der leaflet Tile-Größe sind, wird eine Region durch mehrere Tiles dem Benutzer dargestellt.
 Dieses Verhältnis wird in \autoref{fig:leafletTiles} dargestellt. Dabei ist beispielhaft eine Region des Backends
 weiß eingezeichnet, alle leaflet Tiles sind rot umrandet angegeben. Eine detailliertere Version dieser Anzeige kann
 durch die Auswahl des \verb|DebugLayer|s jederzeit im Frontend eingeblendet werden.
 
-Dargestellt werden die Tiles in einer eigenen Ebene der leaflet Karte, dem \verb|MandelbrotLayer|. 
-Dieser hat wiederum Zugriffauf das \verb|MatrixView| Objekt (siehe \autoref{par:matrixView}), womit die 
-Iterationswerte für jeden Pixel ausgelesen werden können. Die Darstellung dieser Werte erfolgt durch ein 
-\verb|HTML5 canvas|\footnote{\url{https://developer.mozilla.org/kab/docs/Web/API/Canvas_API}} Objekt, welches es
-ermöglicht, für jeden Pixel einen \( (r,g,b) \) Farbwert zu definierten und anzuzeigen.
+Dargestellt werden die Tiles in einer eigenen Ebene der leaflet Karte, dem \verb|MandelbrotLayer|.
+Dieser erstellt für den sichtbaren Bereich\footnote{Da die Fenstergröße des sichtbaren Bereichs keien Vielfaches der Tilegröße sein muss, können Tiles erzeugt werden, welche teilweise außerhalb des sichtbaren Beriechs liegen}
+alle benötigten Tiles. Für jede der Tiles wird ein \verb|HTML5 canvas|\footnote{\url{https://developer.mozilla.org/kab/docs/Web/API/Canvas_API}} Objekt erstellt, welches es
+ermöglicht, für jeden Pixel einen \( (r,g,b) \) Farbwert zu definierten und anzuzeigen. Wobei die Farbwerte aus den berechneten
+Iterationswerten des Backends mit einem Shader (siehe \autoref{par:shader}) ermittelt werden. Die Iterationswerte können wiederum
+mit einem \verb|MatrixView| Objekt aus den Regionsdaten des Backends gelesen werden.
 
-\paragraph{Shader.ts} Berechnet für einen Iterationswert der Mandelbrotmenge ein Tripel \( (r,g,b) \) von Farbwerten.
-Implementiert ist eine simple Funktion, welche den Iterationswert für jeden Farbkanal mit einer Konstante multipliziert 
+Weiterhin wird in \verb|TileDisplay| der \verb|WorkerLayer| (siehe \autoref{par:workerLayer}), welcher die Regionsaufteilung des Backends visualisiert,  hinzugefügt und callbacks auf die Observables definiert, welche die momentan sichtbare Region
+erneut vom Backend anfordern, falls sich einer der ausgewählten Lastbalancierer, oder die gewählte Implementierung ändert.
+
+\paragraph{Shader.ts}\label{par:shader}
+Berechnet für einen Iterationswert der Mandelbrotmenge ein Tripel \( (r,g,b) \) von Farbwerten.
+Implementiert ist eine simple Funktion, welche den Iterationswert für jeden Farbkanal mit einer Konstante multipliziert
 und auf den zulässigen ganzzahligen Wertebereich \( [0,255] \) abbildet (siehe \autoref{src:Shader.ts}).
 
 \begin{figure}[h!]
@@ -760,10 +766,17 @@ und auf den zulässigen ganzzahligen Wertebereich \( [0,255] \) abbildet (siehe 
 \end{figure}
 
 \paragraph{Project.ts}
+Da die leaflet Bibliothek Tiles verwendet, um die Regionen des Backends anzuzeigen, liegen diese Tiles in 
+einem neuen Koordinatensystem, welches jeder Tile auf einer Zoomstufe ein Triple \( (tileX, tileY, zoom) \)
+zuordnet. Weiterhin besitzt leaflet ein internes Koordinatensystem (CRS\footnote{\url{https://en.wikipedia.org/wiki/Spatial_reference_system}}),
+welches jeden Punkt auf der Karte durch das Paar \( (latitude, longitude) \) identifiziert. 
+\verb|Projekt.ts| enthält Funktionen, um zwischen diesen 3 Koordinatensystemen (Tile-Koordinaten, leaflet-Koordinaten 
+und Koordinaten der komplexen Ebene) zu konvertieren.
 
-\paragraph{WorkerLayer.ts}
+
+\paragraph{WorkerLayer.ts}\label{par:workerLayer}
 
 \subsubsection{Visualisierung der Rechenzeiten} % components/
 
 \subsubsection{MISC} % misc/
-\paragraph{Observable.ts} \label{par:observables}
+\paragraph{Observable.ts}\label{par:observables}
