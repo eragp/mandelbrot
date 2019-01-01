@@ -651,10 +651,11 @@ Postfix für diese Operationen \textit{u32} oder \textit{u64} lautet.
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.98\linewidth]{img/Implementierung/UI-Screenshot}
+	\includegraphics[width=\linewidth]{img/Implementierung/UI-Screenshot}
 	\caption{Benutzeroberfläche der Mandelbrot Anwendung}
 	\label{fig:ui-screenshot}
 \end{figure}
+
 Um das Frontend zu implementieren, wurde sich für die Programmiersprache TypeScript\footnote{\url{https://www.typescriptlang.org/}}(Erweiterung von JavaScript um Typisierung) entschieden.
 Da diese zu JavaScript kompiliert, werden die Vortele von JavaScript, wie Ausführung im Webbrowser des Benutzers und eine vielzahl verfügbarer Bibliotheken,
 mit den Vorteilen einer typisierten Programmiersprache vereint.
@@ -736,7 +737,7 @@ Mandelbrotmenge übergeben.
 \begin{figure}[h!]
 	\centering
 	\includegraphics[width=0.5\linewidth]{img/Implementierung/leafletTiles}
-	\caption{Verhältnis von Backend Regionen zu leaflet Tiles}
+	\caption{Relation von Backend Regionen zu leaflet Tiles}
 	\label{fig:leafletTiles}
 \end{figure}
 
@@ -773,10 +774,29 @@ welches jeden Punkt auf der Karte durch das Paar \( (latitude, longitude) \) ide
 \verb|Projekt.ts| enthält Funktionen, um zwischen diesen 3 Koordinatensystemen (Tile-Koordinaten, leaflet-Koordinaten 
 und Koordinaten der komplexen Ebene) zu konvertieren.
 
+\paragraph{Regionsgruppierung (RegionGroup.ts)}\label{par:regionGroup}
 
 \paragraph{WorkerLayer.ts}\label{par:workerLayer}
+Diese Klasse visualisiert die Regionsaufteilung des Lastbalancierers als Overlay, welche über den Iterationswerten
+dem Benutzer angezeigt wird. Dafür wir eine in leaflet bestehende \verb|GeoJSON| API verwendet, mit welcher es möglich
+ist, beliebige Polygone auf den bestehenden Kartendaten anzuzeigen. Die Eckpunkte für diese Polygone für jede \verb|RegionGroup| 
+mit Hilfe der Funktionen aus \verb|Project| von Koordinaten der komplexen Ebene, welche im Backend verwendet werden, zu 
+leaflet Koordinaten umgerechnet.
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=\linewidth]{img/Implementierung/regionGrouping}
+	\caption{Gruppierung einer Aufteilung des Recursive PredictionBalancers mit 37 Workern}
+	\label{fig:regionGrouping}
+\end{figure}
+
+Da es wie in \autoref{par:regionGroup} beschrieben zu einer Gruppierung kommt, falls die Anzahl der Worker im Backend zu
+groß ist, werden ebenfalls alle Untergruppen einer Gruppe angezeigt (siehe \autoref{fig:regionGrouping}), falls der Benutzer mit der Maus über eine der 
+dargestellen Gruppierungen geht.
 
 \subsubsection{Visualisierung der Rechenzeiten} % components/
 
 \subsubsection{MISC} % misc/
+
+
 \paragraph{Observable.ts}\label{par:observables}
