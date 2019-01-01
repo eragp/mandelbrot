@@ -482,7 +482,7 @@ Damit die Unterschiede zwischen guter und schlechter Lastverteilung deutlich wer
 
 \subsubsection{Naive Strategie}
 
-Bei der naiven Strategie (zu finden in den Klassen NaiveBalancer und RecursiveNaiveBalancer) wird versucht den einzelnen Workern etwa gleich große Teilregionen zuzuweisen.
+Bei der naiven Strategie (zu finden in den Klassen \verb|NaiveBalancer| und \\ \verb|RecursiveNaiveBalancer|) wird versucht den einzelnen Workern etwa gleich große Teilregionen zuzuweisen.
 Dies geschieht allerdings ohne Beachtung der eventuell unterschiedlichen Rechenzeiten innerhalb der Teilregionen.
 Die naive Strategie wurde hier in einer nicht-rekursiven  und einer rekursiven Variante implementiert.
 
@@ -497,8 +497,8 @@ Die Breite berechnet sich also durch:
 \begin{equation*}
 	\frac{region.width}{region.guaranteedDivisor * nodeCount} * region.guaranteedDivisor
 \end{equation*}
-Dabei ist $nodeCount$ die Anzahl der Worker und $region$ die zu unterteilende Region.
-Es ist zu beachten, dass es sich hier um eine Ganzzahldivision handelt, deren Rest angibt, wie viele Teilregionen um $region.guaranteedDivisor$ breiter sind.
+Dabei ist \verb|nodeCount| die Anzahl der Worker und \verb|region| die zu unterteilende Region.
+Es ist zu beachten, dass es sich hier um eine Ganzzahldivision handelt, deren Rest angibt, wie viele Teilregionen um \verb|region.guaranteedDivisor| breiter sind.
 Die Höhe berechnet sich analog.
 
 Bevor die eigentliche Aufteilung beginnt werden noch die Deltas für Real- und Imaginärteil bestimmt.
@@ -530,18 +530,18 @@ Und die Anzahl der Teilregionen auf der untersten Ebene des Rekursionsbaumes erg
 \begin{equation} \label{lastbalancierung_rekursion_ebene}
 	onLowestLevel = missing * 2
 \end{equation}
-Auch hier ist $nodeCount$ die Anzahl der Worker. Die Multiplikation mit 2 ist nötig, da nochmal $missing$ Blätter aufgeteilt werden müssen, um $missing$ zusätzliche Blätter zu erzeugen.
+Auch hier ist \verb|nodeCount| die Anzahl der Worker. Die Multiplikation mit 2 ist nötig, da nochmal $missing$ Blätter aufgeteilt werden müssen, um $missing$ zusätzliche Blätter zu erzeugen.
 
 Um diese Werte einfach durch die Rekursionsebenen zu reichen wurde die Struktur BalancingContext definiert, welche zusätzlich noch die beiden Deltas, den Index in das Ergebnisarray und einen Zeiger auf das Array selbst abspeichert.
 
-Aus $recCounter$ und $onLowestLevel$ kann auch die Abbruchbedingung der Rekursion gefolgert werden:
+Aus \verb|recCounter| und \verb|onLowestLevel| kann auch die Abbruchbedingung der Rekursion gefolgert werden:
 \begin{equation} \label{lastbalancierung_rekursion_abbruch}
 	recCounter = 0 \vee (recCounter = 1 \wedge resultIndex \geq onLowestLevel) \equiv true
 \end{equation}
-$resultIndex$ ist hierbei der Index in das Ergebnisarray, beschreibt also die Anzahl der bereits erstellten Teilregionen.
+\verb|resultIndex| ist hierbei der Index in das Ergebnisarray, beschreibt also die Anzahl der bereits erstellten Teilregionen.
 
-Ist die Abbruchbedingung (\ref{lastbalancierung_rekursion_abbruch}) erfüllt, so genügt es die übergebene Region in das Ergebnisarray einzutragen und $resultIndex$ zu inkrementieren.
-Ansonsten muss die Region halbiert werden. Ist die Region vertikal oder horizontal nicht mehr teilbar (d.h. $region.width$ bzw. $region.height$ $\leq region.guaranteedDivisor$), so wird in die andere Richtung geteilt.
+Ist die Abbruchbedingung (\ref{lastbalancierung_rekursion_abbruch}) erfüllt, so genügt es die übergebene Region in das Ergebnisarray einzutragen und \verb|resultIndex| zu inkrementieren.
+Ansonsten muss die Region halbiert werden. Ist die Region vertikal oder horizontal nicht mehr teilbar (d.h. \verb|region.width| bzw. \verb|region.height| $\leq$ \verb|region.guaranteedDivisor|), so wird in die andere Richtung geteilt.
 Kann die Region in beide Richtungen geteilt werden, so wird abwechselnd vertikal und horizontal geteilt. Dies gewährleistet, dass der Balancierer in beide Richtungen aufteilt, sofern das möglich ist.
 Wenn die Region unteilbar ist, so muss eine leere Region erzeugt werden.
 
@@ -550,14 +550,14 @@ Dann wird die Funktion für jede Hälfte rekursiv aufgerufen.
 
 \subsubsection{Strategie mit Vorhersage}
 
-Bei dieser Strategie (zu finden in den Klassen PredictionBalancer und RecursivePredictionBalancer) basiert die Aufteilung der Region auf einer Vorhersage über die Rechenzeit.
+Bei dieser Strategie (zu finden in den Klassen \verb|PredictionBalancer| und \\ \verb|RecursivePredictionBalancer|) basiert die Aufteilung der Region auf einer Vorhersage über die Rechenzeit.
 Die Teilregionen werden so gewählt, dass sie, entsprechend der Vorhersage, etwa einen ähnlichen Rechenaufwand haben.
 
-Die Vorhersage (struct Prediction) wird von der Klasse Predicter angestellt.
+Die Vorhersage (\verb|struct Prediction|) wird von der Klasse Predicter angestellt.
 Dazu wird die Region in einer sehr viel geringeren Auflösung berechnet.
 Die benötigte Anzahl an Iterationen wird jeweils pro Kachel (Breite und Höhe sind der garantierte Teiler) abgespeichert.
 So wird sichergestellt, dass der garantierte Teiler auch nach der Aufteilung noch gilt, da die Balancierer die Vorhersage Eintrag für Eintrag verarbeiten.
-Die Genauigkeit der Vorhersage kann über das Attribut $predictionAccuracy$ gesteuert werden:
+Die Genauigkeit der Vorhersage kann über das Attribut \verb|predictionAccuracy| gesteuert werden:
 \begin{itemize}
 	\item $predictionAccuracy > 0$: $(predictionAccuracy)^2$ Pixel werden pro Kachel berechnet. Die Summe der Iterationen für die einzelnen Pixel ergibt die Vorhersage für die Kachel.
 	\item $predictionAccuracy < 0$: Für $(predictionAccuracy)^2$ Kacheln wird ein Pixel in der Vorhersage berechnet. Es erhalten also mehrere Kacheln diesselbe Vorhersage.
@@ -578,15 +578,15 @@ Die erzeugten Teilregionen sollen in etwa den gleichen Rechenaufwand haben. Dies
 \begin{equation} \label{lastbalancierung_vorhersage_formel}
 	desiredN = \frac{nSum}{nodeCount}
 \end{equation}
-Dabei ist $nSum$ die Gesamtsumme der Vorhersage und $nodeCount$ wieder die Anzahl der Worker.
+Dabei ist \verb|nSum| die Gesamtsumme der Vorhersage und \verb|nodeCount| wieder die Anzahl der Worker.
 
 Danach wird die Region erst in Spalten aufgeteilt und in einem zweiten Schritt wird dann die horizontale Unterteilung in Teilregionen vorgenommen.
 
-Zur Aufteilung wird über die Spaltensummen in der Vorhersage iteriert. Diese werden aufaddiert und bilden so den Zähler $currentN$.
-Sobald $currentN$ $\geq desiredN$ gilt oder für alle restlichen Spalten nur noch je ein Eintrag in den Spaltensummen vorhanden ist, wird eine Spalte abgeschlossen.
-Dazu werden $maxReal$ und $width$ aus den Zählern berechnet. Es ist wichtig $maxReal$ immer neu aus $region.minReal$ zu berechnen, anstatt nur das Delta aufzuaddieren, da sich sonst der Fehler, der bei Fließkommaaddition unvermeidbar ist, auch mit aufaddiert. $minReal$ und $hOffset$ stehen bereits in $tmp$, die Werte wurden bei der Berechnung der vorhergehenden Spalte bereits gesetzt.
-Jetzt wird $tmp$ für die nächste Spalte vorbereitet, das heißt $tmp.minReal$ wird auf $tmp.maxReal$ gesetzt und $tmp.hOffset$ wird um $tmp.width$ erhöht. Ersteres vermeidet das Entstehen von Lücken zuverlässig.
-Außerdem wird $desiredN$ für die verbleibenden Spalten nach (\ref{lastbalancierung_vorhersage_formel}) neu berechnet und die Zähler werden zurückgesetzt.
+Zur Aufteilung wird über die Spaltensummen in der Vorhersage iteriert. Diese werden aufaddiert und bilden so den Zähler \verb|currentN|.
+Sobald \verb|currentN| $\geq$ \verb|desiredN| gilt oder für alle restlichen Spalten nur noch je ein Eintrag in den Spaltensummen vorhanden ist, wird eine Spalte abgeschlossen.
+Dazu werden \verb|maxReal| und \verb|width| aus den Zählern berechnet. Es ist wichtig \verb|maxReal| immer neu aus \verb|region.minReal| zu berechnen, anstatt nur das Delta aufzuaddieren, da sich sonst der Fehler, der bei Fließkommaaddition unvermeidbar ist, auch mit aufaddiert. \verb|minReal| und \verb|hOffset| stehen bereits in der Region \verb|tmp|, die Werte wurden bei der Berechnung der vorhergehenden Spalte bereits gesetzt.
+Jetzt wird \verb|tmp| für die nächste Spalte vorbereitet, das heißt \verb|tmp.minReal| wird auf \verb|tmp.maxReal| gesetzt und \verb|tmp.hOffset| wird um \verb|tmp.width| erhöht. Ersteres vermeidet das Entstehen von Lücken zuverlässig.
+Außerdem wird \verb|desiredN| für die verbleibenden Spalten nach (\ref{lastbalancierung_vorhersage_formel}) neu berechnet und die Zähler werden zurückgesetzt.
 Bevor die Aufteilung der Spalte in Teilregionen startet, wird eine Kopie der Vorhersage erstellt, die nur die Werte für die aktuelle Spalte enthält.
 Das Aufteilen einer Spalte in Teilregion geschieht analog zum Aufteilen in Spalten.
 
@@ -602,9 +602,6 @@ Auch die Abbruchbedingung ist wie in (\ref{lastbalancierung_rekursion_abbruch}).
 Bei dieser Strategie werden die Regionen allerdings nicht einfach halbiert, sondern in zwei Teile aufgeteilt, die laut der Vorhersage ähnlich rechenintensiv sind.
 Dazu wird so vorgegangen, wie bei der \hyperref[lastbalancierung_vorhersage]{nicht-rekursiven Variante} für die Aufteilung auf zwei Worker.
 Es ist hierbei auch wichtig die Vorhersage so zu teilen, dass es für jede Hälfte eine Vorhersage gibt, die dann an den rekursiven Aufruf übergeben werden kann.
-
-% Let's remove this part. It's being handled in Host transparently and only a minor issue
-\subsubsection{Leere Regionen} \label{lastbalancierung_leereregion}
 
 \subsubsection{Erweiterung} \label{lastbalancierung_erweiterung}
 
