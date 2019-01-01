@@ -240,7 +240,7 @@ void Host::deregister_client(websocketpp::connection_hdl hdl) {
     // TODO maybe mock client or sth similar
 }
 
-void Host::send(RegionData data, unsigned long mpiCommunicationTime) {
+void Host::send(RegionData data) {
     WorkerInfo workerInfo = data.workerInfo;
     Region region = data.workerInfo.region;
 
@@ -255,7 +255,7 @@ void Host::send(RegionData data, unsigned long mpiCommunicationTime) {
     Value workerInfoJSON(kObjectType);
     workerInfoJSON.AddMember("rank", workerInfo.rank, answer.GetAllocator());
     workerInfoJSON.AddMember("computationTime", Value().SetInt64(workerInfo.computationTime), answer.GetAllocator());
-    workerInfoJSON.AddMember("mpiTime", Value().SetInt64(mpiCommunicationTime), answer.GetAllocator());
+    workerInfoJSON.AddMember("mpiTime", Value().SetInt64(data.mpiCommunicationTime), answer.GetAllocator());
 
     // Maybe put this into extra method
     Value regionJSON;
@@ -409,8 +409,9 @@ void Host::init(int world_rank, int world_size) {
             region_data.data = worker_data;
             region_data.data_length = region_size;
             region_data.workerInfo = workerInfo;
+            region_data.mpiCommunicationTime = mpiCommunicationTime;
 
-            Host::send(region_data, mpiCommunicationTime);
+            Host::send(region_data);
 
             delete[] recv;
             delete[] worker_data;
