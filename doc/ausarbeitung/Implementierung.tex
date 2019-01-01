@@ -669,7 +669,7 @@ das betreffende Verhalten und dessen Darstellung enthält.
 
 Um das Fraktal darzustellen wird die Leaflet\footnote{\url{https://leafletjs.com/}} Bibliothek verwendet. 
 Diese, für Onlinekarten konzipierte, Bibliothek stellt den Bereich der komplexen Ebene, auf der die Mandelbrotmenge liegt dar.
-Dabei wird der momentan sichtbare Ausschnitt der Menge mit Hilfe der WebSockets Verbindung (\autoref{sec:fontend_communication}) an das Backend versendet und vom ausgewählten Lastbalancierer in Teilregionen unterteilt (\autoref{sec:load_balancing}). 
+Dabei wird der momentan sichtbare Ausschnitt der Menge mit Hilfe der WebSockets Verbindung (siehe \autoref{sec:fontend_communication}) an das Backend versendet und vom ausgewählten Lastbalancierer in Teilregionen unterteilt (siehe \autoref{sec:load_balancing}). 
 Jeder der vom Backend berechneten Teilregionen wird, sobald diese empfangen wurden, im Frontend angezeigt und die Komponenten
 zu Visualisierung der Rechenzeit aktualisiert.
 
@@ -708,8 +708,36 @@ Da zum Erzeugen des passenden Objektes auch der gewünschte Lastbalancierer und 
 werden diese als weitere Parameter übergeben.
 Die Funktion gibt direkt ein Objekt zurück, dass das Interface \verb|RegionRequest| erfüllt.
 
-\subsubsection{Anzeigen der Regionsdaten} % tileDisplay/
+\subsubsection{Darstellung der Regionsdaten} % tileDisplay/
 
-\subsubsection{Darstellung der Rechenzeiten} % components/
+Die für die Darstellung der Mandelbrotmenge verwendete Bibliothek (leaflet) hat die Einschränkung, dass 
+nur Quadrate einer vordefinierten Größe (\verb|Tiles|) angezeigt werden können. Ebenfalls verwendet diese ein 
+eigenes Koordinatensystem, unter welchem jede angezeigte Tile eindeutig mit dem Tripel \( (x, y, zoom) \)
+identifiziert wird. Somit ist eine Übersetzung zwischen den Daten des Backends und den von leaflet erwarteten nötig.
+
+\paragraph{MatrixView.ts, RegionOfInterest.ts}
+Die Klasse \verb|MatrixView.ts| implementiert die Umsetzung einer vom Backend versendeten Region zu
+den von leaflet erwarteten Tiles. Dafür registrieren sich alle sichtbaren Tiles durch die Methode
+\verb|registerTile(point, draw)| mit einem Callback, welcher ausgeführt wird, sobald die anzuzeigenden Daten für die 
+entsprechende Tile verfügbar sind. Diese Iterationswerte des Backends werden dabei der Callbackfunktion als Parameter
+in Form eines \verb|RegionOfInterest| Objekts übergeben. 
+
+Ein \verb|RegionOfInterest| Objekt implementiert wiederum die Übersetzung von lokalen \( (x,y) \) Pixel-Werten
+einer Tile zu Indizes in die vom Backend gesendeten Regionsdaten (siehe \autoref{src:regionData.json}).
+
+\begin{figure}[h!]
+	\lstinputlisting[caption={Ubersetzung der}, label={src:RegionOfInterest.ts}, language=json, firstline=39, lastline=46, firstnumber=39]{../../frontend/src/tileDisplay/RegionOfInterest.ts}
+\end{figure}
+
+
+
+
+
+
+\paragraph{TileDisplay.tsx}
+
+\paragraph{Project.ts}
+\paragraph{WorkerLayer.ts}
+\subsubsection{Visualisierung der Rechenzeiten} % components/
 
 \subsubsection{MISC} % misc/
