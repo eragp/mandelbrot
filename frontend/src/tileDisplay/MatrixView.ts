@@ -1,5 +1,5 @@
 import { Point3D } from "../misc/Point";
-import { tileSize } from "../Constants";
+import { TileSize } from "../Constants";
 import { getBottomRightPoint, getTopLeftPoint } from "./Project";
 import WebSocketClient from "../connection/WSClient";
 import { RegionData } from "../connection/ExchangeTypes";
@@ -12,6 +12,7 @@ export default class MatrixView {
    */
   public topLeft: Point3D;
   public bottomRight: Point3D;
+  public zoom: number;
   private callbacks: Map<string, (roi: RegionOfInterest) => any>;
 
   constructor(tileDisplay: any, webSocketClient: WebSocketClient) {
@@ -23,6 +24,10 @@ export default class MatrixView {
     const handleRegionData = (msg: RegionData) => {
       const region = msg.workerInfo.region;
       const zoom = region.validation;
+      // only render the tile if it is still requested
+      if (this.zoom && this.zoom !== zoom) {
+        return;
+      }
 
       // compute x/y coordinates based on region
       const regionTileSize = region.guaranteedDivisor;
@@ -42,15 +47,15 @@ export default class MatrixView {
           const tileX = topLeft.x + x;
           const tileY = topLeft.y + y;
           const render = this.callbacks.get(coordsToString(tileX, tileY, zoom));
-          if (render === undefined || render === null) {
-            console.error("Region not found for " + new Point3D(tileX, tileY, zoom));
+          if (!render) {
+            console.log("Region not found for " + new Point3D(tileX, tileY, zoom));
             continue;
           }
           // only pass data of this region
-          const realX = x * tileSize;
-          const realY = y * tileSize;
+          const realX = x * TileSize;
+          const realY = y * TileSize;
           const tl = new Point3D(realX, realY);
-          const br = new Point3D(realX + tileSize, realY + tileSize);
+          const br = new Point3D(realX + TileSize, realY + TileSize);
 
           const roi = new RegionOfInterest(tl, br, msg.data, region.width, region.height);
           render(roi);
@@ -65,9 +70,9 @@ export default class MatrixView {
 
     const handleNewView = (map: LeafletMap) => {
       const bounds = map.getPixelBounds();
-      const zoom = map.getZoom();
-      this.topLeft = getTopLeftPoint(bounds, tileSize, zoom);
-      this.bottomRight = getBottomRightPoint(bounds, tileSize, zoom);
+      this.zoom = map.getZoom();
+      this.topLeft = getTopLeftPoint(bounds, TileSize, this.zoom);
+      this.bottomRight = getBottomRightPoint(bounds, TileSize, this.zoom);
     };
 
     /**

@@ -1,12 +1,8 @@
+import { Balancers } from "../Constants";
 /**
  * All available balancers
  */
-export const BALANCERS = [
-  "naive",
-  "column",
-  "prediction"
-  // To be continued...
-];
+export const BALANCERS = Balancers.map(b => b.key);
 
 /**
  * Object returning the currently chosen balancing strategy

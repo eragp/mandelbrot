@@ -2,5 +2,5 @@
 #include "Fractal.h"
 class Mandelbrot : public Fractal {
    public:
-    int calculateFractal(long double cReal, long double cImaginary, int maxIteration);
+    void calculateFractal(precision_t* cReal, precision_t* cImaginary, unsigned short int maxIteration, int vectorLength, unsigned short int* dest);
 };

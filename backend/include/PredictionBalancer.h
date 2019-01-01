@@ -5,6 +5,7 @@
 #include "Balancer.h"
 #include "Region.h"
 #include "Fractal.h"
+#include "Prediction.h"
 
 #include <vector>
 #include <string>
@@ -23,7 +24,7 @@ private:
     int predictionAccuracy;
     Fractal *f;
 
-    Region *splitCol(Region col, int parts, int nSum, std::vector<int> n, double deltaImaginary);
+    Region *splitCol(Region col, int parts, Prediction* prediction);
 
 public:
     static const std::string NAME;

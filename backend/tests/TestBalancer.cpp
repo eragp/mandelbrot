@@ -3,6 +3,7 @@
 #include "Region.h"
 #include "Mandelbrot.h"
 
+#include "RecursivePredictionBalancer.h"
 #include "PredictionBalancer.h"
 #include "NaiveBalancer.h"
 #include "ColumnBalancer.h"
@@ -39,21 +40,30 @@ bool testRatio(Region fullRegion, Region part) {
 	// We need to define a range for the values, since doubles are never exact
 	double epsilon = 0.000000001; // Checks if the values vary in the 8 visible digits
 
-	double expectedXRatio = (fullRegion.maxReal - fullRegion.minReal) / fullRegion.width;
-	double expectedYRatio = (fullRegion.maxImaginary - fullRegion.minImaginary) / fullRegion.height;
+	bool xInRange = true;
+	bool yInRange = true;
 
-	double observedXRatio = (part.maxReal - part.minReal) / part.width;
-	double observedYRatio = (part.maxImaginary - part.minImaginary) / part.height;
+	if (part.width != 0) {
+		double expectedXRatio = (fullRegion.maxReal - fullRegion.minReal) / fullRegion.width;
+		double observedXRatio = (part.maxReal - part.minReal) / part.width;
+		xInRange = (expectedXRatio - epsilon <= observedXRatio) && (observedXRatio <= expectedXRatio + epsilon);
 
-	bool xInRange = (expectedXRatio - epsilon <= observedXRatio) && (observedXRatio <= expectedXRatio + epsilon);
-	bool yInRange = (expectedYRatio - epsilon <= observedYRatio) && (observedYRatio <= expectedYRatio + epsilon);
+		if (!xInRange) {
+			std::cout << "xRatio: expected -> " << expectedXRatio << " observed -> " << observedXRatio << std::endl;
+		}
 
-	if (!xInRange) {
-		std::cout << "xRatio: expected -> " << expectedXRatio << " observed -> " << observedXRatio << std::endl;
 	}
-	if (!yInRange) {
-		std::cout << "yRatio: expected -> " << expectedYRatio << " observed -> " << observedYRatio << std::endl;
+
+	if (part.height != 0) {
+		double expectedYRatio = (fullRegion.maxImaginary - fullRegion.minImaginary) / fullRegion.height;
+		double observedYRatio = (part.maxImaginary - part.minImaginary) / part.height;
+		yInRange = (expectedYRatio - epsilon <= observedYRatio) && (observedYRatio <= expectedYRatio + epsilon);
+
+		if (!yInRange) {
+			std::cout << "yRatio: expected -> " << expectedYRatio << " observed -> " << observedYRatio << std::endl;
+		}
 	}
+
 	return xInRange && yInRange;
 }
 
@@ -109,6 +119,7 @@ int main(int argc, char** argv) {
 	Balancer* naive = new NaiveBalancer();
 	Balancer* prediction = PredictionBalancer::create(new Mandelbrot(), 4);
 	Balancer* predictionNeg = PredictionBalancer::create(new Mandelbrot(), -4);
+	Balancer* predictionRec = RecursivePredictionBalancer::create(new Mandelbrot(), 4);
 
 	std::cout << "Column: " << std::endl;
 	testBalancer(column, test, nodes);
@@ -122,10 +133,15 @@ int main(int argc, char** argv) {
 	std::cout << "PredictionNegative: " << std::endl;
 	testBalancer(predictionNeg, test, nodes);
 
+	std::cout << "PredictionRec: " << std::endl;
+	testBalancer(predictionRec, test, nodes);
+
+	std::cout << "Tests concluded!\a" << std::endl;
 	delete column;
 	delete naive;
 	delete prediction;
 	delete predictionNeg;
+	delete predictionRec;
 
 	std::cin.get();
 	return 0;

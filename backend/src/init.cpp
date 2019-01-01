@@ -1,12 +1,9 @@
 #include <fstream>
 #include <iostream>
-#include "Worker.h"
-#include "Host.h"
 
 // MPI Libraries
 #include <mpi.h>
 
-#include <string>
 
 #define TRACE(msg) wcout << msg
 #define TRACE_ACTION(a, k, v) wcout << a << L" (" << k << L", " << v << L")\n"
@@ -14,8 +11,8 @@
 // Attention: default_res should divide 2048! Square of default_res*default_res will be returned
 const int default_res = 256;
 
-int init(int argc, char **argv, bool host) {
-    const char* type = host ? "Host" : "Worker";
+// General initialization of host and worker processes
+int init(int argc, char **argv, const char* type, void (*initFunc) (int world_rank, int world_size)) {
 
     MPI_Init(&argc, &argv);
     int world_rank;
@@ -35,12 +32,7 @@ int init(int argc, char **argv, bool host) {
         MPI_Finalize();
         return -1;  // return with error
     }
-    if (host == true) {
-        Host::init(world_rank, world_size);
-    } else {
-        Worker::init(world_rank, world_size);
-    }
-
+    initFunc(world_rank, world_size);
     MPI_Finalize();
 
     return 0;
