@@ -530,7 +530,7 @@ Und die Anzahl der Teilregionen auf der untersten Ebene des Rekursionsbaumes erg
 \begin{equation} \label{lastbalancierung_rekursion_ebene}
 	onLowestLevel = missing * 2
 \end{equation}
-Auch hier ist \verb|nodeCount| die Anzahl der Worker. Die Multiplikation mit 2 ist nötig, da nochmal $missing$ Blätter aufgeteilt werden müssen, um $missing$ zusätzliche Blätter zu erzeugen.
+Auch hier ist \verb|nodeCount| die Anzahl der Worker. Die Multiplikation mit 2 ist nötig, da bei der Unterteilung einer Region immer zwei neue entstehen. Es müssen also $missing$ Regionen aufgeteilt werden müssen, um die richtige Anzahl an Teilregion zu erzeugen.
 
 Um diese Werte einfach durch die Rekursionsebenen zu reichen wurde die Struktur BalancingContext definiert, welche zusätzlich noch die beiden Deltas, den Index in das Ergebnisarray und einen Zeiger auf das Array selbst abspeichert.
 
