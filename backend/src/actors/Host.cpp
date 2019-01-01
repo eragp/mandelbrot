@@ -183,18 +183,11 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         current_big_region = region;
     }
 
-<<<<<<< backend/src/actors/Host.cpp
-    // TODO increase by one as soon as host is invoked as worker too
-    int nodeCount = activeNodes.size();
-    // TODO let frontend choose fractal similar to balancer
-    Balancer *b = BalancerPolicy::chooseBalancer(balancer, new Mandelbrot());
+    int nodeCount = world_size - 1;
+    Balancer *b = BalancerPolicy::chooseBalancer(balancer, fractal_bal);
     // Measure time needed for balancing - Start
     std::chrono::high_resolution_clock::time_point balancerTimeStart = std::chrono::high_resolution_clock::now();
     // Call balanceLoad
-=======
-    int nodeCount = world_size - 1;
-    Balancer *b = BalancerPolicy::chooseBalancer(balancer, fractal_bal);
->>>>>>> backend/src/actors/Host.cpp
     Region *blocks = b->balanceLoad(region, nodeCount);  // Blocks is array with nodeCount members
     // Measure time needed for balancing - End
     std::chrono::high_resolution_clock::time_point balancerTimeEnd = std::chrono::high_resolution_clock::now();
