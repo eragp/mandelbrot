@@ -431,8 +431,13 @@ Ein Beispiel für einen Namen kann in \autoref{src:PredictionBalancer.NAME} gefu
 \end{figure}
 
 Ein Beispiel für eine gültige Regionsanfrage ist in \autoref{src:regionRequest.json} zu finden.
-Wie in \autoref{fig:concept_coordinates} zu sehen, ist dabei der horizontale Offset und vertikale Offset
-die linke obere Koordinate der Region in Pixeln.
+Einerseits wird hierbei eine Region in komplexen Koordinaten beschrieben, wobei der obere linke Punkt $(maxImag, minReal)$
+und der rechte untere Punkt $(minImag, maxReal)$ in der komplexen Ebene einen zu berechnenden Bereich aufspannen.
+Da die reelle Ebene jedoch beliebig genau aufgelöst werden kann, muss zudem noch die Anzahl an Pixeln
+pro Seite des Rechteckes definiert werden, \verb|width| und \verb|height|.
+Wie in \autoref{fig:concept_coordinates} zu sehen, ist zudem der horizontale Offset und vertikale Offset
+die linke obere Koordinate der Region bezüglich der gesamten sichtbaren Anfrage in Pixeln (diese Werte
+gewinnen in den Regionsaufteilungen an Bedeutung).
 
 \begin{figure}
 	\lstinputlisting[caption={Eine gültige Anfrage einer Region in JSON}, label={src:regionRequest.json}, language=json]{regionRequest.json}
