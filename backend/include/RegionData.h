@@ -16,6 +16,11 @@ struct RegionData {
     WorkerInfo workerInfo;
 
     /**
+     * The approximate time that MPI communication has taken in microseconds
+     */
+    unsigned long mpiCommunicationTime;
+
+    /**
      * Raw computed data for the fractal in this region.
      * Size: region.width*region.height
      * Index: i (x,y) -> (region.width * y) + region.height
