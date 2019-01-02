@@ -204,13 +204,14 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     }
 
     // Delete empty subregions
+    // Try out: do not
     std::vector<Region> newBlocks;
     for (int i = 0 ; i < nodeCount ; i++) {
-        if ((blocks[i].minReal == blocks[i].maxReal && blocks[i].maxImaginary == blocks[i].minImaginary) || blocks[i].width == 0 || blocks[i].height == 0) {
-            std::cout << "Empty Region " << i << " deleted." << std::endl;
-        } else {
+        //if ((blocks[i].minReal == blocks[i].maxReal && blocks[i].maxImaginary == blocks[i].minImaginary) || blocks[i].width == 0 || blocks[i].height == 0) {
+        //    std::cout << "Empty Region " << i << " deleted." << std::endl;
+        //} else {
             newBlocks.push_back(blocks[i]);
-        }
+        //}
     }
     blocks = &newBlocks[0];
     nodeCount = newBlocks.size();

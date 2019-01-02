@@ -174,7 +174,7 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
       const active = new Map();
       const progress = new Map();
 
-      const animationDuration = 750;
+      const animationDuration = 150;
       for (const group of groups) {
         for (const region of group.getLeafs()) {
             active.set(region.id, true);
