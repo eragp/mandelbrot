@@ -225,17 +225,6 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
                   << blocks[i].width << ", " << blocks[i].height << ")" << std::endl;
     }
 
-    // Send regions to MPI-Thread
-    {
-        std::lock_guard<std::mutex> lock(websocket_request_to_mpi_lock);
-        websocket_request_to_mpi.clear();
-        for (int i = 0 ; i < nodeCount ; i++) {
-            blocks[i].fractal = fractal_type;
-            websocket_request_to_mpi[i] = blocks[i];
-        }
-        mpi_send_regions = true;
-    }
-    std::cout << "Sending Region division" << std::endl;
 
     // Determine which Worker gets which Region
     int region_to_worker[nodeCount];
@@ -296,6 +285,18 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     } catch (websocketpp::exception &e) {
         std::cerr << "Bad connection to client, Refresh connection" << std::endl;
     }
+
+    // Send regions to MPI-Thread *after* we have sent the division
+    {
+        std::lock_guard<std::mutex> lock(websocket_request_to_mpi_lock);
+        websocket_request_to_mpi.clear();
+        for (int i = 0 ; i < nodeCount ; i++) {
+            blocks[i].fractal = fractal_type;
+            websocket_request_to_mpi[i] = blocks[i];
+        }
+        mpi_send_regions = true;
+    }
+    std::cout << "Sending Region division" << std::endl;
 }
 
 void Host::register_client(const websocketpp::connection_hdl hdl) {
