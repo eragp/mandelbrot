@@ -16,7 +16,7 @@ import { getURLParams } from "./misc/URLParams";
 import { startTour } from "./eval/Tour";
 
 // Custom Components
-import NodeProgress from "./components/NodeProgress";
+import ComputationTime from "./components/ComputationTime";
 import NetworkView from "./components/NetworkView";
 import IdleTime from "./components/IdleTime";
 import SelectBox from "./components/SelectBox";
