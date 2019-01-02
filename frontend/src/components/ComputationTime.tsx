@@ -136,7 +136,7 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
       const active = new Map();
       const progress = new Map();
 
-      const animationDuration = 150;
+      const animationDuration = 0;
       for (const group of groups) {
         for (const region of group.getLeafs()) {
             active.set(region.id, true);
@@ -201,7 +201,7 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
     const colorSet: string[] = [];
     // => Label/ value index is the index of the rank in the node array
     const groupCompTime = (group: RegionGroup) => {
-        let compTime = 0;
+        let compTime = 1;
         for (const region of group.getLeafs()) {
             compTime += this.chartState.progress.get(region.id) as number;
         }
