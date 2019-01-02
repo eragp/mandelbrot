@@ -438,6 +438,8 @@ pro Seite des Rechteckes definiert werden, \verb|width| und \verb|height|.
 Wie in \autoref{fig:concept_coordinates} zu sehen, ist zudem der horizontale Offset und vertikale Offset
 die linke obere Koordinate der Region bezüglich der gesamten sichtbaren Anfrage in Pixeln (diese Werte
 gewinnen in den Regionsaufteilungen an Bedeutung).
+Der Wert \verb|validation| ist technisch gesehen nicht mehr notwendig, wird aber mit dem Zoom-wert der Leafletkarte gefüllt
+um zu vermeiden dass Regionsdaten von zuvor berechneten Regionen falsch verwendet werden.
 
 \begin{figure}
 	\lstinputlisting[caption={Eine gültige Anfrage einer Region in JSON}, label={src:regionRequest.json}, language=json]{regionRequest.json}
