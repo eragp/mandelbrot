@@ -463,6 +463,7 @@ Nach dem Parsen der Nachricht wird die Region global festgelegt und beim korrekt
 Aus dem Ergebnis werden leere Regionen werden anschließend aussortiert und alle anderen in eine per mutex Thread-gesicherte Datenstruktur
 gelegt. Der MPI verwendende Thread, der diese Regionen anschließend an die Worker sendet wird über das Setzen des booleschen Wertes \verb|mpi_set_regions|
 auf \verb|true| darüber informiert, dass neue Regionen zum versenden zur Verfügung stehen.
+% TODO dokumentieren, dass regionsaufträge erst nach der information des frontends  gesendet werden (falls nicht-filtern gemerged wird)
 Dabei ist der Rang des Workers, der eine Region berechnen soll genau der Index der Region in der Datenstruktur sein.
 Ist ein Worker nicht verfügbar, so werden alle folgenden Ränge um eins erhöht (siehe \autoref{src:Host.cpp.handle_region_request}).
 Damit kann der Websocketprozess unabhängig von der tatsächlichen Verteilung den Rang des berechnenden Worker-Prozesses
@@ -712,6 +713,7 @@ Dort sollte das Backend bereit sein, eine Websocketverbindung anzunehmen.
 
 Zudem bietet die Klasse die Methode \texttt{sendRequest}, welche ein übergebenes Objekt JSON-kodiert und versendet.
 
+% TODO dokumentieren des filterns von regionsdaten, die nicht in aktueller region liegen (falls merge)
 Wichtig für den Rest des Frontends sind die Methoden \texttt{registerRegion} und \texttt{registerRegionData}.
 An diese Methoden können Callbacks übergeben werden, die aufgerufen werden, wenn das Frontend über die Websocketverbindung
 respektive ein \texttt{Region}-Objekt oder ein \texttt{RegionData}-Objekt empfängt.
@@ -767,7 +769,7 @@ Mandelbrotmenge übergeben.
 \end{figure}
 
 Da das Backend die berechneten Teilbereiche der Mandelbrotmenge als Regionen zurück gibt, dessen Höhe und Breite
-Vielfache der leaflet Tile-Größe sind, wird eine Region durch mehrere Tiles dem Benutzer dargestellt.
+Vielfache der leaflet Tile-Größe sind, wird eine Region dem Benutzer durch mehrere Tiles dargestellt.
 Dieses Verhältnis wird in \autoref{fig:leafletTiles} dargestellt. Dabei ist beispielhaft eine Region des Backends
 weiß eingezeichnet, alle leaflet Tiles sind rot umrandet angegeben. Eine detailliertere Version dieser Anzeige kann
 durch die Auswahl des \verb|DebugLayer|s jederzeit im Frontend eingeblendet werden.
