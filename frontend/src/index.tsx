@@ -9,7 +9,7 @@ import WebSocketClient from "./connection/WSClient";
 import { getURLParams } from "./misc/URLParams";
 
 // Custom Components
-import NodeProgress from "./components/NodeProgress";
+import ComputationTime from "./components/ComputationTime";
 import NetworkView from "./components/NetworkView";
 import IdleTime from "./components/IdleTime";
 import SelectBox from "./components/SelectBox";
@@ -50,7 +50,7 @@ class App extends React.Component<{}, {}> {
             <IdleTime group={group} wsclient={websocketclient} />
           </div>
           <div className="col-3">
-            <NodeProgress group={group} wsClient={websocketclient} />
+            <ComputationTime group={group} wsClient={websocketclient} />
           </div>
         </div>
       </div>

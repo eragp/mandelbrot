@@ -185,7 +185,15 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
 
     int nodeCount = world_size - 1;
     Balancer *b = BalancerPolicy::chooseBalancer(balancer, fractal_bal);
+    // Measure time needed for balancing - Start
+    std::chrono::high_resolution_clock::time_point balancerTimeStart = std::chrono::high_resolution_clock::now();
+    // Call balanceLoad
     Region *blocks = b->balanceLoad(region, nodeCount);  // Blocks is array with nodeCount members
+    // Measure time needed for balancing - End
+    std::chrono::high_resolution_clock::time_point balancerTimeEnd = std::chrono::high_resolution_clock::now();
+    unsigned long balancerTime = std::chrono::duration_cast<std::chrono::microseconds>(balancerTimeEnd - balancerTimeStart).count();
+    std::cout << "Balancing took " << balancerTime << " microseconds." << std::endl;
+
     // DEBUG
     std::cout << "Balancer Output:" << std::endl;
     for (int i = 0; i < nodeCount; i++) {
@@ -244,6 +252,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
 
     reply.AddMember("type", "region", reply.GetAllocator());
     reply.AddMember("regionCount", nodeCount, reply.GetAllocator());
+    reply.AddMember("balancerTime", Value().SetInt64(balancerTime), reply.GetAllocator());
 
     Value workers;
     workers.SetArray();
@@ -335,6 +344,7 @@ void Host::send() {
         Value workerInfoJSON(kObjectType);
         workerInfoJSON.AddMember("rank", workerInfo.rank, answer.GetAllocator());
         workerInfoJSON.AddMember("computationTime", Value().SetInt64(workerInfo.computationTime), answer.GetAllocator());
+        workerInfoJSON.AddMember("mpiTime", Value().SetInt64(data.mpiCommunicationTime), answer.GetAllocator());
 
         // Maybe put this into extra method
         Value regionJSON;
@@ -418,7 +428,6 @@ void Host::init(int world_rank, int world_size) {
 
     // Approximately the time that MPI communication with one Worker has taken in microseconds
     std::chrono::high_resolution_clock::time_point *mpiCommunicationStart = new std::chrono::high_resolution_clock::time_point[world_size];
-    unsigned long *mpiCommunicationTime = new unsigned long[world_size];
 
     // Init persistent asynchronous send. Each process gets his own Request, Status and Buffer
     MPI_Request region_requests[world_size];
@@ -487,8 +496,8 @@ void Host::init(int world_rank, int world_size) {
             std::memcpy(&workerInfo, recv, sizeof(WorkerInfo));
 
             // Compute time approximately used for MPI communication
-            mpiCommunicationTime[workerInfo.rank-1] = std::chrono::duration_cast<std::chrono::microseconds>(mpiCommunicationEnd - mpiCommunicationStart[workerInfo.rank]).count() - workerInfo.computationTime;
-            std::cout << "Host: MPI communication with Worker " << workerInfo.rank << " took approximately " << mpiCommunicationTime[workerInfo.rank] << " microseconds." << std::endl;
+            unsigned long mpiCommunicationTime = std::chrono::duration_cast<std::chrono::microseconds>(mpiCommunicationEnd - mpiCommunicationStart[workerInfo.rank]).count() - workerInfo.computationTime;
+            std::cout << "Host: MPI communication with Worker " << workerInfo.rank << " took approximately " << mpiCommunicationTime << " microseconds." << std::endl;
         
             // Extract "worker_data" from the received message
             unsigned int region_size = workerInfo.region.getPixelCount();
@@ -501,6 +510,7 @@ void Host::init(int world_rank, int world_size) {
             region_data.data = worker_data;
             region_data.data_length = region_size;
             region_data.workerInfo = workerInfo;
+            region_data.mpiCommunicationTime = mpiCommunicationTime;
 
             // Send RegionData to Websocket-Result-Thread
             {
