@@ -21,6 +21,7 @@
 \RequirePackage[ngerman]{babel} % TODO: Make this an option
 \RequirePackage[babel,german=quotes]{csquotes}
 \RequirePackage{amsmath}
+\RequirePackage{amssymb}
 \RequirePackage{graphicx}
 \RequirePackage{color}
 \RequirePackage{listings}

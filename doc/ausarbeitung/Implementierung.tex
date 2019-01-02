@@ -431,10 +431,33 @@ Ein Beispiel für einen Namen kann in \autoref{src:PredictionBalancer.NAME} gefu
 \end{figure}
 
 Ein Beispiel für eine gültige Regionsanfrage ist in \autoref{src:regionRequest.json} zu finden.
+Wie in \autoref{fig:concept_coordinates} zu sehen, ist dabei der horizontale Offset und vertikale Offset
+die linke obere Koordinate der Region in Pixeln.
 
 \begin{figure}
 	\lstinputlisting[caption={Eine gültige Anfrage einer Region in JSON}, label={src:regionRequest.json}, language=json]{regionRequest.json}
 \end{figure}
+
+\begin{figure}
+    \begin{tikzpicture}
+        % Superregion
+        \draw (0,0) rectangle (14,8) node[below left] {Regionrequest/ Angefragte Region};
+        % subregion
+        \draw (3,2) rectangle (8,6) node[below left] {Region};
+        % width height
+        \draw (3,6) -- node[above, red] {width$=m*gD$} (8,6);
+        \draw (3,6) -- node[left, red] {height$=n*gD$} (3,2);
+        % vOffset/hOffset
+        \draw[blue, ->] (3,8) -- (3,6) node[midway, anchor=west] {vOffset};
+        \draw[blue, ->] (0,6) -- (3,6) node[midway, anchor=north] {hOffset};
+        % x/y
+        \draw[green, ->] (3,6) -- (5,5) node[below] {(x+hOffset, y+vOffset)};
+        \draw (0, 0) node[below right] {$gd$ = guaranteedDivisor, $n,m \in \mathbb{N}^{+}$, $x < width$, $y < height$};
+    \end{tikzpicture}
+    \caption{Konzept der Kooridinaten in den Regionsobjekten. Alle Koordinaten beziehen sich auf die Darstellungsebene und sind daher in Pixeln.}
+    \label{fig:concept_coordinates}
+\end{figure}
+
 
 Nach dem Parsen der Nachricht wird die Region global festgelegt und beim korrekten Lastbalancierer eine Zerlegung der angefragten Region über \verb|Balancer::balanceLoad| gestartet.
 Aus dem Ergebnis werden leere Regionen werden anschließend aussortiert und alle anderen in eine per mutex Thread-gesicherte Datenstruktur
@@ -462,12 +485,14 @@ Nach jedem Durchlauf oder wenn der Thread per \verb|notify| (oder auch durch mö
 überprüft er auf das Vorhandensein neuer Regionen, wählt die erste aus und entfernt sie aus der Datenstruktur.
 Nachdem das Lock auf die geteilte Datenstruktur gelöst wurde, werden die Regionsdaten JSON codiert versendet.
 Ein Beispiel für versendete Regionsdaten kann \autoref{src:regionData.json} entnommen werden.
+Dabei wird der Punkt (x, y) in der gesendeten Region (Punkt (x+hOffset, y+vOffset) in der angefragten Region)
+im Datenarray an Index $i = x + y * width$ gespeichert.
 Ist keine Region in der Datenstruktur abgelegt wird per \verb|wait| auf eine Änderung gewartet.
 Mithilfe der \verb|condition_variable|\footnote{\url{https://en.cppreference.com/w/cpp/thread/condition_variable}} \verb|Host::mpi_to_websocket_result_available|
 nutzt sie die C++11 nativen mutex-Mechanismen um über das Vorhandensein neuer Regionen informiert zu werden.
 
 \begin{figure}
-	\lstinputlisting[caption={Ausschnitt aus den Daten einer versendeten Teilregion}, label={src:regionData.json}, language=json]{regionData.short.json}
+	\lstinputlisting[caption={Ausschnitt aus den Daten einer versendeten Teilregion. Punkt (x,y) liegt in \texttt{"data"} an Index $i=x+y*width$.}, label={src:regionData.json}, language=json]{regionData.short.json}
 \end{figure}
 
 \subsection{Lastbalancierung}\label{sec:load_balancing}
