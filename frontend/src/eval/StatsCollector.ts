@@ -4,12 +4,16 @@ interface Worker {
   rank: number;
   computationTime: number;
   mpiTime: number;
-  networkTime: number;
   drawTime: number;
+}
+interface Balancer {
+  time: number;
+  regionCount: number;
 }
 
 interface Stats {
   worker: Map<number, Worker>;
+  balancer: Balancer;
 }
 
 export class StatsCollector {
@@ -20,7 +24,8 @@ export class StatsCollector {
 
   constructor() {
     this.data = {
-      worker: new Map()
+      worker: new Map(),
+      balancer: { regionCount: 0, time: 0 }
     };
     this.waiting = 0;
 
@@ -47,6 +52,18 @@ export class StatsCollector {
 
   /**
    *
+   * @param id
+   * @param time in us
+   */
+  public setMpiTime(rank: number, time: number) {
+    this.addRank(rank).mpiTime = Math.floor(time);
+  }
+
+  public setBalancerTime(regionCount: number, time: number) {
+    this.data.balancer = { regionCount, time };
+  }
+  /**
+   *
    * @param rank
    * @param time in us
    */
@@ -68,7 +85,10 @@ export class StatsCollector {
     const cb = this.doneCallbacks;
     this.doneCallbacks = [];
     cb.forEach(fn => fn(this.data));
+
+    // reset this object
     this.data.worker.clear();
+    this.data.balancer = { regionCount: 0, time: 0 };
     this.waiting = 0;
   }
 
@@ -79,7 +99,6 @@ export class StatsCollector {
         rank,
         computationTime: 0,
         mpiTime: 0,
-        networkTime: 0,
         drawTime: 0
       };
       this.data.worker.set(rank, w);

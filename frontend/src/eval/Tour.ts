@@ -40,13 +40,12 @@ interface Datapoint {
 }
 interface BalancerTime {
   time: number;
-  emptyRegions: number;
+  regionCount: number;
 }
 interface WorkerTime {
   rank: number;
   computationTime: number;
   mpiTime: number;
-  networkTime: number;
   drawTime: number;
 }
 
@@ -62,22 +61,31 @@ export const startTour = (
   balancer: BalancerObservable,
   impl: ImplementationObservable
 ) => {
-  const tour = require("./config.json") as Tour;
+  const config = require("./config.json") as Tour;
 
   let cfgs: Config[] = [];
-  const out: Output = { config: tour, datapoints: [] };
-  for (const balancer of tour.balancers) {
-    for (const impl of tour.implementations) {
-      for (const poi of tour.pois) {
+  const out: Output = { config, datapoints: [] };
+  for (const balancer of config.balancers) {
+    for (const impl of config.implementations) {
+      for (const poi of config.pois) {
         cfgs.push({ balancer, impl, poi });
       }
     }
   }
   console.log("running configs:", cfgs);
 
-  window.resizeTo(tour.screen.width, tour.screen.height);
+  // set size of leaflet container
+  const map = document.getElementById("viewer") as HTMLElement;
+  map.style.width = `${config.screen.width}px`;
+  map.style.height = `${config.screen.height}px`;
+
   const runConfig = (output: Output, configs: Config[]) => {
+    // tour is done
     if (configs.length === 0) {
+      // reset leaflet container to original size
+      map.style.width = "";
+      map.style.height = "";
+
       console.log("Tour Stats:");
       console.log(JSON.stringify(output));
       return;
@@ -85,10 +93,19 @@ export const startTour = (
     const c = configs.pop() as Config;
     console.log("Tour: Changing config to: ", c);
 
+    const oldBl = balancer.get();
+    const oldImp = impl.get();
+
     balancer.setNoNotify(c.balancer);
     impl.setNoNotify(c.impl);
     viewCenter.setNoNotify(new Point3D(c.poi.real, c.poi.imag, c.poi.zoom));
-    viewCenter.notify();
+    if (oldBl !== c.balancer) {
+      balancer.notify();
+    } else if (oldImp !== c.impl) {
+      impl.notify();
+    } else {
+      viewCenter.notify();
+    }
 
     stats.onDone(stats => {
       output.datapoints.push({
@@ -97,8 +114,8 @@ export const startTour = (
         data: {
           poi: c.poi,
           balancer: {
-            time: 0,
-            emptyRegions: 0
+            time: stats.balancer.time,
+            regionCount: stats.balancer.regionCount
           },
           workers: Array.from(stats.worker.values())
         }

@@ -3,16 +3,10 @@
  */
 
 export interface Request {
+  type: string;
+  region: Region;
   balancer: string;
-  guaranteedDivisor: number;
-  width: number;
-  height: number;
-  minImag: number;
-  maxImag: number;
-  minReal: number;
-  maxReal: number;
-  validation: number;
-  maxIteration: number;
+  fractal: string;
 }
 
 export interface Region {
@@ -45,12 +39,14 @@ export const isEmptyRegion = (region: Region) => {
 export interface WorkerInfo {
   rank: number;
   computationTime: number;
+  mpiTime: number;
   region: Region;
 }
 
 export interface Regions {
   type: string;
   regionCount: number;
+  balancerTime: number;
   regions: WorkerInfo[];
 }
 

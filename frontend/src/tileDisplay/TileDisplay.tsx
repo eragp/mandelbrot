@@ -232,6 +232,8 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
   }
 
   private updateAllViews() {
+    // if the container size of the map has been changed, update the leaflet internal size to match
+    this.map.invalidateSize();
     const center = this.map.getCenter();
     this.center = leafletToComplex(center.lat, center.lng, this.map.getZoom());
     this.props.viewCenter.set(this.center);

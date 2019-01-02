@@ -1,4 +1,5 @@
 import { getBottomRightPoint, getTopLeftPoint, project } from "../tileDisplay/Project";
+import {Request} from "../connection/ExchangeTypes";
 import { TileSize, MaxIteration } from "../Constants";
 import { Point3D } from "../misc/Point";
 import { Map } from "leaflet";
@@ -15,7 +16,7 @@ let currentImplementation: string;
  * Otherwise the corresponding request for the backend is returned.
  * @param {*} map current Leaflet map
  */
-export const request = (map: Map, balancer: string, implementation: string) => {
+export const request = (map: Map, balancer: string, implementation: string): Request => {
   const bounds = map.getPixelBounds();
   const zoom = map.getZoom();
 

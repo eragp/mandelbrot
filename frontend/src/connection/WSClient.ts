@@ -1,4 +1,4 @@
-import { RegionData, Regions } from "./ExchangeTypes";
+import { RegionData, Regions, Request } from "./ExchangeTypes";
 import { groupRegions, RegionGroup } from "../misc/RegionGroup";
 import { registerCallback } from "../misc/registerCallback";
 import { StatsCollector } from "../eval/StatsCollector";
@@ -71,6 +71,7 @@ export default class WebSocketClient implements WS {
             const r = msg as Regions;
             if (stats) {
               stats.setWaiting(r.regionCount);
+              stats.setBalancerTime(r.regionCount, r.balancerTime);
             }
             const g = groupRegions(r.regions);
             // Notify region subdivision listeners
@@ -88,7 +89,7 @@ export default class WebSocketClient implements WS {
     this.socket.close();
   }
 
-  public sendRequest(request: {}) {
+  public sendRequest(request: Request) {
     const message = JSON.stringify(request);
     if (this.socket.readyState === this.socket.OPEN) {
       this.socket.send(message);

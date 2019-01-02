@@ -1,7 +1,7 @@
 {
    "screen":{
-      "width":1920,
-      "height":1080
+      "width":1280,
+      "height":720
    },
    "balancers":[
       "naive",
@@ -10,7 +10,7 @@
    "implementations":[
       "mandelbrot"
    ],
-   "nodeCount":10,
+   "nodeCount": 37,
    "description":"Testing the naive and prediction recursive balancer on a default set of PoIs",
    "pois":[
       {
