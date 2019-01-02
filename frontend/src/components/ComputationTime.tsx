@@ -10,12 +10,12 @@ import {
 import WebSocketClient from "../connection/WSClient";
 
 import "./ComputationTime.css";
-import WorkerContext from "../misc/GroupContext";
+import {GroupObservable} from "../misc/Observable";
 import { RegionGroup, groupRegions} from "../misc/RegionGroup";
 import { WorkerInfo } from "../connection/ExchangeTypes";
 
 interface NodeProgressProps {
-  workerContext: WorkerContext;
+  group: GroupObservable;
   wsClient: WebSocketClient;
 }
 interface ChartState {
@@ -27,7 +27,7 @@ interface ChartState {
  * Shows the computation time of invoked workers
  * Additional documentation on the type of used chart: https://www.chartjs.org/docs/latest/
  */
-export default class NodeProgress extends React.Component<NodeProgressProps, {}> {
+export default class ComputationTime extends React.Component<NodeProgressProps, {}> {
   private websocketClient: WebSocketClient;
   private chartState: ChartState;
   private chart: Chart;
@@ -99,10 +99,10 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
           const data = this.chart.getElementsAtEvent(event)[0] as ChartDataSets;
           if (data) {
             // @ts-ignore: does not have complete .d.ts file
-            this.props.workerContext.setActiveWorker(this.chartState.nodes[data._index]);
+            this.props.group.set(this.chartState.nodes[data._index]);
             this.hoveredItem = data;
           } else if (this.hoveredItem) {
-            this.props.workerContext.setActiveWorker(undefined);
+            this.props.group.set(undefined);
             this.hoveredItem = undefined;
           }
         }
@@ -157,7 +157,7 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
 
     // Highlight segement on active worker change
     // Inspired by https://github.com/chartjs/Chart.js/issues/1768
-    this.props.workerContext.subscribe(activeWorker => {
+    this.props.group.subscribe(activeWorker => {
       // Activate new tooltip if necessary
       const datasets = this.chart.data.datasets as ChartDataSets[];
       if (datasets === undefined) {
@@ -210,7 +210,7 @@ export default class NodeProgress extends React.Component<NodeProgressProps, {}>
     this.chartState.nodes.forEach(group => {
       const rank = group.id;
       labels.push("Group " + rank);
-      colorSet.push(this.props.workerContext.getWorkerColor(rank));
+      colorSet.push(this.props.group.getColor(rank));
       values.push(groupCompTime(group));
     });
 
