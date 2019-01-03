@@ -65,7 +65,7 @@ export const request = (map: Map, balancer: string, implementation: string) => {
     balancer,
     fractal: implementation,
     // TODO: exchange this for a real value
-    nodes: 10
+    nodes: 0
   };
   // console.log("sending Region request: ");
   // console.log(region);

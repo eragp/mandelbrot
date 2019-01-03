@@ -118,7 +118,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         return;
     }
 
-    unsigned short int regionCount = 0;
+    int regionCount = 0;
     Region region{};
     const char* balancer;
     enum fractal_type fractal_type;
@@ -168,7 +168,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         region.validation = request["region"]["validation"].GetInt();
         region.guaranteedDivisor = request["region"]["guaranteedDivisor"].GetUint();
 
-        regionCount = (unsigned short int) request["nodes"].GetInt();
+        regionCount = request["nodes"].GetInt();
 
     } catch (std::out_of_range &e) {
         std::cerr << "Inclompletely specified region requested: " << request_string;
