@@ -118,6 +118,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         return;
     }
 
+    unsigned short int nodeCount = 0;
     Region region{};
     const char* balancer;
     enum fractal_type fractal_type;
@@ -167,6 +168,8 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         region.validation = request["region"]["validation"].GetInt();
         region.guaranteedDivisor = request["region"]["guaranteedDivisor"].GetUint();
 
+        nodeCount = (unsigned short int) request["nodes"].GetInt();
+
     } catch (std::out_of_range &e) {
         std::cerr << "Inclompletely specified region requested: " << request_string;
         return;
@@ -183,7 +186,14 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         current_big_region = region;
     }
 
-    int nodeCount = world_size - 1;
+    // Set nodeCount correctly if value is erroneous
+    if (nodeCount > world_size - 1 || nodeCount <= 0) {
+        nodeCount = world_size - 1;
+        std::cout << "NodeCount was erroneous. Set to " << nodeCount << " to prevent errors." << std::endl;
+    } else {
+        std::cout << "NodeCount is " << nodeCount << std::endl;
+    }
+
     Balancer *b = BalancerPolicy::chooseBalancer(balancer, fractal_bal);
     // Measure time needed for balancing - Start
     std::chrono::high_resolution_clock::time_point balancerTimeStart = std::chrono::high_resolution_clock::now();
@@ -229,6 +239,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         std::lock_guard<std::mutex> lock(websocket_request_to_mpi_lock);
         websocket_request_to_mpi.clear();
         for (int i = 0 ; i < nodeCount ; i++) {
+            blocks[i].nodeCount = nodeCount;
             blocks[i].fractal = fractal_type;
             websocket_request_to_mpi[i] = blocks[i];
         }
@@ -364,6 +375,7 @@ void Host::send() {
         regionJSON.AddMember("maxIteration", region.maxIteration, answer.GetAllocator());
         regionJSON.AddMember("validation", region.validation, answer.GetAllocator());
         regionJSON.AddMember("guaranteedDivisor", region.guaranteedDivisor, answer.GetAllocator());
+        regionJSON.AddMember("regionCount", region.nodeCount, answer.GetAllocator());
 
         workerInfoJSON.AddMember("region", regionJSON, answer.GetAllocator());
 

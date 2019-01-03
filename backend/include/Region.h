@@ -58,6 +58,12 @@ struct Region {
      */
     enum fractal_type fractal;
 
+    /**
+     * Do not change.
+     * Number of nodes used to compute the corresponding big region.
+     */
+    unsigned short int nodeCount;
+
     unsigned int getPixelCount() {
         return width * height;
     }
