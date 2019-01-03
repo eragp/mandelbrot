@@ -68,7 +68,7 @@ class App extends React.Component<{}, {}> {
             <IdleTime group={group} wsclient={ws} />
           </div>
           <div className="col-3">
-            <NodeProgress group={group} wsClient={ws} />
+            <ComputationTime group={group} wsClient={ws} />
           </div>
         </div>
       </div>
