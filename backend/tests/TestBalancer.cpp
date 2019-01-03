@@ -46,24 +46,6 @@ bool testInvariants(Region fullRegion, Region part) {
 	return divisorEqual && fractalEqual && validationEqual && maxIterEqual;
 }
 
-bool testOffset(Region fullRegion, Region part) {
-	double deltaReal = Fractal::deltaReal(fullRegion.maxReal, fullRegion.minReal, fullRegion.width);
-	double deltaImaginary = Fractal::deltaImaginary(fullRegion.maxImaginary, fullRegion.minImaginary, fullRegion.height);
-
-	// doubles are never exact --> round
-	int expectedHOffset = (int) round((part.minReal - fullRegion.minReal) / deltaReal);
-	if (part.hOffset != expectedHOffset) {
-		std::cout << "hOffset: expected -> " << expectedHOffset << " observed -> " << part.hOffset << std::endl;
-	}
-
-	int expectedVOffset = (int) round((fullRegion.maxImaginary - part.maxImaginary) / deltaImaginary);
-	if (part.vOffset != expectedVOffset) {
-		std::cout << "vOffset: expected -> " << expectedVOffset << " observed -> " << part.vOffset << std::endl;
-	}
-
-	return part.hOffset == expectedHOffset && part.vOffset == expectedVOffset;
-}
-
 bool testDivisor(Region fullRegion, Region part) {
 	bool dividesWidth = part.width % part.guaranteedDivisor == 0;
 	if (!dividesWidth) {
@@ -109,6 +91,67 @@ bool testRatio(Region fullRegion, Region part) {
 	return xInRange && yInRange;
 }
 
+bool testOffset(Region fullRegion, Region part) {
+	double deltaReal = Fractal::deltaReal(fullRegion.maxReal, fullRegion.minReal, fullRegion.width);
+	double deltaImaginary = Fractal::deltaImaginary(fullRegion.maxImaginary, fullRegion.minImaginary, fullRegion.height);
+
+	// doubles are never exact --> round
+	int expectedHOffset = (int)round((part.minReal - fullRegion.minReal) / deltaReal);
+	if (part.hOffset != expectedHOffset) {
+		std::cout << "hOffset: expected -> " << expectedHOffset << " observed -> " << part.hOffset << std::endl;
+	}
+
+	int expectedVOffset = (int)round((fullRegion.maxImaginary - part.maxImaginary) / deltaImaginary);
+	if (part.vOffset != expectedVOffset) {
+		std::cout << "vOffset: expected -> " << expectedVOffset << " observed -> " << part.vOffset << std::endl;
+	}
+
+	return part.hOffset == expectedHOffset && part.vOffset == expectedVOffset;
+}
+
+bool testCoverage(Region region, Region* subregions) {
+	bool disjunct = true;
+	bool entirelyCovered = true;
+
+	int widthTile = region.width / region.guaranteedDivisor;
+	int heightTile = region.height / region.guaranteedDivisor;
+
+	std::vector<std::vector<bool>> covered(heightTile, std::vector<bool>(widthTile));
+
+	for (int i = 0; i < nodes; i++) {
+		int partWidthTile = subregions[i].width / subregions[i].guaranteedDivisor;
+		int partHOffsetTile = subregions[i].hOffset / subregions[i].guaranteedDivisor;
+
+		int partHeightTile = subregions[i].height / subregions[i].guaranteedDivisor;
+		int partVOffsetTile = subregions[i].vOffset / subregions[i].guaranteedDivisor;
+
+		for (int y = partVOffsetTile; y < partHeightTile + partVOffsetTile; y++) {
+			for (int x = partHOffsetTile; x < partWidthTile + partHOffsetTile; x++) {
+				if (covered[y][x]) {
+					disjunct = false;
+				}
+
+				covered[y][x] = true;
+			}
+		}
+	}
+
+	if (!disjunct) {
+		std::cout << "subregions are not disjunct" << std::endl;
+	}
+
+	for (int y = 0; y < heightTile; y++) {
+		for (int x = 0; x < widthTile; x++) {
+			if (!covered[y][x]) {
+				std::cout << "(" << x << "|" << y << ") not covered" << std::endl;
+				entirelyCovered = false;
+			}
+		}
+	}
+
+	return disjunct && entirelyCovered;
+}
+
 void testBalancerOutput(Region fullRegion, Region* output) {
 	bool failed = false;
 	for (int i = 0; i < nodes; i++) {
@@ -132,6 +175,12 @@ void testBalancerOutput(Region fullRegion, Region* output) {
 			failed = true;
 		}
 	}
+
+	if (!testCoverage(fullRegion, output)) {
+		std::cerr << "output failed coverage test" << std::endl;
+		failed = true;
+	}
+
 	if (!failed) {
 		std::cout << "Output test succesful!" << std::endl;
 	}
