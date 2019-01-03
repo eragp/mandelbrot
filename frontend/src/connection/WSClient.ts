@@ -57,12 +57,8 @@ export default class WebSocketClient implements WS {
           {
             // filter empty RegionData
             const r = msg as RegionData;
-            // filter answers for not current region
-            if (!this.insideCurrentRegions(r.workerInfo)) {
-              break;
-            }
-            // filter out empty regions
-            if (isEmptyRegion(r.workerInfo.region)) {
+            // filter answers for not current region & filter out empty regions
+            if (!this.insideCurrentRegions(r.workerInfo) || isEmptyRegion(r.workerInfo.region)) {
               break;
             }
             if (stats) {
@@ -124,10 +120,10 @@ export default class WebSocketClient implements WS {
   }
 
   private insideCurrentRegions(data: WorkerInfo) {
-    for (const w of this.currentRegions) {
+    const dataRegion = data.region;
+    return this.currentRegions.some(w => {
       const curRegion = w.region;
-      const dataRegion = data.region;
-      if (
+      return (
         w.rank === data.rank &&
         curRegion.fractal.toLowerCase() === dataRegion.fractal.toLowerCase() &&
         curRegion.validation === dataRegion.validation &&
@@ -139,10 +135,7 @@ export default class WebSocketClient implements WS {
         curRegion.maxImag === dataRegion.maxImag &&
         curRegion.minReal === dataRegion.minReal &&
         curRegion.maxReal === dataRegion.maxReal
-      ) {
-        return true;
-      }
-    }
-    return false;
+      );
+    });
   }
 }
