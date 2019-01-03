@@ -63,6 +63,7 @@ export default class WebSocketClient implements WS {
             }
             if (stats) {
               stats.setComputationTime(r.workerInfo.rank, r.workerInfo.computationTime);
+              stats.setMpiTime(r.workerInfo.rank, r.workerInfo.mpiTime);
             }
             // Notify regionData/worker observers
             workerCallback.forEach(fn => fn(r));
