@@ -162,23 +162,6 @@ mkdir ~/.eragp-mandelbrot
     \end{lstlisting}
 \end{figure}
 
-Aus der Bibliothek \verb|boost| muss die Teilbibliothek \verb|boost_system| lokal kompiliert werden
-Dazu werden die Befehle aus \autoref{shell:install_boost} ausgeführt,
-um die Version 1.67.0 herunterzuladen, zu entpacken und lokal zu installieren.
-
-\begin{figure}[h!]
-	\begin{lstlisting}[language=bash, caption={Lokale Installation der Bibliothek boost.}, label={shell:install_boost}]
-mkdir "~/.eragp-mandelbrot/install"
-mkdir "~/.eragp-mandelbrot/local"
-cd "~/.eragp-mandelbrot/install"
-wget "https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.bz2"
-tar --bzip2 -xf boost_1_67_0.tar.bz2
-cd boost_1_67_0
-./bootstrap.sh --prefix="$HOME/.eragp-mandelbrot/local/" --with-libraries=system
-./b2 install
-    \end{lstlisting}
-\end{figure}
-
 Die 'Header-only' Libraries \verb|websocketpp| und \verb|rapidjson| müssen
 lediglich an einen fixen Ort kopiert werden.
 Dies erledigen die Befehle aus \autoref{shell:install_header_libs}.
@@ -194,6 +177,31 @@ git clone https://github.com/Tencent/rapidjson/
     \end{lstlisting}
 \end{figure}
 
+
+Aus der Bibliothek \verb|boost| muss die Teilbibliothek \verb|boost_system| lokal kompiliert werden
+Dazu werden die Befehle aus \autoref{shell:install_boost} ausgeführt,
+um die Version 1.67.0 herunterzuladen, zu entpacken und lokal zu installieren.
+Beachten Sie, dass das kompilieren auch wie in \autoref{par:himmuc_build_backend} beschrieben
+von einem der Boards ausgeführt werden muss.
+
+\begin{figure}[h!]
+    \begin{lstlisting}[language=bash, caption={Lokale Installation der Bibliothek boost.}, label={shell:install_boost}]
+# Erstellen der notwendigen Ordnerstrukturen
+mkdir "~/.eragp-mandelbrot/install"
+mkdir "~/.eragp-mandelbrot/local"
+# Einrichten des Internetproxys
+export http_proxy=proxy.in.tum.de:8080
+export https_proxy=proxy.in.tum.de:8080
+# Herunterladen und kompilieren der Boost-Bibliothek
+cd "~/.eragp-mandelbrot/install"
+wget "https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.bz2"
+tar --bzip2 -xf boost_1_67_0.tar.bz2
+cd boost_1_67_0
+./bootstrap.sh --prefix="$HOME/.eragp-mandelbrot/local/" --with-libraries=system
+./b2 install
+    \end{lstlisting}
+\end{figure}
+
 \paragraph{Kompilieren des Backends}\label{par:himmuc_build_backend}
 
 Stellen Sie zunächst sicher, dass auf dem Cluster die Quelldateien des Backendes (im Ordner \verb|backend/|) liegen
@@ -201,7 +209,7 @@ Stellen Sie zunächst sicher, dass auf dem Cluster die Quelldateien des Backende
 Zum Kompilieren des Backends sollte sich auf einen Raspberry Pi oder ODroid
 per ssh eingeloggt werden\footnote{Es existiert ein Entwicklerzugang zu einem geteilten Raspberry Pi über die Adresse \url{sshgate-gepasp.in.tum.de}. Dieser wird auch vom Pythonskript genutzt}
 
-Auf dem Board, aus dem Ordner des Backendquellcodes müssen sie zum kompilieren
+Auf dem Board, aus dem Ordner des Backendquellcodes müssen Sie zum kompilieren
 des Backendes die Befehle aus \autoref{shell:himmuc_compile_backend} ausführen.
 
 \begin{figure}[h!]
