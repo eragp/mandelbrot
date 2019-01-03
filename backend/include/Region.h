@@ -60,9 +60,9 @@ struct Region {
 
     /**
      * Do not change.
-     * Number of nodes used to compute the corresponding big region.
+     * Number of regions, the corresponding big region got split into.
      */
-    unsigned short int nodeCount;
+    unsigned short int regionCount;
 
     unsigned int getPixelCount() {
         return width * height;
