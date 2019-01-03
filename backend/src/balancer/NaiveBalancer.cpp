@@ -83,6 +83,7 @@ Region* NaiveBalancer::balanceLoad(Region region, int nodeCount)
 			ret[retPos].maxIteration = region.maxIteration;
 			ret[retPos].validation = region.validation;
 			ret[retPos].guaranteedDivisor = region.guaranteedDivisor;
+			ret[retPos].fractal = region.fractal;
 
 			if (x < nodesWithExtendedWidth) {
 				// Take one additional piece (width += region.guaranteedDivisor), all parts before were extended
