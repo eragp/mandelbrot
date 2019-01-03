@@ -93,7 +93,7 @@ if __name__ == '__main__':
                 "ssh", sshserver, "mkdir .eragp-mandelbrot/local"
             ], stderr=subprocess.DEVNULL, check=True)
             subprocess.run([
-                "ssh", sshserver, "eragp-mandelbrot/backend/himmuc/install_boost.sh"
+                "ssh", sshserver_rpi, "eragp-mandelbrot/backend/himmuc/install_boost.sh"
             ])
         except subprocess.CalledProcessError:
             print("Boost libraries already installed")
