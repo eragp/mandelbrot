@@ -49,13 +49,9 @@ export default class WebSocketClient {
           {
             // filter empty RegionData
             const r = msg as RegionData;
-            // filter answers for not current region
-            if(!this.insideCurrentRegions(r.workerInfo)){
-                break;
-            }
-            // filter out empty regions
-            if(isEmptyRegion(r.workerInfo.region)){
-                break;
+            // filter answers for not current region & filter out empty regions
+            if (!this.insideCurrentRegions(r.workerInfo) || isEmptyRegion(r.workerInfo.region)) {
+              break;
             }
             // Notify regionData/worker observers
             workerCallback.forEach(call => call(r));
@@ -122,25 +118,23 @@ export default class WebSocketClient {
     return promise;
   }
 
-  private insideCurrentRegions(data: WorkerInfo){
-    for(const w of this.currentRegions){
-        const curRegion = w.region;
-        const dataRegion = data.region;
-        if(w.rank == data.rank
-            && curRegion.fractal.toLowerCase() == dataRegion.fractal.toLowerCase()
-            && curRegion.validation == dataRegion.validation
-            && curRegion.hOffset == dataRegion.hOffset
-            && curRegion.vOffset == dataRegion.vOffset
-            && curRegion.width == dataRegion.width
-            && curRegion.height == dataRegion.height
-            && curRegion.minImag == dataRegion.minImag
-            && curRegion.maxImag == dataRegion.maxImag
-            && curRegion.minReal == dataRegion.minReal
-            && curRegion.maxReal == dataRegion.maxReal){
-                return true;
-            }
-    }
-    return false;
+  private insideCurrentRegions(data: WorkerInfo) {
+    const dataRegion = data.region;
+    return this.currentRegions.some(w => {
+      const curRegion = w.region;
+      return (
+        w.rank === data.rank &&
+        curRegion.fractal.toLowerCase() === dataRegion.fractal.toLowerCase() &&
+        curRegion.validation === dataRegion.validation &&
+        curRegion.hOffset === dataRegion.hOffset &&
+        curRegion.vOffset === dataRegion.vOffset &&
+        curRegion.width === dataRegion.width &&
+        curRegion.height === dataRegion.height &&
+        curRegion.minImag === dataRegion.minImag &&
+        curRegion.maxImag === dataRegion.maxImag &&
+        curRegion.minReal === dataRegion.minReal &&
+        curRegion.maxReal === dataRegion.maxReal
+      );
+    });
   }
-
 }
