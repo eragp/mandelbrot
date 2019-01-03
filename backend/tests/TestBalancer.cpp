@@ -32,7 +32,17 @@ bool testInvariants(Region fullRegion, Region part) {
 		std::cout << "fractal: expected -> " << fullRegion.fractal << " observed -> " << part.fractal << std::endl;
 	}
 
-	return divisorEqual && fractalEqual;
+	bool validationEqual = fullRegion.validation == part.validation;
+	if (!validationEqual) {
+		std::cout << "validation: expected -> " << fullRegion.validation << " observed -> " << part.validation << std::endl;
+	}
+
+	bool maxIterEqual = fullRegion.maxIteration == part.maxIteration;
+	if (!maxIterEqual) {
+		std::cout << "maxIteration: expected -> " << fullRegion.maxIteration << " observed -> " << part.maxIteration << std::endl;
+	}
+
+	return divisorEqual && fractalEqual && validationEqual && maxIterEqual;
 }
 
 bool testDivisor(Region fullRegion, Region part) {
