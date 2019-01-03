@@ -13,6 +13,7 @@ export interface Request {
   maxReal: number;
   validation: number;
   maxIteration: number;
+  nodes: number;
 }
 
 export interface Region {
