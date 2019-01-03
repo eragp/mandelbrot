@@ -4,12 +4,12 @@
       "height":720
    },
    "balancers":[
-      "predictionRecursive"
+      "predictionRecursive", "naive", "column", "naiveRecursive"
    ],
    "implementations":[
-      "mandelbrot"
+      "mandelbrot" 
    ],
-   "nodeCount": 31,
+   "nodeCount": 37,
    "description":"Testing the naive and prediction recursive balancer on a default set of PoIs",
    "pois":[
       {

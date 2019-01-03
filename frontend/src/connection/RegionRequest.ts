@@ -1,5 +1,5 @@
 import { getBottomRightPoint, getTopLeftPoint, project } from "../tileDisplay/Project";
-import {Request} from "../connection/ExchangeTypes";
+import { Request } from "../connection/ExchangeTypes";
 import { TileSize, MaxIteration } from "../Constants";
 import { Point3D } from "../misc/Point";
 import { Map } from "leaflet";
@@ -16,7 +16,7 @@ let currentImplementation: string;
  * Otherwise the corresponding request for the backend is returned.
  * @param {*} map current Leaflet map
  */
-export const request = (map: Map, balancer: string, implementation: string): Request => {
+export const request = (map: Map, balancer: string, implementation: string): Request | null => {
   const bounds = map.getPixelBounds();
   const zoom = map.getZoom();
 
@@ -30,7 +30,7 @@ export const request = (map: Map, balancer: string, implementation: string): Req
     currentBalancer === balancer &&
     currentImplementation === implementation
   ) {
-    return;
+    return null;
   }
   currentTopLeft = topLeft;
   currentBottomRight = botRight;
@@ -62,11 +62,11 @@ export const request = (map: Map, balancer: string, implementation: string): Req
       validation: zoom,
       // Divisor for width and height. Will be used to perform load balancing
       guaranteedDivisor: TileSize,
-      maxIteration: MaxIteration
+      maxIteration: MaxIteration,
+      fractal: implementation
     },
     balancer,
     fractal: implementation
   };
-  // console.log("sending Region request: ", region);
   return region;
 };
