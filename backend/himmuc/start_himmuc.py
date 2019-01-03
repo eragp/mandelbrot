@@ -81,13 +81,16 @@ if __name__ == '__main__':
         try:
             print("Attempting to install header only libraries on backend")
             subprocess.run([
-                "ssh", sshserver, "mkdir .eragp-mandelbrot/install"
-            ], stderr=subprocess.DEVNULL)
+                "ssh", sshserver, "mkdir -p .eragp-mandelbrot/install"
+            ], stderr=subprocess.DEVNULL, check=True)
             subprocess.run([
                 "ssh", sshserver, "eragp-mandelbrot/backend/himmuc/install_hlibs.sh"
             ])
         except subprocess.CalledProcessError:
-            print("Header libraries already installed")
+            print("Header libraries already installed, updating")
+            subprocess.run([
+                "ssh", sshserver, "eragp-mandelbrot/backend/himmuc/update_hlibs.sh"
+            ])
         try:
             print("Attempting to install boost on backend")
             # Attempt to create boost install folder
