@@ -120,9 +120,9 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
 
     Region region{};
     const char* balancer;
-    enum fractal_type fractal_type;
     Fractal* fractal_bal = nullptr;
     try {
+        enum fractal_type fractal_type;
         balancer = request["balancer"].GetString();
         const char * fractal_str = request["fractal"].GetString();
         // Case insensitive compares (just convenience for frontend devs)
@@ -166,6 +166,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         region.maxIteration = (unsigned short int) request["region"]["maxIteration"].GetUint();
         region.validation = request["region"]["validation"].GetInt();
         region.guaranteedDivisor = request["region"]["guaranteedDivisor"].GetUint();
+        region.fractal = fractal_type;
 
     } catch (std::out_of_range &e) {
         std::cerr << "Inclompletely specified region requested: " << request_string;
@@ -229,7 +230,6 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         std::lock_guard<std::mutex> lock(websocket_request_to_mpi_lock);
         websocket_request_to_mpi.clear();
         for (int i = 0 ; i < nodeCount ; i++) {
-            blocks[i].fractal = fractal_type;
             websocket_request_to_mpi[i] = blocks[i];
         }
         mpi_send_regions = true;
