@@ -291,7 +291,6 @@ ssh -S .tunnel.ssh -O exit rpi<host number>
 ps -eo comm,pid | grep srun
 kill <srun pid>
 \end{lstlisting}
-% TODO
 
 \subsubsection{Installation des Frontends}
 Das Frontend ist in TypeScript\footnote{\url{https://www.typescriptlang.org/}} (erweiterung von JavaScript\footnote{\url{https://en.wikipedia.org/wiki/JavaScript}})
@@ -475,15 +474,24 @@ um zu vermeiden dass Regionsdaten von zuvor berechneten Regionen falsch verwende
 
 
 Nach dem Parsen der Nachricht wird die Region global festgelegt und beim korrekten Lastbalancierer eine Zerlegung der angefragten Region über \verb|Balancer::balanceLoad| gestartet.
-Aus dem Ergebnis werden leere Regionen werden anschließend aussortiert und alle anderen in eine per mutex Thread-gesicherte Datenstruktur
-gelegt. Der MPI verwendende Thread, der diese Regionen anschließend an die Worker sendet wird über das Setzen des booleschen Wertes \verb|mpi_set_regions|
-auf \verb|true| darüber informiert, dass neue Regionen zum versenden zur Verfügung stehen.
-% TODO dokumentieren, dass regionsaufträge erst nach der information des frontends  gesendet werden (falls nicht-filtern gemerged wird)
-Dabei ist der Rang des Workers, der eine Region berechnen soll genau der Index der Region in der Datenstruktur sein.
-Ist ein Worker nicht verfügbar, so werden alle folgenden Ränge um eins erhöht (siehe \autoref{src:Host.cpp.handle_region_request}).
+
+Jeder Region wird ein Worker zugewiesen.
+Dabei ist der Rang des Workers, der eine Region berechnen soll genau der Index der Region in dem zurückgegebenen Array.
+Ist ein Worker nicht verfügbar, so werden sein und alle folgenden Ränge um eins erhöht (siehe \autoref{src:Host.cpp.handle_region_request}).
 Damit kann der Websocketprozess unabhängig von der tatsächlichen Verteilung den Rang des berechnenden Worker-Prozesses
 bestimmen und in der Antwort an den Client zu der Aufteilung der Prozesse einfügen.
 Die Struktur und eine gültige Antwort des Websocketservers kann \autoref{src:region.json} entnommen werden.
+
+Nachdem die Aufteilung als Antwort auf die Anfrage dem Websocketprozess bereitgestellt wurde, werden die Teilregionen in eine per Mutexlock-gesicherte Datenstruktur
+gelegt. Der MPI verwendende Thread, der diese Regionen anschließend an die Worker sendet wird über das Setzen des booleschen Wertes \verb|mpi_set_regions|
+auf \verb|true| darüber informiert, dass neue Regionen zum versenden zur Verfügung stehen.
+
+Indem die Regionaufteilung zuerst an das Frontend und anschließend an die Worker gesendet wird,
+wird sichergestellt, dass das Frontend alle empfangenen Regionsdaten korrekt der angefragten Region zuordnen kann.
+Dabei wird zwar Rechenzeit verschenkt, jedoch steigt durch die Erstellung sehr kleiner oder leerer Teilregionen
+die Wahrscheinlichkeit, dass ein Arbeiter mit seiner Region zu früh abgeschlossen ist.
+Würde dann dessen Region vor der Gesamtaufteilung beim Frontend ankommen, besteht die Gefahr,
+dass es die Daten verwirft.
 
 \begin{figure}
 	\lstinputlisting[caption={Algorithmus zur Zuordnung von Regionen auf Worker in Host.cpp}, label={src:Host.cpp.handle_region_request}, firstline=231, firstnumber=231, lastline=240]{../../backend/src/actors/Host.cpp}
@@ -755,16 +763,23 @@ Bei der Initialisierung baut das erzeugte Objekt eine Verbindung zu der lokalen 
 }.
 Dort sollte das Backend bereit sein, eine Websocketverbindung anzunehmen.
 
-Zudem bietet die Klasse die Methode \texttt{sendRequest}, welche ein übergebenes Objekt JSON-kodiert und versendet.
+Zudem bietet die Klasse die Methode \texttt{sendRequest}, welche ein übergebenes RegionRequest-Objekt JSON-kodiert und versendet.
 
-% TODO dokumentieren des filterns von regionsdaten, die nicht in aktueller region liegen (falls merge)
 Wichtig für den Rest des Frontends sind die Methoden \texttt{registerRegion} und \texttt{registerRegionData}.
 An diese Methoden können Callbacks übergeben werden, die aufgerufen werden, wenn das Frontend über die Websocketverbindung
 respektive ein \texttt{Region}-Objekt oder ein \texttt{RegionData}-Objekt empfängt.
-Diese sind respektive die Aufteilung einer angefragten Region (siehe \autoref{src:region.json})
+Diese sind die Aufteilung einer angefragten Region (siehe \autoref{src:region.json})
 oder die berechneten Iterationswerte einer Region (siehe \autoref{src:regionData.json}).
 Die übergebenen Callbacks erhalten als Parameter respektive die vorgruppierte Aufteilung als ein Array von Workergruppen (\texttt{RegionGroup})
 oder das JSON-dekodierte \verb|RegionData|-Objekt.
+
+Zudem wird hierbei bereits eine Filterung der eingehenden Regionsdaten vorgenommen.
+Bei Empfang einer Regionsaufteilung, wird diese zwischengespeichert.
+Jedes empfangene Regionsdatenobjekt wird dann bei Empfang daraufhin überprüft,
+ob der darin dargestellte Ausschnitt einer Regionsaufteilung entspricht (dazu wird das \verb|region|-Attribut verglichen)
+und das dargestellte Fraktal der zuletzt übergebenen Auswahl entspricht.
+Diese Filtrierung ist notwendig, da Worker Regionsdaten auch "verspätet" absenden können,
+falls bei dem zuvorgehenden Bereich nicht gewartet wurde bis die Berechnungen aller Worker entgegengenommen wurden.
 
 Die Definitionen der zugehörigen Objekt-Interfaces finden sich in den Dateien \verb|RegionGroup.ts| und \verb|ExchangeTypes.ts|.
 
