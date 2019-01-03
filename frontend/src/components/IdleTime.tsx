@@ -56,6 +56,7 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
             minReal: 0,
             validation: 0,
             width: 0,
+            fractal: "mandelbrot"
         }
     };
     this.chartState = {
@@ -174,7 +175,7 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
       const active = new Map();
       const progress = new Map();
 
-      const animationDuration = 150;
+      const animationDuration = 750;
       for (const group of groups) {
         for (const region of group.getLeafs()) {
             active.set(region.id, true);

@@ -120,11 +120,12 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
 
     Region region{};
     const char* balancer;
+    const char* fractal_str;
     enum fractal_type fractal_type;
     Fractal* fractal_bal = nullptr;
     try {
         balancer = request["balancer"].GetString();
-        const char * fractal_str = request["fractal"].GetString();
+        fractal_str = request["fractal"].GetString();
         // Case insensitive compares (just convenience for frontend devs)
         if(boost::iequals(fractal_str, "mandelbrot32")){
             fractal_type = mandelbrot32;
@@ -204,14 +205,13 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     }
 
     // Delete empty subregions
-    // Try out: do not
     std::vector<Region> newBlocks;
     for (int i = 0 ; i < nodeCount ; i++) {
-        //if ((blocks[i].minReal == blocks[i].maxReal && blocks[i].maxImaginary == blocks[i].minImaginary) || blocks[i].width == 0 || blocks[i].height == 0) {
-        //    std::cout << "Empty Region " << i << " deleted." << std::endl;
-        //} else {
+        if ((blocks[i].minReal == blocks[i].maxReal && blocks[i].maxImaginary == blocks[i].minImaginary) || blocks[i].width == 0 || blocks[i].height == 0) {
+            std::cout << "Empty Region " << i << " deleted." << std::endl;
+        } else {
             newBlocks.push_back(blocks[i]);
-        //}
+        }
     }
     blocks = &newBlocks[0];
     nodeCount = newBlocks.size();
@@ -266,6 +266,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         region.AddMember("maxIteration", t.maxIteration, reply.GetAllocator());
         region.AddMember("validation", t.validation, reply.GetAllocator());
         region.AddMember("guaranteedDivisor", t.guaranteedDivisor, reply.GetAllocator());
+        region.AddMember("fractal", Value().SetString(fractal_str, strlen(fractal_str)), reply.GetAllocator());
 
         Value entry;
         entry.SetObject();
@@ -291,6 +292,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         std::lock_guard<std::mutex> lock(websocket_request_to_mpi_lock);
         websocket_request_to_mpi.clear();
         for (int i = 0 ; i < nodeCount ; i++) {
+            // Store fractal in region
             blocks[i].fractal = fractal_type;
             websocket_request_to_mpi[i] = blocks[i];
         }
@@ -366,6 +368,25 @@ void Host::send() {
         regionJSON.AddMember("maxIteration", region.maxIteration, answer.GetAllocator());
         regionJSON.AddMember("validation", region.validation, answer.GetAllocator());
         regionJSON.AddMember("guaranteedDivisor", region.guaranteedDivisor, answer.GetAllocator());
+        // Add fractal
+        const char* fractal_str;
+        switch(region.fractal){
+            case mandelbrot32:
+                fractal_str = "mandelbrot32";
+                break;
+            case mandelbrot64:
+                fractal_str = "mandelbrot64";
+                break;
+            case mandelbrotSIMD32:
+                fractal_str = "mandelbrotSIMD32";
+                break;
+            case mandelbrotSIMD64:
+                fractal_str = "mandelbrotSIMD64";
+                break;
+            default:
+                fractal_str = "mandelbrot";
+        }
+        regionJSON.AddMember("fractal", Value().SetString(fractal_str, strlen(fractal_str)), answer.GetAllocator());
 
         workerInfoJSON.AddMember("region", regionJSON, answer.GetAllocator());
 

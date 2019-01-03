@@ -48,10 +48,13 @@ export default class WebSocketClient {
         case "regionData":
           {
             // filter empty RegionData
-            // Do not filter out empty regions, as they have to be displayed as idle nodes too
             const r = msg as RegionData;
-            // TODO filter answers for not current region
+            // filter answers for not current region
             if(!this.insideCurrentRegions(r.workerInfo)){
+                break;
+            }
+            // filter out empty regions
+            if(isEmptyRegion(r.workerInfo.region)){
                 break;
             }
             // Notify regionData/worker observers
@@ -60,11 +63,12 @@ export default class WebSocketClient {
           break;
         case "region":
           {
-            // Do not filter out empty regions, as they have to be displayed as idle nodes too
-            const g = groupRegions((msg as Regions).regions);
+            // filter out empty regions
+            const regions = (msg as Regions).regions.filter(w => !isEmptyRegion(w.region));
+            const g = groupRegions(regions);
             // Notify region subdivision listeners
             regionCallback.forEach(call => call(g));
-            this.currentRegions = (msg as Regions).regions;
+            this.currentRegions = regions;
           }
           break;
         default:
@@ -123,6 +127,7 @@ export default class WebSocketClient {
         const curRegion = w.region;
         const dataRegion = data.region;
         if(w.rank == data.rank
+            && curRegion.fractal.toLowerCase() == dataRegion.fractal.toLowerCase()
             && curRegion.validation == dataRegion.validation
             && curRegion.hOffset == dataRegion.hOffset
             && curRegion.vOffset == dataRegion.vOffset
