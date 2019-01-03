@@ -60,7 +60,7 @@ struct Region {
 
     /**
      * Do not change.
-     * Number of regions, the corresponding big region got split into.
+     * Number of regions the corresponding big region got split into.
      */
     unsigned short int regionCount;
 
