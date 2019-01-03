@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "Region.h"
+#include "Fractal.h"
 #include "Mandelbrot.h"
 
 #include "RecursivePredictionBalancer.h"
@@ -43,6 +44,24 @@ bool testInvariants(Region fullRegion, Region part) {
 	}
 
 	return divisorEqual && fractalEqual && validationEqual && maxIterEqual;
+}
+
+bool testOffset(Region fullRegion, Region part) {
+	double deltaReal = Fractal::deltaReal(fullRegion.maxReal, fullRegion.minReal, fullRegion.width);
+	double deltaImaginary = Fractal::deltaImaginary(fullRegion.maxImaginary, fullRegion.minImaginary, fullRegion.height);
+
+	// doubles are never exact --> round
+	int expectedHOffset = (int) round((part.minReal - fullRegion.minReal) / deltaReal);
+	if (part.hOffset != expectedHOffset) {
+		std::cout << "hOffset: expected -> " << expectedHOffset << " observed -> " << part.hOffset << std::endl;
+	}
+
+	int expectedVOffset = (int) round((fullRegion.maxImaginary - part.maxImaginary) / deltaImaginary);
+	if (part.vOffset != expectedVOffset) {
+		std::cout << "vOffset: expected -> " << expectedVOffset << " observed -> " << part.vOffset << std::endl;
+	}
+
+	return part.hOffset == expectedHOffset && part.vOffset == expectedVOffset;
 }
 
 bool testDivisor(Region fullRegion, Region part) {
@@ -105,6 +124,11 @@ void testBalancerOutput(Region fullRegion, Region* output) {
 
 		if (!testRatio(fullRegion, output[i])) {
 			std::cerr << "output[" << i << "] failed ratio test." << std::endl;
+			failed = true;
+		}
+
+		if (!testOffset(fullRegion, output[i])) {
+			std::cerr << "output[" << i << "] failed offset test." << std::endl;
 			failed = true;
 		}
 	}
