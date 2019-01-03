@@ -79,17 +79,24 @@ if __name__ == '__main__':
         sshserver_rpi = "{}@sshgate-gepasp.in.tum.de".format(args.username)
         # check if boost has to be built
         try:
-            print("Attempting to install libraries on backend")
+            print("Attempting to install header only libraries on backend")
+            subprocess.run([
+                "ssh", sshserver, "mkdir .eragp-mandelbrot/install"
+            ], stderr=subprocess.DEVNULL)
+            subprocess.run([
+                "ssh", sshserver, "eragp-mandelbrot/backend/himmuc/install_hlibs.sh"
+            ])
+        except subprocess.CalledProcessError:
+            print("Header libraries already installed")
+        try:
+            print("Attempting to install boost on backend")
             # Attempt to create boost install folder
             # error is thrown when return code is not 0 <=> dir exists
             library_folder_exists = subprocess.run([
                 "ssh", sshserver, "mkdir .eragp-mandelbrot/local"
             ], stderr=subprocess.DEVNULL, check=True)
             subprocess.run([
-                "ssh", sshserver, "mkdir .eragp-mandelbrot/install"
-            ], stderr=subprocess.DEVNULL)
-            subprocess.run([
-                "ssh", sshserver, "eragp-mandelbrot/backend/himmuc/install_libs.sh"
+                "ssh", sshserver, "eragp-mandelbrot/backend/himmuc/install_boost.sh"
             ])
         except subprocess.CalledProcessError:
             print("Backend libraries already installed")
