@@ -31,54 +31,54 @@ void printRegion(Region region) {
 		<< "(maxIteration -> " << region.maxIteration << "); (fractal -> " << region.fractal << ")" << std::endl;
 }
 
-bool testInvariants(Region fullRegion, Region part) {
-	bool divisorEqual = fullRegion.guaranteedDivisor == part.guaranteedDivisor;
+bool testInvariants(Region region, Region subregion) {
+	bool divisorEqual = region.guaranteedDivisor == subregion.guaranteedDivisor;
 	if (!divisorEqual) {
-		std::cout << "guaranteedDivisor: expected -> " << fullRegion.guaranteedDivisor << " observed -> " << part.guaranteedDivisor << std::endl;
+		std::cout << "guaranteedDivisor: expected -> " << region.guaranteedDivisor << " observed -> " << subregion.guaranteedDivisor << std::endl;
 	}
 
-	bool fractalEqual = fullRegion.fractal == part.fractal;
+	bool fractalEqual = region.fractal == subregion.fractal;
 	if (!fractalEqual) {
-		std::cout << "fractal: expected -> " << fullRegion.fractal << " observed -> " << part.fractal << std::endl;
+		std::cout << "fractal: expected -> " << region.fractal << " observed -> " << subregion.fractal << std::endl;
 	}
 
-	bool validationEqual = fullRegion.validation == part.validation;
+	bool validationEqual = region.validation == subregion.validation;
 	if (!validationEqual) {
-		std::cout << "validation: expected -> " << fullRegion.validation << " observed -> " << part.validation << std::endl;
+		std::cout << "validation: expected -> " << region.validation << " observed -> " << subregion.validation << std::endl;
 	}
 
-	bool maxIterEqual = fullRegion.maxIteration == part.maxIteration;
+	bool maxIterEqual = region.maxIteration == subregion.maxIteration;
 	if (!maxIterEqual) {
-		std::cout << "maxIteration: expected -> " << fullRegion.maxIteration << " observed -> " << part.maxIteration << std::endl;
+		std::cout << "maxIteration: expected -> " << region.maxIteration << " observed -> " << subregion.maxIteration << std::endl;
 	}
 
 	return divisorEqual && fractalEqual && validationEqual && maxIterEqual;
 }
 
-bool testDivisor(Region fullRegion, Region part) {
-	bool dividesWidth = part.width % part.guaranteedDivisor == 0;
+bool testDivisor(Region subregion) {
+	bool dividesWidth = subregion.width % subregion.guaranteedDivisor == 0;
 	if (!dividesWidth) {
-		std::cout << "guaranteedDivisor doesn't divide width: expected -> 0 observed -> " << part.width % part.guaranteedDivisor << std::endl;
+		std::cout << "guaranteedDivisor doesn't divide width: expected -> 0 observed -> " << subregion.width % subregion.guaranteedDivisor << std::endl;
 	}
 
-	bool dividesHeight = part.height % part.guaranteedDivisor == 0;
+	bool dividesHeight = subregion.height % subregion.guaranteedDivisor == 0;
 	if (!dividesHeight) {
-		std::cout << "guaranteedDivisor doesn't divide height: expected -> 0 observed -> " << part.height % part.guaranteedDivisor << std::endl;
+		std::cout << "guaranteedDivisor doesn't divide height: expected -> 0 observed -> " << subregion.height % subregion.guaranteedDivisor << std::endl;
 	}
 
 	return dividesWidth && dividesHeight;
 }
 
-bool testRatio(Region fullRegion, Region part) {
+bool testRatio(Region region, Region subregion) {
 	// We need to define a range for the values, since doubles are never exact
 	double epsilon = 0.000000001; // Checks if the values vary in the 8 visible digits
 
 	bool xInRange = true;
 	bool yInRange = true;
 
-	if (part.width != 0) {
-		double expectedXRatio = (fullRegion.maxReal - fullRegion.minReal) / fullRegion.width;
-		double observedXRatio = (part.maxReal - part.minReal) / part.width;
+	if (subregion.width != 0) {
+		double expectedXRatio = (region.maxReal - region.minReal) / region.width;
+		double observedXRatio = (subregion.maxReal - subregion.minReal) / subregion.width;
 		xInRange = (expectedXRatio - epsilon <= observedXRatio) && (observedXRatio <= expectedXRatio + epsilon);
 
 		if (!xInRange) {
@@ -87,9 +87,9 @@ bool testRatio(Region fullRegion, Region part) {
 
 	}
 
-	if (part.height != 0) {
-		double expectedYRatio = (fullRegion.maxImaginary - fullRegion.minImaginary) / fullRegion.height;
-		double observedYRatio = (part.maxImaginary - part.minImaginary) / part.height;
+	if (subregion.height != 0) {
+		double expectedYRatio = (region.maxImaginary - region.minImaginary) / region.height;
+		double observedYRatio = (subregion.maxImaginary - subregion.minImaginary) / subregion.height;
 		yInRange = (expectedYRatio - epsilon <= observedYRatio) && (observedYRatio <= expectedYRatio + epsilon);
 
 		if (!yInRange) {
@@ -100,22 +100,22 @@ bool testRatio(Region fullRegion, Region part) {
 	return xInRange && yInRange;
 }
 
-bool testOffset(Region fullRegion, Region part) {
-	double deltaReal = Fractal::deltaReal(fullRegion.maxReal, fullRegion.minReal, fullRegion.width);
-	double deltaImaginary = Fractal::deltaImaginary(fullRegion.maxImaginary, fullRegion.minImaginary, fullRegion.height);
+bool testOffset(Region region, Region subregion) {
+	double deltaReal = Fractal::deltaReal(region.maxReal, region.minReal, region.width);
+	double deltaImaginary = Fractal::deltaImaginary(region.maxImaginary, region.minImaginary, region.height);
 
 	// doubles are never exact --> round
-	int expectedHOffset = (int) round((part.minReal - fullRegion.minReal) / deltaReal);
-	if (part.hOffset != expectedHOffset) {
-		std::cout << "hOffset: expected -> " << expectedHOffset << " observed -> " << part.hOffset << std::endl;
+	int expectedHOffset = (int)round((subregion.minReal - region.minReal) / deltaReal);
+	if (subregion.hOffset != expectedHOffset) {
+		std::cout << "hOffset: expected -> " << expectedHOffset << " observed -> " << subregion.hOffset << std::endl;
 	}
 
-	int expectedVOffset = (int) round((fullRegion.maxImaginary - part.maxImaginary) / deltaImaginary);
-	if (part.vOffset != expectedVOffset) {
-		std::cout << "vOffset: expected -> " << expectedVOffset << " observed -> " << part.vOffset << std::endl;
+	int expectedVOffset = (int)round((region.maxImaginary - subregion.maxImaginary) / deltaImaginary);
+	if (subregion.vOffset != expectedVOffset) {
+		std::cout << "vOffset: expected -> " << expectedVOffset << " observed -> " << subregion.vOffset << std::endl;
 	}
 
-	return part.hOffset == expectedHOffset && part.vOffset == expectedVOffset;
+	return subregion.hOffset == expectedHOffset && subregion.vOffset == expectedVOffset;
 }
 
 bool testCoverage(TestCase test, Region* subregions) {
@@ -161,32 +161,32 @@ bool testCoverage(TestCase test, Region* subregions) {
 	return disjunct && entirelyCovered;
 }
 
-bool testBalancerOutput(TestCase test, Region* output) {
+bool testBalancerOutput(TestCase test, Region* subregions) {
 	bool failed = false;
 	for (int i = 0; i < test.nodeCount; i++) {
-		if (!testInvariants(*test.region, output[i])) {
-			std::cerr << "output[" << i << "] failed invariants test." << std::endl;
+		if (!testInvariants(*test.region, subregions[i])) {
+			std::cerr << "subregions[" << i << "] failed invariants test." << std::endl;
 			failed = true;
 		}
 
-		if (!testDivisor(*test.region, output[i])) {
-			std::cerr << "output[" << i << "] failed divisor test." << std::endl;
+		if (!testDivisor(subregions[i])) {
+			std::cerr << "subregions[" << i << "] failed divisor test." << std::endl;
 			failed = true;
 		}
 
-		if (!testRatio(*test.region, output[i])) {
-			std::cerr << "output[" << i << "] failed ratio test." << std::endl;
+		if (!testRatio(*test.region, subregions[i])) {
+			std::cerr << "subregions[" << i << "] failed ratio test." << std::endl;
 			failed = true;
 		}
 
-		if (!testOffset(*test.region, output[i])) {
-			std::cerr << "output[" << i << "] failed offset test." << std::endl;
+		if (!testOffset(*test.region, subregions[i])) {
+			std::cerr << "subregions[" << i << "] failed offset test." << std::endl;
 			failed = true;
 		}
 	}
 
-	if (!testCoverage(test, output)) {
-		std::cerr << "output failed coverage test" << std::endl;
+	if (!testCoverage(test, subregions)) {
+		std::cerr << "subregions failed coverage test" << std::endl;
 		failed = true;
 	}
 
@@ -208,6 +208,7 @@ bool testBalancer(TestCase test) {
 	if (printSubregions) {
 		std::cout << "Subregions:" << std::endl;
 		for (int i = 0; i < test.nodeCount; i++) {
+			std::cout << "subregions[" << i << "]: ";
 			printRegion(balance[i]);
 			std::cout << std::endl;
 		}
@@ -228,7 +229,7 @@ int main(int argc, char** argv) {
 			printSubregions = true;
 		}
 	}
-	
+
 	Region test;
 	test.minReal = -1.5;
 	test.maxImaginary = 1.0;
