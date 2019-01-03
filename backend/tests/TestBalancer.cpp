@@ -131,8 +131,10 @@ bool testOffset(Region region, Region subregion) {
 }
 
 bool testCoverage(TestCase test, Region* subregions) {
-	bool disjunct = true;
-	bool entirelyCovered = true;
+	int intersecting = 0;
+	int maxIntersecting = 5;
+	int notCovered = 0;
+	int maxNotCovered = 5;
 
 	int widthTile = test.region->width / test.region->guaranteedDivisor;
 	int heightTile = test.region->height / test.region->guaranteedDivisor;
@@ -140,41 +142,56 @@ bool testCoverage(TestCase test, Region* subregions) {
 	std::vector<std::vector<bool>> covered(heightTile, std::vector<bool>(widthTile));
 
 	for (int i = 0; i < test.nodeCount; i++) {
-		int partWidthTile = subregions[i].width / subregions[i].guaranteedDivisor;
-		int partHOffsetTile = subregions[i].hOffset / subregions[i].guaranteedDivisor;
+		if (isEmptyRegion(subregions[i])) {
+			continue;
+		}
+		if (subregions[i].guaranteedDivisor != 0) {
+			int partWidthTile = subregions[i].width / subregions[i].guaranteedDivisor;
+			int partHOffsetTile = subregions[i].hOffset / subregions[i].guaranteedDivisor;
 
-		int partHeightTile = subregions[i].height / subregions[i].guaranteedDivisor;
-		int partVOffsetTile = subregions[i].vOffset / subregions[i].guaranteedDivisor;
+			int partHeightTile = subregions[i].height / subregions[i].guaranteedDivisor;
+			int partVOffsetTile = subregions[i].vOffset / subregions[i].guaranteedDivisor;
 
-		for (int y = partVOffsetTile; y < partHeightTile + partVOffsetTile; y++) {
-			for (int x = partHOffsetTile; x < partWidthTile + partHOffsetTile; x++) {
-				if (covered[y][x]) {
-					disjunct = false;
+			for (int y = partVOffsetTile; y < partHeightTile + partVOffsetTile; y++) {
+				for (int x = partHOffsetTile; x < partWidthTile + partHOffsetTile; x++) {
+					if (covered[y][x]) {
+						if (intersecting < maxIntersecting) {
+							std::cout << "intersection at (" << x << "|" << y << ")" << std::endl;
+						}
+						intersecting++;
+					}
+
+					covered[y][x] = true;
 				}
-
-				covered[y][x] = true;
 			}
 		}
 	}
 
-	if (!disjunct) {
-		std::cout << "subregions are not disjunct" << std::endl;
+	if (intersecting - maxIntersecting > 0) {
+		std::cout << "and " << intersecting - maxIntersecting << " more intersecting" << std::endl;
 	}
 
 	for (int y = 0; y < heightTile; y++) {
 		for (int x = 0; x < widthTile; x++) {
 			if (!covered[y][x]) {
-				std::cout << "(" << x << "|" << y << ") not covered" << std::endl;
-				entirelyCovered = false;
+				if (notCovered < maxNotCovered) {
+					std::cout << "(" << x << "|" << y << ") not covered" << std::endl;
+				}
+				notCovered++;
 			}
 		}
 	}
 
-	return disjunct && entirelyCovered;
+	if (notCovered - maxNotCovered > 0) {
+		std::cout << "and " << notCovered - maxNotCovered << " more not covered" << std::endl;
+	}
+
+	return intersecting == 0 && notCovered == 0;
 }
 
 bool testBalancerOutput(TestCase test, Region* subregions) {
 	bool failed = false;
+	subregions[0] = subregions[1];
 	for (int i = 0; i < test.nodeCount; i++) {
 		if (isEmptyRegion(subregions[i])) {
 			// Empty regions are always correct
@@ -295,7 +312,7 @@ int main(int argc, char** argv) {
 	if (failed == 0) {
 		std::cout << "All test cases passed!" << std::endl;
 	} else {
-		std::cout << failed << " test cases failed!" << std::endl;
+		std::cout << failed << " of " << testCount << " test cases failed!" << std::endl;
 	}
 
 	delete column;
