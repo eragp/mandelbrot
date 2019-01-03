@@ -31,6 +31,18 @@ void printRegion(Region region) {
 		<< "(maxIteration -> " << region.maxIteration << "); (fractal -> " << region.fractal << ")" << std::endl;
 }
 
+bool isEmptyRegion(Region region) {
+	return region.width == 0 &&
+		region.height == 0 &&
+		region.minImaginary == 0.0 &&
+		region.maxImaginary == 0.0 &&
+		region.minReal == 0.0 &&
+		region.maxReal == 0.0 &&
+		region.hOffset == 0 &&
+		region.vOffset == 0;
+
+}
+
 bool testInvariants(Region region, Region subregion) {
 	bool divisorEqual = region.guaranteedDivisor == subregion.guaranteedDivisor;
 	if (!divisorEqual) {
@@ -164,6 +176,11 @@ bool testCoverage(TestCase test, Region* subregions) {
 bool testBalancerOutput(TestCase test, Region* subregions) {
 	bool failed = false;
 	for (int i = 0; i < test.nodeCount; i++) {
+		if (isEmptyRegion(subregions[i])) {
+			// Empty regions are always correct
+			continue;
+		}
+		
 		if (!testInvariants(*test.region, subregions[i])) {
 			std::cerr << "subregions[" << i << "] failed invariants test." << std::endl;
 			failed = true;
