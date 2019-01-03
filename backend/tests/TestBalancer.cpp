@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cmath>
 
 #include "Region.h"
 #include "Fractal.h"
