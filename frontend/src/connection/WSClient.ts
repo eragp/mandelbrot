@@ -70,6 +70,7 @@ export default class WebSocketClient implements WS {
           {
             const r = msg as Regions;
             if (stats) {
+              console.log("region answer");
               stats.setWaiting(r.regionCount);
               stats.setBalancerTime(r.regionCount, r.balancerTime);
             }

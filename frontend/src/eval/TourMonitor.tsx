@@ -142,6 +142,7 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
       this.map.style.width = "";
       this.map.style.height = "";
 
+      console.log("Stats collection is done", output);
       this.setState(state =>
         Object.assign(state, { output: JSON.stringify(output), running: false })
       );
