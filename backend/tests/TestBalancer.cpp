@@ -11,15 +11,22 @@
 #include "ColumnBalancer.h"
 #include "Balancer.h"
 
-int nodes = 6;
+struct TestCase {
+	std::string testName;
+	int nodeCount;
+	Balancer* balancer;
+	Region* region;
+};
+
+bool printSubregions = true;
 
 void printRegion(Region region) {
-	std::cout << "Debug for Region: (MinReal -> " << region.minReal << ") ; (MaxImaginary -> "
-		<< region.maxImaginary << ") ; (MaxReal -> " << region.maxReal << ") ; (MinImaginary -> "
-		<< region.minImaginary << ") ; (Width -> " << region.width << ") ; (Height -> " << region.height <<
-		") ;" << std::endl << "(hOffset -> " << region.hOffset << ") ; (vOffset -> " << region.vOffset <<
-		") ; (MaxIteration -> " << region.maxIteration << ") ; (Validation -> " << region.validation <<
-		") ; (GuaranteedDivisor -> " << region.guaranteedDivisor << ") ; (Fractal -> " << region.fractal << ")" << std::endl;
+	std::cout << "(minReal -> " << region.minReal << "); (maxImaginary -> " << region.maxImaginary << "); "
+		<< "(maxReal -> " << region.maxReal << "); (minImaginary -> " << region.minImaginary << ")" << std::endl
+		<< "(width -> " << region.width << "); (height -> " << region.height << "); "
+		<< "(hOffset -> " << region.hOffset << "); (vOffset -> " << region.vOffset << ")" << std::endl
+		<< "(guaranteedDivisor -> " << region.guaranteedDivisor << "); (validation -> " << region.validation << "); "
+		<< "(maxIteration -> " << region.maxIteration << "); (fractal -> " << region.fractal << ")" << std::endl;
 }
 
 bool testInvariants(Region fullRegion, Region part) {
@@ -109,16 +116,16 @@ bool testOffset(Region fullRegion, Region part) {
 	return part.hOffset == expectedHOffset && part.vOffset == expectedVOffset;
 }
 
-bool testCoverage(Region region, Region* subregions) {
+bool testCoverage(TestCase test, Region* subregions) {
 	bool disjunct = true;
 	bool entirelyCovered = true;
 
-	int widthTile = region.width / region.guaranteedDivisor;
-	int heightTile = region.height / region.guaranteedDivisor;
+	int widthTile = test.region->width / test.region->guaranteedDivisor;
+	int heightTile = test.region->height / test.region->guaranteedDivisor;
 
 	std::vector<std::vector<bool>> covered(heightTile, std::vector<bool>(widthTile));
 
-	for (int i = 0; i < nodes; i++) {
+	for (int i = 0; i < test.nodeCount; i++) {
 		int partWidthTile = subregions[i].width / subregions[i].guaranteedDivisor;
 		int partHOffsetTile = subregions[i].hOffset / subregions[i].guaranteedDivisor;
 
@@ -152,31 +159,31 @@ bool testCoverage(Region region, Region* subregions) {
 	return disjunct && entirelyCovered;
 }
 
-void testBalancerOutput(Region fullRegion, Region* output) {
+bool testBalancerOutput(TestCase test, Region* output) {
 	bool failed = false;
-	for (int i = 0; i < nodes; i++) {
-		if (!testInvariants(fullRegion, output[i])) {
+	for (int i = 0; i < test.nodeCount; i++) {
+		if (!testInvariants(*test.region, output[i])) {
 			std::cerr << "output[" << i << "] failed invariants test." << std::endl;
 			failed = true;
 		}
 
-		if (!testDivisor(fullRegion, output[i])) {
+		if (!testDivisor(*test.region, output[i])) {
 			std::cerr << "output[" << i << "] failed divisor test." << std::endl;
 			failed = true;
 		}
 
-		if (!testRatio(fullRegion, output[i])) {
+		if (!testRatio(*test.region, output[i])) {
 			std::cerr << "output[" << i << "] failed ratio test." << std::endl;
 			failed = true;
 		}
 
-		if (!testOffset(fullRegion, output[i])) {
+		if (!testOffset(*test.region, output[i])) {
 			std::cerr << "output[" << i << "] failed offset test." << std::endl;
 			failed = true;
 		}
 	}
 
-	if (!testCoverage(fullRegion, output)) {
+	if (!testCoverage(test, output)) {
 		std::cerr << "output failed coverage test" << std::endl;
 		failed = true;
 	}
@@ -184,19 +191,33 @@ void testBalancerOutput(Region fullRegion, Region* output) {
 	if (!failed) {
 		std::cout << "Output test succesful!" << std::endl;
 	}
+
+	return !failed;
 }
 
-void testBalancer(Balancer* b, Region r, int nodeCount) {
-	Region* balance = b->balanceLoad(r, nodeCount);
-	for (int i = 0; i < nodeCount; i++) {
-		printRegion(balance[i]);
-	}
+bool testBalancer(TestCase test) {
+	std::cout << test.testName << ":" << std::endl;
+
+	std::cout << "Region:" << std::endl;
+	printRegion(*test.region);
 	std::cout << std::endl;
 
-	testBalancerOutput(r, balance);
+	Region* balance = test.balancer->balanceLoad(*test.region, test.nodeCount);
+	if (printSubregions) {
+		std::cout << "Subregions:" << std::endl;
+		for (int i = 0; i < test.nodeCount; i++) {
+			printRegion(balance[i]);
+			std::cout << std::endl;
+		}
+	}
+
+	std::cout << "Test result:" << std::endl;
+	bool passed = testBalancerOutput(test, balance);
 	std::cout << std::endl;
 
 	delete[] balance;
+
+	return passed;
 }
 
 int main(int argc, char** argv) {
@@ -218,10 +239,6 @@ int main(int argc, char** argv) {
 	test.guaranteedDivisor = 64;
 	test.fractal = mandelbrot;
 
-	std::cout << "Region: " << std::endl;
-	printRegion(test);
-	std::cout << std::endl;
-
 	Balancer* column = new ColumnBalancer();
 	Balancer* naive = new NaiveBalancer();
 	Balancer* naiveRec = new RecursiveNaiveBalancer();
@@ -229,25 +246,32 @@ int main(int argc, char** argv) {
 	Balancer* predictionNeg = PredictionBalancer::create(new Mandelbrot(), -4);
 	Balancer* predictionRec = RecursivePredictionBalancer::create(new Mandelbrot(), 4);
 
-	std::cout << "Column: " << std::endl;
-	testBalancer(column, test, nodes);
+	int nodeCount = 6;
 
-	std::cout << "Naive: " << std::endl;
-	testBalancer(naive, test, nodes);
+	const int testCount = 6;
 
-	std::cout << "NaiveRec: " << std::endl;
-	testBalancer(naiveRec, test, nodes);
+	TestCase testCases[testCount];
+	testCases[0] = { "Column", nodeCount, column, &test };
+	testCases[1] = { "Naive", nodeCount, naive, &test };
+	testCases[2] = { "NaiveRec", nodeCount, naiveRec, &test };
+	testCases[3] = { "Prediction", nodeCount, prediction, &test };
+	testCases[4] = { "PredictionNeg", nodeCount, predictionNeg, &test };
+	testCases[5] = { "PredictionRec", nodeCount, predictionRec, &test };
 
-	std::cout << "Prediction: " << std::endl;
-	testBalancer(prediction, test, nodes);
-
-	std::cout << "PredictionNegative: " << std::endl;
-	testBalancer(predictionNeg, test, nodes);
-
-	std::cout << "PredictionRec: " << std::endl;
-	testBalancer(predictionRec, test, nodes);
+	int failed = 0;
+	for (int i = 0; i < testCount; i++) {
+		if (!testBalancer(testCases[i])) {
+			failed++;
+		}
+	}
 
 	std::cout << "Tests concluded!" << std::endl;
+	if (failed == 0) {
+		std::cout << "All test cases passed!" << std::endl;
+	} else {
+		std::cout << failed << " test cases failed!" << std::endl;
+	}
+
 	delete column;
 	delete naive;
 	delete naiveRec;
