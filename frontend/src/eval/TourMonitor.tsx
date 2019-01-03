@@ -180,7 +180,8 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
       this.setState(state =>
         Object.assign(state, {
           progress: ((state.configLength - configs.length) * 100) / state.configLength,
-          output: JSON.stringify(output)
+          output: JSON.stringify(output),
+          currentConfig: c
         })
       );
       this.runConfig(output, configs);

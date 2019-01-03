@@ -4,7 +4,11 @@
     margin: 1rem;
 }
 
+.tour pre {
+    overflow: scroll;
+}
+
 .jsonOutput {
-    height: 80%;
+    max-height: 10%;
     overflow: scroll;
 }
