@@ -120,11 +120,12 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
 
     Region region{};
     const char* balancer;
+    const char* fractal_str;
     Fractal* fractal_bal = nullptr;
     try {
         enum fractal_type fractal_type;
         balancer = request["balancer"].GetString();
-        const char * fractal_str = request["fractal"].GetString();
+        fractal_str = request["fractal"].GetString();
         // Case insensitive compares (just convenience for frontend devs)
         if(boost::iequals(fractal_str, "mandelbrot32")){
             fractal_type = mandelbrot32;
@@ -225,17 +226,6 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
                   << blocks[i].width << ", " << blocks[i].height << ")" << std::endl;
     }
 
-    // Send regions to MPI-Thread
-    {
-        std::lock_guard<std::mutex> lock(websocket_request_to_mpi_lock);
-        websocket_request_to_mpi.clear();
-        for (int i = 0 ; i < nodeCount ; i++) {
-            websocket_request_to_mpi[i] = blocks[i];
-        }
-        mpi_send_regions = true;
-    }
-    std::cout << "Sending Region division" << std::endl;
-
     // Determine which Worker gets which Region
     int region_to_worker[nodeCount];
     int counter = 0;
@@ -276,6 +266,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         region.AddMember("maxIteration", t.maxIteration, reply.GetAllocator());
         region.AddMember("validation", t.validation, reply.GetAllocator());
         region.AddMember("guaranteedDivisor", t.guaranteedDivisor, reply.GetAllocator());
+        region.AddMember("fractal", Value().SetString(fractal_str, strlen(fractal_str)), reply.GetAllocator());
 
         Value entry;
         entry.SetObject();
@@ -295,6 +286,18 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     } catch (websocketpp::exception &e) {
         std::cerr << "Bad connection to client, Refresh connection" << std::endl;
     }
+
+    // Send regions to MPI-Thread *after* we have sent the division
+    {
+        std::lock_guard<std::mutex> lock(websocket_request_to_mpi_lock);
+        websocket_request_to_mpi.clear();
+        for (int i = 0 ; i < nodeCount ; i++) {
+            // Store fractal in region
+            websocket_request_to_mpi[i] = blocks[i];
+        }
+        mpi_send_regions = true;
+    }
+    std::cout << "Sending Region division" << std::endl;
 }
 
 void Host::register_client(const websocketpp::connection_hdl hdl) {
@@ -364,6 +367,25 @@ void Host::send() {
         regionJSON.AddMember("maxIteration", region.maxIteration, answer.GetAllocator());
         regionJSON.AddMember("validation", region.validation, answer.GetAllocator());
         regionJSON.AddMember("guaranteedDivisor", region.guaranteedDivisor, answer.GetAllocator());
+        // Add fractal
+        const char* fractal_str;
+        switch(region.fractal){
+            case mandelbrot32:
+                fractal_str = "mandelbrot32";
+                break;
+            case mandelbrot64:
+                fractal_str = "mandelbrot64";
+                break;
+            case mandelbrotSIMD32:
+                fractal_str = "mandelbrotSIMD32";
+                break;
+            case mandelbrotSIMD64:
+                fractal_str = "mandelbrotSIMD64";
+                break;
+            default:
+                fractal_str = "mandelbrot";
+        }
+        regionJSON.AddMember("fractal", Value().SetString(fractal_str, strlen(fractal_str)), answer.GetAllocator());
 
         workerInfoJSON.AddMember("region", regionJSON, answer.GetAllocator());
 
