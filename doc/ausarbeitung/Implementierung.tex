@@ -880,7 +880,51 @@ Da es wie in \autoref{par:regionGroup} beschrieben zu einer Gruppierung kommt, f
 groß ist, werden ebenfalls alle Untergruppen einer Gruppe angezeigt (siehe \autoref{fig:regionGrouping}), falls der Benutzer mit der Maus über eine der 
 dargestellen Gruppierungen geht.
 
+\subsubsection{Visualisierung der Programmstruktur}
+
+Die Struktur der Parallelisierung wird in einem Netzwerkgraphen unter dem Fraktal dargestellt.
+Mithilfe der Bibliothek \verb|visjs|\footnote{\url{http://visjs.org/}} wird hierzu ein
+Graph mit 3 Ebenen erzeugt: Auf der linken Seite befindet sich ein Knoten in Form eines Programmfensters, der das Browserfrontend darstellt.
+In der Mitte wird ein Knoten für den Backend-Host mit Serverrack als Symbol dargestellt, der mit dem Frontendknoten verbunden ist.
+Auf der rechten Seite befindet sich schließlich zwischen 2 und 4 Knoten, die jeweils eine Gruppe an Arbeitern
+darstellen. Das Symbol hierfür ist ein Oberkörper mit Arbeitshelm.
+Sie sind wiederum direkt mit dem Host verbunden.
+
+Der Code für diese Darstellung findet sich in \verb|components/NetworkView.tsx|.
+Dort wird ein Baumgraph von links nach rechts mit manueller Ebenenverteilung als Grundstruktur für die Darstellung des Graphen definiert.
+Daher wird das Frontend auf der höchsten Ebene und der Backend-Host auf der Ebene darunter spezifiziert.
+Die Arbeiter werden auf Basis der erhaltenen Regionsaufteilung erzeugt und jeweils zu zweit nacheinander
+auf Ebenen verteilt.
+Diese Aufteilung wird nach Erhalt jeder Regionsaufteilung vorgenommen und der Graph neu aufgebaut,
+sowie die Größe der Leinwand an die Anzahl an Knoten angepasst.
+
 \subsubsection{Visualisierung der Rechenzeiten} % components/
+
+Die zeitbezüglichen Komponenten der Visualisierung werden mithilfe der Charts
+der Bibliothek \verb|chartjs|\footnote{\url{http://www.chartjs.org/}} dargestellt.
+
+\paragraph{Idle Time}
+
+Für die kritische Information der verschwendeten Zeit wird ein Balkengraph verwendet.
+Dieser besitzt einen Balken, der die Differenz zwischen der Rechenzeit aller Knoten und dem am längsten rechnenden Knoten
+aufsummiert und nach Gruppe sortiert darstellt.
+Die Darstellung wird bei Empfang einer Regionsaufteilung (mithilfe \verb|registerRegion| in dem Websocketclient)
+initialisiert indem die Anzahl an Knoten und die Gruppen gespeichert, die Rechenzeit der Knoten auf 0 gesetzt und 
+alle Knoten als aktiv markiert werden.
+Da die tatsächliche Rechenzeit erst am Ende der Berechnung mit den Regionsdaten selbst verfügbar ist,
+wird mithilfe eines Intervalls die Rechenzeit live abgeschätzt, indem sie simpel alle 50 Millisekunden
+um 50 Millisekunden hochgezählt wird, falls die Regionsdaten des Knotens noch nicht empfangen wurden.
+Da die Charts nicht zur Animation von Übergängen fähig sind, wird das Objekt mit jedem Update neu gerendert.
+Bei Empfang von Regionsdaten (hierzu wird die erwähnte Methode \verb|registerRegionData| verwendet) 
+wird die tatsächlich gemessene Rechenzeit eingetragen und der Rechenknoten als inaktiv gekennzeichnet.
+Der Intervall wird gestoppt, sobald alle Arbeiterknoten die Berechnung abgeschlossen haben.
+Einiges an Code ist dabei nur dafür zuständig, beim Schweben über einem Teil des Balkens die Wartezeit
+einer einzelnen Gruppe in einem Tooltip darzustellen.
+
+\paragraph{ComputationTime}
+
+Zur Darstellung des relativen Verhältnisses der Rechenzeiten wird in einem Kuchengraph
+die absolute Rechenzeit der Gruppen dargestellt.
 
 \subsubsection{MISC} % misc/
 
