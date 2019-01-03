@@ -25,10 +25,6 @@ export default class MatrixView {
     const handleRegionData = (msg: RegionData) => {
       const region = msg.workerInfo.region;
       const zoom = region.validation;
-      // only render the tile if it is still requested
-      if (this.zoom && this.zoom !== zoom) {
-        return;
-      }
 
       // compute x/y coordinates based on region
       const regionTileSize = region.guaranteedDivisor;

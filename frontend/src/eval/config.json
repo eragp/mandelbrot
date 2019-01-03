@@ -7,7 +7,7 @@
       "predictionRecursive"
    ],
    "implementations":[
-      "mandelbrot64", "mandelbrot32", "mandelbrotsimd32", "mandelbrotsimd64"
+      "mandelbrot"
    ],
    "nodeCount": 31,
    "description":"Testing the naive and prediction recursive balancer on a default set of PoIs",

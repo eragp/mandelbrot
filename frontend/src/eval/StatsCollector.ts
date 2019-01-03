@@ -76,9 +76,7 @@ export class StatsCollector {
   }
 
   public setWaiting(w: number) {
-    console.log("set waiting", w);
     if ((this.waiting = w) === 0) {
-      console.log("done");
       this.done();
     }
   }

@@ -21,6 +21,7 @@ export interface Region {
   maxIteration: number;
   hOffset: number;
   vOffset: number;
+  fractal: string;
 }
 
 export const isEmptyRegion = (region: Region) => {
