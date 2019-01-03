@@ -122,9 +122,9 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     Region region{};
     const char* balancer;
     const char* fractal_str;
-    enum fractal_type fractal_type;
     Fractal* fractal_bal = nullptr;
     try {
+        enum fractal_type fractal_type;
         balancer = request["balancer"].GetString();
         fractal_str = request["fractal"].GetString();
         // Case insensitive compares (just convenience for frontend devs)
@@ -168,6 +168,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         region.maxIteration = (unsigned short int) request["region"]["maxIteration"].GetUint();
         region.validation = request["region"]["validation"].GetInt();
         region.guaranteedDivisor = request["region"]["guaranteedDivisor"].GetUint();
+        region.fractal = fractal_type;
 
         regionCount = request["nodes"].GetInt();
 
@@ -235,19 +236,6 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
                   << blocks[i].width << ", " << blocks[i].height << ")" << std::endl;
     }
 
-    // Send regions to MPI-Thread
-    {
-        std::lock_guard<std::mutex> lock(websocket_request_to_mpi_lock);
-        websocket_request_to_mpi.clear();
-        for (int i = 0 ; i < regionCount ; i++) {
-            blocks[i].regionCount = regionCount;
-            blocks[i].fractal = fractal_type;
-            websocket_request_to_mpi[i] = blocks[i];
-        }
-        mpi_send_regions = true;
-    }
-    std::cout << "Sending Region division" << std::endl;
-
     // Determine which Worker gets which Region
     int region_to_worker[regionCount];
     int counter = 0;
@@ -289,6 +277,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         region.AddMember("validation", t.validation, reply.GetAllocator());
         region.AddMember("guaranteedDivisor", t.guaranteedDivisor, reply.GetAllocator());
         region.AddMember("fractal", Value().SetString(fractal_str, strlen(fractal_str)), reply.GetAllocator());
+        region.AddMember("regionCount", regionCount, reply.GetAllocator());
 
         Value entry;
         entry.SetObject();
@@ -315,7 +304,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         websocket_request_to_mpi.clear();
         for (int i = 0 ; i < regionCount; i++) {
             // Store fractal in region
-            blocks[i].fractal = fractal_type;
+            blocks[i].regionCount = regionCount;
             websocket_request_to_mpi[i] = blocks[i];
         }
         mpi_send_regions = true;

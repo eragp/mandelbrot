@@ -6,6 +6,7 @@
 #include "RecursivePredictionBalancer.h"
 #include "PredictionBalancer.h"
 #include "NaiveBalancer.h"
+#include "RecursiveNaiveBalancer.h"
 #include "ColumnBalancer.h"
 #include "Balancer.h"
 
@@ -17,23 +18,35 @@ void printRegion(Region region) {
 		<< region.minImaginary << ") ; (Width -> " << region.width << ") ; (Height -> " << region.height <<
 		") ;" << std::endl << "(hOffset -> " << region.hOffset << ") ; (vOffset -> " << region.vOffset <<
 		") ; (MaxIteration -> " << region.maxIteration << ") ; (Validation -> " << region.validation <<
-		") ; (GuaranteedDivisor -> " << region.guaranteedDivisor << ")" << std::endl;
+		") ; (GuaranteedDivisor -> " << region.guaranteedDivisor << ") ; (Fractal -> " << region.fractal << ")" << std::endl;
 }
 
-bool testDivisor(Region fullRegion, Region part) {
+bool testInvariants(Region fullRegion, Region part) {
 	bool divisorEqual = fullRegion.guaranteedDivisor == part.guaranteedDivisor;
 	if (!divisorEqual) {
 		std::cout << "guaranteedDivisor: expected -> " << fullRegion.guaranteedDivisor << " observed -> " << part.guaranteedDivisor << std::endl;
 	}
+
+	bool fractalEqual = fullRegion.fractal == part.fractal;
+	if (!fractalEqual) {
+		std::cout << "fractal: expected -> " << fullRegion.fractal << " observed -> " << part.fractal << std::endl;
+	}
+
+	return divisorEqual && fractalEqual;
+}
+
+bool testDivisor(Region fullRegion, Region part) {
 	bool dividesWidth = part.width % part.guaranteedDivisor == 0;
 	if (!dividesWidth) {
 		std::cout << "guaranteedDivisor doesn't divide width: expected -> 0 observed -> " << part.width % part.guaranteedDivisor << std::endl;
 	}
+
 	bool dividesHeight = part.height % part.guaranteedDivisor == 0;
 	if (!dividesHeight) {
 		std::cout << "guaranteedDivisor doesn't divide height: expected -> 0 observed -> " << part.height % part.guaranteedDivisor << std::endl;
 	}
-	return divisorEqual && dividesWidth && dividesHeight;
+
+	return dividesWidth && dividesHeight;
 }
 
 bool testRatio(Region fullRegion, Region part) {
@@ -70,6 +83,16 @@ bool testRatio(Region fullRegion, Region part) {
 void testBalancerOutput(Region fullRegion, Region* output) {
 	bool failed = false;
 	for (int i = 0; i < nodes; i++) {
+		if (!testInvariants(fullRegion, output[i])) {
+			std::cerr << "output[" << i << "] failed invariants test." << std::endl;
+			failed = true;
+		}
+
+		if (!testDivisor(fullRegion, output[i])) {
+			std::cerr << "output[" << i << "] failed divisor test." << std::endl;
+			failed = true;
+		}
+
 		if (!testRatio(fullRegion, output[i])) {
 			std::cerr << "output[" << i << "] failed ratio test." << std::endl;
 			failed = true;
@@ -110,6 +133,7 @@ int main(int argc, char** argv) {
 	test.maxIteration = 200;
 	test.validation = 1;
 	test.guaranteedDivisor = 64;
+	test.fractal = mandelbrot;
 
 	std::cout << "Region: " << std::endl;
 	printRegion(test);
@@ -117,6 +141,7 @@ int main(int argc, char** argv) {
 
 	Balancer* column = new ColumnBalancer();
 	Balancer* naive = new NaiveBalancer();
+	Balancer* naiveRec = new RecursiveNaiveBalancer();
 	Balancer* prediction = PredictionBalancer::create(new Mandelbrot(), 4);
 	Balancer* predictionNeg = PredictionBalancer::create(new Mandelbrot(), -4);
 	Balancer* predictionRec = RecursivePredictionBalancer::create(new Mandelbrot(), 4);
@@ -127,6 +152,9 @@ int main(int argc, char** argv) {
 	std::cout << "Naive: " << std::endl;
 	testBalancer(naive, test, nodes);
 
+	std::cout << "NaiveRec: " << std::endl;
+	testBalancer(naiveRec, test, nodes);
+
 	std::cout << "Prediction: " << std::endl;
 	testBalancer(prediction, test, nodes);
 
@@ -136,13 +164,14 @@ int main(int argc, char** argv) {
 	std::cout << "PredictionRec: " << std::endl;
 	testBalancer(predictionRec, test, nodes);
 
-	std::cout << "Tests concluded!\a" << std::endl;
+	std::cout << "Tests concluded!" << std::endl;
 	delete column;
 	delete naive;
+	delete naiveRec;
 	delete prediction;
 	delete predictionNeg;
 	delete predictionRec;
 
-	std::cin.get();
+	// std::cin.get();
 	return 0;
 }
