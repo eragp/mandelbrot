@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cmath>
+#include <cstring>
 
 #include "Region.h"
 #include "Fractal.h"
@@ -19,7 +20,7 @@ struct TestCase {
 	Region* region;
 };
 
-bool printSubregions = true;
+bool printSubregions = false;
 
 void printRegion(Region region) {
 	std::cout << "(minReal -> " << region.minReal << "); (maxImaginary -> " << region.maxImaginary << "); "
@@ -222,6 +223,12 @@ bool testBalancer(TestCase test) {
 }
 
 int main(int argc, char** argv) {
+	if (argc == 2) {
+		if (strcmp(argv[1], "-v") == 0) {
+			printSubregions = true;
+		}
+	}
+	
 	Region test;
 	test.minReal = -1.5;
 	test.maxImaginary = 1.0;
