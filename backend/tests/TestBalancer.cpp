@@ -104,12 +104,12 @@ bool testOffset(Region fullRegion, Region part) {
 	double deltaImaginary = Fractal::deltaImaginary(fullRegion.maxImaginary, fullRegion.minImaginary, fullRegion.height);
 
 	// doubles are never exact --> round
-	int expectedHOffset = (int)round((part.minReal - fullRegion.minReal) / deltaReal);
+	int expectedHOffset = (int) round((part.minReal - fullRegion.minReal) / deltaReal);
 	if (part.hOffset != expectedHOffset) {
 		std::cout << "hOffset: expected -> " << expectedHOffset << " observed -> " << part.hOffset << std::endl;
 	}
 
-	int expectedVOffset = (int)round((fullRegion.maxImaginary - part.maxImaginary) / deltaImaginary);
+	int expectedVOffset = (int) round((fullRegion.maxImaginary - part.maxImaginary) / deltaImaginary);
 	if (part.vOffset != expectedVOffset) {
 		std::cout << "vOffset: expected -> " << expectedVOffset << " observed -> " << part.vOffset << std::endl;
 	}
