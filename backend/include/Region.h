@@ -58,6 +58,12 @@ struct Region {
      */
     enum fractal_type fractal;
 
+    /**
+     * Do not change.
+     * Number of regions, the corresponding big region got split into.
+     */
+    unsigned short int regionCount;
+
     unsigned int getPixelCount() {
         return width * height;
     }
