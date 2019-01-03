@@ -73,3 +73,23 @@ To deactivate the virtual environment (when done with working on the plotter):
 ```bash
 $ conda deactivate
 ```
+
+# Installation without anaconda
+
+Install pipenv
+
+```
+pip install pipenv
+```
+
+install packages
+
+```
+pipenv install --three
+```
+
+and activate virtual environment
+
+```
+pipenv shell
+```
