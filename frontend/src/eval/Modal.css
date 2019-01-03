@@ -1,0 +1,86 @@
+/* based on code from https://medium.com/@pppped/build-a-simple-modal-window-with-react-and-jss-f05041d899cc */
+
+body {
+    overflow: hidden;
+}
+
+.modalOverlay {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    padding: 1rem;
+    z-index: 9999;
+    opacity: 1;
+    position: fixed;
+    animation: show .5s ease;
+    overflow-x: hidden;
+    overflow-y: auto;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+@-webkit-keyframes keyframes-show {
+    0% {
+        display: none;
+        opacity: 0;
+    }
+    1% {
+        display: flex;
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.modalCustom {
+    width: 100%;
+    box-shadow: 0 0 0.625rem rgba(0, 0, 0, 0.2);
+    background-color: #fff;
+    border-radius: 25px;
+}
+
+@media (min-width: 576px) {
+    .modalCustom {
+        width: 32rem;
+    }
+}
+
+.closeButton {
+    top: 0;
+    right: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 0;
+    cursor: pointer;
+    padding: 0;
+    outline: 0;
+    position: fixed;
+    background: #fff;
+    box-shadow: 0 0 0.625rem rgba(0, 0, 0, 0.2);
+}
+
+.closeButton:before, .closeButton:after {
+    top: 1.2rem;
+    left: 0.25rem;
+    width: 2rem;
+    height: 0.1rem;
+    content: "";
+    position: absolute;
+    background-color: #888;
+}
+
+.closeButton:before {
+    transform: rotate(45deg);
+}
+
+.closeButton:after {
+    transform: rotate(-45deg);
+}
+
+.closeButton:hover:before, .closeButton:hover:after {
+    background-color: #444;
+}

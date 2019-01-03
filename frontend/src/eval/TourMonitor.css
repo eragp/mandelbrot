@@ -1,0 +1,10 @@
+.tour {
+    display: block;
+    height: 25vh;
+    margin: 1rem;
+}
+
+.jsonOutput {
+    height: 80%;
+    overflow: scroll;
+}
