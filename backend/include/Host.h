@@ -33,7 +33,7 @@ private:
 
     // Transfer region requests from Websocket-Thread to MPI-Thread
     static bool mpi_send_regions;
-    static std::map<int, Region> websocket_request_to_mpi;
+    static std::vector<Region> websocket_request_to_mpi;
     static std::mutex websocket_request_to_mpi_lock;
 
     // Transfer RegionData from MPI-Thread to Websocket-Result-Thread

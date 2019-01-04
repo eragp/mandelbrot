@@ -58,7 +58,7 @@ std::mutex Host::current_big_region_lock;
 
 // Transfer region requests from Websocket-Request-Thread to MPI-Thread
 bool Host::mpi_send_regions = false;
-std::map<int, Region> Host::websocket_request_to_mpi;
+std::vector<Region> Host::websocket_request_to_mpi;
 std::mutex Host::websocket_request_to_mpi_lock;
 
 // Transfer RegionData from MPI-Thread to Websocket-Result-Thread
@@ -288,7 +288,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         for (int i = 0 ; i < regionCount; i++) {
             // Store fractal in region
             blocks[i].regionCount = regionCount;
-            websocket_request_to_mpi[i] = blocks[i];
+            websocket_request_to_mpi.push_back(blocks[i]);
         }
         mpi_send_regions = true;
     }
