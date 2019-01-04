@@ -106,10 +106,10 @@ Region *RecursivePredictionBalancer::halveRegionVertically(Region region, Predic
 	for (int i = 0; i < prediction.predictionLengthX; i++) {
 		currentN += prediction.nColSums[i];
 		left->nColSums[i] = prediction.nColSums[i];
-		// Reached 1/2 of nSum or there are to few parts left for the other half and there are enough parts to assign all workers, always execute this when reaching end of loop
-		if (((currentN >= desiredN || toFewLeft(i + 1, true, region.width, region.height, region.guaranteedDivisor, nodeCount))
+		// Reached 1/2 of nSum or there are too few parts left for the other half and there are enough parts to assign all workers, always execute this when reaching end of loop
+		if (((currentN >= desiredN || tooFewLeft(i + 1, true, region.width, region.height, region.guaranteedDivisor, nodeCount))
 			&& enoughAreaForWorkers(i + 1, true, region.width, region.height, region.guaranteedDivisor, nodeCount))
-			|| i == prediction.predictionLengthX) {
+			|| i == prediction.predictionLengthX - 1) {
 			
 			halves[0].maxReal = region.minReal + (i + 1) * prediction.deltaReal;
 			halves[0].width = region.guaranteedDivisor * (i + 1);
@@ -187,8 +187,8 @@ Region *RecursivePredictionBalancer::halveRegionHorizontally(Region region, Pred
 	for (int i = 0; i < prediction.predictionLengthY; i++) {
 		currentN += prediction.nRowSums[i];
 		top->nRowSums[i] = prediction.nRowSums[i];
-		// Reached 1/2 of nSum or there are to few parts left for the other half and there are enough parts to assign all workers, always execute this when reaching end of loop
-		if (((currentN >= desiredN || toFewLeft(i + 1, false, region.width, region.height, region.guaranteedDivisor, nodeCount))
+		// Reached 1/2 of nSum or there are too few parts left for the other half and there are enough parts to assign all workers, always execute this when reaching end of loop
+		if (((currentN >= desiredN || tooFewLeft(i + 1, false, region.width, region.height, region.guaranteedDivisor, nodeCount))
 			&& enoughAreaForWorkers(i + 1, false, region.width, region.height, region.guaranteedDivisor, nodeCount))
 			|| i == prediction.predictionLengthY - 1) {
 			
@@ -246,8 +246,8 @@ Region *RecursivePredictionBalancer::halveRegionHorizontally(Region region, Pred
 	return halves;
 }
 
-// Return true if taking the next part would result in to few parts for the other halve
-bool RecursivePredictionBalancer::toFewLeft(int splitPos, bool vertical, int width, int height, int guaranteedDivisor, int nodeCount) {
+// Return true if taking the next part would result in too few parts for the other halve
+bool RecursivePredictionBalancer::tooFewLeft(int splitPos, bool vertical, int width, int height, int guaranteedDivisor, int nodeCount) {
 	width /= guaranteedDivisor;
 	height /= guaranteedDivisor;
 

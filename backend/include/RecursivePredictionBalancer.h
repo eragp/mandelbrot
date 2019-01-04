@@ -29,7 +29,7 @@ private:
 
 	Region *halveRegionHorizontally(Region region, Prediction prediction, Prediction* top, Prediction* bot, int nodeCount);
 
-	bool toFewLeft(int splitPos, bool vertical, int width, int height, int guaranteedDivisor, int nodeCount);
+	bool tooFewLeft(int splitPos, bool vertical, int width, int height, int guaranteedDivisor, int nodeCount);
 
 	bool enoughAreaForWorkers(int splitPos, bool vertical, int width, int height, int guaranteedDivisor, int nodeCount);
 
