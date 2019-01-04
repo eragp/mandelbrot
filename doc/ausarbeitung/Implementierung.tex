@@ -680,9 +680,29 @@ Bei der Eingabe von \verb|region| und \verb|nodeCount| erfüllt ein korrekter R�
 	\end{itemize}
 \end{itemize}
 
-Ob diese Bedingungen erfüllt sind kann mit dem Test in der Klasse \verb|BalancerTest| überprüft werden.
+Ob diese Bedingungen erfüllt sind kann mit dem Test in \verb|BalancerTest| überprüft werden.
 
 \subsection{Berechnung der Mandelbrotmenge}
+
+Die Berechnung der einzelnen Punkte der Mandelbrotmenge ist in eine eigene Klasse ausgelagert.
+Wie bei der \hyperref[sec:load_balancing]{Lastbalancierung} sind die Klassen nach dem Strategy-Pattern strukturiert, um eine spätere Erweiterung um andere Fraktale zu vereinfachen.
+Das Interface der Strategien ist hier in der Klasse \verb|Fractal| (\autoref{src:Fractal.h}) definiert.
+
+\begin{figure}
+	\lstinputlisting[caption={Das gemeinsame Interface der Fraktale}, label={src:Fractal.h}, firstline=14, lastline=24]{../../backend/include/Fractal.h}
+\end{figure}
+
+Zusätzlich beinhaltet \verb|Fractal| statische Methoden zur Berechnung der Deltas für Real- und Imaginärteil.
+Diese geben die Größe des Bereichs der komplexen Ebene an, der von einem Pixel überdeckt wird.
+So berechnet sich zum Beispiel das reelle Delta wie folgt:
+
+\begin{equation*}
+	deltaReal = \frac{maxReal - minReal}{width}
+\end{equation*}
+
+Die Berechnung des imaginären Deltas erfolgt analog.
+
+\subsubsection{Berechnung ohne SIMD}
 
 \subsubsection{Berechnung mithilfe von SIMD}
 
