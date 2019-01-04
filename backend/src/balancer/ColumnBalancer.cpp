@@ -38,6 +38,7 @@ Region* ColumnBalancer::balanceLoad(Region region, const int nodeCount) {
         empty.maxIteration = region.maxIteration;
         empty.validation = region.validation;
         empty.guaranteedDivisor = region.guaranteedDivisor;
+		empty.fractal = region.fractal;
         for (int i = 0; i < spareNodes; i++) {
             regions[nodeCount - 1 - i] = empty;
         }
@@ -46,8 +47,8 @@ Region* ColumnBalancer::balanceLoad(Region region, const int nodeCount) {
     }
     double xDelta = Fractal::deltaReal(region.maxReal, region.minReal, region.width) * columnWidth;
 
-    // Only width, hOffset, minReal and maxReal will change
-    Region tmp = region;
+	// Only width, hOffset, minReal and maxReal will change
+	Region tmp = region;
 
     for (int i = 0; i < nodes; i++) {
        if (i == nodes - 1) {
