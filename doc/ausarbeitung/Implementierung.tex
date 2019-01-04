@@ -701,10 +701,23 @@ So berechnet sich zum Beispiel das reelle Delta wie folgt:
 \end{equation*}
 
 Die Berechnung des imaginären Deltas erfolgt analog.
+Die Deltas werden u.a. für die Berechnung des Fraktals in den Workern verwendet.
 
 \subsubsection{Berechnung ohne SIMD}
 
-\subsubsection{Berechnung mithilfe von SIMD}
+Die Klasse \verb|Mandelbrot| dient dazu jeweils einen Punkt der Mandelbrotmenge zu berechnen.
+Da hierbei keine Vektorisierung stattfindet ist es sinnvoll \verb|vectorLength| auf 0 zu setzen.
+Es ist zu beachten, dass \verb|cReal| und \verb|cImaginary| als Zeiger auf diese Werte zu übergeben sind.
+Außerdem muss eine Speicherstelle für den Rückgabewert bereitgestellt und als \verb|dest| übergeben werden.
+Diese Art und Weise der Übergabe macht ein gemeinsames Interface mit den \hyperref[subsec:simd]{vektorisierten Versionen} möglich.
+Für die nicht parallele Berechnung wäre dies nicht nötig, da einzelne Werte auch direkt übergeben werden könnten.
+
+Die Berechnung eines Punktes ist nun nicht weiter schwer, es muss lediglich \autoref{equ:mandelbrot} als C++-Code umgesetzt werden.
+Bei $|z_n| > 2$ oder äquivalent $Re(z_n)^2 + Im(z_n)^2$ kann die Berechnung abgebrochen werden, da der Punkt sicher nicht in der Mandelbrotmenge liegt.
+Dies ist ebenfalls nötig wenn die maximale Anzahl an Iterationen erreicht wurde.
+Die benötigte Anzahl an Iterationen kann dann als Ergebnis zurückgegeben werden.
+
+\subsubsection{Berechnung mithilfe von SIMD}\label{subsec:simd}
 
 Um die Berechnungen intern noch zu beschleunigen, kann SIMD zur parallelen Bearbeitung mehrerer Punkte verwendet werden.
 Dazu ist es hilfreich, sich zunächst vor Augen zu führen, wie ein Vektor komplexer Koordinaten ohne SIMD verarbeitet würde.
