@@ -50,6 +50,7 @@ int Host::world_size = 0;
 
 // Defines if a Node can or should be used
 bool* Host::usable_nodes;
+int Host::usable_nodes_count;
 
 // Store for the current big region
 Region Host::current_big_region;
@@ -183,7 +184,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         current_big_region = region;
     }
 
-    int nodeCount = world_size - 1;
+    int nodeCount = usable_nodes_count;
     Balancer *b = BalancerPolicy::chooseBalancer(balancer, fractal_bal);
     // Measure time needed for balancing - Start
     std::chrono::high_resolution_clock::time_point balancerTimeStart = std::chrono::high_resolution_clock::now();
@@ -404,27 +405,85 @@ void Host::init(int world_rank, int world_size) {
     // Init usable_nodes and set Host as not usable
     usable_nodes = new bool[world_size];
     usable_nodes[world_rank] = false;
+    usable_nodes_count = world_size - 1;
 
     // Test if all cores are available
-    // We assume from programs side that all cores *are* available, this allows Workers to get the Host rank
-    for (int rank = 0; rank < world_size; rank++) {
-        if(rank != world_rank){
-            int testSend = rank;
-            MPI_Send((const void *) &testSend, 1, MPI_INT, rank, 10, MPI_COMM_WORLD);
-            int testReceive;
-            MPI_Recv(&testReceive, 1, MPI_INT, rank, 11, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            if (testSend == testReceive) {
-                std::cout << "Host: Core " << rank << " ready!" << std::endl;
-                usable_nodes[rank] = true;
-            } else {
-                std::cout << "Host: Core " << rank << " NOT ready! This core won't be used by default." << std::endl;
+    // This also allows the Workers to get the rank of the Host
+    MPI_Request test_requests[usable_nodes_count];
+    MPI_Status test_status[usable_nodes_count];
+    // Send test messages to all Worker
+    for (int rank = 0 ; rank < world_size ; rank++) {
+        if (rank != world_rank) {
+            int acc = 0;
+            if (rank > world_rank) {
+                acc = 1;
+            }
+            int test_send = rank;
+            int ierr = MPI_Issend((const void *) &test_send, 1, MPI_INT, rank, 10, MPI_COMM_WORLD, &test_requests[rank - acc]);
+            // Error handling
+            if (ierr != MPI_SUCCESS){
+                std::cerr << "Error on MPI_Issend to worker " << rank << " on test send: " << std::endl;
+                char err_buffer[MPI_MAX_ERROR_STRING];
+                int resultlen;
+                MPI_Error_string(ierr, err_buffer, &resultlen);
+                fprintf(stderr, err_buffer);
+            }
+            // Error handling - end
+        }
+    }
+    std::chrono::high_resolution_clock::time_point test_time_start = std::chrono::high_resolution_clock::now();
+    unsigned long test_time = 0;
+    // Check if all Workers started their receive operation
+    do {
+        int outcount;
+        int *array_of_indices = new int[usable_nodes_count];
+        int ierr = MPI_Testsome(usable_nodes_count, test_requests, &outcount, array_of_indices, test_status);
+        // Error handling
+        if (ierr != MPI_SUCCESS){
+            for (int i = 0 ; i < usable_nodes_count ; i++) {
+                ierr = test_status[i].MPI_ERROR;
+                if (ierr != MPI_SUCCESS) {
+                    std::cerr << "Error on MPI_Testsome with index " << i << " on test send: " << std::endl;
+                    char err_buffer[MPI_MAX_ERROR_STRING];
+                    int resultlen;
+                    MPI_Error_string(ierr, err_buffer, &resultlen);
+                    fprintf(stderr, err_buffer);
+                }
+            }
+        }
+        // Error handling - end
+        if (outcount == MPI_UNDEFINED) {
+            std::cout << "Tests successful. Break test loop." << std::endl;
+            break;
+        }
+        if (outcount != 0) {
+            for (int i = 0 ; i < outcount ; i++) {
+                test_requests[array_of_indices[i]] = MPI_REQUEST_NULL;
+            }
+        }
+        delete[] array_of_indices;
+        std::chrono::high_resolution_clock::time_point test_time_end = std::chrono::high_resolution_clock::now();
+        test_time = std::chrono::duration_cast<std::chrono::microseconds>(test_time_end - test_time_start).count();
+    } while (test_time < 1000000);
+    // Workers that didn't start their receive operation are set to not usable
+    for (int rank = 0 ; rank < world_size ; rank++) {
+        if (rank != world_rank) {
+            int acc = 0;
+            if (rank > world_rank) {
+                acc = 1;
+            }
+            if (test_requests[rank - acc] != MPI_REQUEST_NULL) {
                 usable_nodes[rank] = false;
+                usable_nodes_count--;
+                std::cout << "Host: Worker " << rank << " has NOT started his receive operation. This Worker is NOT usable." << std::endl;
+            } else {
+                usable_nodes[rank] = true;
+                std::cout << "Host: Worker " << rank << " is usable." << std::endl;
             }
         }
     }
-
-    // TODO: ENTFERNEN
-    // usable_nodes[2] = false;
+    std::cout << "Host: There are " << usable_nodes_count << " usable Worker." << std::endl;
+    // Test if all cores are available - end
 
     // Approximately the time that MPI communication with one Worker has taken in microseconds
     std::chrono::high_resolution_clock::time_point *mpiCommunicationStart = new std::chrono::high_resolution_clock::time_point[world_size];
