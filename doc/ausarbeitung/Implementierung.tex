@@ -566,28 +566,19 @@ Die Teilregionen werden in einem Ergebnisarray gespeichert, welches dann zurück
 \paragraph*{}\label{lastbalancierung_naiv_rekursion}
 % recursiveNaive
 Die Grundidee der rekursiven Balancierung ist, die Region solange zu halbieren, bis man genug Teile für jeden Worker hat.
-Dies funktioniert sehr gut, wenn die Anzahl der Worker eine 2er-Potenz ist. Wenn das nicht der Fall ist, so müssen für einige Worker die Regionen öfters geteilt werden als für andere.
+Dies funktioniert sehr gut, wenn die Anzahl der Worker eine 2er-Potenz ist.
+Wenn das nicht der Fall ist, so müssen für einige Worker die Regionen öfters geteilt werden als für andere.
 Die Anzahl der Blätter des Rekursionsbaumes (hier ein Binärbaum) muss also der Anzahl der Worker entsprechen.
-Die Rekursionstiefe kann man wie folgt berechnen:
-\begin{equation}\label{lastbalancierung_rekursion_tiefe}
-	recCounter = \lfloor\log_2 nodeCount\rfloor + 1
-\end{equation}
-Und die Anzahl der Teilregionen auf der untersten Ebene des Rekursionsbaumes ergibt sich als:
-\begin{equation*}
-	missing = nodeCount - 2^{\lfloor\log_2 nodeCount\rfloor}
-\end{equation*}
-\begin{equation}\label{lastbalancierung_rekursion_ebene}
-	onLowestLevel = missing * 2
-\end{equation}
-Auch hier ist \verb|nodeCount| die Anzahl der Worker. Die Multiplikation mit 2 ist nötig, da bei der Unterteilung einer Region immer zwei neue entstehen. Es müssen also $missing$ Regionen aufgeteilt werden müssen, um die richtige Anzahl an Teilregion zu erzeugen.
 
-Um diese Werte einfach durch die Rekursionsebenen zu reichen wurde die Struktur BalancingContext definiert, welche zusätzlich noch die beiden Deltas, den Index in das Ergebnisarray und einen Zeiger auf das Array selbst abspeichert.
+Um die Werte, die während der rekursiven Auswertung benötigt werden, einfach weiterreichen zu können wurde die Struktur \verb|BalancingContext| definiert.
+Diese beinhaltet einen Zeiger auf das Ergebnisarray (\verb|result|) und den aktuellen Index (\verb|resultIndex|) in dieses.
+Zusätzlich ist in \verb|partsLeft| gespeichert, wie viele Teilregionen der jeweilige Rekursionsschritt noch erzeugen muss.
+Auch die Deltas für Real- und Imaginärteil sind in der Struktur abgelegt, um wiederholte Berechnungen zu vermeiden.
 
-Aus \verb|recCounter| und \verb|onLowestLevel| kann auch die Abbruchbedingung der Rekursion gefolgert werden:
+Aus \verb|partsLeft| kann auch die Abbruchbedingung der Rekursion gefolgert werden:
 \begin{equation}\label{lastbalancierung_rekursion_abbruch}
-	recCounter = 0 \vee (recCounter = 1 \wedge resultIndex \geq onLowestLevel) \equiv true
+	partsLeft = 1
 \end{equation}
-\verb|resultIndex| ist hierbei der Index in das Ergebnisarray, beschreibt also die Anzahl der bereits erstellten Teilregionen.
 
 Ist die Abbruchbedingung (\ref{lastbalancierung_rekursion_abbruch}) erfüllt, so genügt es die übergebene Region in das Ergebnisarray einzutragen und \verb|resultIndex| zu inkrementieren.
 Ansonsten muss die Region halbiert werden. Ist die Region vertikal oder horizontal nicht mehr teilbar (d.h. \verb|region.width| bzw. \verb|region.height| $\leq$ \verb|region.guaranteedDivisor|), so wird in die andere Richtung geteilt.
@@ -595,7 +586,7 @@ Kann die Region in beide Richtungen geteilt werden, so wird abwechselnd vertikal
 Wenn die Region unteilbar ist, so muss eine leere Region erzeugt werden.
 
 Die beiden Hälften berechnen sich wie bei der Aufteilung auf zwei Worker mit der \hyperref[lastbalancierung_naiv]{nicht-rekursiven Strategie}.
-Dann wird die Funktion für jede Hälfte rekursiv aufgerufen.
+Dann wird die Funktion für jede Hälfte rekursiv aufgerufen, wobei \verb|partsLeft| entsprechend halbiert wird.
 
 \subsubsection{Strategie mit Vorhersage}
 
