@@ -31,7 +31,7 @@ private:
 
 	bool toFewLeft(int splitPos, bool vertical, int width, int height, int guaranteedDivisor, int nodeCount);
 
-	bool enoughForMe(int splitPos, bool vertical, int width, int height, int guaranteedDivisor, int nodeCount);
+	bool enoughAreaForWorkers(int splitPos, bool vertical, int width, int height, int guaranteedDivisor, int nodeCount);
 
 public:
 	static const std::string NAME;
