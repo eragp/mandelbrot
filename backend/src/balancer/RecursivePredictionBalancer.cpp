@@ -60,6 +60,23 @@ int RecursivePredictionBalancer::balancingHelper(Region region, Prediction* pred
 	// Free prediction since it's no longer needed
 	delete prediction;
 
+	// Explicitly set halves[i] to zero, if needed
+	for (int i = 0; i < 2; i++) {
+		if (halves[i].width == 0 || halves[i].height == 0) {
+			halves[i].minImaginary = 0.0;
+			halves[i].maxImaginary = 0.0;
+
+			halves[i].minReal = 0.0;
+			halves[i].maxReal = 0.0;
+
+			halves[i].height = 0;
+			halves[i].width = 0;
+
+			halves[i].vOffset = 0;
+			halves[i].hOffset = 0;
+		}
+	}
+
 	context.recCounter++;
 
 	context.partsLeft = nodeCount / 2 + nodeCount % 2;	// Assign more workers to halves[0], since it tends to be bigger
@@ -89,9 +106,10 @@ Region *RecursivePredictionBalancer::halveRegionVertically(Region region, Predic
 	for (int i = 0; i < prediction.predictionLengthX; i++) {
 		currentN += prediction.nColSums[i];
 		left->nColSums[i] = prediction.nColSums[i];
-		// Reached 1/2 of nSum or there are to few parts left for the other half and there are enough parts to assign all workers
-		if ((currentN >= desiredN || toFewLeft(i + 1, true, region.width, region.height, region.guaranteedDivisor, nodeCount))
-			&& enoughAreaForWorkers(i + 1, true, region.width, region.height, region.guaranteedDivisor, nodeCount)) {
+		// Reached 1/2 of nSum or there are to few parts left for the other half and there are enough parts to assign all workers, always execute this when reaching end of loop
+		if (((currentN >= desiredN || toFewLeft(i + 1, true, region.width, region.height, region.guaranteedDivisor, nodeCount))
+			&& enoughAreaForWorkers(i + 1, true, region.width, region.height, region.guaranteedDivisor, nodeCount))
+			|| i == prediction.predictionLengthX) {
 			
 			halves[0].maxReal = region.minReal + (i + 1) * prediction.deltaReal;
 			halves[0].width = region.guaranteedDivisor * (i + 1);
@@ -149,20 +167,6 @@ Region *RecursivePredictionBalancer::halveRegionVertically(Region region, Predic
 		}
 	}
 
-	// Explicitly set halves[1] to zero, if needed
-	if (halves[1].width == 0) {
-		halves[1].minImaginary = 0.0;
-		halves[1].maxImaginary = 0.0;
-
-		halves[1].minReal = 0.0;
-		halves[1].maxReal = 0.0;
-
-		halves[1].height = 0;
-
-		halves[1].vOffset = 0;
-		halves[1].hOffset = 0;
-	}
-
 	return halves;
 }
 
@@ -183,9 +187,10 @@ Region *RecursivePredictionBalancer::halveRegionHorizontally(Region region, Pred
 	for (int i = 0; i < prediction.predictionLengthY; i++) {
 		currentN += prediction.nRowSums[i];
 		top->nRowSums[i] = prediction.nRowSums[i];
-		// Reached 1/2 of nSum or there are to few parts left for the other half and there are enough parts to assign all workers
-		if ((currentN >= desiredN || toFewLeft(i + 1, false, region.width, region.height, region.guaranteedDivisor, nodeCount))
-			&& enoughAreaForWorkers(i + 1, false, region.width, region.height, region.guaranteedDivisor, nodeCount)) {
+		// Reached 1/2 of nSum or there are to few parts left for the other half and there are enough parts to assign all workers, always execute this when reaching end of loop
+		if (((currentN >= desiredN || toFewLeft(i + 1, false, region.width, region.height, region.guaranteedDivisor, nodeCount))
+			&& enoughAreaForWorkers(i + 1, false, region.width, region.height, region.guaranteedDivisor, nodeCount))
+			|| i == prediction.predictionLengthY - 1) {
 			
 			halves[0].minImaginary = region.maxImaginary - (i + 1) * prediction.deltaImaginary;
 			halves[0].height = region.guaranteedDivisor * (i + 1);
@@ -236,20 +241,6 @@ Region *RecursivePredictionBalancer::halveRegionHorizontally(Region region, Pred
 				bot->nRowSums[y] = prediction.nRowSums[top->predictionLengthY + y];
 			}
 		}
-	}
-
-	// Explicitly set halves[1] to zero, if needed
-	if (halves[1].height == 0) {
-		halves[1].minImaginary = 0.0;
-		halves[1].maxImaginary = 0.0;
-
-		halves[1].minReal = 0.0;
-		halves[1].maxReal = 0.0;
-
-		halves[1].width = 0;
-
-		halves[1].vOffset = 0;
-		halves[1].hOffset = 0;
 	}
 
 	return halves;
