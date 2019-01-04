@@ -215,26 +215,8 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
                   << blocks[i].width << ", " << blocks[i].height << ")" << std::endl;
     }
 
-    // Delete empty subregions
-    std::vector<Region> newBlocks;
-    for (int i = 0 ; i < regionCount ; i++) {
-        if ((blocks[i].minReal == blocks[i].maxReal && blocks[i].maxImaginary == blocks[i].minImaginary) || blocks[i].width == 0 || blocks[i].height == 0) {
-            std::cout << "Empty Region " << i << " deleted." << std::endl;
-        } else {
-            newBlocks.push_back(blocks[i]);
-        }
-    }
-    blocks = &newBlocks[0];
-    regionCount = newBlocks.size();
+    // do not Delete empty subregions - they are idleing too!
     std::cout << "There are " << regionCount << " Regions to compute" << std::endl;
-
-    // Debug
-    for (int i = 0; i < regionCount; i++) {
-        std::cout << "Region " << i << ": "
-                  << " TopLeft: (" << blocks[i].minReal << ", " << blocks[i].maxImaginary << ") -> BottomRight: ("
-                  << blocks[i].maxReal << ", " << blocks[i].minImaginary << ") Resolution: ("
-                  << blocks[i].width << ", " << blocks[i].height << ")" << std::endl;
-    }
 
     // Determine which Worker gets which Region
     int region_to_worker[regionCount];
