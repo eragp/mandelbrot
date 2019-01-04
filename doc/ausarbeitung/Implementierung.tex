@@ -624,7 +624,7 @@ Dabei ist \verb|nSum| die Gesamtsumme der Vorhersage und \verb|nodeCount| wieder
 
 Danach wird die Region erst in Spalten aufgeteilt und in einem zweiten Schritt wird dann die horizontale Unterteilung in Teilregionen vorgenommen.
 
-Zur Aufteilung wird über die Spaltensummen in der Vorhersage iteriert. Diese werden aufaddiert und bilden so den Zähler \verb|currentN|.
+Zur Aufteilung wird über die Spaltensummen in der Vorhersage iteriert (vgl. \autoref{src:PredictionBalancerAuszug.cpp}). Diese werden aufaddiert und bilden so den Zähler \verb|currentN|.
 Sobald \verb|currentN| $\geq$ \verb|desiredN| gilt oder für alle restlichen Spalten nur noch je ein Eintrag in den Spaltensummen vorhanden ist, wird eine Spalte abgeschlossen.
 Dazu werden \verb|maxReal| und \verb|width| aus den Zählern berechnet. Es ist wichtig \verb|maxReal| immer neu aus \verb|region.minReal| zu berechnen, anstatt nur das Delta aufzuaddieren, da sich sonst der Fehler, der bei Fließkommaaddition unvermeidbar ist, auch mit aufaddiert. \verb|minReal| und \verb|hOffset| stehen bereits in der Region \verb|tmp|, die Werte wurden bei der Berechnung der vorhergehenden Spalte bereits gesetzt.
 Jetzt wird \verb|tmp| für die nächste Spalte vorbereitet, das heißt \verb|tmp.minReal| wird auf \verb|tmp.maxReal| gesetzt und \verb|tmp.hOffset| wird um \verb|tmp.width| erhöht. Ersteres vermeidet das Entstehen von Lücken zuverlässig.
@@ -634,6 +634,10 @@ Das Aufteilen einer Spalte in Teilregion geschieht analog zum Aufteilen in Spalt
 
 Die letzte Spalte wird gesondert behandelt: Sie muss so gewählt werden, dass sie den gesamten Rest der Eingaberegion abdeckt, ansonsten können Lücken entstehen.
 Dies gilt genauso bei der Unterteilung der einzelnen Spalten.
+
+\begin{figure}
+	\lstinputlisting[caption={Aufteilung in Spalten (Auszug)}, label={src:PredictionBalancerAuszug.cpp}, firstline=23, lastline=70]{./PredictionBalancerAuszug.cpp}
+\end{figure}
 
 \paragraph*{}
 % recursive prediction
