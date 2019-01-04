@@ -475,7 +475,16 @@ void Host::init(int world_rank, int world_size) {
             if (test_requests[rank - acc] != MPI_REQUEST_NULL) {
                 usable_nodes[rank] = false;
                 usable_nodes_count--;
-                std::cout << "Host: Worker " << rank << " has NOT started his receive operation. This Worker is NOT usable." << std::endl;
+                MPI_Cancel(&test_requests[rank - acc]);
+                MPI_Status cancel_status;
+                MPI_Wait(&test_requests[rank - acc], &cancel_status);
+                int cancel_flag;
+                MPI_Test_cancelled(&cancel_status, &cancel_flag);
+                if (cancel_flag == true) {
+                    std::cout << "Host: Worker " << rank << " has NOT started his receive operation. This Worker is NOT usable. Cancel was successful." << std::endl;
+                } else {
+                     std::cout << "Host: Worker " << rank << " has started his receive operation to late. This Worker is NOT usable. Cancel was NOT successful." << std::endl;
+                }
             } else {
                 usable_nodes[rank] = true;
                 std::cout << "Host: Worker " << rank << " is usable." << std::endl;
