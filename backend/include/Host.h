@@ -24,6 +24,7 @@ private:
     
     // Defines if a Node can or should be used
     static bool* usable_nodes;
+    static int usable_nodes_count;
 
     // Store for the current big region
     static Region current_big_region;
