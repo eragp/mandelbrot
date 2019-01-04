@@ -54,6 +54,7 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
             minReal: 0,
             validation: 0,
             width: 0,
+            fractal: "mandelbrot"
         }
     };
     this.chartState = {

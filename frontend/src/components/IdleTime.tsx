@@ -56,6 +56,8 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
             minReal: 0,
             validation: 0,
             width: 0,
+            fractal: "mandelbrot",
+            regionCount: 0
         }
     };
     this.chartState = {
