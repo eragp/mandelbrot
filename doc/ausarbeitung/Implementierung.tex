@@ -593,6 +593,8 @@ Dann wird die Funktion für jede Hälfte rekursiv aufgerufen, wobei \verb|partsL
 Bei dieser Strategie (zu finden in den Klassen \verb|PredictionBalancer| und \\ \verb|RecursivePredictionBalancer|) basiert die Aufteilung der Region auf einer Vorhersage über die Rechenzeit.
 Die Teilregionen werden so gewählt, dass sie, entsprechend der Vorhersage, etwa einen ähnlichen Rechenaufwand haben.
 
+\paragraph*{}
+% predicter
 Die Vorhersage (\verb|struct Prediction|) wird von der Klasse Predicter angestellt.
 Dazu wird die Region in einer sehr viel geringeren Auflösung berechnet.
 Die benötigte Anzahl an Iterationen wird jeweils pro Kachel (Breite und Höhe sind der garantierte Teiler) abgespeichert.
@@ -636,11 +638,13 @@ Dies gilt genauso bei der Unterteilung der einzelnen Spalten.
 \paragraph*{}
 % recursive prediction
 Die rekursive Variante der Strategie mit Vorhersage verwendet dasselbe Rekursionsschema wie ihr \hyperref[lastbalancierung_naiv_rekursion]{naives Gegenstück}.
-Die Werte in BalancingContext berechnen sich also wie in (\ref{lastbalancierung_rekursion_tiefe}) und (\ref{lastbalancierung_rekursion_ebene}).
-Auch die Abbruchbedingung ist wie in (\ref{lastbalancierung_rekursion_abbruch}). Die Entscheidung, ob horizontal oder vertikal geteilt werden soll, wird auch auf die gleiche Art und Weise gefällt.
+Die Abbruchbedingung ist also wie in (\ref{lastbalancierung_rekursion_abbruch}).
+Auch die Entscheidung, ob horizontal oder vertikal geteilt werden soll, wird auf die gleiche Art und Weise gefällt.
+Der Unterschied zwischen den beiden Strategien liegt also hauptsächlich in den beiden Methoden zur Aufteilung.
 
-Bei dieser Strategie werden die Regionen allerdings nicht einfach halbiert, sondern in zwei Teile aufgeteilt, die laut der Vorhersage ähnlich rechenintensiv sind.
-Dazu wird so vorgegangen, wie bei der \hyperref[lastbalancierung_vorhersage]{nicht-rekursiven Variante} für die Aufteilung auf zwei Worker.
+Bei dieser Strategie werden die Regionen nicht einfach halbiert, sondern in zwei Teile aufgeteilt, die laut der Vorhersage ähnlich rechenintensiv sind.
+Dazu wird ähnlich vorgegangen, wie bei der \hyperref[lastbalancierung_vorhersage]{nicht-rekursiven Variante} für die Aufteilung auf zwei Worker.
+Allerdings wird hier, wenn möglich, sichergestellt, dass beide Teilregionen groß genug sind um jeweils auf $\frac{context.partsLeft}{2}$ Worker aufgeteilt zu werden.
 Es ist hierbei auch wichtig die Vorhersage so zu teilen, dass es für jede Hälfte eine Vorhersage gibt, die dann an den rekursiven Aufruf übergeben werden kann.
 
 \subsubsection{Erweiterung}\label{lastbalancierung_erweiterung}
