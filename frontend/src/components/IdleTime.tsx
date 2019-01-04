@@ -168,6 +168,7 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
     });
 
     this.props.wsclient.registerRegion(groups => {
+      console.log(groups);
       // Stop redrawing
       this.stopNodeProgress();
       // Reset node progress
