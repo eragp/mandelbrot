@@ -29,7 +29,9 @@ private:
 
 	Region *halveRegionHorizontally(Region region, Prediction prediction, Prediction* top, Prediction* bot, int nodeCount);
 
-	bool toFewLeft(int splitPos, bool vertical, int width, int height, int guarnteedDivisor, int nodeCount);
+	bool toFewLeft(int splitPos, bool vertical, int width, int height, int guaranteedDivisor, int nodeCount);
+
+	bool enoughForMe(int splitPos, bool vertical, int width, int height, int guaranteedDivisor, int nodeCount);
 
 public:
 	static const std::string NAME;

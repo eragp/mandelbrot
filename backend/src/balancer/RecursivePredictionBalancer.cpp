@@ -89,8 +89,10 @@ Region *RecursivePredictionBalancer::halveRegionVertically(Region region, Predic
 	for (int i = 0; i < prediction.predictionLengthX; i++) {
 		currentN += prediction.nColSums[i];
 		left->nColSums[i] = prediction.nColSums[i];
-		// Reached 1/2 of nSum or there are to few parts left for the other half
-		if (currentN >= desiredN || toFewLeft(i + 1, true, region.width, region.height, region.guaranteedDivisor, nodeCount)) {
+		// Reached 1/2 of nSum or there are to few parts left for the other half and there are enough parts to assign all workers
+		if ((currentN >= desiredN || toFewLeft(i + 1, true, region.width, region.height, region.guaranteedDivisor, nodeCount))
+			&& enoughForMe(i + 1, true, region.width, region.height, region.guaranteedDivisor, nodeCount)) {
+			
 			halves[0].maxReal = region.minReal + (i + 1) * prediction.deltaReal;
 			halves[0].width = region.guaranteedDivisor * (i + 1);
 
@@ -181,8 +183,10 @@ Region *RecursivePredictionBalancer::halveRegionHorizontally(Region region, Pred
 	for (int i = 0; i < prediction.predictionLengthY; i++) {
 		currentN += prediction.nRowSums[i];
 		top->nRowSums[i] = prediction.nRowSums[i];
-		// Reached 1/2 of nSum or there are to few parts left for the other half
-		if (currentN >= desiredN || toFewLeft(i + 1, false, region.width, region.height, region.guaranteedDivisor, nodeCount)) {
+		// Reached 1/2 of nSum or there are to few parts left for the other half and there are enough parts to assign all workers
+		if ((currentN >= desiredN || toFewLeft(i + 1, false, region.width, region.height, region.guaranteedDivisor, nodeCount))
+			&& enoughForMe(i + 1, false, region.width, region.height, region.guaranteedDivisor, nodeCount)) {
+			
 			halves[0].minImaginary = region.maxImaginary - (i + 1) * prediction.deltaImaginary;
 			halves[0].height = region.guaranteedDivisor * (i + 1);
 
@@ -263,6 +267,20 @@ bool RecursivePredictionBalancer::toFewLeft(int splitPos, bool vertical, int wid
 	}
 
 	return width * height < nodeCount / 2;
+}
+
+// Return true if the region is big enough to assign all workers
+bool RecursivePredictionBalancer::enoughForMe(int splitPos, bool vertical, int width, int height, int guaranteedDivisor, int nodeCount) {
+	width /= guaranteedDivisor;
+	height /= guaranteedDivisor;
+
+	if (vertical) {
+		width = splitPos;
+	} else {
+		height = splitPos;
+	}
+
+	return width * height >= nodeCount / 2 + nodeCount % 2;
 }
 
 RecursivePredictionBalancer *RecursivePredictionBalancer::create(Fractal *f, int predictionAccuracy) {
