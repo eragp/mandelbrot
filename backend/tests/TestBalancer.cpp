@@ -191,7 +191,7 @@ bool testCoverage(TestCase test, Region* subregions) {
 
 bool testBalancerOutput(TestCase test, Region* subregions) {
 	bool failed = false;
-	subregions[0] = subregions[1];
+
 	for (int i = 0; i < test.nodeCount; i++) {
 		if (isEmptyRegion(subregions[i])) {
 			// Empty regions are always correct
