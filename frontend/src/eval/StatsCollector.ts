@@ -1,4 +1,5 @@
 import { registerCallback } from "../misc/registerCallback";
+import WSClient from "../connection/WSClient";
 
 interface Worker {
   rank: number;
@@ -22,7 +23,7 @@ export class StatsCollector {
 
   private doneCallbacks: Array<((data: Stats) => any)>;
 
-  constructor() {
+  constructor(wsclient: WSClient) {
     this.data = {
       worker: new Map(),
       balancer: { regionCount: 0, time: 0 }
@@ -30,6 +31,17 @@ export class StatsCollector {
     this.waiting = 0;
 
     this.doneCallbacks = [];
+
+    // Register for regionData and region subdivisions
+    wsclient.registerRegionRaw(r => {
+        this.setWaiting(r.regionCount);
+        this.setBalancerTime(r.regionCount, r.balancerTime);
+    });
+    wsclient.registerRegionData(r => {
+        this.setComputationTime(r.workerInfo.rank, r.workerInfo.computationTime);
+        this.setMpiTime(r.workerInfo.rank, r.workerInfo.mpiTime);
+        this.setWaiting(this.getWaiting() - 1);
+    })
   }
 
   /**

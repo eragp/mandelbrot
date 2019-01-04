@@ -13,12 +13,13 @@ export interface WS {
 
 export default class WebSocketClient implements WS {
   private regionCallback: Array<((data: RegionGroup[]) => void)> = [];
+  private regionRawCallback: Array<((data: Regions) => void)> = [];
   private workerCallback: Array<((data: RegionData) => void)> = [];
   private regionRequests: string[];
   private socket: WebSocket;
   private currentRegions: WorkerInfo[];
 
-  constructor(stats?: StatsCollector) {
+  constructor() {
     /**
      * Callbacks for any methods interested in new Region subdivisions or regionData (=result of one worker)
      */
@@ -61,26 +62,16 @@ export default class WebSocketClient implements WS {
             if (!this.insideCurrentRegions(r.workerInfo) || isEmptyRegion(r.workerInfo.region)) {
               break;
             }
-            if (stats) {
-              stats.setComputationTime(r.workerInfo.rank, r.workerInfo.computationTime);
-              stats.setMpiTime(r.workerInfo.rank, r.workerInfo.mpiTime);
-            }
             // Notify regionData/worker observers
             workerCallback.forEach(fn => fn(r));
-            if (stats) {
-              stats.setWaiting(stats.getWaiting() - 1);
-            }
           }
           break;
         case "region":
           {
             const r = msg as Regions;
-            if (stats) {
-              stats.setWaiting(r.regionCount);
-              stats.setBalancerTime(r.regionCount, r.balancerTime);
-            }
+            this.regionRawCallback.forEach(cb => cb(r));
             // filter out empty regions
-            const regions = (msg as Regions).regions.filter(w => !isEmptyRegion(w.region));
+            const regions = r.regions.filter(w => !isEmptyRegion(w.region));
             const g = groupRegions(regions);
             // Notify region subdivision listeners
             regionCallback.forEach(call => call(g));
@@ -111,6 +102,9 @@ export default class WebSocketClient implements WS {
    */
   public registerRegion(fun: (groups: RegionGroup[]) => any) {
     return registerCallback(this.regionCallback, fun);
+  }
+  public registerRegionRaw(fun: (region: Regions) => any) {
+      return registerCallback(this.regionRawCallback, fun);
   }
 
   /**

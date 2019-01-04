@@ -31,9 +31,9 @@ import { StatsCollector } from "./eval/StatsCollector";
 
 class App extends React.Component<{}, {}> {
   render() {
-    const stats = new StatsCollector();
+    const ws = new WebSocketClient();
 
-    const ws = new WebSocketClient(stats);
+    const stats = new StatsCollector(ws);
 
     const balancer = new BalancerObservable();
     const group = new GroupObservable();
