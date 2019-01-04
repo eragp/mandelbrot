@@ -36,6 +36,8 @@ int RecursivePredictionBalancer::balancingHelper(Region region, Prediction* pred
 		return context.resultIndex;
 	}
 
+	int nodeCount = context.partsLeft;
+
 	// Alloc memory for predictions and regions
 	Prediction* halve0 = new Prediction();
 	Prediction* halve1 = new Prediction();
@@ -43,23 +45,22 @@ int RecursivePredictionBalancer::balancingHelper(Region region, Prediction* pred
 
 	// Check whether to divide vertically or horizontally
 	if (region.width <= region.guaranteedDivisor) {
-		halves = halveRegionHorizontally(region, *prediction, halve0, halve1);
+		halves = halveRegionHorizontally(region, *prediction, halve0, halve1, nodeCount);
 	}
 	else if (region.height <= region.guaranteedDivisor) {
-		halves = halveRegionVertically(region, *prediction, halve0, halve1);
+		halves = halveRegionVertically(region, *prediction, halve0, halve1, nodeCount);
 	}
 	else if (context.recCounter % 2 == 0) {
-		halves = halveRegionVertically(region, *prediction, halve0, halve1);
+		halves = halveRegionVertically(region, *prediction, halve0, halve1, nodeCount);
 	}
 	else {
-		halves = halveRegionHorizontally(region, *prediction, halve0, halve1);
+		halves = halveRegionHorizontally(region, *prediction, halve0, halve1, nodeCount);
 	}
 
 	// Free prediction since it's no longer needed
 	delete prediction;
 
 	context.recCounter++;
-	int nodeCount = context.partsLeft;
 
 	context.partsLeft = nodeCount / 2 + nodeCount % 2;	// Assign more workers to halves[0], since it tends to be bigger
 	context.resultIndex = balancingHelper(halves[0], halve0, context);
@@ -72,7 +73,7 @@ int RecursivePredictionBalancer::balancingHelper(Region region, Prediction* pred
 }
 
 // Halves the region according to prediction, puts new predictions to left and right
-Region *RecursivePredictionBalancer::halveRegionVertically(Region region, Prediction prediction, Prediction* left, Prediction* right) {
+Region *RecursivePredictionBalancer::halveRegionVertically(Region region, Prediction prediction, Prediction* left, Prediction* right, int nodeCount) {
 	Region* halves = new Region[2];
 	halves[0] = halves[1] = region;
 
@@ -88,8 +89,8 @@ Region *RecursivePredictionBalancer::halveRegionVertically(Region region, Predic
 	for (int i = 0; i < prediction.predictionLengthX; i++) {
 		currentN += prediction.nColSums[i];
 		left->nColSums[i] = prediction.nColSums[i];
-		// Reached 1/2 of nSum or there is only one piece of prediction left for the other half
-		if (currentN >= desiredN || prediction.predictionLengthX - (i + 1) <= 1) {
+		// Reached 1/2 of nSum or there are to few parts left for the other half
+		if (currentN >= desiredN || toFewLeft(i + 1, true, region.width, region.height, region.guaranteedDivisor, nodeCount)) {
 			halves[0].maxReal = region.minReal + (i + 1) * prediction.deltaReal;
 			halves[0].width = region.guaranteedDivisor * (i + 1);
 
@@ -164,7 +165,7 @@ Region *RecursivePredictionBalancer::halveRegionVertically(Region region, Predic
 }
 
 // Halves the region according to prediction, puts new prediction to top and bot
-Region *RecursivePredictionBalancer::halveRegionHorizontally(Region region, Prediction prediction, Prediction* top, Prediction* bot) {
+Region *RecursivePredictionBalancer::halveRegionHorizontally(Region region, Prediction prediction, Prediction* top, Prediction* bot, int nodeCount) {
 	Region* halves = new Region[2];
 	halves[0] = halves[1] = region;
 
@@ -180,8 +181,8 @@ Region *RecursivePredictionBalancer::halveRegionHorizontally(Region region, Pred
 	for (int i = 0; i < prediction.predictionLengthY; i++) {
 		currentN += prediction.nRowSums[i];
 		top->nRowSums[i] = prediction.nRowSums[i];
-		// Reached 1/2 of nSum or there is only one piece of prediction left for the other half
-		if (currentN >= desiredN || prediction.predictionLengthY - (i + 1) <= 1) {
+		// Reached 1/2 of nSum or there are to few parts left for the other half
+		if (currentN >= desiredN || toFewLeft(i + 1, false, region.width, region.height, region.guaranteedDivisor, nodeCount)) {
 			halves[0].minImaginary = region.maxImaginary - (i + 1) * prediction.deltaImaginary;
 			halves[0].height = region.guaranteedDivisor * (i + 1);
 
@@ -248,6 +249,20 @@ Region *RecursivePredictionBalancer::halveRegionHorizontally(Region region, Pred
 	}
 
 	return halves;
+}
+
+// Return true if taking the next part would result in to few parts for the other halve
+bool RecursivePredictionBalancer::toFewLeft(int splitPos, bool vertical, int width, int height, int guaranteedDivisor, int nodeCount) {
+	width /= guaranteedDivisor;
+	height /= guaranteedDivisor;
+
+	if (vertical) {
+		width -= splitPos + 1;
+	} else {
+		height -= splitPos + 1;
+	}
+
+	return width * height < nodeCount / 2;
 }
 
 RecursivePredictionBalancer *RecursivePredictionBalancer::create(Fractal *f, int predictionAccuracy) {
