@@ -237,9 +237,9 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
     this.chart.data = data;
 
     let computationTime = 0;
-    this.chartState.progress.forEach(value => {
+    for(const value of Array.from(this.chartState.progress.values())){
       computationTime += value;
-    });
+    }
     (((this.chart.config.options as ChartOptions).title as ChartTitleOptions)
       .text as string[])[1] = usToString(computationTime);
 

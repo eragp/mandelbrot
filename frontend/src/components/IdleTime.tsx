@@ -6,7 +6,8 @@ import {
   ChartConfiguration,
   ChartDataSets,
   ChartOptions,
-  ChartHoverOptions
+  ChartHoverOptions,
+  ChartTitleOptions
 } from "chart.js";
 import WebSocketClient from "../connection/WSClient";
 import { GroupObservable } from "../misc/Observable";
@@ -108,6 +109,11 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
           callbacks: {
             label: customLabel
           }
+        },
+        title: {
+            display: true,
+            position: "bottom",
+            text: ["Max comp time:", "0 µs"]
         },
         onHover: event => {
           // change workercontext active worker on hover
@@ -276,6 +282,17 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
     };
     this.chart.data = data;
 
+    let maxNodeCompTime = 0;
+    for(const g of this.chartState.nodes){
+        for(const n of g.getLeafs()){
+            const compTime = this.chartState.progress.get(n.id) as number;
+            if(compTime > maxNodeCompTime){
+                maxNodeCompTime = compTime;
+            }
+        }
+    }
+    (((this.chart.config.options as ChartOptions).title as ChartTitleOptions)
+        .text as string[])[1] = String(maxNodeCompTime) + "µs";
     this.chart.update(animationDuration);
   }
 
