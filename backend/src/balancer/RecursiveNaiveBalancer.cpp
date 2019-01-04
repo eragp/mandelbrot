@@ -47,18 +47,21 @@ int RecursiveNaiveBalancer::balancingHelper(Region region, BalancingContext cont
 		halves = halveRegionHorizontally(region, context);
 	}
 
-	// Explicitly set halves[1] to zero, if needed (not needed for halves[0] since in this case also region is 0)
-	if (halves[1].width == 0 || halves[1].height == 0) {
-		halves[1].minImaginary = 0.0;
-		halves[1].maxImaginary = 0.0;
+	// Explicitly set halves[i] to zero, if needed
+	for (int i = 0; i < 2; i++) {
+		if (halves[i].width == 0 || halves[i].height == 0) {
+			halves[i].minImaginary = 0.0;
+			halves[i].maxImaginary = 0.0;
 
-		halves[1].minReal = 0.0;
-		halves[1].maxReal = 0.0;
+			halves[i].minReal = 0.0;
+			halves[i].maxReal = 0.0;
 
-		halves[1].height = 0;
+			halves[i].height = 0;
+			halves[i].width = 0;
 
-		halves[1].vOffset = 0;
-		halves[1].hOffset = 0;
+			halves[i].vOffset = 0;
+			halves[i].hOffset = 0;
+		}
 	}
 
 	context.recCounter++;
