@@ -1,5 +1,5 @@
-import { RegionData, Regions, isEmptyRegion } from "./ExchangeTypes";
 import { groupRegions, RegionGroup } from "./RegionGroup";
+import { RegionData, Regions, isEmptyRegion, Region, WorkerInfo } from "./ExchangeTypes";
 
 const url = "ws://localhost:9002";
 
@@ -8,10 +8,11 @@ export default class WebSocketClient {
   private workerCallback: Array<((data: RegionData) => void)> = [];
   private regionRequests: string[];
   private socket: WebSocket;
+  private currentRegions: WorkerInfo[];
 
   constructor() {
     /**
-     * Callbacks for any methods interested in new region subdivisions or regionData (=result of one worker)
+     * Callbacks for any methods interested in new Region subdivisions or regionData (=result of one worker)
      */
     const regionCallback = this.regionCallback;
     const workerCallback = this.workerCallback;
@@ -47,20 +48,23 @@ export default class WebSocketClient {
         case "regionData":
           {
             // filter empty RegionData
-            let r = <RegionData>msg;
-            if (r.data.length == 0) return;
+            const r = msg as RegionData;
+            // filter answers for not current region & filter out empty regions
+            if (!this.insideCurrentRegions(r.workerInfo) || isEmptyRegion(r.workerInfo.region)) {
+              break;
+            }
             // Notify regionData/worker observers
             workerCallback.forEach(call => call(r));
           }
           break;
         case "region":
           {
-            // filter empty regions
-            let r = (<Regions>msg).regions.filter(r => !isEmptyRegion(r.region));
-            // Pre-Grouping
-            let g = groupRegions(r)
+            // filter out empty regions
+            const regions = (msg as Regions).regions.filter(w => !isEmptyRegion(w.region));
+            const g = groupRegions(regions);
             // Notify region subdivision listeners
             regionCallback.forEach(call => call(g));
+            this.currentRegions = regions;
           }
           break;
         default:
@@ -112,5 +116,26 @@ export default class WebSocketClient {
     };
     list.push(render);
     return promise;
+  }
+
+  private insideCurrentRegions(data: WorkerInfo) {
+    const dataRegion = data.region;
+    return this.currentRegions.some(w => {
+      const curRegion = w.region;
+      return (
+        w.rank === data.rank &&
+        curRegion.fractal.toLowerCase() === dataRegion.fractal.toLowerCase() &&
+        curRegion.regionCount === dataRegion.regionCount &&
+        curRegion.validation === dataRegion.validation &&
+        curRegion.hOffset === dataRegion.hOffset &&
+        curRegion.vOffset === dataRegion.vOffset &&
+        curRegion.width === dataRegion.width &&
+        curRegion.height === dataRegion.height &&
+        curRegion.minImag === dataRegion.minImag &&
+        curRegion.maxImag === dataRegion.maxImag &&
+        curRegion.minReal === dataRegion.minReal &&
+        curRegion.maxReal === dataRegion.maxReal
+      );
+    });
   }
 }
