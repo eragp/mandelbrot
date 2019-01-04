@@ -1,4 +1,4 @@
-import { WorkerInfo, Region } from "../connection/ExchangeTypes";
+import { WorkerInfo, Region, regionEquals, isEmptyRegion } from "../connection/ExchangeTypes";
 import { Point2D } from "./Point";
 import { MAX_DISPLAY_REGIONS } from "../Constants";
 
@@ -183,6 +183,15 @@ export const groupRegions = (r: WorkerInfo[]): RegionGroup[] => {
   if (r.length <= MAX_DISPLAY_REGIONS) {
     return r.map(r => new Rectangle(r));
   }
+  // If there are empty regions, create a whole group for them
+  const emptyRegions: WorkerInfo[] = [];
+  r.forEach(w => {
+      if(isEmptyRegion(w.region)){
+        emptyRegions.push(w);
+      }
+  });;
+  r = r.filter(w => !isEmptyRegion(w.region));
+
   const groupSize = Math.ceil(r.length / MAX_DISPLAY_REGIONS);
   const groups: WorkerInfo[][] = [];
   let groupID = 1;
@@ -200,15 +209,12 @@ export const groupRegions = (r: WorkerInfo[]): RegionGroup[] => {
   );
   while (rect.length > 0) {
     const w = rect.slice(0, Math.min(groupSize, rect.length));
-    rect = sub(rect, w);
+    rect = sub(rect, w); // I guess this leads to errors on empty regions
     groups.push(w);
+  }
+  if(emptyRegions.length > 0){
+      groups.push(emptyRegions);
   }
   // console.log(groups);
   return groups.map(g => new Group(g, groupID++));
 };
-
-const regionEquals = (a: Region, b: Region) =>
-  a.minReal === b.minReal &&
-  a.maxReal === b.maxReal &&
-  a.minImag === b.minImag &&
-  a.maxImag === b.maxImag;

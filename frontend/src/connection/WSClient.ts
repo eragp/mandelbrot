@@ -1,7 +1,6 @@
-import { RegionData, Regions, isEmptyRegion, WorkerInfo } from "./ExchangeTypes";
+import { RegionData, Regions, WorkerInfo, workerInfoEquals } from "./ExchangeTypes";
 import { groupRegions, RegionGroup } from "../misc/RegionGroup";
 import { registerCallback } from "../misc/registerCallback";
-import { StatsCollector } from "../eval/StatsCollector";
 
 const url = "ws://localhost:9002";
 export interface WS {
@@ -56,10 +55,10 @@ export default class WebSocketClient implements WS {
       switch (msg.type) {
         case "regionData":
           {
-            // filter empty RegionData
+            // do not filter empty RegionData
             const r = msg as RegionData;
-            // filter answers for not current region & filter out empty regions
-            if (!this.insideCurrentRegions(r.workerInfo) || isEmptyRegion(r.workerInfo.region)) {
+            // filter answers for not current region 
+            if (!this.insideCurrentRegions(r.workerInfo)) {
               break;
             }
             // Notify regionData/worker observers
@@ -69,9 +68,9 @@ export default class WebSocketClient implements WS {
         case "region":
           {
             const r = msg as Regions;
+            // do not filter out empty regions
             this.regionRawCallback.forEach(cb => cb(r));
-            // filter out empty regions
-            const regions = r.regions.filter(w => !isEmptyRegion(w.region));
+            const regions = r.regions;
             const g = groupRegions(regions);
             // Notify region subdivision listeners
             regionCallback.forEach(call => call(g));
@@ -115,23 +114,6 @@ export default class WebSocketClient implements WS {
   }
 
   private insideCurrentRegions(data: WorkerInfo) {
-    const dataRegion = data.region;
-    return this.currentRegions.some(w => {
-      const curRegion = w.region;
-      return (
-        w.rank === data.rank &&
-        curRegion.fractal.toLowerCase() === dataRegion.fractal.toLowerCase() &&
-        curRegion.regionCount === dataRegion.regionCount &&
-        curRegion.validation === dataRegion.validation &&
-        curRegion.hOffset === dataRegion.hOffset &&
-        curRegion.vOffset === dataRegion.vOffset &&
-        curRegion.width === dataRegion.width &&
-        curRegion.height === dataRegion.height &&
-        curRegion.minImag === dataRegion.minImag &&
-        curRegion.maxImag === dataRegion.maxImag &&
-        curRegion.minReal === dataRegion.minReal &&
-        curRegion.maxReal === dataRegion.maxReal
-      );
-    });
+    return this.currentRegions.some(w => workerInfoEquals(data, w));
   }
 }
