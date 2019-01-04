@@ -127,6 +127,7 @@ export default class WebSocketClient implements WS {
       return (
         w.rank === data.rank &&
         curRegion.fractal.toLowerCase() === dataRegion.fractal.toLowerCase() &&
+        curRegion.regionCount === dataRegion.regionCount &&
         curRegion.validation === dataRegion.validation &&
         curRegion.hOffset === dataRegion.hOffset &&
         curRegion.vOffset === dataRegion.vOffset &&

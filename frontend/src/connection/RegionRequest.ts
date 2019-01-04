@@ -63,10 +63,13 @@ export const request = (map: Map, balancer: string, implementation: string): Req
       // Divisor for width and height. Will be used to perform load balancing
       guaranteedDivisor: TileSize,
       maxIteration: MaxIteration,
-      fractal: implementation
+      fractal: implementation,
+      regionCount: 0
     },
     balancer,
-    fractal: implementation
+    fractal: implementation,
+    // TODO: exchange this for a real value
+    nodes: 0
   };
   return region;
 };

@@ -7,6 +7,7 @@ export interface Request {
   region: Region;
   balancer: string;
   fractal: string;
+  nodes: number;
 }
 
 export interface Region {
@@ -22,6 +23,7 @@ export interface Region {
   hOffset: number;
   vOffset: number;
   fractal: string;
+  regionCount: number;
 }
 
 export const isEmptyRegion = (region: Region) => {
