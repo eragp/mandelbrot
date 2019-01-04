@@ -3,20 +3,14 @@
 #include "Fractal.h"
 
 #include <iostream>
-#include <cmath>
 #include <string>
 
 const std::string RecursiveNaiveBalancer::NAME = "naiveRecursive";
 
 Region *RecursiveNaiveBalancer::balanceLoad(Region region, int nodeCount) {
 	auto *allRegions = new Region[nodeCount];
-
-	int recCounter = (int)floor(log2(nodeCount));
-	// Deal with numbers that are not powers of 2
-	int onLowestLevel = (int)(nodeCount - pow(2, recCounter)) * 2;
-	recCounter++;
 	
-	BalancingContext context = { allRegions, 0, recCounter, onLowestLevel, 0.0, 0.0 };
+	BalancingContext context = { allRegions, 0, nodeCount, 0, 0.0, 0.0 };
 	context.deltaReal = Fractal::deltaReal(region.maxReal, region.minReal, region.width);
 	context.deltaImaginary = Fractal::deltaImaginary(region.maxImaginary, region.minImaginary, region.height);
 
@@ -31,7 +25,7 @@ Region *RecursiveNaiveBalancer::balanceLoad(Region region, int nodeCount) {
 
 int RecursiveNaiveBalancer::balancingHelper(Region region, BalancingContext context) {
 	// Store region in result
-	if (context.recCounter == 0 || (context.recCounter == 1 && context.resultIndex >= context.onLowestLevel)) {
+	if (context.partsLeft == 1) {
 		context.result[context.resultIndex++] = region;
 		return context.resultIndex;
 	}
@@ -67,8 +61,13 @@ int RecursiveNaiveBalancer::balancingHelper(Region region, BalancingContext cont
 		halves[1].hOffset = 0;
 	}
 
-	context.recCounter--;
+	context.recCounter++;
+	int nodeCount = context.partsLeft;
+
+	context.partsLeft = nodeCount / 2 + nodeCount % 2;	// Assign more workers to halves[0], since it tends to be bigger
 	context.resultIndex = balancingHelper(halves[0], context);
+	
+	context.partsLeft = nodeCount / 2;
 	context.resultIndex = balancingHelper(halves[1], context);
 	// Allocated in halveRegionV/H --> halves is the only pointer left
 	delete[] halves;

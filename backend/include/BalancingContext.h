@@ -8,8 +8,8 @@ struct BalancingContext {
 	Region* result;
 
 	int resultIndex;
+	int partsLeft;
 	int recCounter;
-	int onLowestLevel;
 
 	double deltaReal;
 	double deltaImaginary;

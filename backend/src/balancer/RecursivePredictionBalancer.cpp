@@ -5,7 +5,6 @@
 
 #include <iostream>
 #include <vector>
-#include <cmath>
 #include <string>
 
 const std::string RecursivePredictionBalancer::NAME = "predictionRecursive";
@@ -18,12 +17,8 @@ RecursivePredictionBalancer::~RecursivePredictionBalancer() {
 Region *RecursivePredictionBalancer::balanceLoad(Region region, int nodeCount) {
 	auto *allRegions = new Region[nodeCount];
 	Prediction* prediction = Predicter::getPrediction(region, f, predictionAccuracy);
-
-	int recCounter = (int) floor(log2(nodeCount));
-	// Deal with numbers that are not powers of 2
-	int onLowestLevel = (int) (nodeCount - pow(2, recCounter)) * 2;
-	recCounter++;
-	BalancingContext context = { allRegions, 0, recCounter, onLowestLevel, prediction->deltaReal, prediction->deltaImaginary };
+	
+	BalancingContext context = { allRegions, 0, nodeCount, 0, prediction->deltaReal, prediction->deltaImaginary };
 	int partsMade = balancingHelper(region, prediction, context);
 
 	if (partsMade != nodeCount) {
@@ -35,7 +30,7 @@ Region *RecursivePredictionBalancer::balanceLoad(Region region, int nodeCount) {
 
 int RecursivePredictionBalancer::balancingHelper(Region region, Prediction* prediction, BalancingContext context) {
 	// Store region in result
-	if (context.recCounter == 0 || (context.recCounter == 1 && context.resultIndex >= context.onLowestLevel)) {
+	if (context.partsLeft == 1) {
 		context.result[context.resultIndex++] = region;
 		delete prediction;
 		return context.resultIndex;
@@ -63,9 +58,13 @@ int RecursivePredictionBalancer::balancingHelper(Region region, Prediction* pred
 	// Free prediction since it's no longer needed
 	delete prediction;
 
-	context.recCounter--;
-	
+	context.recCounter++;
+	int nodeCount = context.partsLeft;
+
+	context.partsLeft = nodeCount / 2 + nodeCount % 2;	// Assign more workers to halves[0], since it tends to be bigger
 	context.resultIndex = balancingHelper(halves[0], halve0, context);
+	
+	context.partsLeft = nodeCount / 2;
 	context.resultIndex = balancingHelper(halves[1], halve1, context);
 	// Allocated in halveRegionV/H --> halves is the only pointer left
 	delete[] halves;
