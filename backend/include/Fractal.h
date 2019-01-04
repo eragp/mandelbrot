@@ -28,17 +28,17 @@ class Fractal {
      * Calculates the step size of a single pixel in the x direction (real) on the complex plane.
      * @param maxReal max real bound
      * @param minReal min real bound
-     * @param xRes pixel resolution from minReal -> maxReal
+     * @param width pixel resolution from minReal -> maxReal
      * @return step size on real axis
      */
-    static precision_t deltaReal(precision_t maxReal, precision_t minReal, int xRes);
+    static precision_t deltaReal(precision_t maxReal, precision_t minReal, int width);
 
     /**
      * Calculates the step size of a single pixel in the y direction (imaginary) on the complex plane.
      * @param maxImaginary max imaginary bound
      * @param minImaginary min imaginary bound
-     * @param yRes pixel resolution from minImaginary -> maxImaginary
+     * @param height pixel resolution from minImaginary -> maxImaginary
      * @return step size on imaginary axis
      */
-    static precision_t deltaImaginary(precision_t maxImaginary, precision_t minImaginary, int yRes);
+    static precision_t deltaImaginary(precision_t maxImaginary, precision_t minImaginary, int height);
 };
