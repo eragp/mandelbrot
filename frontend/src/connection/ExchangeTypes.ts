@@ -13,6 +13,7 @@ export interface Request {
   maxReal: number;
   validation: number;
   maxIteration: number;
+  nodes: number;
 }
 
 export interface Region {
@@ -27,6 +28,8 @@ export interface Region {
   maxIteration: number;
   hOffset: number;
   vOffset: number;
+  fractal: string;
+  regionCount: number;
 }
 
 export const isEmptyRegion = (region: Region) => {
