@@ -533,9 +533,9 @@ Damit die Unterschiede zwischen guter und schlechter Lastverteilung deutlich wer
 
 Bei der naiven Strategie (zu finden in den Klassen \verb|NaiveBalancer| und \\ \verb|RecursiveNaiveBalancer|) wird versucht den einzelnen Workern etwa gleich große Teilregionen zuzuweisen.
 Dies geschieht allerdings ohne Beachtung der eventuell unterschiedlichen Rechenzeiten innerhalb der Teilregionen.
-Die naive Strategie wurde hier in einer nicht-rekursiven  und einer rekursiven Variante implementiert.
+Die naive Strategie wurde hier in einer nicht-rekursiven und einer rekursiven Variante implementiert.
 
-\paragraph*{}\label{lastbalancierung_naiv}
+\paragraph*{Nicht-rekursive Variante}\label{lastbalancierung_naiv}
 %non-recursive naive
 Zur nicht-rekursiven Aufteilung wird zuerst die Anzahl der zu erstellenden Spalten und Zeilen berechnet.
 Dazu wird der größte Teiler der Anzahl der Worker bestimmt. Dieser gibt die Anzahl der Spalten an, das Ergebnis der Division ist die Anzahl der Zeilen.
@@ -563,7 +563,7 @@ Die letzte Teilregion einer Spalte bzw. Zeile wird immer so gewählt, dass sie a
 
 Die Teilregionen werden in einem Ergebnisarray gespeichert, welches dann zurückgegeben wird.
 
-\paragraph*{}\label{lastbalancierung_naiv_rekursion}
+\paragraph*{Rekursive Variante}\label{lastbalancierung_naiv_rekursion}
 % recursiveNaive
 Die Grundidee der rekursiven Balancierung ist, die Region solange zu halbieren, bis man genug Teile für jeden Worker hat.
 Dies funktioniert sehr gut, wenn die Anzahl der Worker eine 2er-Potenz ist.
@@ -594,7 +594,7 @@ Dann wird die Funktion für jede Hälfte rekursiv aufgerufen, wobei \verb|partsL
 Bei dieser Strategie (zu finden in den Klassen \verb|PredictionBalancer| und \\ \verb|RecursivePredictionBalancer|) basiert die Aufteilung der Region auf einer Vorhersage über die Rechenzeit.
 Die Teilregionen werden so gewählt, dass sie, entsprechend der Vorhersage, etwa einen ähnlichen Rechenaufwand haben.
 
-\paragraph*{}
+\paragraph*{Bestimmung der Vorhersage}
 % predicter
 Die Vorhersage (\verb|struct Prediction|) wird von der Klasse Predicter angestellt.
 Dazu wird die Region in einer sehr viel geringeren Auflösung berechnet.
@@ -612,7 +612,7 @@ Auch die Deltas für Real- und Imaginärteil pro Kachel und die Anzahl der Zeile
 
 Auch die Strategie mit Vorhersage wurde in einer rekursiven und in einer nicht-rekursiven Variante implementiert.
 
-\paragraph*{}\label{lastbalancierung_vorhersage}
+\paragraph*{Nicht-rekursive Variante}\label{lastbalancierung_vorhersage}
 % non-recursive prediction
 Für die nicht-rekursive Variante wird zuerst die benötigte Anzahl an Zeilen und Spalten bestimmt.
 Dies geschieht genauso wie bei der naiven Strategie.
@@ -640,7 +640,7 @@ Dies gilt genauso bei der Unterteilung der einzelnen Spalten.
 	\lstinputlisting[caption={Aufteilung in Spalten (Auszug)}, label={src:PredictionBalancerAuszug.cpp}, firstline=23, lastline=70]{./PredictionBalancerAuszug.cpp}
 \end{figure}
 
-\paragraph*{}
+\paragraph*{Rekursive Variante}
 % recursive prediction
 Die rekursive Variante der Strategie mit Vorhersage verwendet dasselbe Rekursionsschema wie ihr \hyperref[lastbalancierung_naiv_rekursion]{naives Gegenstück}.
 Die Abbruchbedingung ist also wie in (\ref{lastbalancierung_rekursion_abbruch}).
