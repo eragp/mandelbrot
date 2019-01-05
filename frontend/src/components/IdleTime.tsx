@@ -14,6 +14,7 @@ import { GroupObservable } from "../misc/Observable";
 import "./IdleTime.css";
 import { RegionGroup, groupRegions } from "../misc/RegionGroup";
 import { WorkerInfo } from "../connection/ExchangeTypes";
+import { usToString } from "../misc/Conversion";
 
 interface IdleTimeProps {
   group: GroupObservable;
@@ -25,15 +26,9 @@ interface IdleTimeState {
   active: Map<number, boolean>;
   progress: Map<number, number>;
 }
-const usToString = (time: number) => {
-  const units = ["μs", "ms", "s"];
-  let i = 0;
-  while (i != units.length && time > 1000) {
-    time = time / 1000;
-    i++;
-  }
-  return (Math.round(time * 100) / 100).toFixed(2) + " " + units[i];
-};
+
+// Display idle time in seconds
+const factor = 1e6;
 /**
  * Shows the computation time of invoked workers
  * Additional documentation on the type of used chart: https://www.chartjs.org/docs/latest/
@@ -50,23 +45,24 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
     super(props);
 
     const pseudoWorker: WorkerInfo = {
-        rank: 0,
-        computationTime: 0,
-        region: {
-            guaranteedDivisor: 0,
-            hOffset: 0,
-            vOffset: 0,
-            height: 0,
-            maxImag: 0,
-            maxIteration: 0,
-            maxReal: 0,
-            minImag: 0,
-            minReal: 0,
-            validation: 0,
-            width: 0,
-            fractal: "mandelbrot",
-            regionCount: 0
-        }
+      rank: 0,
+      computationTime: 0,
+      mpiTime: 0,
+      region: {
+        guaranteedDivisor: 0,
+        hOffset: 0,
+        vOffset: 0,
+        height: 0,
+        maxImag: 0,
+        maxIteration: 0,
+        maxReal: 0,
+        minImag: 0,
+        minReal: 0,
+        validation: 0,
+        width: 0,
+        fractal: "mandelbrot",
+        regionCount: 0
+      }
     };
     this.chartState = {
       nodes: groupRegions([pseudoWorker]),
@@ -79,8 +75,8 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
   public componentDidMount() {
     // TODO does not work
     const customLabel = (tooltipItem: any, data: any) =>
-    // TODO: fix the * 1e6 hack
-      usToString(data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index] * 1e6);
+      // needs to be multiplied by factor, because the cart data is in seconds
+      usToString(data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index] * factor);
 
     const ctx = document.getElementById("idleTime") as HTMLCanvasElement;
     const config: ChartConfiguration = {
@@ -176,9 +172,9 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
         }
       }
       this.chartState = {
-        nodes: nodes,
-        active: active,
-        progress: progress
+        nodes,
+        active,
+        progress
       };
       this.updateChart(animationDuration);
       // Start redrawing as soon as animation has finished
@@ -250,8 +246,6 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
     // Ensure that the order from the nodes array is kept for the datasets
     this.chartState.nodes.forEach(group => {
       const rank = group.id;
-      // Display idle time in seconds
-      const factor = 1e6;
       const groupSize = group.getLeafs().length;
       // IdleTime is displayed in seconds, averaged over the size of the group
       const idleTime = (maxComputationTime - groupCompTime(group)) / (groupSize * factor);

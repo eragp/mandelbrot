@@ -10,9 +10,10 @@ import {
 import WebSocketClient from "../connection/WSClient";
 
 import "./ComputationTime.css";
-import {GroupObservable} from "../misc/Observable";
-import { RegionGroup, groupRegions} from "../misc/RegionGroup";
+import { GroupObservable } from "../misc/Observable";
+import { RegionGroup, groupRegions } from "../misc/RegionGroup";
 import { WorkerInfo } from "../connection/ExchangeTypes";
+import { usToString } from "../misc/Conversion";
 
 interface NodeProgressProps {
   group: GroupObservable;
@@ -40,22 +41,24 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
     super(props);
     this.websocketClient = props.wsClient;
     const pseudoWorker: WorkerInfo = {
-        rank: 0,
-        computationTime: 0,
-        region: {
-            guaranteedDivisor: 0,
-            hOffset: 0,
-            vOffset: 0,
-            height: 0,
-            maxImag: 0,
-            maxIteration: 0,
-            maxReal: 0,
-            minImag: 0,
-            minReal: 0,
-            validation: 0,
-            width: 0,
-            fractal: "mandelbrot"
-        }
+      rank: 0,
+      computationTime: 0,
+      mpiTime: 0,
+      region: {
+        guaranteedDivisor: 0,
+        hOffset: 0,
+        vOffset: 0,
+        height: 0,
+        maxImag: 0,
+        maxIteration: 0,
+        maxReal: 0,
+        minImag: 0,
+        minReal: 0,
+        validation: 0,
+        width: 0,
+        fractal: "mandelbrot",
+        regionCount: 0
+      }
     };
     this.chartState = {
       nodes: groupRegions([pseudoWorker]),
@@ -68,8 +71,8 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
   public componentDidMount() {
     const ctx = document.getElementById("nodeProgress") as HTMLCanvasElement;
     const customLabel = (tooltipItem: any, data: any) =>
-      `${data.labels[tooltipItem.index]}: ${this.usToString(
-        data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index] * 10
+      `${data.labels[tooltipItem.index]}: ${usToString(
+        data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index]
       )}`;
 
     this.chart = new Chart(ctx, {
@@ -134,8 +137,8 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
       const animationDuration = 750;
       for (const group of groups) {
         for (const region of group.getLeafs()) {
-            active.set(region.id, true);
-            progress.set(region.id, animationDuration * 1000);
+          active.set(region.id, true);
+          progress.set(region.id, animationDuration * 1000);
         }
       }
       this.chartState = {
@@ -182,16 +185,6 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
     });
   }
 
-  public usToString(time: number) {
-      const units = ["μs", "ms", "s"];
-      let i = 0;
-      while (i != units.length && time > 1000) {
-        time = time / 1000;
-        i++;
-      }
-      return (Math.round(time * 100) / 100).toFixed(2) + " " + units[i];
-    }
-
   public render() {
     return (
       <div className="nodeProgress">
@@ -206,11 +199,11 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
     const colorSet: string[] = [];
     // => Label/ value index is the index of the rank in the node array
     const groupCompTime = (group: RegionGroup) => {
-        let compTime = 0;
-        for (const region of group.getLeafs()) {
-            compTime += this.chartState.progress.get(region.id) as number;
-        }
-        return compTime;
+      let compTime = 0;
+      for (const region of group.getLeafs()) {
+        compTime += this.chartState.progress.get(region.id) as number;
+      }
+      return compTime;
     };
     this.chartState.nodes.forEach(group => {
       const rank = group.id;
@@ -235,7 +228,7 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
       computationTime += value;
     });
     (((this.chart.config.options as ChartOptions).title as ChartTitleOptions)
-      .text as string[])[1] = this.usToString(computationTime);
+      .text as string[])[1] = usToString(computationTime);
 
     this.chart.update(animationDuration);
   }
@@ -252,10 +245,13 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
         this.chartState.nodes.forEach(group => {
           // Check for all regions of the group
           for (const region of group.getLeafs()) {
-              if (state.active.get(region.id) === true) {
-                state.progress.set(region.id, (state.progress.get(region.id) as number) + intervalRate * 1000);
-                update = true;
-              }
+            if (state.active.get(region.id) === true) {
+              state.progress.set(
+                region.id,
+                (state.progress.get(region.id) as number) + intervalRate * 1000
+              );
+              update = true;
+            }
           }
         });
         if (update) {
