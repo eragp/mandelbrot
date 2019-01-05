@@ -44,18 +44,15 @@ int RecursivePredictionBalancer::balancingHelper(Region region, Prediction* pred
 	Region* halves; // Will have length 2
 
 	// Check whether to divide vertically or horizontally
-	if (region.width <= region.guaranteedDivisor) {
+	if (region.width <= region.height || region.width <= region.guaranteedDivisor) {
 		halves = halveRegionHorizontally(region, *prediction, halve0, halve1, nodeCount);
 	}
-	else if (region.height <= region.guaranteedDivisor) {
+	else if (region.height <= region.width || region.height <= region.guaranteedDivisor) {
 		halves = halveRegionVertically(region, *prediction, halve0, halve1, nodeCount);
 	}
-	else if (context.recCounter % 2 == 0) {
-		halves = halveRegionVertically(region, *prediction, halve0, halve1, nodeCount);
-	}
-	else {
-		halves = halveRegionHorizontally(region, *prediction, halve0, halve1, nodeCount);
-	}
+    else{
+        std::cerr << "Impossible" << std::endl;
+    }
 
 	// Free prediction since it's no longer needed
 	delete prediction;
