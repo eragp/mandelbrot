@@ -27,12 +27,26 @@ void Worker::init(int world_rank, int world_size) {
     std::cout << "No SIMD available on Worker "<< world_rank << "!" << std::endl;
     #endif
 
-    // Initial test if this core is ready
+    // Initial test if this core is ready and get rank of Host
     int test;
     MPI_Status status;
-    MPI_Recv(&test, 1, MPI_INT, MPI_ANY_SOURCE, 10, MPI_COMM_WORLD, &status);
-    MPI_Send((void *) &test, 1, MPI_INT, status.MPI_SOURCE, 11, MPI_COMM_WORLD);
+    int ierr = MPI_Recv(&test, 1, MPI_INT, MPI_ANY_SOURCE, 10, MPI_COMM_WORLD, &status);
+    // Error handling
+    if (ierr != MPI_SUCCESS){
+        std::cerr << "Error on MPI_Recv on worker " << world_rank << " on test send: " << std::endl;
+        char err_buffer[MPI_MAX_ERROR_STRING];
+        int resultlen;
+        MPI_Error_string(ierr, err_buffer, &resultlen);
+        fprintf(stderr, err_buffer);
+    }
+    // Error handling - end
+    if (test == world_rank) {
+        std::cout << "Worker " << world_rank << " received correct test." << std::endl;
+    } else {
+        std::cout << "Worker " << world_rank << " received test, but value is incorrect." << std::endl;
+    }
     int host_rank = status.MPI_SOURCE;
+
     Fractal *f ;
 
     bool loopFlag = false;
