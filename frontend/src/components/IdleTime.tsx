@@ -45,25 +45,6 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
     super(props);
 
     const pseudoWorker: WorkerInfo = {
-<<<<<<< HEAD
-        rank: 0,
-        computationTime: 0,
-        region: {
-            guaranteedDivisor: 0,
-            hOffset: 0,
-            vOffset: 0,
-            height: 0,
-            maxImag: 0,
-            maxIteration: 0,
-            maxReal: 0,
-            minImag: 0,
-            minReal: 0,
-            validation: 0,
-            width: 0,
-            fractal: "mandelbrot",
-            regionCount: 0
-        }
-=======
       rank: 0,
       computationTime: 0,
       mpiTime: 0,
@@ -82,7 +63,6 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
         fractal: "mandelbrot",
         regionCount: 0
       }
->>>>>>> 998-meaningful-idle-time-averaged
     };
     this.chartState = {
       nodes: groupRegions([pseudoWorker]),
