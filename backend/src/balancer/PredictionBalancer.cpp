@@ -30,19 +30,8 @@ Region *PredictionBalancer::balanceLoad(Region region, int nodeCount) {
     int desiredN = prediction->nSum / cols;
 
 
-    Region tmp{};
-    // These stay the same over all iterations
-    tmp.minImaginary = region.minImaginary;
-    tmp.maxImaginary = region.maxImaginary;
-    tmp.height = region.height;
-    tmp.maxIteration = region.maxIteration;
-    tmp.vOffset = region.vOffset;
-    tmp.validation = region.validation;
-    tmp.guaranteedDivisor = region.guaranteedDivisor;
-
-    // This will change, so will width and maxReal
-    tmp.minReal = region.minReal;
-    tmp.hOffset = region.hOffset;
+    // Only width, hOffset, minReal and maxReal will change
+    Region tmp = region;
 
     int currentN = 0;
     int currentCol = 0;
@@ -140,7 +129,7 @@ Region *PredictionBalancer::balanceLoad(Region region, int nodeCount) {
             tmp.hOffset += tmp.width;
 
             // Debug
-            std::cout << "currentN for col " << currentCol << ": " << currentN << std::endl;
+            // std::cout << "currentN for col " << currentCol << ": " << currentN << std::endl;
             //---
             // Update cumulativeN
             cumulativeN += currentN;
@@ -202,19 +191,8 @@ Region *PredictionBalancer::splitCol(Region col, int parts, Prediction* predicti
 
     int desiredN = prediction->nSum / parts;
 
-    Region tmp{};
-    // These stay the same over all iterations
-    tmp.minReal = col.minReal;
-    tmp.maxReal = col.maxReal;
-    tmp.width = col.width;
-    tmp.maxIteration = col.maxIteration;
-    tmp.hOffset = col.hOffset;
-    tmp.validation = col.validation;
-    tmp.guaranteedDivisor = col.guaranteedDivisor;
-
-    // This will change, so will height and minImaginary
-    tmp.maxImaginary = col.maxImaginary;
-    tmp.vOffset = col.vOffset;
+    // Only height, vOffset, minImaginary and maxImaginary will change
+    Region tmp = col;
 
     int currentN = 0;
     int currentPart = 0;
@@ -251,7 +229,7 @@ Region *PredictionBalancer::splitCol(Region col, int parts, Prediction* predicti
             tmp.vOffset += tmp.height;
 
             // Debug
-            std::cout << "currentN for part " << currentPart << ": " << currentN << std::endl;
+            // std::cout << "currentN for part " << currentPart << ": " << currentN << std::endl;
             //---
             // Update cumulativeN
             cumulativeN += currentN;

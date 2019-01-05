@@ -107,26 +107,26 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
 
     Document request;
     request.Parse(request_string.c_str());
-    /* TODO
-        try{
-        } catch (ParseErrorCode error){
-            std::cerr << "Error " << error. << "on parsing request: " << error.message() << "\n on "
-                    << request_string << std::endl;
-            return;
-        }
-        */
+    if(request.HasParseError()){
+        auto error = request.GetParseError();
+        std::cerr << "Error " << error << " on parsing request\n on "
+                << request_string << std::endl;
+        return;
+    }
 
     if(std::strcmp(request["type"].GetString(), "regionRequest") != 0){
         return;
     }
 
+    int regionCount = 0;
     Region region{};
     const char* balancer;
-    enum fractal_type fractal_type;
+    const char* fractal_str;
     Fractal* fractal_bal = nullptr;
     try {
+        enum fractal_type fractal_type;
         balancer = request["balancer"].GetString();
-        const char * fractal_str = request["fractal"].GetString();
+        fractal_str = request["fractal"].GetString();
         // Case insensitive compares (just convenience for frontend devs)
         if(boost::iequals(fractal_str, "mandelbrot32")){
             fractal_type = mandelbrot32;
@@ -168,6 +168,9 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         region.maxIteration = (unsigned short int) request["region"]["maxIteration"].GetUint();
         region.validation = request["region"]["validation"].GetInt();
         region.guaranteedDivisor = request["region"]["guaranteedDivisor"].GetUint();
+        region.fractal = fractal_type;
+
+        regionCount = request["nodes"].GetInt();
 
     } catch (std::out_of_range &e) {
         std::cerr << "Inclompletely specified region requested: " << request_string;
@@ -182,19 +185,30 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
 
     {
         std::lock_guard<std::mutex> lock(current_big_region_lock);
-//        if (region == current_big_region) {
-//            std::cerr << "region has not changed" << std::endl;
-//            return;
-//        }
         current_big_region = region;
     }
 
-    int nodeCount = world_size - 1;
+    // Set regionCount correctly if value is erroneous
+    if (regionCount > world_size - 1 || regionCount <= 0) {
+        regionCount = world_size - 1;
+        std::cout << "RegionCount was erroneous. Set to " << regionCount << " to prevent errors." << std::endl;
+    } else {
+        std::cout << "RegionCount is " << regionCount << std::endl;
+    }
+
     Balancer *b = BalancerPolicy::chooseBalancer(balancer, fractal_bal);
-    Region *blocks = b->balanceLoad(region, nodeCount);  // Blocks is array with nodeCount members
+    // Measure time needed for balancing - Start
+    std::chrono::high_resolution_clock::time_point balancerTimeStart = std::chrono::high_resolution_clock::now();
+    // Call balanceLoad
+    Region *blocks = b->balanceLoad(region, regionCount);  // Blocks is array with regionCount members
+    // Measure time needed for balancing - End
+    std::chrono::high_resolution_clock::time_point balancerTimeEnd = std::chrono::high_resolution_clock::now();
+    unsigned long balancerTime = std::chrono::duration_cast<std::chrono::microseconds>(balancerTimeEnd - balancerTimeStart).count();
+    std::cout << "Balancing took " << balancerTime << " microseconds." << std::endl;
+
     // DEBUG
     std::cout << "Balancer Output:" << std::endl;
-    for (int i = 0; i < nodeCount; i++) {
+    for (int i = 0; i < regionCount; i++) {
         std::cout << "Region " << i << ": "
                   << " TopLeft: (" << blocks[i].minReal << ", " << blocks[i].maxImaginary << ") -> BottomRight: ("
                   << blocks[i].maxReal << ", " << blocks[i].minImaginary << ") Resolution: ("
@@ -203,7 +217,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
 
     // Delete empty subregions
     std::vector<Region> newBlocks;
-    for (int i = 0 ; i < nodeCount ; i++) {
+    for (int i = 0 ; i < regionCount ; i++) {
         if ((blocks[i].minReal == blocks[i].maxReal && blocks[i].maxImaginary == blocks[i].minImaginary) || blocks[i].width == 0 || blocks[i].height == 0) {
             std::cout << "Empty Region " << i << " deleted." << std::endl;
         } else {
@@ -211,36 +225,25 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         }
     }
     blocks = &newBlocks[0];
-    nodeCount = newBlocks.size();
-    std::cout << "There are " << nodeCount << " Regions to compute" << std::endl;
+    regionCount = newBlocks.size();
+    std::cout << "There are " << regionCount << " Regions to compute" << std::endl;
 
     // Debug
-    for (int i = 0; i < nodeCount; i++) {
+    for (int i = 0; i < regionCount; i++) {
         std::cout << "Region " << i << ": "
                   << " TopLeft: (" << blocks[i].minReal << ", " << blocks[i].maxImaginary << ") -> BottomRight: ("
                   << blocks[i].maxReal << ", " << blocks[i].minImaginary << ") Resolution: ("
                   << blocks[i].width << ", " << blocks[i].height << ")" << std::endl;
     }
 
-    // Send regions to MPI-Thread
-    {
-        std::lock_guard<std::mutex> lock(websocket_request_to_mpi_lock);
-        websocket_request_to_mpi.clear();
-        for (int i = 0 ; i < nodeCount ; i++) {
-            blocks[i].fractal = fractal_type;
-            websocket_request_to_mpi[i] = blocks[i];
-        }
-        mpi_send_regions = true;
-    }
-    std::cout << "Sending Region division" << std::endl;
-
     // Determine which Worker gets which Region
-    int region_to_worker[nodeCount];
+    int region_to_worker[regionCount];
     int counter = 0;
-    for (int rank = 0 ; rank < world_size && counter < nodeCount ; rank++) {
+    for (int rank = 0 ; rank < world_size && counter < regionCount ; rank++) {
         if (usable_nodes[rank] == true) {
             std::cout << "Region " << counter << " will be computed by Worker " << rank << std::endl;
-            region_to_worker[counter++] = rank;
+            region_to_worker[counter] = rank;
+            counter ++;
         }
     }
 
@@ -248,11 +251,12 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     reply.SetObject();
 
     reply.AddMember("type", "region", reply.GetAllocator());
-    reply.AddMember("regionCount", nodeCount, reply.GetAllocator());
+    reply.AddMember("regionCount", regionCount, reply.GetAllocator());
+    reply.AddMember("balancerTime", Value().SetInt64(balancerTime), reply.GetAllocator());
 
     Value workers;
     workers.SetArray();
-    for (int i = 0; i < nodeCount; i++) {
+    for (int i = 0; i < regionCount; i++) {
         Region t = blocks[i];
 
         Value region;
@@ -272,6 +276,8 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         region.AddMember("maxIteration", t.maxIteration, reply.GetAllocator());
         region.AddMember("validation", t.validation, reply.GetAllocator());
         region.AddMember("guaranteedDivisor", t.guaranteedDivisor, reply.GetAllocator());
+        region.AddMember("fractal", Value().SetString(fractal_str, strlen(fractal_str)), reply.GetAllocator());
+        region.AddMember("regionCount", regionCount, reply.GetAllocator());
 
         Value entry;
         entry.SetObject();
@@ -291,6 +297,19 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     } catch (websocketpp::exception &e) {
         std::cerr << "Bad connection to client, Refresh connection" << std::endl;
     }
+
+    // Send regions to MPI-Thread *after* we have sent the division
+    {
+        std::lock_guard<std::mutex> lock(websocket_request_to_mpi_lock);
+        websocket_request_to_mpi.clear();
+        for (int i = 0 ; i < regionCount; i++) {
+            // Store fractal in region
+            blocks[i].regionCount = regionCount;
+            websocket_request_to_mpi[i] = blocks[i];
+        }
+        mpi_send_regions = true;
+    }
+    std::cout << "Sending Region division" << std::endl;
 }
 
 void Host::register_client(const websocketpp::connection_hdl hdl) {
@@ -340,6 +359,7 @@ void Host::send() {
         Value workerInfoJSON(kObjectType);
         workerInfoJSON.AddMember("rank", workerInfo.rank, answer.GetAllocator());
         workerInfoJSON.AddMember("computationTime", Value().SetInt64(workerInfo.computationTime), answer.GetAllocator());
+        workerInfoJSON.AddMember("mpiTime", Value().SetInt64(data.mpiCommunicationTime), answer.GetAllocator());
 
         // Maybe put this into extra method
         Value regionJSON;
@@ -359,6 +379,26 @@ void Host::send() {
         regionJSON.AddMember("maxIteration", region.maxIteration, answer.GetAllocator());
         regionJSON.AddMember("validation", region.validation, answer.GetAllocator());
         regionJSON.AddMember("guaranteedDivisor", region.guaranteedDivisor, answer.GetAllocator());
+        // Add fractal
+        const char* fractal_str;
+        switch(region.fractal){
+            case mandelbrot32:
+                fractal_str = "mandelbrot32";
+                break;
+            case mandelbrot64:
+                fractal_str = "mandelbrot64";
+                break;
+            case mandelbrotSIMD32:
+                fractal_str = "mandelbrotSIMD32";
+                break;
+            case mandelbrotSIMD64:
+                fractal_str = "mandelbrotSIMD64";
+                break;
+            default:
+                fractal_str = "mandelbrot";
+        }
+        regionJSON.AddMember("fractal", Value().SetString(fractal_str, strlen(fractal_str)), answer.GetAllocator());
+        regionJSON.AddMember("regionCount", region.regionCount, answer.GetAllocator());
 
         workerInfoJSON.AddMember("region", regionJSON, answer.GetAllocator());
 
@@ -423,7 +463,6 @@ void Host::init(int world_rank, int world_size) {
 
     // Approximately the time that MPI communication with one Worker has taken in microseconds
     std::chrono::high_resolution_clock::time_point *mpiCommunicationStart = new std::chrono::high_resolution_clock::time_point[world_size];
-    unsigned long *mpiCommunicationTime = new unsigned long[world_size];
 
     // Init persistent asynchronous send. Each process gets his own Request, Status and Buffer
     MPI_Request region_requests[world_size];
@@ -492,8 +531,8 @@ void Host::init(int world_rank, int world_size) {
             std::memcpy(&workerInfo, recv, sizeof(WorkerInfo));
 
             // Compute time approximately used for MPI communication
-            mpiCommunicationTime[workerInfo.rank-1] = std::chrono::duration_cast<std::chrono::microseconds>(mpiCommunicationEnd - mpiCommunicationStart[workerInfo.rank]).count() - workerInfo.computationTime;
-            std::cout << "Host: MPI communication with Worker " << workerInfo.rank << " took approximately " << mpiCommunicationTime[workerInfo.rank] << " microseconds." << std::endl;
+            unsigned long mpiCommunicationTime = std::chrono::duration_cast<std::chrono::microseconds>(mpiCommunicationEnd - mpiCommunicationStart[workerInfo.rank]).count() - workerInfo.computationTime;
+            std::cout << "Host: MPI communication with Worker " << workerInfo.rank << " took approximately " << mpiCommunicationTime << " microseconds." << std::endl;
         
             // Extract "worker_data" from the received message
             unsigned int region_size = workerInfo.region.getPixelCount();
@@ -506,6 +545,7 @@ void Host::init(int world_rank, int world_size) {
             region_data.data = worker_data;
             region_data.data_length = region_size;
             region_data.workerInfo = workerInfo;
+            region_data.mpiCommunicationTime = mpiCommunicationTime;
 
             // Send RegionData to Websocket-Result-Thread
             {
