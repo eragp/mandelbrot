@@ -3,16 +3,10 @@
  */
 
 export interface Request {
+  type: string;
+  region: Region;
   balancer: string;
-  guaranteedDivisor: number;
-  width: number;
-  height: number;
-  minImag: number;
-  maxImag: number;
-  minReal: number;
-  maxReal: number;
-  validation: number;
-  maxIteration: number;
+  fractal: string;
   nodes: number;
 }
 
@@ -72,11 +66,14 @@ export const workerInfoEquals = (w1: WorkerInfo, w2: WorkerInfo) => {
 export interface WorkerInfo {
   rank: number;
   computationTime: number;
+  mpiTime: number;
   region: Region;
 }
 
 export interface Regions {
   type: string;
+  regionCount: number;
+  balancerTime: number;
   regions: WorkerInfo[];
 }
 

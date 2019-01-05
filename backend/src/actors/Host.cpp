@@ -265,7 +265,8 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         Value entry;
         entry.SetObject();
         entry.AddMember("rank", region_to_worker[i], reply.GetAllocator());
-        entry.AddMember("computationTime", 0, reply.GetAllocator());
+        entry.AddMember("computationTime", -1, reply.GetAllocator());
+        entry.AddMember("mpiTime", -1, reply.GetAllocator());
         entry.AddMember("region", region, reply.GetAllocator());
 
         workers.PushBack(entry, reply.GetAllocator());

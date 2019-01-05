@@ -1,5 +1,4 @@
 import { Point3D } from "./Point";
-import { complexToLeaflet, leafletToComplex } from "../tileDisplay/Project";
 
 export const getURLParams = () => {
   const params = new URLSearchParams(document.location.search);
@@ -9,16 +8,19 @@ export const getURLParams = () => {
   if (!real || !imag || !zoom) {
     return new Point3D(0, 0, 0);
   }
-  return complexToLeaflet(real, imag, zoom);
+  return new Point3D(real, imag, zoom);
 };
 
+/**
+ *
+ * @param point in complex coordinates
+ */
 export const setURLParams = (point: Point3D) => {
-  const complex = leafletToComplex(point.x, point.y, point.z);
   const params = new URLSearchParams(document.location.search);
-  params.set("real", complex.x.toString());
-  params.set("imag", complex.y.toString());
-  params.set("zoom", complex.z.toString());
+  params.set("real", point.x.toString());
+  params.set("imag", point.y.toString());
+  params.set("zoom", point.z.toString());
   // replace old url params
   window.history.replaceState({}, "", `${document.location.pathname}?${params}`);
-  return complex;
+  return point;
 };
