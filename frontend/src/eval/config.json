@@ -4,7 +4,7 @@
       "height":720
    },
    "balancers":[
-      "predictionRecursive", "naive", "column", "naiveRecursive"
+      "naive"
    ],
    "implementations":[
       "mandelbrot" 
