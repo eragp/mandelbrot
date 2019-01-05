@@ -522,7 +522,8 @@ nutzt sie die C++11 nativen mutex-Mechanismen um über das Vorhandensein neuer R
 \subsection{Lastbalancierung}\label{sec:load_balancing}
 Um die Mandelbrotmenge effizient parallel zu berechnen, muss die Last gleichmäßig auf die Worker verteilt werden.
 Die Aufgabe der Lastbalancierung besteht darin zu einer gegebenen Region und einer Anzahl von Workern eine solche Unterteilung in sogenannte Teilregionen zu finden.
-Wichtig dabei ist, dass der garantierte Teiler von Höhe und Breite der Teilregionen dem der angeforderten Region entspricht, da es sonst im Frontend zu Schwierigkeiten bei der Darstellung kommt.
+Wichtig dabei ist, dass der garantierte Teiler von Höhe und Breite der Teilregionen dem der angeforderten Region entspricht.
+Eine Tile (ein Bereich mit Breite und Höhe gleich dem garantierte Teiler\footnote{Eine Region lässt sich also immer in eine ganzzahlige Anzahl von Tiles aufteilen, vgl. \autoref{fig:leafletTiles}}, die Bezeichnung \textit{Tile} kommt aus dem Frontend) muss also als atomare Einheit betrachtet werden, da es sonst im Frontend zu Schwierigkeiten bei der Darstellung kommt.
 Die Klassenstruktur der Lastbalancierer entspricht dem Strategy-Pattern\footnote{\url{https://sourcemaking.com/design_patterns/strategy}}. So kann der Balancierer zur Laufzeit leicht gewechselt werden und auch die Erweiterung des Projekts um eine weitere Strategie gestaltet sich einfach.
 Was dabei genau beachtet werden muss findet sich im Teil \hyperref[lastbalancierung_erweiterung]{Erweiterung}.
 
@@ -598,17 +599,17 @@ Die Teilregionen werden so gewählt, dass sie, entsprechend der Vorhersage, etwa
 % predicter
 Die Vorhersage (\verb|struct Prediction|) wird von der Klasse Predicter angestellt.
 Dazu wird die Region in einer sehr viel geringeren Auflösung berechnet.
-Die benötigte Anzahl an Iterationen wird jeweils pro Kachel (Breite und Höhe sind der garantierte Teiler) abgespeichert.
+Die benötigte Anzahl an Iterationen wird jeweils pro Tile abgespeichert.
 So wird sichergestellt, dass der garantierte Teiler auch nach der Aufteilung noch gilt, da die Balancierer die Vorhersage Eintrag für Eintrag verarbeiten.
 Die Genauigkeit der Vorhersage kann über das Attribut \verb|predictionAccuracy| gesteuert werden:
 \begin{itemize}
-	\item $predictionAccuracy > 0$: $(predictionAccuracy)^2$ Pixel werden pro Kachel berechnet. Die Summe der Iterationen für die einzelnen Pixel ergibt die Vorhersage für die Kachel.
-	\item $predictionAccuracy < 0$: Für $(predictionAccuracy)^2$ Kacheln wird ein Pixel in der Vorhersage berechnet. Es erhalten also mehrere Kacheln diesselbe Vorhersage.
+	\item $predictionAccuracy > 0$: $(predictionAccuracy)^2$ Pixel werden pro Tile berechnet. Die Summe der Iterationen für die einzelnen Pixel ergibt die Vorhersage für die Tile.
+	\item $predictionAccuracy < 0$: Für $(predictionAccuracy)^2$ Tiles wird ein Pixel in der Vorhersage berechnet. Es erhalten also mehrere Tiles diesselbe Vorhersage.
 	\item $predictionAccuracy = 0$: Unzulässig, es wird ein Null-Pointer zurückgegeben.
 \end{itemize}
 Es ist wichtig eine gute Balance zwischen Güte und Geschwindigkeit der Vorhersage zu finden.
 Zusätzlich beinhaltet die Vorhersage die Summen der benötigten Iterationen pro Spalte und Zeile, sowie die Gesamtsumme.
-Auch die Deltas für Real- und Imaginärteil pro Kachel und die Anzahl der Zeilen und Spalten werden angegeben.
+Auch die Deltas für Real- und Imaginärteil pro Tile und die Anzahl der Zeilen und Spalten werden angegeben.
 
 Auch die Strategie mit Vorhersage wurde in einer rekursiven und in einer nicht-rekursiven Variante implementiert.
 
@@ -650,7 +651,7 @@ Der Unterschied zwischen den beiden Strategien liegt also hauptsächlich in den 
 Bei dieser Strategie werden die Regionen nicht einfach halbiert, sondern in zwei Teile aufgeteilt, die laut der Vorhersage ähnlich rechenintensiv sind.
 Dazu wird ähnlich vorgegangen, wie bei der \hyperref[lastbalancierung_vorhersage]{nicht-rekursiven Variante} für die Aufteilung auf zwei Worker.
 Deshalb profitiert diese Strategie auch besonders davon, dass immer parallel zur kürzeren Seite geteilt wird.
-Die Vorhersage ist in diese Richtung nämlich feingliedriger, da weniger Kacheln der Vorhersage zu einer Spalte bzw. Zeile zusammengefasst werden müssen als wenn parallel zur längeren Seite aufgeteilt werden würde.
+Die Vorhersage ist in diese Richtung nämlich feingliedriger, da weniger Tiles der Vorhersage zu einer Spalte bzw. Zeile zusammengefasst werden müssen als wenn parallel zur längeren Seite aufgeteilt werden würde.
 Allerdings wird hier, wenn möglich, sichergestellt, dass beide Teilregionen groß genug sind um jeweils auf $\frac{context.partsLeft}{2}$ Worker aufgeteilt zu werden.
 Es ist hierbei auch wichtig die Vorhersage so zu teilen, dass es für jede Hälfte eine Vorhersage gibt, die dann an den rekursiven Aufruf übergeben werden kann.
 
