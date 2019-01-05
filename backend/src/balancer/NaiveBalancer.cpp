@@ -36,12 +36,14 @@ Region* NaiveBalancer::balanceLoad(Region region, int nodeCount)
 	empty.maxIteration = region.maxIteration;
 	empty.validation = region.validation;
 	empty.guaranteedDivisor = region.guaranteedDivisor;
+	empty.fractal = region.fractal;
 
 	int partWidth = (region.width / (region.guaranteedDivisor * xQuantity)) * region.guaranteedDivisor;	// Split Resolution for x, multiple of guaranteedDivisor
 	
+	int spareCols = 0;
 	if (partWidth <= 0) {
 		partWidth = region.guaranteedDivisor;
-		int spareCols = xQuantity - (region.width / region.guaranteedDivisor);
+		spareCols = xQuantity - (region.width / region.guaranteedDivisor);
 		// Set affected regions to empty
 		for (int i = 0; i < spareCols; i++) {
 			for (int j = 0; j < yQuantity; j++) {
@@ -55,9 +57,10 @@ Region* NaiveBalancer::balanceLoad(Region region, int nodeCount)
 
 	int partHeight = (region.height / (region.guaranteedDivisor * yQuantity)) * region.guaranteedDivisor;	// Split Resolution for y, multiple of guaranteedDivisor
 
+	int spareRows = 0;
 	if (partHeight <= 0) {
 		partHeight = region.guaranteedDivisor;
-		int spareRows = yQuantity - (region.height / region.guaranteedDivisor);
+		spareRows = yQuantity - (region.height / region.guaranteedDivisor);
 		// Set affected regions to empty
 		for (int i = 0; i < spareRows; i++) {
 			for (int j = 0; j < xQuantity; j++) {
@@ -118,6 +121,9 @@ Region* NaiveBalancer::balanceLoad(Region region, int nodeCount)
 			
 			retPos++;
 		}
+
+		// Skip already written empty regions
+		retPos += spareRows;
 	}
 
 	return ret;
