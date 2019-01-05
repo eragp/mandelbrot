@@ -2,6 +2,8 @@
 import * as React from "react";
 import Modal from "./Modal";
 
+import "./ModalWrapper.css";
+
 interface ModalWrapperProps {
   buttonLabel: string;
 }
@@ -19,9 +21,8 @@ export default class ModalWrapper extends React.Component<ModalWrapperProps, Mod
   public render() {
     const { buttonLabel, children } = this.props;
     const { showModal } = this.state;
-
     return (
-      <div>
+      <div className="modal-wrapper">
         <button
           type="button"
           className="btn btn-outline-primary"

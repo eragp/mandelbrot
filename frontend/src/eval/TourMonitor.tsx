@@ -8,6 +8,7 @@ import { Point3D } from "../misc/Point";
 import { StatsCollector } from "./StatsCollector";
 
 import "./TourMonitor.css";
+import { doesNotReject } from "assert";
 
 interface Tour {
   screen: ScreenOpts;
@@ -135,18 +136,22 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
     );
   }
 
+  private done(output: Output) {
+    // reset leaflet container to original size
+    this.map.style.width = "";
+    this.map.style.height = "";
+
+    console.log("Stats collection is done");
+    console.log(JSON.stringify(output));
+    this.setState(state =>
+      Object.assign(state, { output: JSON.stringify(output), running: false })
+    );
+  }
+
   private runConfig(output: Output, configs: Config[]) {
     // tour is done
     if (configs.length === 0) {
-      // reset leaflet container to original size
-      this.map.style.width = "";
-      this.map.style.height = "";
-
-      console.log("Stats collection is done");
-      console.log(JSON.stringify(output));
-      this.setState(state =>
-        Object.assign(state, { output: JSON.stringify(output), running: false })
-      );
+      this.done(output);
       return;
     }
     const c = configs.pop() as Config;
@@ -198,19 +203,19 @@ const RenderConfig = (props: Config) => {
         <tr>
           <td>balancer:</td>
           <td>
-            <pre>{props.balancer}</pre>
+            <pre className="config">{props.balancer}</pre>
           </td>
         </tr>
         <tr>
           <td>implementation:</td>
           <td>
-            <pre>{props.impl}</pre>
+            <pre className="config">{props.impl}</pre>
           </td>
         </tr>
         <tr>
           <td>Point of Interest</td>
           <td>
-            <pre>{JSON.stringify(props.poi)}</pre>
+            <pre className="config">{JSON.stringify(props.poi)}</pre>
           </td>
         </tr>
       </tbody>

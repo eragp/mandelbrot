@@ -54,12 +54,12 @@ class App extends React.Component<{}, {}> {
             stats={stats}
           />
         </div>
+        <div className="row">
+          <ModalWrapper buttonLabel="start Evaluation">
+            <TourMonitor stats={stats} viewCenter={viewCenter} balancer={balancer} impl={impl} />
+          </ModalWrapper>
+        </div>
         <div className="mainBottom row">
-          <div className="col-1">
-            <ModalWrapper buttonLabel="start Evaluation">
-              <TourMonitor stats={stats} viewCenter={viewCenter} balancer={balancer} impl={impl} />
-            </ModalWrapper>
-          </div>
           <div className="col-3">
             <SelectBox balancer={balancer} implementation={impl} />
           </div>
