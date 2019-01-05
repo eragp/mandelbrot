@@ -1,10 +1,18 @@
 import { RegionData, Regions, WorkerInfo, workerInfoEquals } from "./ExchangeTypes";
 import { groupRegions, RegionGroup } from "../misc/RegionGroup";
+import { registerCallback } from "../misc/registerCallback";
 
 const url = "ws://localhost:9002";
+export interface WS {
+  sendRequest(request: any): void;
+  registerRegion(fun: (groups: RegionGroup[]) => any): Promise<any>;
+  registerRegionData(fun: (groups: RegionData) => any): Promise<any>;
+  close(): void;
+}
 
-export default class WebSocketClient {
+export default class WebSocketClient implements WS {
   private regionCallback: Array<((data: RegionGroup[]) => void)> = [];
+  private regionRawCallback: Array<((data: Regions) => void)> = [];
   private workerCallback: Array<((data: RegionData) => void)> = [];
   private regionRequests: string[];
   private socket: WebSocket;
@@ -54,13 +62,15 @@ export default class WebSocketClient {
               break;
             }
             // Notify regionData/worker observers
-            workerCallback.forEach(call => call(r));
+            workerCallback.forEach(fn => fn(r));
           }
           break;
         case "region":
           {
+            const r = msg as Regions;
             // do not filter out empty regions
-            const regions = (msg as Regions).regions;
+            this.regionRawCallback.forEach(cb => cb(r));
+            const regions = r.regions;
             const g = groupRegions(regions);
             // Notify region subdivision listeners
             regionCallback.forEach(call => call(g));
@@ -78,7 +88,7 @@ export default class WebSocketClient {
     this.socket.close();
   }
 
-  public sendRequest(request: {}) {
+  public sendRequest(request: Request) {
     const message = JSON.stringify(request);
     if (this.socket.readyState === this.socket.OPEN) {
       this.socket.send(message);
@@ -89,33 +99,18 @@ export default class WebSocketClient {
   /**
    * Registers a callback to call when the region subdivision is returned
    */
-  public registerRegion(fun: (data: RegionGroup[]) => any) {
-    this.registerCallback(this.regionCallback, fun);
+  public registerRegion(fun: (groups: RegionGroup[]) => any) {
+    return registerCallback(this.regionCallback, fun);
+  }
+  public registerRegionRaw(fun: (region: Regions) => any) {
+      return registerCallback(this.regionRawCallback, fun);
   }
 
   /**
    * Registers a callback to call when the region data is returned
    */
   public registerRegionData(fun: (data: RegionData) => any) {
-    this.registerCallback(this.workerCallback, fun);
-  }
-
-  /**
-   * Registers an observer to a list
-   */
-  private registerCallback(list: any[], fun: (data: any) => any) {
-    let promise: any;
-    const render = (data: any) => {
-      promise = new Promise((resolve, error) => {
-        try {
-          resolve(fun(data));
-        } catch (err) {
-          error(err);
-        }
-      });
-    };
-    list.push(render);
-    return promise;
+    return registerCallback(this.workerCallback, fun);
   }
 
   private insideCurrentRegions(data: WorkerInfo) {

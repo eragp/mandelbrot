@@ -184,12 +184,8 @@ export const groupRegions = (r: WorkerInfo[]): RegionGroup[] => {
     return r.map(r => new Rectangle(r));
   }
   // If there are empty regions, create a whole group for them
-  const emptyRegions: WorkerInfo[] = [];
-  r.forEach(w => {
-      if(isEmptyRegion(w.region)){
-        emptyRegions.push(w);
-      }
-  });;
+  const emptyRegions = r.filter(w => isEmptyRegion(w.region));
+
   r = r.filter(w => !isEmptyRegion(w.region));
 
   const groupSize = Math.ceil(r.length / MAX_DISPLAY_REGIONS);
@@ -212,8 +208,8 @@ export const groupRegions = (r: WorkerInfo[]): RegionGroup[] => {
     rect = sub(rect, w); // I guess this leads to errors on empty regions
     groups.push(w);
   }
-  if(emptyRegions.length > 0){
-      groups.push(emptyRegions);
+  if (emptyRegions.length > 0) {
+    groups.push(emptyRegions);
   }
   // console.log(groups);
   return groups.map(g => new Group(g, groupID++));

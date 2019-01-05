@@ -1,4 +1,5 @@
 import { Balancers, Implementations, ColorSet } from "../Constants";
+import { Point3D } from "./Point";
 
 class Observable<T> {
   private data: T;
@@ -11,13 +12,13 @@ class Observable<T> {
     this.possibleValues = values;
   }
 
-  get() {
+  public get() {
     return this.data;
   }
 
-  set(data: T) {
+  public set(data: T) {
     if (this.possibleValues && !this.possibleValues.includes(data)) {
-      // console.error(`${data} not in ${this.possibleValues}`);
+      console.error(`${data} not in ${this.possibleValues}`);
       return false;
     } else if (this.data !== data) {
       this.data = data;
@@ -28,11 +29,23 @@ class Observable<T> {
     }
   }
 
-  subscribe(cb: ((data: T) => void)) {
+  public setNoNotify(data: T) {
+    if (this.possibleValues && !this.possibleValues.includes(data)) {
+      console.error(`${data} not in ${this.possibleValues}`);
+      return false;
+    } else if (this.data !== data) {
+      this.data = data;
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  public subscribe(cb: ((data: T) => void)) {
     this.callbacks.push(cb);
   }
 
-  notify() {
+  public notify() {
     this.callbacks.forEach(fn => fn(this.data));
   }
 }
@@ -65,5 +78,11 @@ export class GroupObservable extends Observable<number | undefined> {
     } else {
       return super.set(nodeID);
     }
+  }
+}
+
+export class ViewCenterObservable extends Observable<Point3D> {
+  constructor() {
+    super(null, null);
   }
 }
