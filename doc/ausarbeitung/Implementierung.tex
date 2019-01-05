@@ -582,7 +582,8 @@ Aus \verb|partsLeft| kann auch die Abbruchbedingung der Rekursion gefolgert werd
 
 Ist die Abbruchbedingung (\ref{lastbalancierung_rekursion_abbruch}) erfüllt, so genügt es die übergebene Region in das Ergebnisarray einzutragen und \verb|resultIndex| zu inkrementieren.
 Ansonsten muss die Region halbiert werden. Ist die Region vertikal oder horizontal nicht mehr teilbar (d.h. \verb|region.width| bzw. \verb|region.height| $\leq$ \verb|region.guaranteedDivisor|), so wird in die andere Richtung geteilt.
-Kann die Region in beide Richtungen geteilt werden, so wird abwechselnd vertikal und horizontal geteilt. Dies gewährleistet, dass der Balancierer in beide Richtungen aufteilt, sofern das möglich ist.
+Kann die Region in beide Richtungen geteilt werden, so wird parallel zur kürzeren Seite geteilt.
+Dies gibt dem Lastbalancierer mehr Möglichkeiten die Trennlinie zwischen den Teilregionen zu setzen, was zu einer genaueren Teilung führt.
 Wenn die Region unteilbar ist, so muss eine leere Region erzeugt werden.
 
 Die beiden Hälften berechnen sich wie bei der Aufteilung auf zwei Worker mit der \hyperref[lastbalancierung_naiv]{nicht-rekursiven Strategie}.
@@ -648,6 +649,8 @@ Der Unterschied zwischen den beiden Strategien liegt also hauptsächlich in den 
 
 Bei dieser Strategie werden die Regionen nicht einfach halbiert, sondern in zwei Teile aufgeteilt, die laut der Vorhersage ähnlich rechenintensiv sind.
 Dazu wird ähnlich vorgegangen, wie bei der \hyperref[lastbalancierung_vorhersage]{nicht-rekursiven Variante} für die Aufteilung auf zwei Worker.
+Deshalb profitiert diese Strategie auch besonders davon, dass immer parallel zur kürzeren Seite geteilt wird.
+Die Vorhersage ist in diese Richtung nämlich feingliedriger, da weniger Kacheln der Vorhersage zu einer Spalte bzw. Zeile zusammengefasst werden müssen als wenn parallel zur längeren Seite aufgeteilt werden würde.
 Allerdings wird hier, wenn möglich, sichergestellt, dass beide Teilregionen groß genug sind um jeweils auf $\frac{context.partsLeft}{2}$ Worker aufgeteilt zu werden.
 Es ist hierbei auch wichtig die Vorhersage so zu teilen, dass es für jede Hälfte eine Vorhersage gibt, die dann an den rekursiven Aufruf übergeben werden kann.
 
