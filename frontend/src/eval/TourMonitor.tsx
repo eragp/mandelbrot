@@ -8,13 +8,13 @@ import { Point3D } from "../misc/Point";
 import { StatsCollector } from "./StatsCollector";
 
 import "./TourMonitor.css";
-import { doesNotReject } from "assert";
 
 interface Tour {
   screen: ScreenOpts;
   balancers: string[];
   implementations: string[];
   nodeCount: number;
+  cluster: string;
   description: string;
   pois: PoI[];
 }

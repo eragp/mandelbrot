@@ -4,13 +4,15 @@
       "height":720
    },
    "balancers":[
-      "naive"
+      "predictionRecursive"
    ],
    "implementations":[
-      "mandelbrot" 
+      "mandelbrot32",
+      "mandelbrot64"
    ],
    "nodeCount": 37,
-   "description":"Testing the naive and prediction recursive balancer on a default set of PoIs",
+   "cluster": "himmuc",
+   "description":"Testing different balancer implementations",
    "pois":[
       {
          "real":0.0,
@@ -54,3 +56,4 @@
       }
    ]
 }
+
