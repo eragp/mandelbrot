@@ -564,8 +564,8 @@ void Host::init(int world_rank, int world_size) {
         MPI_Status status;
         int probe_flag;
         // Check if it is possible to receive a finished computation
-        MPI_Iprobe(MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, &probe_flag, &status);
-        if (probe_flag == true) { // Rank: 2
+        MPI_Iprobe(MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, &probe_flag, &status); // Tag: 2
+        if (probe_flag == true) {
             int recv_len;
             // Determine the length of the incoming message
             MPI_Get_count(&status, MPI_BYTE, &recv_len);
