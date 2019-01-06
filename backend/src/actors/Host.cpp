@@ -429,9 +429,10 @@ void Host::init(int world_rank, int world_size) {
     // This also allows the Workers to get the rank of the Host
     MPI_Request test_requests[usable_nodes_count];
     MPI_Status test_status[usable_nodes_count];
-    // Send test messages to all Worker
+    // Send test messages to every Worker
     for (int rank = 0 ; rank < world_size ; rank++) {
         if (rank != world_rank) {
+            // Skip Host
             int acc = 0;
             if (rank > world_rank) {
                 acc = 1;
@@ -449,12 +450,13 @@ void Host::init(int world_rank, int world_size) {
             // Error handling - end
         }
     }
+    // Start timer
     std::chrono::high_resolution_clock::time_point test_time_start = std::chrono::high_resolution_clock::now();
     unsigned long test_time = 0;
-    // Check if all Workers started their receive operation
+    // Check if every Worker has started its receive operation
+    int *array_of_indices = new int[usable_nodes_count];
     do {
         int outcount;
-        int *array_of_indices = new int[usable_nodes_count];
         int ierr = MPI_Testsome(usable_nodes_count, test_requests, &outcount, array_of_indices, test_status);
         // Error handling
         if (ierr != MPI_SUCCESS){
@@ -470,22 +472,26 @@ void Host::init(int world_rank, int world_size) {
             }
         }
         // Error handling - end
+        // Every send operation was successful
         if (outcount == MPI_UNDEFINED) {
             std::cout << "Tests successful. Break test loop." << std::endl;
             break;
         }
+        // One or more send operations were successful. Set their MPI_Request to MPI_REQUEST_NULL
         if (outcount != 0) {
             for (int i = 0 ; i < outcount ; i++) {
                 test_requests[array_of_indices[i]] = MPI_REQUEST_NULL;
             }
         }
-        delete[] array_of_indices;
+        // Check how much time has passed
         std::chrono::high_resolution_clock::time_point test_time_end = std::chrono::high_resolution_clock::now();
         test_time = std::chrono::duration_cast<std::chrono::microseconds>(test_time_end - test_time_start).count();
     } while (test_time < 1000000);
-    // Workers that didn't start their receive operation are set to not usable
+    delete[] array_of_indices;
+    // Update usable_nodes and usable_nodes_count according to the test results
     for (int rank = 0 ; rank < world_size ; rank++) {
         if (rank != world_rank) {
+            // Skip Host.
             int acc = 0;
             if (rank > world_rank) {
                 acc = 1;
@@ -493,6 +499,7 @@ void Host::init(int world_rank, int world_size) {
             if (test_requests[rank - acc] != MPI_REQUEST_NULL) {
                 usable_nodes[rank] = false;
                 usable_nodes_count--;
+                // Cancel uncompleted send operations
                 MPI_Cancel(&test_requests[rank - acc]);
                 MPI_Status cancel_status;
                 MPI_Wait(&test_requests[rank - acc], &cancel_status);
