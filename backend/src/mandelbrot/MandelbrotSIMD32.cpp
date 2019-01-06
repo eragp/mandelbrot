@@ -4,9 +4,7 @@
 #include <vector>
 #include <iostream>
 
-#ifdef __ARM_NEON
 #include <arm_neon.h>
-#endif
 
 // Note that this is set for Raspi3 and Odroid (ARM Cortex A53)
 // According to https://developer.arm.com/technologies/neon and https://en.wikipedia.org/wiki/ARM_Cortex-A53
@@ -15,11 +13,10 @@
 // Probably more open to compiler optimization
 // vectorlength >= 1 !!
 void MandelbrotSIMD32::calculateFractal(precision_t* cRealArray, precision_t* cImaginaryArray, unsigned short int maxIteration, int vectorLength, unsigned short int* dest) {
-    #ifdef __ARM_NEON
     if(vectorLength <= 0){
         throw std::invalid_argument("vectorLength may not be less than 1.");
     }
-    for(int j = 0; j < (vectorLength/4); j++){
+    for(int j = 0; j < (vectorLength/2); j++){
     // General form of vector commands
     // v<cmd>q_f<pr>
     // v -> vector command
@@ -27,57 +24,46 @@ void MandelbrotSIMD32::calculateFractal(precision_t* cRealArray, precision_t* cI
     // f -> float
     // 32 bit vectorization
     // Load casted values from array to simd vector
-    float32x4_t cReal = vdupq_n_f32(0);// = vld1q_f32(cRealArray); if casting weren't necessary this would work
-    cReal = vsetq_lane_f32((float32_t) cRealArray[0], cReal, 0);
-    cReal = vsetq_lane_f32((float32_t) cRealArray[1], cReal, 1);
-    cReal = vsetq_lane_f32((float32_t) cRealArray[2], cReal, 2);
-    cReal = vsetq_lane_f32((float32_t) cRealArray[3], cReal, 3);
-    float32x4_t cImaginary = vdupq_n_f32(0);
-    cImaginary = vsetq_lane_f32((float32_t) cImaginaryArray[0], cImaginary, 0);
-    cImaginary = vsetq_lane_f32((float32_t) cImaginaryArray[1], cImaginary, 1);
-    cImaginary = vsetq_lane_f32((float32_t) cImaginaryArray[2], cImaginary, 2);
-    cImaginary = vsetq_lane_f32((float32_t) cImaginaryArray[3], cImaginary, 3);
+    float32x2_t cReal = vdup_n_f32(0);// = vld1q_f32(cRealArray); if casting weren't necessary this would work
+    cReal = vset_lane_f32((float32_t) cRealArray[0], cReal, 0);
+    cReal = vset_lane_f32((float32_t) cRealArray[1], cReal, 1);
+    float32x2_t cImaginary = vdup_n_f32(0);
+    cImaginary = vset_lane_f32((float32_t) cImaginaryArray[0], cImaginary, 0);
+    cImaginary = vset_lane_f32((float32_t) cImaginaryArray[1], cImaginary, 1);
     // The z values
-    float32x4_t zReal = vdupq_n_f32(0);
-    float32x4_t zImaginary = vdupq_n_f32(0);
+    float32x2_t zReal = vdup_n_f32(0);
+    float32x2_t zImaginary = vdup_n_f32(0);
     // Helper variables
-    float32x4_t two = vdupq_n_f32(2);
-    float32x4_t four = vdupq_n_f32(4);
-    uint32x4_t one = vdupq_n_u32(1);
+    float32x2_t two = vdup_n_f32(2);
+    float32x2_t four = vdup_n_f32(4);
+    uint32x2_t one = vdup_n_u32(1);
     // result iterations
-    uint32x4_t n = vdupq_n_u32(0);
+    uint32x2_t n = vdup_n_u32(0);
     // vector with 1 if absolute value of component is less than two
-    uint32x4_t absLesserThanTwo = vdupq_n_u32(1);
+    uint32x2_t absLesserThanTwo = vdup_n_u32(1);
     int i = 0;
     // addv => sum all elements of the vector
-    while(i < maxIteration && vaddvq_u32(absLesserThanTwo) > 0){
+    while(i < maxIteration && vaddv_u32(absLesserThanTwo) > 0){
         // mls a b c -> a - b*c
-        float32x4_t nextZReal = vaddq_f32(vmlsq_f32(vmulq_f32(zReal, zReal), zImaginary, zImaginary), cReal);
+        float32x2_t nextZReal = vadd_f32(vmls_f32(vmul_f32(zReal, zReal), zImaginary, zImaginary), cReal);
         // mla a b c -> a + b*c
-        float32x4_t nextZImaginary = vmlaq_f32(cImaginary, two, vmulq_f32(zReal, zImaginary));
+        float32x2_t nextZImaginary = vmla_f32(cImaginary, two, vmul_f32(zReal, zImaginary));
         zReal = nextZReal;
         zImaginary = nextZImaginary;
         // Square of the absolute value -> determine when to stop
-        float32x4_t absSquare = vmlaq_f32(vmulq_f32(zReal, zReal), zImaginary, zImaginary);
+        float32x2_t absSquare = vmla_f32(vmul_f32(zReal, zReal), zImaginary, zImaginary);
         // If square of the absolute is less than 4, abs<2 holds -> 1 else 0
-        absLesserThanTwo = vandq_u32(vcltq_f32(absSquare, four), one);
+        absLesserThanTwo = vand_u32(vclt_f32(absSquare, four), one);
         // if any value is 1 in the vector (abs<2) then dont break
-        n = vaddq_u32(n, absLesserThanTwo);
+        n = vadd_u32(n, absLesserThanTwo);
         i++;
     }
     // write n to dest
-    dest[0] = vgetq_lane_u32(n, 0);
-    dest[1] = vgetq_lane_u32(n, 1);
-    dest[2] = vgetq_lane_u32(n, 2);
-    dest[3] = vgetq_lane_u32(n, 3);
+    dest[0] = vget_lane_u32(n, 0);
+    dest[1] = vget_lane_u32(n, 1);
 
-    cRealArray += 4;
-    cImaginaryArray += 4;
-    dest += 4;
+    cRealArray += 2;
+    cImaginaryArray += 2;
+    dest += 2;
     }
-    #else
-    for(int j = 0; j < vectorLength; j++){
-        dest[j] = 0;
-    }
-    #endif
 }
