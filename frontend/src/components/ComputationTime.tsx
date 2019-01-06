@@ -10,9 +10,10 @@ import {
 import WebSocketClient from "../connection/WSClient";
 
 import "./ComputationTime.css";
+import { GroupObservable } from "../misc/Observable";
 import { RegionGroup, groupRegions} from "../connection/RegionGroup";
-import {GroupObservable} from "../misc/Observable";
 import { WorkerInfo } from "../connection/ExchangeTypes";
+import { usToString } from "../misc/Conversion";
 
 interface NodeProgressProps {
   group: GroupObservable;
@@ -40,22 +41,24 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
     super(props);
     this.websocketClient = props.wsClient;
     const pseudoWorker: WorkerInfo = {
-        rank: 0,
-        computationTime: 0,
-        region: {
-            guaranteedDivisor: 0,
-            hOffset: 0,
-            vOffset: 0,
-            height: 0,
-            maxImag: 0,
-            maxIteration: 0,
-            maxReal: 0,
-            minImag: 0,
-            minReal: 0,
-            validation: 0,
-            width: 0,
-            fractal: "mandelbrot"
-        }
+      rank: 0,
+      computationTime: 0,
+      mpiTime: 0,
+      region: {
+        guaranteedDivisor: 0,
+        hOffset: 0,
+        vOffset: 0,
+        height: 0,
+        maxImag: 0,
+        maxIteration: 0,
+        maxReal: 0,
+        minImag: 0,
+        minReal: 0,
+        validation: 0,
+        width: 0,
+        fractal: "mandelbrot",
+        regionCount: 0
+      }
     };
     this.chartState = {
       nodes: groupRegions([pseudoWorker]),
@@ -67,17 +70,10 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
 
   public componentDidMount() {
     const ctx = document.getElementById("nodeProgress") as HTMLCanvasElement;
-    const customLabel = (tooltipItem: any, data: any) => {
-      let label = data.labels[tooltipItem.index];
-
-      if (label) {
-        label += ": ";
-      } else {
-        label = "";
-      }
-      label += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index] + " µs";
-      return label;
-    };
+    const customLabel = (tooltipItem: any, data: any) =>
+      `${data.labels[tooltipItem.index]}: ${usToString(
+        data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index]
+      )}`;
 
     this.chart = new Chart(ctx, {
       type: "doughnut",
@@ -100,7 +96,7 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
           const data = this.chart.getElementsAtEvent(event)[0] as ChartDataSets;
           if (data) {
             // @ts-ignore: does not have complete .d.ts file
-            this.props.group.set(this.chartState.nodes[data._index]);
+            this.props.group.set(this.chartState.nodes[data._index].id);
             this.hoveredItem = data;
           } else if (this.hoveredItem) {
             this.props.group.set(undefined);
@@ -109,6 +105,7 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
         }
       }
     } as ChartConfiguration);
+
     this.updateChart();
 
     this.initNodeProgress();
@@ -140,8 +137,8 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
       const animationDuration = 750;
       for (const group of groups) {
         for (const region of group.getLeafs()) {
-            active.set(region.id, true);
-            progress.set(region.id, animationDuration * 1000);
+          active.set(region.id, true);
+          progress.set(region.id, animationDuration * 1000);
         }
       }
       this.chartState = {
@@ -158,15 +155,15 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
 
     // Highlight segement on active worker change
     // Inspired by https://github.com/chartjs/Chart.js/issues/1768
-    this.props.group.subscribe(activeWorker => {
+    this.props.group.subscribe(groupIndex => {
       // Activate new tooltip if necessary
       const datasets = this.chart.data.datasets as ChartDataSets[];
       if (datasets === undefined) {
         return;
       }
       const tooltip = (this.chart as any).tooltip;
-      if (activeWorker !== undefined) {
-        const workerIndex = this.chartState.nodes.findIndex(g => g.id === activeWorker);
+      if (groupIndex !== undefined) {
+        const workerIndex = this.chartState.nodes.findIndex(g => g.id === groupIndex);
         // @ts-ignore: does not have complete .d.ts file
         const activeSegment = datasets[0]._meta[1].data[workerIndex];
         tooltip.initialize();
@@ -202,11 +199,11 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
     const colorSet: string[] = [];
     // => Label/ value index is the index of the rank in the node array
     const groupCompTime = (group: RegionGroup) => {
-        let compTime = 0;
-        for (const region of group.getLeafs()) {
-            compTime += this.chartState.progress.get(region.id) as number;
-        }
-        return compTime;
+      let compTime = 0;
+      for (const region of group.getLeafs()) {
+        compTime += this.chartState.progress.get(region.id) as number;
+      }
+      return compTime;
     };
     this.chartState.nodes.forEach(group => {
       const rank = group.id;
@@ -214,16 +211,6 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
       colorSet.push(this.props.group.getColor(rank));
       values.push(groupCompTime(group));
     });
-
-    const usToString = (time: number) => {
-      const units = ["μs", "ms", "s"];
-      let i = 0;
-      while (i != units.length && time > 1000) {
-        time = time / 1000;
-        i++;
-      }
-      return (Math.round(time * 100) / 100).toFixed(2) + " " + units[i];
-    };
 
     const data = {
       labels,
@@ -258,10 +245,13 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
         this.chartState.nodes.forEach(group => {
           // Check for all regions of the group
           for (const region of group.getLeafs()) {
-              if (state.active.get(region.id) === true) {
-                state.progress.set(region.id, (state.progress.get(region.id) as number) + intervalRate * 1000);
-                update = true;
-              }
+            if (state.active.get(region.id) === true) {
+              state.progress.set(
+                region.id,
+                (state.progress.get(region.id) as number) + intervalRate * 1000
+              );
+              update = true;
+            }
           }
         });
         if (update) {

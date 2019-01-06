@@ -5,6 +5,7 @@ import WebSocketClient from "../connection/WSClient";
 import { RegionData } from "../connection/ExchangeTypes";
 import { Map as LeafletMap } from "leaflet";
 import RegionOfInterest from "./RegionOfInterest";
+import { registerCallback } from "../misc/registerCallback";
 
 export default class MatrixView {
   /**
@@ -44,7 +45,7 @@ export default class MatrixView {
           const tileY = topLeft.y + y;
           const render = this.callbacks.get(coordsToString(tileX, tileY, zoom));
           if (!render) {
-            console.log("Region not found for " + new Point3D(tileX, tileY, zoom));
+            console.log("Region not found for ", new Point3D(tileX, tileY, zoom));
             continue;
           }
           // only pass data of this region
@@ -52,8 +53,14 @@ export default class MatrixView {
           const realY = y * TileSize;
           const tl = new Point3D(realX, realY);
           const br = new Point3D(realX + TileSize, realY + TileSize);
-
-          const roi = new RegionOfInterest(tl, br, msg.data, region.width, region.height);
+          const roi = new RegionOfInterest(
+            msg.workerInfo.rank,
+            tl,
+            br,
+            msg.data,
+            region.width,
+            region.height
+          );
           render(roi);
         }
       }

@@ -85,11 +85,14 @@ export default class WorkerLayer extends L.GeoJSON {
       }
       layer.on({
         mouseover: () => {
-          if (feature.properties !== null && feature.properties.isGroup) workerContext.set(node);
+          if (feature.properties !== null && feature.properties.isGroup){
+              workerContext.set(node);
+          }
         },
         mouseout: () => {
-          if (feature.properties !== null && feature.properties.isGroup)
+          if (feature.properties !== null && feature.properties.isGroup){
             workerContext.set(undefined);
+          }
         }
       });
       this.nodeLayers.set(node, layer);
@@ -115,21 +118,21 @@ export default class WorkerLayer extends L.GeoJSON {
     };
     wsclient.registerRegion(onNewRegion);
 
-    workerContext.subscribe((worker: number | undefined) => {
+    workerContext.subscribe((groupId: number | undefined) => {
       this.nodeLayers.forEach((layer: GeoJSON) => {
         this.resetStyle(layer);
       });
-      if (worker) {
-        const layer = this.nodeLayers.get(worker);
+      if (groupId) {
+        const layer = this.nodeLayers.get(groupId);
         if (layer) {
           layer.setStyle({
             fillOpacity: 0.7
           });
         }
-        const group = this.nodeGroups.get(worker);
-        if (group && group.getChildren() !== null) {
+        const group = this.nodeGroups.get(groupId);
+        if (group && group.getLeafs()) {
           onNewRegion(this.currentGroup);
-          this.addData(toGeoJSON(group.getChildren() as RegionGroup[], pixelToLatLng));
+          this.addData(toGeoJSON(group.getLeafs() as RegionGroup[], pixelToLatLng));
         }
       }
     });

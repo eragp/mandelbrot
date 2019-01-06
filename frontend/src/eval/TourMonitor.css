@@ -1,0 +1,19 @@
+.tour {
+    display: block;
+    height: 25vh;
+    min-height: 280px;
+    margin: 1rem;
+}
+
+.tour pre {
+    overflow: hidden;
+    margin: 0 auto;
+}
+
+.config {
+    padding: 0 1rem;
+}
+
+.jsonOutput {
+    overflow: scroll;
+}
