@@ -449,7 +449,7 @@ Der Wert \verb|validation| ist technisch gesehen nicht mehr notwendig, wird aber
 um zu vermeiden dass Regionsdaten von zuvor berechneten Regionen falsch verwendet werden.
 
 \begin{figure}
-	\lstinputlisting[caption={Eine gültige Anfrage einer Region in JSON}, label={src:regionRequest.json}, language=json]{regionRequest.json}
+	\lstinputlisting[caption={Eine gültige Anfrage einer Region in JSON}, label={src:regionRequest.json}, language=json]{./code/regionRequest.json}
 \end{figure}
 
 \begin{figure}
@@ -498,7 +498,7 @@ dass es die Daten verwirft.
 \end{figure}
 
 \begin{figure}
-	\lstinputlisting[caption={Ausschnitt aus einer gültigen Antwort auf die Region aus \autoref{src:regionRequest.json} in JSON}, label={src:region.json}, language=json]{region.json}
+	\lstinputlisting[caption={Ausschnitt aus einer gültigen Antwort auf die Region aus \autoref{src:regionRequest.json} in JSON}, label={src:region.json}, language=json]{./code/region.json}
 \end{figure}
 
 \paragraph{Host::send}\label{cls:Host::send}
@@ -516,7 +516,7 @@ Mithilfe der \verb|condition_variable|\footnote{\url{https://en.cppreference.com
 nutzt sie die C++11 nativen mutex-Mechanismen um über das Vorhandensein neuer Regionen informiert zu werden.
 
 \begin{figure}
-	\lstinputlisting[caption={Ausschnitt aus den Daten einer versendeten Teilregion. Punkt (x,y) liegt in \texttt{"data"} an Index $i=x+y*width$.}, label={src:regionData.json}, language=json]{regionData.short.json}
+	\lstinputlisting[caption={Ausschnitt aus den Daten einer versendeten Teilregion. Punkt (x,y) liegt in \texttt{"data"} an Index $i=x+y*width$.}, label={src:regionData.json}, language=json]{./code/regionData.short.json}
 \end{figure}
 
 \subsection{Lastbalancierung}\label{sec:load_balancing}
@@ -638,7 +638,7 @@ Die letzte Spalte wird gesondert behandelt: Sie muss so gewählt werden, dass si
 Dies gilt genauso bei der Unterteilung der einzelnen Spalten.
 
 \begin{figure}
-	\lstinputlisting[caption={Aufteilung in Spalten (Auszug)}, label={src:PredictionBalancerAuszug.cpp}, firstline=23, lastline=70]{./PredictionBalancerAuszug.cpp}
+	\lstinputlisting[caption={Aufteilung in Spalten (Auszug)}, label={src:PredictionBalancerAuszug.cpp}, firstline=23, lastline=70]{./code/PredictionBalancerAuszug.cpp}
 \end{figure}
 
 \paragraph*{Rekursive Variante}
