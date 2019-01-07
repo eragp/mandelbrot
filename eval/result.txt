@@ -16,3 +16,5 @@ TODO check float16 availability on rapsi (
 #endif
 )
 https://developer.arm.com/products/software-development-tools/compilers/arm-compiler-5/docs/101028/latest/11-advanced-simd-neon-intrinsics
+
+TODO compare performance to SIMD like implementation
