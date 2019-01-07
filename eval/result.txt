@@ -1,0 +1,18 @@
+Results:
+
+Speedup highest on region with highest intensity (all iterations for all points)
+lowest for region with lowest intensity
+
+Average Speedup of 32 bit (x4) is only 1.90
+
+check speedup of non-q versions against q-versions
+=> turns out to be as expected (non-q speedup of 32 (x2) == q speedup of 64 (x2))
+=> non-q 64 even slower => no per se gains from compiler native instructions
+
+TODO check float16 availability on rapsi (
+#if __ARM_NEON_FP & 0x1
+  /* 16-bit floating point vector types are available.  */
+  float16x8_t storage;
+#endif
+)
+https://developer.arm.com/products/software-development-tools/compilers/arm-compiler-5/docs/101028/latest/11-advanced-simd-neon-intrinsics
