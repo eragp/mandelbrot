@@ -926,32 +926,8 @@ Die benötigte Anzahl an Iterationen kann dann als Ergebnis zurückgegeben werde
 
 \subsubsection{Berechnung mithilfe von SIMD}\label{subsec:simd}
 
-Um die Berechnungen intern noch zu beschleunigen, kann SIMD zur parallelen Bearbeitung mehrerer Punkte verwendet werden.
-Dazu ist es hilfreich, sich zunächst vor Augen zu führen, wie ein Vektor komplexer Koordinaten ohne SIMD verarbeitet würde.
-Dies ist in \autoref{src:MandelbrotVect.cpp} zu sehen.
-Die Berechnung der einzelnen Kooridnaten bleibt gleich, nur die Abbruchbedingung wird auf alle bearbeiteten Koordinaten erweitert.
-
-Es muss dabei solange weiter iteriert werden, bis für alle Komponenten die Berechnung abgebrochen werden darf.
-Hierbei ist es kein Problem, mit den abgebrochenen Punkten weiter zu rechnen, sofern die
-Iterationszahl nur hochgezählt wird solange das $z_n$ der Koordinate Betragsmäßig kleiner gleich $2$ ist.
-Dies gilt, da alle $|z_{n+i}| > 2$ sofern $|z_n| > 2$ \cite{424331}.
-
-\begin{figure}
-	\lstinputlisting[caption={Bearbeitung eines Vektors komplexer Koordinaten in C++}, label={src:MandelbrotVect.cpp}, firstline=8, lastline=46, firstnumber=8]{../../backend/src/mandelbrot/MandelbrotVect.cpp}
-\end{figure}
-
-Damit kann die Berechnung relativ simpel via Arm NEON Compiler Intrinsics\footnote{Details im Abschnitt 'Compiler Intrinsics' unter \url{https://developer.arm.com/technologies/neon}} implementiert werden (siehe dazu \autoref{src:MandelbrotSIMD32.cpp}).
-Diese Intrinsics ermöglichen eine Verwendung der nativen SIMD-Befehle, wobei der Compiler sich um die Verwendung der SIMD-Register kümmert.
-Dadurch wird lesbarer Code ermöglicht, der sich stärker am zu implementierenden Algorithmus orientiert.
-
-Zu den hier benötigten mathematischen Operationen (z.B. der Addition) wird hierbei das Compiler Intrinsic nach folgendem Schema erzeugt:
-"v\textit{opc}q\_f\textit{pr}" mit dem Operationscode \textit{opc} (z.B. \textit{add} für Addition).
-"v" ist das allgemeine Prefix für Vektoroperationen und "q" bedeutet, dass doppelt so viele Register verwendet werden wie ohne "q".
-Damit werden alle verfügbaren SIMD-Register des ARMv8-A Prozessors des ODroids und Raspberry Pi 3 B+ herangezogen.
-Das Postfix f\textit{pr} bestimmt, dass die Register als Gleitkommazahlen der Präzision \textit{pr} bit (in diesem Fall 32 oder 64) interpretiert werden sollen.
-Damit werden in jeder Operation 4 mal 32 bit Gleitkommazahlen oder 2 mal 64 bit Gleitkommazahlen verrechnet.
-
-Bei der Implementierung wurden Optimierungen mithilfe der NEON-nativen multiply-add (\textit{mla}) und multiply-subtract (\textit{mls}) Befehle vorgenommen.
+Bei der in \autoref{par:introduction_simd} beschriebenen Implementierung einer Hardware-beschleunigten Variante mit SIMD,
+wurden Optimierungen mithilfe der NEON-nativen multiply-add (\textit{mla}) und multiply-subtract (\textit{mls}) Befehle vorgenommen.
 Zudem kann der parallele Vergleich zweier Vektoren (\textit{clt}) ausgenutzt werden, wobei als Ergebnis jedoch nicht 1 und 0 ausgegeben werden,
 sondern alle Bits der Ergebnisvektorkomponente auf 1 gesetzt werden sofern die Bedingung erfüllt ist und sonst auf 0.
 Um im weiteren Verlauf effizient die Vektorkomponenten aufzuaddieren (\textit{addv}), sodass die Summe der Anzahl nicht abgebrochener Berechnungen entspricht,
