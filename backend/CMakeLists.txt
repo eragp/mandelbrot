@@ -28,6 +28,8 @@ target_link_libraries(host PUBLIC ${MPI_LIBRARIES} boost_system)
 target_link_libraries(worker PUBLIC ${MPI_LIBRARIES})
 # lib configs
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -lpthread")
+# Optimization
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 
 # custom flags for dependencies
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_WEBSOCKETPP_CPP11_STL_")
