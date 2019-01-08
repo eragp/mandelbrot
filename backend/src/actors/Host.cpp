@@ -66,7 +66,7 @@ std::vector<RegionData> Host::mpi_to_websocket_result;
 std::mutex Host::mpi_to_websocket_result_lock;
 
 // Websocket server
-websocketpp::server<websocketpp::config::asio> Host::websocket_server;
+server_endpoint_type Host::websocket_server;
 websocketpp::connection_hdl Host::client;
 
 void Host::start_server() {

@@ -14,8 +14,12 @@ list(FILTER SOURCES EXCLUDE REGEX ".*Worker\.cpp")
 add_executable(host "src/host.main.cpp" "src/actors/Host.cpp" ${SOURCES})
 add_executable(worker "src/worker.main.cpp" "src/actors/Worker.cpp" ${SOURCES})
 # load libraries
+# MPI
 find_package(MPI REQUIRED)
 include_directories(${MPI_INCLUDE_PATH})
+# zlib
+find_package(ZLIB REQUIRED)
+include_directories( ${ZLIB_INCLUDE_DIRS} )
 # load header libraries
 include_directories($ENV{HOME}/.eragp-mandelbrot/local/include $ENV{HOME}/.eragp-mandelbrot/install/websocketpp $ENV{HOME}/.eragp-mandelbrot/install/rapidjson/include)
 
@@ -23,9 +27,10 @@ include_directories($ENV{HOME}/.eragp-mandelbrot/local/include $ENV{HOME}/.eragp
 add_library(boost_system STATIC IMPORTED)
 set_target_properties(boost_system PROPERTIES
    IMPORTED_LOCATION $ENV{HOME}/.eragp-mandelbrot/local/lib/libboost_system.a)
-# links boost and MPI
-target_link_libraries(host PUBLIC ${MPI_LIBRARIES} boost_system)
+# links boost and MPI and zlib
+target_link_libraries(host PUBLIC ${MPI_LIBRARIES} boost_system ${ZLIB_LIBRARIES})
 target_link_libraries(worker PUBLIC ${MPI_LIBRARIES})
+
 # lib configs
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -lpthread")
 # Optimization

@@ -3,6 +3,7 @@
 
 #include <websocketpp/config/asio_no_tls.hpp>
 #include <websocketpp/server.hpp>
+#include <websocketpp/extensions/permessage_deflate/enabled.hpp>
 
 #include <map>
 #include <queue>
@@ -10,7 +11,19 @@
 #include <mutex>
 
 #include "Region.h"
-#include "RegionData.h"
+#include "RegionData.h" 
+
+struct deflate_server_config : public websocketpp::config::asio {
+	// ... additional custom config if you need it for other things
+
+	/// permessage_compress extension
+    struct permessage_deflate_config {};
+
+    typedef websocketpp::extensions::permessage_deflate::enabled
+        <permessage_deflate_config> permessage_deflate_type;
+};
+
+typedef websocketpp::server<deflate_server_config> server_endpoint_type;
 
 class Host {
 public:
@@ -41,13 +54,13 @@ private:
     static std::mutex mpi_to_websocket_result_lock;
 
     // Websocket server
-    static websocketpp::server<websocketpp::config::asio> websocket_server;
+    static server_endpoint_type websocket_server;
     static void start_server();
     static websocketpp::connection_hdl client;
     static void register_client(websocketpp::connection_hdl conn);
     static void deregister_client(websocketpp::connection_hdl conn);
     static void send();
-    static void handle_region_request(websocketpp::connection_hdl hdl, websocketpp::server<websocketpp::config::asio>::message_ptr msg);
+    static void handle_region_request(websocketpp::connection_hdl hdl, server_endpoint_type::message_ptr msg);
 };
 #endif
 
