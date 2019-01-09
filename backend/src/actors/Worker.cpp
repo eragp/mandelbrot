@@ -108,7 +108,9 @@ void Worker::init(int world_rank, int world_size) {
             // The real computation starts here --> start time measurement here
             auto startTime = std::chrono::high_resolution_clock::now();
 
-            int vectorLength = 4; // Maximum SIMD size
+            // Pass a whole row at once to mandelbrot for computation
+            // This is the maximum value for the vector length
+            int vectorLength = region.width;
             precision_t* projReal = new precision_t[vectorLength];
             precision_t* projImag = new precision_t[vectorLength];
             for (unsigned int y = 0; y < region.height && !loopFlag; y++) {
