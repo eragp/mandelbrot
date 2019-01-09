@@ -5,7 +5,6 @@ import WebSocketClient from "../connection/WSClient";
 import { RegionData } from "../connection/ExchangeTypes";
 import { Map as LeafletMap } from "leaflet";
 import RegionOfInterest from "./RegionOfInterest";
-import { registerCallback } from "../misc/registerCallback";
 
 export default class MatrixView {
   /**

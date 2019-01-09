@@ -1,4 +1,4 @@
-import { RegionData, Regions, WorkerInfo, workerInfoEquals } from "./ExchangeTypes";
+import { RegionData, Regions, WorkerInfo, workerInfoEquals, RegionRequest } from "./ExchangeTypes";
 import { groupRegions, RegionGroup } from "./RegionGroup";
 import { registerCallback } from "../misc/registerCallback";
 
@@ -88,7 +88,7 @@ export default class WebSocketClient implements WS {
     this.socket.close();
   }
 
-  public sendRequest(request: Request) {
+  public sendRequest(request: RegionRequest) {
     const message = JSON.stringify(request);
     if (this.socket.readyState === this.socket.OPEN) {
       this.socket.send(message);

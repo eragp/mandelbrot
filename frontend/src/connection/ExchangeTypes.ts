@@ -2,8 +2,8 @@
  * Objects used for communicating with the backend.
  */
 
-export interface Request {
-  type: string;
+export interface RegionRequest {
+  type: "regionRequest";
   region: Region;
   balancer: string;
   fractal: string;
@@ -71,7 +71,7 @@ export interface WorkerInfo {
 }
 
 export interface Regions {
-  type: string;
+  type: "region";
   regionCount: number;
   balancerTime: number;
   regions: WorkerInfo[];
@@ -79,6 +79,6 @@ export interface Regions {
 
 export interface RegionData {
   data: number[];
-  type: string;
+  type: "regionData";
   workerInfo: WorkerInfo;
 }

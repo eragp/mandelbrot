@@ -134,164 +134,6 @@ Stopping mandelbrot host and workers... stopped (-9)
     \end{lstlisting}
 \end{figure}
 
-\paragraph{Detaillierter Start}\label{par:detailed_himmuc}
-
-Um Mandelbrot manuell auf dem Host-System zu installieren,
-müssen zunächst die notwendigen Bibliotheken installiert werden.
-Eine Anleitung dazu findet sich in \autoref{par:himmuc_install_libs}.
-Dies muss nur einmal ausgeführt werden, anschließend können die
-Programme wie in \autoref{par:himmuc_build_backend} beschrieben kompiliert werden.
-Ist dies nicht gewünscht oder erledigt muss das Backend lediglich noch wie
-in \autoref{par:himmuc_run_backend} beschrieben gestartet werden.
-
-
-\paragraph{Lokale Installation der Bibliotheken}\label{par:himmuc_install_libs}
-
-
-Da hierbei davon ausgegangen wird, dass keine root-Rechte auf dem
-Server existieren, werden die Bibliotheken hier lokal in \verb|~/.eragp-mandelbrot|
-installiert.
-Achten Sie darauf, dass sie Schreibrechte auf dem Ordner haben und
-falls sie einen anderen Ordner verwenden wollen,
-ersetzen sie jedes Vorkommen des Pfades durch ihren Pfad (insbesondere in der Datei \verb|CMakeLists.txt|).
-Die MPI-Bibliothek ist auf dem HimMUC Cluster bereits vorinstalliert
-und muss daher nicht mehr aufgesetzt werden.
-\begin{figure}[h!]
-	\begin{lstlisting}[language=bash, caption={Erstellen des Installationsordners}]
-mkdir ~/.eragp-mandelbrot
-    \end{lstlisting}
-\end{figure}
-
-Die 'Header-only' Libraries \verb|websocketpp| und \verb|rapidjson| müssen
-lediglich an einen fixen Ort kopiert werden.
-Dies erledigen die Befehle aus \autoref{shell:install_header_libs}.
-
-\begin{figure}[h!]
-	\begin{lstlisting}[language=bash, caption={Lokale Installation der Bibliotheken \texttt{websocketpp} und \texttt{rapidjson}.}, label={shell:install_header_libs}]
-mkdir "~/.eragp-mandelbrot/install"
-cd "~/.eragp-mandelbrot/install"
-# Installation von websocketpp
-git clone --branch 0.7.0 https://github.com/zaphoyd/websocketpp.git websocketpp --depth 1
-# Installation von rapidjson
-git clone https://github.com/Tencent/rapidjson/
-    \end{lstlisting}
-\end{figure}
-
-
-Aus der Bibliothek \verb|boost| muss die Teilbibliothek \verb|boost_system| lokal kompiliert werden
-Dazu werden die Befehle aus \autoref{shell:install_boost} ausgeführt,
-um die Version 1.67.0 herunterzuladen, zu entpacken und lokal zu installieren.
-Beachten Sie, dass das kompilieren auch wie in \autoref{par:himmuc_build_backend} beschrieben
-von einem der Boards ausgeführt werden muss.
-
-\begin{figure}[h!]
-    \begin{lstlisting}[language=bash, caption={Lokale Installation der Bibliothek boost.}, label={shell:install_boost}]
-# Erstellen der notwendigen Ordnerstrukturen
-mkdir "~/.eragp-mandelbrot/install"
-mkdir "~/.eragp-mandelbrot/local"
-# Einrichten des Internetproxys
-export http_proxy=proxy.in.tum.de:8080
-export https_proxy=proxy.in.tum.de:8080
-# Herunterladen und kompilieren der Boost-Bibliothek
-cd "~/.eragp-mandelbrot/install"
-wget "https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.bz2"
-tar --bzip2 -xf boost_1_67_0.tar.bz2
-cd boost_1_67_0
-./bootstrap.sh --prefix="$HOME/.eragp-mandelbrot/local/" --with-libraries=system
-./b2 install
-    \end{lstlisting}
-\end{figure}
-
-\paragraph{Kompilieren des Backends}\label{par:himmuc_build_backend}
-
-Stellen Sie zunächst sicher, dass auf dem Cluster die Quelldateien des Backendes (im Ordner \verb|backend/|) liegen
-(zum Beispiel über \verb|rsync| oder indem sie das Repository dort auch klonen)
-Zum Kompilieren des Backends sollte sich auf einen Raspberry Pi oder ODroid
-per ssh eingeloggt werden\footnote{Es existiert ein Entwicklerzugang zu einem geteilten Raspberry Pi über die Adresse \url{sshgate-gepasp.in.tum.de}. Dieser wird auch vom Pythonskript genutzt}
-
-Auf dem Board, aus dem Ordner des Backendquellcodes müssen Sie zum kompilieren
-des Backendes die Befehle aus \autoref{shell:himmuc_compile_backend} ausführen.
-
-\begin{figure}[h!]
-	\begin{lstlisting}[language=bash, caption={Kompilieren des Backends}, label={shell:himmuc_compile_backend}]
-# Erstellen und betreten eines build Ordners
-mkdir build
-cd build
-# Aktivieren der MPI Bibliothek
-module load mpi
-# Kompilieren
-cmake ..
-make
-    \end{lstlisting}
-\end{figure}
-
-
-\paragraph{Ausführen des Backends}\label{par:himmuc_run_backend}
-
-Um das Backend auf dem HimMUC Cluster laufen zu lassen, muss sich zunächst darauf per ssh eingeloggt werden.
-Damit für das Frontend kein Unterschied dazwischen besteht, ob das Backend im Dockercontainer , oder
-auf einem externen Server ausgeführt wird, ist bei der ssh-Verbindung der Port 9002
-des \verb|himmuc.caps.in.tum.de|-Servers an den lokalen Port 9002 gebunden.
-So ist das Backend stets unter \url{localhost:9002} verfügbar.
-Der zugehörige Befehl zum Login lautet demnach:
-
-\begin{lstlisting}[language=bash]
-ssh <rechnerkennung>@himmuc.caps.in.tum.de -L localhost:9002:localhost:9002
-\end{lstlisting}
-
-Anschließend muss aus dem Ordner, in dem die ausführbaren Dateien liegen,
-für gewöhnlich also der \verb|~/.eragp-mandelbrot/build/| Ordner,
-folgender Befehl ausgeführt werden:
-
-\begin{lstlisting}[language=bash]
-srun -p <odr|rpi> -n <number of workers+1> -N <number of nodes/raspis> -l --multi-prog <path to eragp-mandelbrot/backend>/himmuc/run.conf &
-ssh -L 0.0.0.0:9002:localhost:9002 -fN -M -S .tunnel.ssh <odr|rpi><host number>
-\end{lstlisting}
-
-Dabei bestimmt \verb|-n| die Anzahl der laufenden Prozesse (Also Hostprozess und Workerprozesse)
-und \verb|-N| die Anzahl zu verwendender Rechenknoten.
-Damit anschließend noch alle Anfragen an den Websocketserver auf dem Hostknoten weitergeleitet werden,
-muss noch der Port 9002 des \url{himmuc.in.caps.tum.de}-Servers an den Port 9002 des Rechenknotens gebunden werden,
-auf dem der Hostprozess läuft.
-Der korrekte Knoten ist dabei der Ausgabe des \verb|srun|-Befehles zu entnehmen.
-Eine beispielhafte Ausgabe ist in \autoref{shell:himmuc_running_backend_example} zu sehen.
-
-\begin{figure}[h]
-	\begin{lstlisting}[language=bash, caption={Beispielhafter Start des Backends. Hierbei ist der Knoten des Hostprozesses \texttt{rpi03}.}, label={shell:himmuc_running_backend_example}]
-muendler@vmschulz8:~/eragp-mandelbrot/backend/build$ srun -N4 -n5 -l --multi-prog ../himmuc/run.conf
-srun: error: Could not find executable worker
-4: Worker: 4 of 5 on node rpi06
-2: Worker: 2 of 5 on node rpi04
-3: Worker: 3 of 5 on node rpi05
-0: Host: 0 of 5 on node rpi03
-0: Host init 5
-1: Worker: 1 of 5 on node rpi03
-0: Core 1 ready!
-1: Worker 1 is ready to receive Data.
-2: Worker 2 is ready to receive Data.
-0: Listening for connections on to websocket server on 9002
-0: Core 2 ready!
-3: Worker 3 is ready to receive Data.
-0: Core 3 ready!
-4: Worker 4 is ready to receive Data.
-0: Core 4 ready!
-muendler@vmschulz8:~/eragp-mandelbrot/backend/build$ ssh ssh -L 0.0.0.0:9002:localhost:9002 -fN -M -S .tunnel.ssh rpi03
-    \end{lstlisting}
-\end{figure}
-
-\paragraph{Stoppend des Backends}
-
-Um das Backend wieder zu stoppen, müssen der ssh-Tunnel zur Verbindung der Ports
-und der \verb|srun|-Prozess gestoppt werden.
-Letzterer lässt sich nach dem dämonisieren im vorigen Aufruf nur über die Prozess-ID finden.
-Diese zeigt das Tool \verb|ps| an.
-\begin{lstlisting}[language=bash]
-ssh -S .tunnel.ssh -O exit rpi<host number>
-# To stop the node allocation
-ps -eo comm,pid | grep srun
-kill <srun pid>
-\end{lstlisting}
-
 \subsubsection{Installation des Frontends}
 Das Frontend ist in TypeScript\footnote{\url{https://www.typescriptlang.org/}} (erweiterung von JavaScript\footnote{\url{https://en.wikipedia.org/wiki/JavaScript}})
 geschrien und kann somit auf einem beliebigen Endgerät mit einem modernen Webbrowser ausgeführt werden.
@@ -356,6 +198,35 @@ URL zu öffnen.
 
 \subsection{Erläuterung des Backends}
 
+\subsubsection{Konzept der ausgetauschten Nachrichten}
+
+Um eine zwischen den unabhängigen Systemen eine einheitliche Kommunikation zu ermöglichen,
+wurde ein Protokoll spezifiziert um Flächen in der komplexen Ebene und ihre Auflösung eindeutig zu bestimmen.
+Der grobe Inhalt und die Richtung der Nachrichten ist \autoref{fig:concept_messages} zu entnehmen,
+die exakte Spezifikation in der jeweiligen Sprache ist den angegebenen Dateien zu entnehmen.
+
+\begin{figure}
+	\includegraphics[width=0.9\linewidth]{img/Implementierung/Nachrichtenuebersicht.pdf}
+    \caption{Konzept der versendeten Nachrichten. Die genauen Definitionen der Nachrichten sind in den angegeben Dateien nachzusehen.}
+    \label{fig:concept_messages}
+\end{figure}
+
+% TODO improve
+
+Ein Beispiel für eine gültige Regionsanfrage ist in \autoref{src:regionRequest.json} zu finden.
+Einerseits wird hierbei eine Region in komplexen Koordinaten beschrieben, wobei der obere linke Punkt $(maxImag, minReal)$
+und der rechte untere Punkt $(minImag, maxReal)$ in der komplexen Ebene einen zu berechnenden Bereich aufspannen.
+Da die reelle Ebene jedoch beliebig genau aufgelöst werden kann, muss zudem noch die Anzahl an Pixeln
+pro Seite des Rechteckes definiert werden, \verb|width| und \verb|height|.
+Wie in \autoref{fig:concept_coordinates} zu sehen, ist zudem der horizontale Offset und vertikale Offset
+die linke obere Koordinate der Region bezüglich der gesamten sichtbaren Anfrage in Pixeln (diese Werte
+gewinnen in den Regionsaufteilungen an Bedeutung).
+Der Wert \verb|validation| ist technisch gesehen nicht mehr notwendig, wird aber mit dem Zoom-wert der Leafletkarte gefüllt
+um zu vermeiden dass Regionsdaten von zuvor berechneten Regionen falsch verwendet werden.
+
+\begin{figure}
+	\lstinputlisting[caption={Eine gültige Anfrage einer Region in JSON}, label={src:regionRequest.json}, language=json]{./code/regionRequest.json}
+\end{figure}
 \begin{figure}
     \begin{tikzpicture}
         % Superregion
@@ -376,16 +247,8 @@ URL zu öffnen.
     \label{fig:concept_coordinates}
 \end{figure}
 
-\begin{figure}
-	\includegraphics[width=0.9\linewidth]{img/Implementierung/Nachrichtenuebersicht.pdf}
-    \caption{Konzept der versendeten Nachrichten. Die genauen Definitionen der Nachrichten sind in den angegeben Dateien nachzusehen.}
-    \label{fig:concept_messages}
-\end{figure}
-
 
 \subsection{Implementierung des Backends}
-
-\subsection{Implementierung der Mandelbrotberechnung}
 
 Zur hardwarenahe Berechnung der Mandelbrotmenge wird ein sogenanntes Backend gestartet.
 Das in C++ programmierte Teilprojekt nimmt Rechenaufträge von einem Nutzer durch ein Frontend entgegen (auch
@@ -414,8 +277,8 @@ Diese werden respektive verwendet um JSON zu parsen und enkodieren, Websocket-Ve
 Da für die boost Bibliothek dabei Header nicht genügen und die systemweite Verfügbarkeit der kompilierten boost-Bibliothek nicht garantiert werden kann, wird die Teilbibliothek boost\_system statisch
 in die ausführbaren Datei \verb|host| eingebunden.
 
-Zuletzt werden über Compilerflags alle Kompilierfehler und -warnungen aktiviert sowie die POSIX-Thread-Bibliothek eingebunden
-und spezielle Flags für die Websocketlibrary und MPI gesetzt.
+Zuletzt werden über Compilerflags alle Kompilierfehler und -warnungen aktiviert sowie die POSIX-Thread-Bibliothek eingebunden,
+die Optimierung auf die höchste Stufe gesetzt und spezielle Flags für die Websocketlibrary und MPI gesetzt.
 
 \subsubsection{Mainfunktion und Initialisierung}
 
@@ -441,38 +304,40 @@ erfolgreichen Initialisierung der eigentliche \hyperref[cls:Host]{Host-Prozess} 
 
 \subsubsection{Websocketverbindung}
 
-Direkt nach der Initialisierung des Host-Programms in \autoref{src:Host.cpp::init.websocket}, wird ein separater Thread gestartet, der über Websocket
+Direkt nach der Initialisierung des Host-Programms wird ein separater Thread gestartet, der über Websocket
 Anfragen zur Berechnung einer Region entgegennimmt sowie ein Thread, der berechnete Regionen an den verbundenen Client übergibt.
-Die Methode \verb|Host::start_server| initialisiert dabei lediglich den Websocketserver. Über den Typ des Servers wird eine Kompression versendeter Nachrichten
-über die generell akzeptierte Extesnion perMessageDeflate eingeschaltet.
-Dem Server werden Methoden zum Behandeln geöffneter und geschlossener Verbindungen und
-einer Methode um Nachrichten des Clients zu behandeln übergeben, \hyperref[cls:Host::handle_region_request]{\texttt{Host::handle\_region\_request}}.
-Der zweite gestartete Thread führt die Methode \hyperref[cls:Host::send]{\texttt{Host::send}} aus.
+Die Methode \verb|Host::start_server| initialisiert dabei lediglich den Websocketserver.
+Über den Typ des Servers wird eine Kompression versendeter Nachrichten über die im Standart akzeptierte Extension perMessageDeflate aktiviert.
 Zudem wird der Websocketserver mit \verb|server.init_asio()| mit der Transport Policy "transport::asio"
 konfiguriert, sodass Multithreadzugriff auf Sende- und Empfangsmethoden problemlos möglich ist \cite{websocketppManual}.
 
+Der Server behandelt zu jedem Zeitpunkt maximal eine Verbindung und speichert lediglich die zuletzt geöffnete Verbindung.
+
+Empfangene Nachrichten werden mit der Methode \hyperref[cls:Host::handle_region_request]{\texttt{Host::handle\_region\_request}} behandelt.
+
+Der zweite bei der Initialisierung gestartete Thread führt die Methode \hyperref[cls:Host::send]{\texttt{Host::send}} aus.
+
 \paragraph{Host::handle\_region\_request}\label{cls:Host::handle_region_request}
 
-Die Methode versucht, den Inhalt der empfangenen Nachricht als JSON zu dekodieren und entnimmt die für das struct Region
-notwendigen Werte unter gleichem Namen dem Objekt, das unter dem Schlüssel \verb|"region"| in der geparsten Anfrage gespeichert ist.
-Außerdem erwartet es unter dem Schlüssel \verb|"balancer"| einen String, der den zu wählenden Lastbalancierer bestimmt und unter dem Schlüssel \verb|"type"| den String \verb|"regionRequest"|.
+Die Methode dekodiert einen empfangene Nachricht als JSON Regionsanfrage und behandelt sie nach folgendem Schema:
+In dem JSON wird unter dem Schlüssel \verb|"balancer"| ein String erwartet, der den zu wählenden Lastbalancierer bestimmt.
 Mögliche Zeichenketten hierfür sind in den Klassen der Balancierer unter \verb|backend/src/balancer| in der globalen Variable
 \verb|Klassenname::NAME| gespeichert.
 
-Ein Beispiel für eine gültige Regionsanfrage ist in \autoref{src:regionRequest.json} zu finden.
-Einerseits wird hierbei eine Region in komplexen Koordinaten beschrieben, wobei der obere linke Punkt $(maxImag, minReal)$
-und der rechte untere Punkt $(minImag, maxReal)$ in der komplexen Ebene einen zu berechnenden Bereich aufspannen.
-Da die reelle Ebene jedoch beliebig genau aufgelöst werden kann, muss zudem noch die Anzahl an Pixeln
-pro Seite des Rechteckes definiert werden, \verb|width| und \verb|height|.
-Wie in \autoref{fig:concept_coordinates} zu sehen, ist zudem der horizontale Offset und vertikale Offset
-die linke obere Koordinate der Region bezüglich der gesamten sichtbaren Anfrage in Pixeln (diese Werte
-gewinnen in den Regionsaufteilungen an Bedeutung).
-Der Wert \verb|validation| ist technisch gesehen nicht mehr notwendig, wird aber mit dem Zoom-wert der Leafletkarte gefüllt
-um zu vermeiden dass Regionsdaten von zuvor berechneten Regionen falsch verwendet werden.
+\begin{enumerate}
+    \item Parse das empfangene RegionRequest-Objekt. Bei Fehlern wird die Funktion abgebrochen.
+    \item Involviere den spezifizierten Lastbalancierer um eine Aufteilung der Region zu erhalten
+    \item Bestimme den Rang des Workers, der eine Region bearbeiten wird. Hierzu wird der Algorithmus aus \autoref{src:Host.cpp.handle_region_request} verwendet.
+    \item Sende die Aufteilung inklusive der Ränge aller beteiligten Worker als Regions-Objekt an das Frontend
+    \item Übergebe die aufgeteilten Regionen an den Thread, der diese per MPI an die Worker sendet.
+\end{enumerate}
 
-\begin{figure}
-	\lstinputlisting[caption={Eine gültige Anfrage einer Region in JSON}, label={src:regionRequest.json}, language=json]{./code/regionRequest.json}
-\end{figure}
+Es ist hierbei wichtig, dass das senden an die Worker erst nach der Antwort an das Frontend geschieht und wird daher garantiert.
+Dadurch kann im Frontend sichergestellt sein, dass alle eintreffenden RegionData-Objekte zu einer Regionsaufteilung gehören,
+die bereits empfangen wurde.
+
+%% TODO move to seperate section
+
 
 
 
@@ -497,7 +362,7 @@ Würde dann dessen Region vor der Gesamtaufteilung beim Frontend ankommen, beste
 dass es die Daten verwirft.
 
 \begin{figure}
-	\lstinputlisting[caption={Algorithmus zur Zuordnung von Regionen auf Worker in Host.cpp}, label={src:Host.cpp.handle_region_request}, firstline=231, firstnumber=231, lastline=240]{../../backend/src/actors/Host.cpp}
+	\lstinputlisting[caption={Algorithmus zur Zuordnung von Regionen auf Worker in Host.cpp}, label={src:Host.cpp.handle_region_request}, firstline=222, firstnumber=222, lastline=231]{../../backend/src/actors/Host.cpp}
 \end{figure}
 
 \begin{figure}
@@ -788,7 +653,9 @@ Die Implementierung ist in \autoref{src:mpi_recv_init_worker} zu sehen.
 
 Im Host sind neue Rechenaufträge immer dann an die Worker zu übertragen, wenn das Flag mpi\_send\_regions vom entsprechenden Websocket-Thread gesetzt wurde. Hierbei wird Busy-Waiting eingesetzt, da das Empfangen von fertig berechnenden Regionen auch nur mit Busy-Waiting funktioniert und sich das Senden und Empfangen in der selben Schleife befindet. Mehr hierzu in Abschnitten \hyperref[para:mpi_busy_waiting]{Busy-Waiting} und \hyperref[para:mpi_generell_host]{Genereller Aufbau der MPI-Kommunikation im Host}.
 
-Sind neue Rechenaufträge verfügbar, wird jede einzelne Region einem verfügbaren Worker zugeordnet, wobei jeder Worker maximal eine Region bekommt. Hierzu wird die Region aus der gemeinsamen Datenstruktur websocket\_request\_to\_mpi in den Sendepuffer des Workers kopiert. Anschließend wird das nicht-blockierende stardard Senden mit MPI\_Start gestartet.
+Sind neue Rechenaufträge verfügbar, wird jede einzelne Region einem verfügbaren Worker zugeordnet, wobei jeder Worker maximal eine Region bekommt. 
+Hierzu wird die Region aus der gemeinsamen Datenstruktur websocket\_request\_to\_mpi in den Sendepuffer des Workers kopiert. Anschließend wird das nicht-blockierende stardard Senden mit MPI\_Start gestartet.
+Die Zuordnung zwischen Rang des Workers und Index der Region wird dabei Deterministisch bestimmt so wie in \autoref{src:Host.cpp.handle_region_request}.
 
 % TODO: Evtl. anmerken, warum nicht gleich der Websocket-Thread in den Sendepuffer kopiert. Grund: Klare Trennung der beiden Threads und vermeiden von unauthorisierten Zugriff auf den Sendepuffer, weil ein lock vergessen wurde zu setzen o.Ä.
 

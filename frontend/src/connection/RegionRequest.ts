@@ -1,5 +1,5 @@
 import { getBottomRightPoint, getTopLeftPoint, project } from "../tileDisplay/Project";
-import { Request } from "../connection/ExchangeTypes";
+import { RegionRequest } from "../connection/ExchangeTypes";
 import { TileSize, MaxIteration } from "../Constants";
 import { Point3D } from "../misc/Point";
 import { Map } from "leaflet";
@@ -16,7 +16,7 @@ let currentImplementation: string;
  * Otherwise the corresponding request for the backend is returned.
  * @param {*} map current Leaflet map
  */
-export const request = (map: Map, balancer: string, implementation: string): Request | null => {
+export const request = (map: Map, balancer: string, implementation: string): RegionRequest | null => {
   const bounds = map.getPixelBounds();
   const zoom = map.getZoom();
 
@@ -43,7 +43,7 @@ export const request = (map: Map, balancer: string, implementation: string): Req
     Math.abs(botRight.x - topLeft.x) * TileSize,
     Math.abs(topLeft.y - botRight.y) * TileSize
   ];
-  const region = {
+  const region: RegionRequest = {
     type: "regionRequest",
     region: {
       // point top left
