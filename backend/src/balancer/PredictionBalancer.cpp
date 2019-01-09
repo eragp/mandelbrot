@@ -18,10 +18,10 @@ PredictionBalancer::~PredictionBalancer() {
 Region *PredictionBalancer::balanceLoad(Region region, int nodeCount) {
 	Prediction* prediction = Predicter::getPrediction(region, f, predictionAccuracy);
 
-    auto *allRegions = new Region[nodeCount];
+    Region *allRegions = new Region[nodeCount];
 
     // Same as in naive
-    auto cols = (int) sqrt(nodeCount); // cols = Quantity of separate parts in x direction --> Number of Columns
+    int cols = (int) sqrt(nodeCount); // cols = Quantity of separate parts in x direction --> Number of Columns
     while (nodeCount % cols != 0) {    // Find the next integral divisor of nodeCount smaller than its sqrt
         cols--;
     }
@@ -187,7 +187,7 @@ Region *PredictionBalancer::splitCol(Region col, int parts, Prediction* predicti
 		return nullptr;
 	}*/
 
-	auto *regions = new Region[parts];
+	Region *regions = new Region[parts];
 
     int desiredN = prediction->nSum / parts;
 
