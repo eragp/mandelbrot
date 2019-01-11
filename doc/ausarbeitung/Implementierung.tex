@@ -1,4 +1,3 @@
-\section{Dokumentation der Implementierung}
 
 % Sollte größter Teil werden
 % - High level overview?
@@ -17,12 +16,13 @@
 % Highlevel
 % ca 1-2 Seiten
 % Buzzwords, grober Überriss
-\subsection{Übersicht}
+\section{Übersicht der Implementierung}
 
 % TODO Ein bisschen mehr details
 Das Problem fordert eine Unterteilung in drei wesentliche Bausteine, wie sie in \autoref{fig:architekturuebersicht} zu sehen sind.
 Eine Benutzeroberfläche in einem Web Browser des Benutzers (“Frontend”), welches die Benutzerinteraktionen entgegennimmt und mit dem Backend kommuniziert.
-Ein Backend-Host übernimmt dazu die Kommunikationsfunktion, verwaltet die eingehenden Rechenaufträge und verteilt sie an die Backend-Worker. Das Ergebnis dieser Berechnung sendet der Host dann an das Frontend zurück.
+Ein Backend-Host übernimmt dazu die Kommunikationsfunktion, verwaltet die eingehenden Rechenaufträge und verteilt sie an die Backend-Worker.
+Das Ergebnis dieser Berechnung sendet der Host dann an das Frontend zurück.
 Die Backend-Worker nehmen die zugewiesenen Rechenaufträge entgegen und führen die eigentlichen Berechnungen verteilt aus.
 
 \begin{figure}
@@ -44,7 +44,7 @@ Die Backend-Worker nehmen die zugewiesenen Rechenaufträge entgegen und führen 
 % viel bereits in READMEs der zugehörigen Ordner zusammengefasst
 % backend-deployment -> Niels
 % frontend-deployment -> Max
-\subsection{Installation der Anwendung}
+\section{Installation der Anwendung}
 
 Um das System zu installieren, muss das Repository mit \verb|git|\footnote{\url{https://git-scm.com/}} lokal geklont werden. Dabei werden die Quelldateien für
 das Front- sowie Backend heruntergeladen.
@@ -55,7 +55,7 @@ git clone https://gitlab.lrz.de/lrr-tum/students/eragp-mandelbrot.git
         \end{lstlisting}
 \end{figure}
 
-\subsubsection{Lokales Backend}
+\subsection{Lokales Backend}
 Eine lokale Installation des Backends zu Entwicklungszwecken ist durch einen Docker\footnote{\url{https://www.docker.com/}} Container möglich.
 Dieser bietet eine ähnliche Umgebung zu der des Clusters und ermöglicht schnellere Feedbackzyklen.
 
@@ -79,7 +79,7 @@ Das \verb|run_docker.sh| Skript lädt das benötigte Basis Image, welches alle b
 den Entwicklungscontainer. In diesen werden dann die Aktuellen Quelldateien hinein kopiert und kompiliert, wonach das Backend mit Adresse
 \verb|ws://localhost:9002| gestartet wird.
 
-\subsubsection{Backend auf HimMUC Cluster}
+\subsection{Backend auf HimMUC Cluster}
 
 \begin{quotation}
 	[Der] HimMUC ist ein flexibler Cluster von ARM-Geräten, bestehend aus 40 Raspberry Pi 3 sowie 40 ODroid C2 Single-Board-Computers (SBC).\footnote{\url{http://www.caps.in.tum.de/himmuc/}}
@@ -112,6 +112,8 @@ python3 himmuc/start_himmuc.py <Rechnerkennung> <Anzahl Prozesse> <Anzahl Rechen
 
 Das Ergebnis wird ähnlich zu \autoref{shell:start_himmuc_example} aussehen.
 Details zu weiteren Optionen des Skripts sind via \verb|--help| verfügbar.
+Für eine detailliertere Beschreibung der Installation auf dem \enquote{HimMUC} Cluster,
+siehe \autoref{par:detailed_himmuc}
 
 \begin{figure}
 	\begin{lstlisting}[language=bash, caption={Beispielausgabe bei Start der Entwicklungsumbegung auf dem HimMUC}, label={shell:start_himmuc_example}]
@@ -134,9 +136,9 @@ Stopping mandelbrot host and workers... stopped (-9)
     \end{lstlisting}
 \end{figure}
 
-\subsubsection{Installation des Frontends}
-Das Frontend ist in TypeScript\footnote{\url{https://www.typescriptlang.org/}} (erweiterung von JavaScript\footnote{\url{https://en.wikipedia.org/wiki/JavaScript}})
-geschrien und kann somit auf einem beliebigen Endgerät mit einem modernen Webbrowser ausgeführt werden.
+\subsection{Installation des Frontends}
+Das Frontend ist in TypeScript\footnote{\url{https://www.typescriptlang.org/}} (Erweiterung von JavaScript\footnote{\url{https://en.wikipedia.org/wiki/JavaScript}})
+geschrieben und kann somit auf einem beliebigen Endgerät mit einem modernen Webbrowser ausgeführt werden.
 Um eine Version lokal zu starten, muss die Paketverwaltung npm\footnote{\url{https://www.npmjs.com/}} installiert werden. Diese verwaltet alle
 für das Frontend benötigten Bibliotheken und installiert diese lokal.
 
@@ -196,9 +198,9 @@ URL zu öffnen.
 %    visualization -> Niels
 %    misc -> Max
 
-\subsection{Erläuterung des Backends}
+\section{Dokumentation der Implementierung}
 
-\subsubsection{Konzept der ausgetauschten Nachrichten}
+\subsection{Konzept der ausgetauschten Nachrichten}
 
 Um eine zwischen den unabhängigen Systemen eine einheitliche Kommunikation zu ermöglichen,
 wurde ein Protokoll spezifiziert um Flächen in der komplexen Ebene und ihre Auflösung eindeutig zu bestimmen.
@@ -207,8 +209,8 @@ die exakte Spezifikation in der jeweiligen Sprache ist den angegebenen Dateien z
 
 \begin{figure}
 	\includegraphics[width=0.9\linewidth]{img/Implementierung/Nachrichtenuebersicht.pdf}
-    \caption{Konzept der versendeten Nachrichten. Die genauen Definitionen der Nachrichten sind in den angegeben Dateien nachzusehen.}
-    \label{fig:concept_messages}
+	\caption{Konzept der versendeten Nachrichten. Die genauen Definitionen der Nachrichten sind in den angegeben Dateien nachzusehen.}
+	\label{fig:concept_messages}
 \end{figure}
 
 % TODO improve
@@ -228,23 +230,23 @@ um zu vermeiden dass Regionsdaten von zuvor berechneten Regionen falsch verwende
 	\lstinputlisting[caption={Eine gültige Anfrage einer Region in JSON}, label={src:regionRequest.json}, language=json]{./code/regionRequest.json}
 \end{figure}
 \begin{figure}
-    \begin{tikzpicture}
-        % Superregion
-        \draw (0,0) rectangle (14,8) node[below left] {Regionrequest/ Angefragte Region};
-        % subregion
-        \draw (3,2) rectangle (8,6) node[below left] {Region};
-        % width height
-        \draw (3,6) -- node[above, red] {width$=m*gD$} (8,6);
-        \draw (3,6) -- node[left, red] {height$=n*gD$} (3,2);
-        % vOffset/hOffset
-        \draw[blue, ->] (3,8) -- (3,6) node[midway, anchor=west] {vOffset};
-        \draw[blue, ->] (0,6) -- (3,6) node[midway, anchor=north] {hOffset};
-        % x/y
-        \draw[green, ->] (3,6) -- (5,5) node[below] {(x+hOffset, y+vOffset)};
-        \draw (0, 0) node[below right] {$gd$ = guaranteedDivisor, $n,m \in \mathbb{N}^{+}$, $x < width$, $y < height$};
-    \end{tikzpicture}
-    \caption{Konzept der Kooridinaten in den Regionsobjekten. Alle Koordinaten beziehen sich auf die Darstellungsebene und sind daher in Pixeln.}
-    \label{fig:concept_coordinates}
+	\begin{tikzpicture}
+		% Superregion
+		\draw (0,0) rectangle (14,8) node[below left] {Regionrequest/ Angefragte Region};
+		% subregion
+		\draw (3,2) rectangle (8,6) node[below left] {Region};
+		% width height
+		\draw (3,6) -- node[above, red] {width$=m*gD$} (8,6);
+		\draw (3,6) -- node[left, red] {height$=n*gD$} (3,2);
+		% vOffset/hOffset
+		\draw[blue, ->] (3,8) -- (3,6) node[midway, anchor=west] {vOffset};
+		\draw[blue, ->] (0,6) -- (3,6) node[midway, anchor=north] {hOffset};
+		% x/y
+		\draw[green, ->] (3,6) -- (5,5) node[below] {(x+hOffset, y+vOffset)};
+		\draw (0, 0) node[below right] {$gd$ = guaranteedDivisor, $n,m \in \mathbb{N}^{+}$, $x < width$, $y < height$};
+	\end{tikzpicture}
+	\caption{Konzept der Kooridinaten in den Regionsobjekten. Alle Koordinaten beziehen sich auf die Darstellungsebene und sind daher in Pixeln.}
+	\label{fig:concept_coordinates}
 \end{figure}
 
 
@@ -325,11 +327,11 @@ Mögliche Zeichenketten hierfür sind in den Klassen der Balancierer unter \verb
 \verb|Klassenname::NAME| gespeichert.
 
 \begin{enumerate}
-    \item Parse das empfangene RegionRequest-Objekt. Bei Fehlern wird die Funktion abgebrochen.
-    \item Involviere den spezifizierten Lastbalancierer um eine Aufteilung der Region zu erhalten
-    \item Bestimme den Rang des Workers, der eine Region bearbeiten wird. Hierzu wird der Algorithmus aus \autoref{src:Host.cpp.handle_region_request} verwendet.
-    \item Sende die Aufteilung inklusive der Ränge aller beteiligten Worker als Regions-Objekt an das Frontend
-    \item Übergebe die aufgeteilten Regionen an den Thread, der diese per MPI an die Worker sendet.
+	\item Parse das empfangene RegionRequest-Objekt. Bei Fehlern wird die Funktion abgebrochen.
+	\item Involviere den spezifizierten Lastbalancierer um eine Aufteilung der Region zu erhalten
+	\item Bestimme den Rang des Workers, der eine Region bearbeiten wird. Hierzu wird der Algorithmus aus \autoref{src:Host.cpp.handle_region_request} verwendet.
+	\item Sende die Aufteilung inklusive der Ränge aller beteiligten Worker als Regions-Objekt an das Frontend
+	\item Übergebe die aufgeteilten Regionen an den Thread, der diese per MPI an die Worker sendet.
 \end{enumerate}
 
 Es ist hierbei wichtig, dass das senden an die Worker erst nach der Antwort an das Frontend geschieht und wird daher garantiert.
@@ -543,13 +545,13 @@ Bei der Eingabe von \verb|region| und \verb|nodeCount| erfüllt ein korrekter R�
 	\item \verb|subregions| ist ein Zeiger auf ein Array mit \verb|nodeCount| Elementen vom Typ Region
 	\item Die Regionen in \verb|subregions| sind eine Partitionierung von \verb|region|, d.h. sie überschneiden sich nicht und ihre Vereinigung ergibt genau \verb|region|
 	\item Für jede Region \verb|subregion| in \verb|subregions| gilt:
-	\begin{itemize}
-		\item \verb|guaranteedDivisor|, \verb|validation|, \verb|maxIteration| und \verb|fractal| sind in \verb|region| und \verb|subregion| gleich
-		\item \verb|subregion.guaranteedDivisor| teilt \verb|subregion.width| und \\ \verb|subregion.height| ohne Rest
-		\item \verb|subregion.hOffset| und \verb|subregion.vOffset| sind so gesetzt, dass sie den Abstand der oberen linken Ecke von \verb|subregion| zur oberen linken Ecke von \verb|region| angeben
-		\item Die Deltas für die komplexen Werte sind unverändert, d.h. die Größe des Bereiches der komplexen Ebene, der von einem Pixel abgedeckt wird, ist unverändert
-		% $\frac{region.maxReal - region.minReal}{region.width} = \frac{subregion.maxReal - subregion.minReal}{subregion.width}$ und \\ $\frac{region.maxImaginary - region.minImaginary}{region.height} = \frac{subregion.maxImaginary - subregion.minImaginary}{subregion.height}$
-	\end{itemize}
+	      \begin{itemize}
+		      \item \verb|guaranteedDivisor|, \verb|validation|, \verb|maxIteration| und \verb|fractal| sind in \verb|region| und \verb|subregion| gleich
+		      \item \verb|subregion.guaranteedDivisor| teilt \verb|subregion.width| und \\ \verb|subregion.height| ohne Rest
+		      \item \verb|subregion.hOffset| und \verb|subregion.vOffset| sind so gesetzt, dass sie den Abstand der oberen linken Ecke von \verb|subregion| zur oberen linken Ecke von \verb|region| angeben
+		      \item Die Deltas für die komplexen Werte sind unverändert, d.h. die Größe des Bereiches der komplexen Ebene, der von einem Pixel abgedeckt wird, ist unverändert
+		            % $\frac{region.maxReal - region.minReal}{region.width} = \frac{subregion.maxReal - subregion.minReal}{subregion.width}$ und \\ $\frac{region.maxImaginary - region.minImaginary}{region.height} = \frac{subregion.maxImaginary - subregion.minImaginary}{subregion.height}$
+	      \end{itemize}
 \end{itemize}
 
 Ob diese Bedingungen erfüllt sind kann mit dem Test in \verb|BalancerTest| überprüft werden.
@@ -653,7 +655,7 @@ Die Implementierung ist in \autoref{src:mpi_recv_init_worker} zu sehen.
 
 Im Host sind neue Rechenaufträge immer dann an die Worker zu übertragen, wenn das Flag mpi\_send\_regions vom entsprechenden Websocket-Thread gesetzt wurde. Hierbei wird Busy-Waiting eingesetzt, da das Empfangen von fertig berechnenden Regionen auch nur mit Busy-Waiting funktioniert und sich das Senden und Empfangen in der selben Schleife befindet. Mehr hierzu in Abschnitten \hyperref[para:mpi_busy_waiting]{Busy-Waiting} und \hyperref[para:mpi_generell_host]{Genereller Aufbau der MPI-Kommunikation im Host}.
 
-Sind neue Rechenaufträge verfügbar, wird jede einzelne Region einem verfügbaren Worker zugeordnet, wobei jeder Worker maximal eine Region bekommt. 
+Sind neue Rechenaufträge verfügbar, wird jede einzelne Region einem verfügbaren Worker zugeordnet, wobei jeder Worker maximal eine Region bekommt.
 Hierzu wird die Region aus der gemeinsamen Datenstruktur websocket\_request\_to\_mpi in den Sendepuffer des Workers kopiert. Anschließend wird das nicht-blockierende stardard Senden mit MPI\_Start gestartet.
 Die Zuordnung zwischen Rang des Workers und Index der Region wird dabei Deterministisch bestimmt so wie in \autoref{src:Host.cpp.handle_region_request}.
 
@@ -802,40 +804,24 @@ werden daher alle Komponenten des Ergebnisvektors des Vergleiches mit 1 verundet
 Das Ergbenis des Vergleiches und der Verundung ist ein Vektor vorzeichenloser 32 oder 64 bit Ganzzahlen, weshalb das
 Postfix für diese Operationen \textit{u32} oder \textit{u64} lautet.
 
-\begin{figure}
+\begin{figure}[h!]
 	\lstinputlisting[caption={Parallelisierte Bearbeitung eines Vektors komplexer Koordinaten in 32 bit Gleitkommapräzision in C++ mit Arm NEON Compiler Intrinsics für SIMD}, label={src:MandelbrotSIMD32.cpp}, firstline=29, lastline=72, firstnumber=29]{../../backend/src/mandelbrot/MandelbrotSIMD32.cpp}
 \end{figure}
 
 
-\subsection{Erläuterung des Frontends}
+\subsection{Implementierung des Frontends}
 
-\begin{figure}
+\begin{figure}[h!]
 	\centering
 	\includegraphics[width=\linewidth]{img/Implementierung/UI-Screenshot}
 	\caption{Benutzeroberfläche der Mandelbrot Anwendung}
 	\label{fig:ui-screenshot}
 \end{figure}
 
-Um das Frontend zu implementieren, wurde sich für die Programmiersprache TypeScript\footnote{\url{https://www.typescriptlang.org/}}(Erweiterung von JavaScript um Typisierung) entschieden.
-Da diese zu JavaScript kompiliert, werden die Vortele von JavaScript, wie Ausführung im Webbrowser des Benutzers und eine vielzahl verfügbarer Bibliotheken,
-mit den Vorteilen einer typisierten Programmiersprache vereint.
-
-Für die graphische Benutzeroberfläche wurde ebenfalls TypeScript mit dem React Framework\footnote{\url{https://reactjs.org/}} verwendet, welches es ermöglicht,
-graphische Komponenten nativ in TypeScript zu erstellen und verändern.
-Es wurde für jede Komponente eine eigene TypeScript Klasse zu erstellt, welche dann den betreffenden
-das betreffende Verhalten und dessen Darstellung enthält.
-
-Um das Fraktal darzustellen wird die Leaflet\footnote{\url{https://leafletjs.com/}} Bibliothek verwendet.
-Diese, für Onlinekarten konzipierte, Bibliothek stellt den Bereich der komplexen Ebene, auf der die Mandelbrotmenge liegt dar.
-Dabei wird der momentan sichtbare Ausschnitt der Menge mit Hilfe der WebSockets Verbindung (siehe \autoref{sec:fontend_communication}) an das Backend versendet und vom ausgewählten Lastbalancierer in Teilregionen unterteilt (siehe \autoref{sec:load_balancing}).
-Jeder der vom Backend berechneten Teilregionen wird, sobald diese empfangen wurden, im Frontend angezeigt und die Komponenten
-zu Visualisierung der Rechenzeit aktualisiert.
-
 \subsubsection{Kommunikation mit dem Backend}\label{sec:fontend_communication}
 
-Zur Kommunikation mit dem Backend wird im Frontend ein Objekt der Klasse \texttt{WebSocketClient} erzeugt.
-Die zur Verbindung verwendeten Codestücke liegen dabei alle in dem Ordner \verb|connection|, die genannte Klasse wird in
-\verb|WSClient.ts| definiert.
+Zur Kommunikation mit dem Backend wird im Frontend ein Objekt der Klasse \verb|WebSocketClient| erzeugt.
+Alle zur Verbindung mit dem Backend verwendeten Codestücke liegen dabei in dem Ordner \verb|src/connection/|.
 
 Die dort definierte Klasse \verb|WebSocketClient| abstrahiert von dem JavaScript-nativen Websocketinterface \verb|WebSocket|\footnote{\url{https://developer.mozilla.org/en-US/docs/Web/API/WebSocket}}.
 Bei der Initialisierung baut das erzeugte Objekt eine Verbindung zu der lokalen Adresse \url{ws://localhost:9002} auf\footnote{
@@ -843,29 +829,38 @@ Bei der Initialisierung baut das erzeugte Objekt eine Verbindung zu der lokalen 
 	Dies ist durch ein ungelöstes Problem beim Verbindungsaufbau bedingt, das dafür sorgt, dass ein Verbindungsaufbau
 	erst bei der zweiten erzeugten Websocketverbindung fehlerfrei gelingt.
 }.
-Dort sollte das Backend bereit sein, eine Websocketverbindung anzunehmen.
+Dort muss das Backend bereit sein, eine Websocketverbindung anzunehmen.
 
-Zudem bietet die Klasse die Methode \texttt{sendRequest}, welche ein übergebenes RegionRequest-Objekt JSON-kodiert und versendet.
+Die Klasse \verb|WebSocketClient| bietet dabei folgende Methoden:
+\begin{itemize}
+	\item \verb|sendRequest(request)|:
 
-Wichtig für den Rest des Frontends sind die Methoden \texttt{registerRegion} und \texttt{registerRegionData}.
-An diese Methoden können Callbacks übergeben werden, die aufgerufen werden, wenn das Frontend über die Websocketverbindung
-respektive ein \texttt{Region}-Objekt oder ein \texttt{RegionData}-Objekt empfängt.
-Diese sind die Aufteilung einer angefragten Region (siehe \autoref{src:region.json})
-oder die berechneten Iterationswerte einer Region (siehe \autoref{src:regionData.json}).
-Die übergebenen Callbacks erhalten als Parameter respektive die vorgruppierte Aufteilung als ein Array von Workergruppen (\texttt{RegionGroup})
-oder das JSON-dekodierte \verb|RegionData|-Objekt.
+	      Diese Methode versendet das übergebene RegionRequest-Objekt codiert als \verb|JSON|\footnote{\url{https://www.json.org/}}-Objekt an das Backend.
+	\item \verb|registerRegion(fun), registerRegionData(fun)|:
 
+	      An diese Methoden können Callbacks übergeben werden, die aufgerufen werden, wenn das Frontend über die Websocketverbindung
+	      respektive ein \texttt{Region}-Objekt oder ein \texttt{RegionData}-Objekt empfängt.
+	      Diese sind die Aufteilung einer angefragten Region (siehe \autoref{src:region.json})
+	      oder die berechneten Iterationswerte einer Region (siehe \autoref{src:regionData.json}).
+
+	      Die übergebenen Callbacks erhalten als Parameter respektive die vorgruppierte Aufteilung als ein Array von Workergruppen (\texttt{RegionGroup})
+	      oder das \verb|JSON|-dekodierte \verb|RegionData|-Objekt.
+
+\end{itemize}
 Zudem wird hierbei bereits eine Filterung der eingehenden Regionsdaten vorgenommen.
 Bei Empfang einer Regionsaufteilung, wird diese zwischengespeichert.
 Jedes empfangene Regionsdatenobjekt wird dann bei Empfang daraufhin überprüft,
 ob der darin dargestellte Ausschnitt einer Regionsaufteilung entspricht (dazu wird das \verb|region|-Attribut verglichen)
 und das dargestellte Fraktal der zuletzt übergebenen Auswahl entspricht.
-Diese Filtrierung ist notwendig, da Worker Regionsdaten auch "verspätet" absenden können,
+Diese Filtrierung ist notwendig, da Worker Regionsdaten auch \enquote{verspätet} absenden können,
 falls bei dem zuvorgehenden Bereich nicht gewartet wurde bis die Berechnungen aller Worker entgegengenommen wurden.
 
 Die Definitionen der zugehörigen Objekt-Interfaces finden sich in den Dateien \verb|RegionGroup.ts| und \verb|ExchangeTypes.ts|.
 
 Als weitere Hilfsfunktion wird in \verb|RegionRequest.ts| \verb|request| bereitgestellt.
+\begin{itemize}
+	\item \verb|request()|
+\end{itemize}
 Diese extrahiert aus der übergebenen Sicht auf die Mandelbrotmenge, die in der Leaflet-Karte gespeichert ist,
 die Parameter zum Anfragen einer Region.
 Dazu werden mithilfe des aktuellen Zooms der linke obere und rechte untere Punkt des Sichtbereiches
@@ -935,11 +930,11 @@ und auf den zulässigen ganzzahligen Wertebereich \( [0,255] \) abbildet (siehe 
 \end{figure}
 
 \paragraph{Project.ts}
-Da die leaflet Bibliothek Tiles verwendet, um die Regionen des Backends anzuzeigen, liegen diese Tiles in 
+Da die leaflet Bibliothek Tiles verwendet, um die Regionen des Backends anzuzeigen, liegen diese Tiles in
 einem neuen Koordinatensystem, welches jeder Tile auf einer Zoomstufe ein Triple \( (tileX, tileY, zoom) \)
 zuordnet. Weiterhin besitzt leaflet ein internes Koordinatensystem (CRS\footnote{\url{https://en.wikipedia.org/wiki/Spatial_reference_system}}),
-welches jeden Punkt auf der Karte durch das Paar \( (latitude, longitude) \) identifiziert. 
-\verb|Projekt.ts| enthält Funktionen, um zwischen diesen 3 Koordinatensystemen (Tile-Koordinaten, leaflet-Koordinaten 
+welches jeden Punkt auf der Karte durch das Paar \( (latitude, longitude) \) identifiziert.
+\verb|Projekt.ts| enthält Funktionen, um zwischen diesen 3 Koordinatensystemen (Tile-Koordinaten, leaflet-Koordinaten
 und Koordinaten der komplexen Ebene) zu konvertieren.
 
 \paragraph{Regionsgruppierung (RegionGroup.ts)}\label{par:regionGroup}
@@ -947,8 +942,8 @@ und Koordinaten der komplexen Ebene) zu konvertieren.
 \paragraph{WorkerLayer.ts}\label{par:workerLayer}
 Diese Klasse visualisiert die Regionsaufteilung des Lastbalancierers als Overlay, welche über den Iterationswerten
 dem Benutzer angezeigt wird. Dafür wir eine in leaflet bestehende \verb|GeoJSON| API verwendet, mit welcher es möglich
-ist, beliebige Polygone auf den bestehenden Kartendaten anzuzeigen. Die Eckpunkte für diese Polygone für jede \verb|RegionGroup| 
-mit Hilfe der Funktionen aus \verb|Project| von Koordinaten der komplexen Ebene, welche im Backend verwendet werden, zu 
+ist, beliebige Polygone auf den bestehenden Kartendaten anzuzeigen. Die Eckpunkte für diese Polygone für jede \verb|RegionGroup|
+mit Hilfe der Funktionen aus \verb|Project| von Koordinaten der komplexen Ebene, welche im Backend verwendet werden, zu
 leaflet Koordinaten umgerechnet.
 
 \begin{figure}[h!]
@@ -959,7 +954,7 @@ leaflet Koordinaten umgerechnet.
 \end{figure}
 
 Da es wie in \autoref{par:regionGroup} beschrieben zu einer Gruppierung kommt, falls die Anzahl der Worker im Backend zu
-groß ist, werden ebenfalls alle Untergruppen einer Gruppe angezeigt (siehe \autoref{fig:regionGrouping}), falls der Benutzer mit der Maus über eine der 
+groß ist, werden ebenfalls alle Untergruppen einer Gruppe angezeigt (siehe \autoref{fig:regionGrouping}), falls der Benutzer mit der Maus über eine der
 dargestellen Gruppierungen geht.
 
 \subsubsection{Visualisierung der Programmstruktur}
@@ -991,13 +986,13 @@ Für die kritische Information der verschwendeten Zeit wird ein Balkengraph verw
 Dieser besitzt einen Balken, der die Differenz zwischen der Rechenzeit aller Knoten und dem am längsten rechnenden Knoten
 aufsummiert und nach Gruppe sortiert darstellt.
 Die Darstellung wird bei Empfang einer Regionsaufteilung (mithilfe \verb|registerRegion| in dem Websocketclient)
-initialisiert indem die Anzahl an Knoten und die Gruppen gespeichert, die Rechenzeit der Knoten auf 0 gesetzt und 
+initialisiert indem die Anzahl an Knoten und die Gruppen gespeichert, die Rechenzeit der Knoten auf 0 gesetzt und
 alle Knoten als aktiv markiert werden.
 Da die tatsächliche Rechenzeit erst am Ende der Berechnung mit den Regionsdaten selbst verfügbar ist,
 wird mithilfe eines Intervalls die Rechenzeit live abgeschätzt, indem sie simpel alle 50 Millisekunden
 um 50 Millisekunden hochgezählt wird, falls die Regionsdaten des Knotens noch nicht empfangen wurden.
 Da die Charts nicht zur Animation von Übergängen fähig sind, wird das Objekt mit jedem Update neu gerendert.
-Bei Empfang von Regionsdaten (hierzu wird die erwähnte Methode \verb|registerRegionData| verwendet) 
+Bei Empfang von Regionsdaten (hierzu wird die erwähnte Methode \verb|registerRegionData| verwendet)
 wird die tatsächlich gemessene Rechenzeit eingetragen und der Rechenknoten als inaktiv gekennzeichnet.
 Der Intervall wird gestoppt, sobald alle Arbeiterknoten die Berechnung abgeschlossen haben.
 Einiges an Code ist dabei nur dafür zuständig, beim Schweben über einem Teil des Balkens die Wartezeit

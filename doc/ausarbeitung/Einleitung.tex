@@ -126,18 +126,41 @@ Das Postfix f\textit{pr} bestimmt, dass die Register als Gleitkommazahlen der Pr
 Damit werden in jeder Operation 4 mal 32 bit Gleitkommazahlen oder 2 mal 64 bit Gleitkommazahlen verrechnet.
 % 1 Seite
 
+\subsection{TypeScript und React}
+Um das Frontend zu implementieren, wurde sich für die Programmiersprache TypeScript\footnote{\url{https://www.typescriptlang.org/}}(Erweiterung von JavaScript um Typisierung) entschieden.
+Da diese zu JavaScript kompiliert, werden die Vortele von JavaScript, wie Ausführung im Webbrowser des Benutzers und eine vielzahl verfügbarer Bibliotheken,
+mit den Vorteilen einer typisierten Programmiersprache vereint.
+
+
+Für die graphische Benutzeroberfläche wurde ebenfalls TypeScript mit dem React Framework\footnote{\url{https://reactjs.org/}} verwendet, welches es ermöglicht,
+graphische Komponenten nativ in TypeScript zu erstellen und dynamisch zu verändern.
+Es wurde für jede Komponente eine eigene TypeScript Klasse zu erstellt, welche dann den betreffenden
+das betreffende Verhalten und dessen Darstellung enthält.
+
+
+Um das Fraktal darzustellen wird die Leaflet\footnote{\url{https://leafletjs.com/}} Bibliothek verwendet.
+Diese, für Onlinekarten konzipierte, Bibliothek stellt den Bereich der komplexen Ebene, auf der die Mandelbrotmenge liegt dar.
+Dabei wird der momentan sichtbare Ausschnitt der Menge mit Hilfe der WebSockets Verbindung (siehe \autoref{sec:fontend_communication}) an das Backend versendet und vom ausgewählten Lastbalancierer in Teilregionen unterteilt (siehe \autoref{sec:load_balancing}).
+Jeder der vom Backend berechneten Teilregionen wird, sobald diese empfangen wurden, im Frontend angezeigt und die Komponenten
+zu Visualisierung der Rechenzeit aktualisiert.
+
 % Qualitative Ziele
 \subsection{Qualitätsanforderungen}
 
 Die Benutzeroberfläche soll so leicht und intuitiv wie möglich zu bedienen sein.
-Hierbei soll zudem darauf geachtet werden, dass alle Funktionen nur mit einer minimalen
-Anzahl an Mausklicks auszuführen sind und die Oberfläche nicht überladen wird.
+Hierbei wird ein Fokus auf folgende Eigenschaften gelegt:
+\begin{itemize}
+	\item Alle Funktionen sollen mit einer minimalen
+	      Anzahl an Mausklicks auszuführen, sowie durch eine
+	      minimalistisch Designte Benutzeroberfläche erreichbar sein.
+	\item Zudem soll das System robust gestaltet werden.
+	      Dies wird durch die Verwendung von Buttons, Listen, Drop-Down Menüs und Slider gewährleistet,
+	      die die Möglichkeit der Eingabe von ungültigen Werten verhindern.
+	\item Es sind keine Sicherheitsfeatures (Benutzerauthentisierung oder Verschlüsselung) geplant,
+	      da keine sensiblen Daten verarbeitet werden und die Anwendung nicht uneingeschränkt über das Internet zugänglich ist.
+\end{itemize}
 
-Zudem soll das System robust gestaltet werden.
-Dies wird durch die Verwendung von Buttons, Listen, Drop-Down Menüs und Slider gewährleistet,
-die die Möglichkeit der Eingabe von ungültigen Werten verhindern.
 
-Es sind keine Sicherheitsfeatures (Benutzerauthentisierung, Verschlüsselung) geplant, da keine sensiblen Daten verarbeitet werden und die Anwendung nicht uneingeschränkt über das Internet zugänglich ist.
 
 % Sonstige Einschränkungen
 \subsection{Einschränkungen}
@@ -146,4 +169,3 @@ Die Benutzeroberfläche soll in einem Webbrowser lauffähig sein, sodass sie auf
 zugänglich gemacht werden kann.
 Um die erwartete Performanzsteigerung an einem echten Beispiel zu demonstrieren,
 soll die Berechnung der Mandelbrotmenge parallel auf mehreren Raspberry Pi’s\footnote{Für ein Beispiel, siehe \url{https://www.raspberrypi.org/products/raspberry-pi-3-model-b/}} oder ähnlichen unabhängigen Kleincomputern oder Rechenkernen zum Einsatz kommen soll.
-
