@@ -66,7 +66,7 @@ std::vector<RegionData> Host::mpi_to_websocket_result;
 std::mutex Host::mpi_to_websocket_result_lock;
 
 // Websocket server
-websocketpp::server<websocketpp::config::asio> Host::websocket_server;
+server_endpoint_type Host::websocket_server;
 websocketpp::connection_hdl Host::client;
 
 void Host::start_server() {
@@ -561,17 +561,20 @@ void Host::init(int world_rank, int world_size) {
         
         // Listen for incoming complete computations from workers (MPI)
         // Receive one message of dynamic length containing "workerInfo" and the computed "worker_data"
-        // TODO: asynchronous (maybe?)
         MPI_Status status;
         int probe_flag;
-        MPI_Iprobe(MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, &probe_flag, &status);
-        if (probe_flag == true) { // Rank: 2
-            probe_flag = 0;
+        // Check if it is possible to receive a finished computation
+        MPI_Iprobe(MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, &probe_flag, &status); // Tag: 2
+        if (probe_flag == true) {
             int recv_len;
+            // Determine the length of the incoming message
             MPI_Get_count(&status, MPI_BYTE, &recv_len);
             std::cout << "Host is receiving Data from Worker " << status.MPI_SOURCE << " Total length: " << recv_len << " Bytes." << std::endl;
+            // Allocate the receive buffer
             uint8_t* recv = new uint8_t[recv_len];
+            // Execute the actual receive operation
             int ierr = MPI_Recv(recv, recv_len, MPI_BYTE, status.MPI_SOURCE, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE); // Tag: 2
+            // Error handling
             if(ierr != MPI_SUCCESS){
                 std::cerr << "Error on receiving data from worker: " << std::endl;
                 char err_buffer[MPI_MAX_ERROR_STRING];
@@ -580,6 +583,7 @@ void Host::init(int world_rank, int world_size) {
                 fprintf(stderr, err_buffer);
                 continue;
             }
+            // Error handling - end
 
             // Stop the clock for MPI communication
             std::chrono::high_resolution_clock::time_point mpiCommunicationEnd = std::chrono::high_resolution_clock::now();

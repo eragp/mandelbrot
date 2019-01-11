@@ -8,7 +8,7 @@
 const std::string RecursiveNaiveBalancer::NAME = "naiveRecursive";
 
 Region *RecursiveNaiveBalancer::balanceLoad(Region region, int nodeCount) {
-	auto *allRegions = new Region[nodeCount];
+	Region *allRegions = new Region[nodeCount];
 	
 	BalancingContext context = { allRegions, 0, nodeCount, 0, 0.0, 0.0 };
 	context.deltaReal = Fractal::deltaReal(region.maxReal, region.minReal, region.width);
