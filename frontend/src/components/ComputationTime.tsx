@@ -26,7 +26,7 @@ interface ChartState {
 }
 
 const compTimeString = "computation time: ";
-const varianceString = "variance σ²: ";
+const varianceString = "variance σ: ";
 
 /**
  * Shows the computation time of invoked workers
@@ -200,13 +200,9 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
     const values: number[] = [];
     const colorSet: string[] = [];
     // => Label/ value index is the index of the rank in the node array
-    const groupCompTime = (group: RegionGroup) => {
-      let compTime = 0;
-      for (const region of group.getLeafs()) {
-        compTime += this.chartState.progress.get(region.id) as number;
-      }
-      return compTime;
-    };
+    const groupCompTime = (group: RegionGroup) =>
+      group.getLeafs().reduce((a, c) => a + (this.chartState.progress.get(c.id) as number), 0);
+
     this.chartState.nodes.forEach(group => {
       const rank = group.id;
       labels.push("Group " + rank);
@@ -230,15 +226,11 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
       computationTime += value;
     });
 
-    const variance = (values: number[]) => {
-      const sum = values.reduce((a, c) => a + c);
-      const sumSquared = values.reduce((a, c) => a + c * c, 0);
-      return (sumSquared - (sum * sum) / values.length) / (values.length - 1);
-    };
     const title = ((this.chart.config.options as ChartOptions).title as ChartTitleOptions)
       .text as string[];
     title[0] = compTimeString + usToString(computationTime);
-    title[1] = varianceString + usToString(variance(Array.from(this.chartState.progress.values())));
+
+    title[1] = varianceString + usToString(variance(values));
 
     this.chart.update(animationDuration);
   }
@@ -281,3 +273,9 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
     clearInterval(this.interval);
   }
 }
+
+const variance = (values: number[]) => {
+  const sum = values.reduce((a, c) => a + c, 0);
+  const sumSquared = values.reduce((a, c) => a + c * c, 0);
+  return Math.sqrt((sumSquared - (sum * sum) / values.length) / (values.length - 1));
+};
