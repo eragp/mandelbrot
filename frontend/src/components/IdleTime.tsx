@@ -140,7 +140,6 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
     // so that they are set inactive when the first tile/region
     // by them comes in
     this.props.wsclient.registerRegionData(data => {
-      this.stopNodeProgress();
       // Stop corresponding worker progress bar
       // assume that regionData is passed here
 
@@ -153,7 +152,6 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
       // => store progress for each node separated
       this.chartState.progress.set(data.workerInfo.rank, data.workerInfo.computationTime);
       this.updateChart(0);
-      this.initNodeProgress();
     });
 
     this.props.wsclient.registerRegion(groups => {
@@ -164,7 +162,7 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
       const active = new Map();
       const progress = new Map();
 
-      const animationDuration = 750;
+      const animationDuration = 50;
       for (const group of groups) {
         for (const region of group.getLeafs()) {
           active.set(region.id, true);

@@ -114,7 +114,6 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
     // so that they are set inactive when the first tile/region
     // by them comes in
     this.websocketClient.registerRegionData(data => {
-      this.stopNodeProgress();
       // Stop corresponding group progress bar
       // assume that regionData is passed here
       // Pay attention here that ranks begin from 1 as long as the host does not send data on his own
@@ -123,7 +122,6 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
       // insert correct µs time in node value
       this.chartState.progress.set(data.workerInfo.rank, data.workerInfo.computationTime);
       this.updateChart(0);
-      this.initNodeProgress();
     });
 
     this.websocketClient.registerRegion(groups => {
@@ -134,7 +132,7 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
       const active = new Map();
       const progress = new Map();
 
-      const animationDuration = 750;
+      const animationDuration = 50;
       for (const group of groups) {
         for (const region of group.getLeafs()) {
           active.set(region.id, true);
