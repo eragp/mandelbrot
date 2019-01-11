@@ -4,7 +4,6 @@
 #include <vector>
 #include <iostream>
 
-#define __ARM_NEON 1
 #ifdef __ARM_NEON
 #include <arm_neon.h>
 #endif
