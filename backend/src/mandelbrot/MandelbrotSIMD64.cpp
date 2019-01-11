@@ -4,6 +4,7 @@
 #include <vector>
 #include <iostream>
 
+#define __ARM_NEON 1
 #ifdef __ARM_NEON
 #include <arm_neon.h>
 #endif
@@ -40,11 +41,12 @@ void MandelbrotSIMD64::calculateFractal(precision_t* cRealArray, precision_t* cI
     float64x2_t two = vdupq_n_f64(2);
     float64x2_t four = vdupq_n_f64(4);
     // result iterations
-    uint64x2_t one = vdupq_n_u64(1);
-    uint64x2_t n = vdupq_n_u64(0);
-    uint64x2_t absLesserThanTwo = vdupq_n_u64(1);
+    int64x2_t n = vdupq_n_s64(0);
+    int64x2_t absLesserThanTwo = vdupq_n_s64(1);
     int i = 0;
-    while(i < maxIteration && vaddvq_u64(absLesserThanTwo) != 0){
+    // if any value is 1 in the vector (abs<2) then dont break
+    // addv => sum all elements of the vector
+    while(i < maxIteration && vaddvq_s64(absLesserThanTwo) != 0){
         // add a b -> a+b
         // mls a b c -> a - b*c
         // mul a b -> a*b
@@ -55,16 +57,14 @@ void MandelbrotSIMD64::calculateFractal(precision_t* cRealArray, precision_t* cI
         zImaginary = nextZImaginary;
         // Square of the absolute value -> determine when to stop
         float64x2_t absSquare = vmlaq_f64(vmulq_f64(zReal, zReal), zImaginary, zImaginary);
-        // If square of the absolute is less than 4, abs<2 holds -> 1
-        absLesserThanTwo = vandq_u64(vcltq_f64(absSquare, four), one);
-        // if any value is 1 in the vector (abs<2) then dont break
-        // addv => sum all elements of the vector
-        n = vaddq_u64(n, absLesserThanTwo);
+        // If square of the absolute is less than 4, abs<2 holds -> -1 else 0
+        absLesserThanTwo = vreinterpretq_s64_u64(vcltq_f64(absSquare, four));
+        n = vsubq_s64(n, absLesserThanTwo);
         i++;
     }
     // write n to dest
-    dest[0] = vgetq_lane_u64(n, 0);
-    dest[1] = vgetq_lane_u64(n, 1);
+    dest[0] = (unsigned short int) vgetq_lane_s64(n, 0);
+    dest[1] = (unsigned short int) vgetq_lane_s64(n, 1);
 
     cRealArray += 2;
     cImaginaryArray += 2;

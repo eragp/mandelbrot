@@ -43,14 +43,14 @@ void MandelbrotSIMD32::calculateFractal(precision_t* cRealArray, precision_t* cI
     // Helper variables
     float32x4_t two = vdupq_n_f32(2);
     float32x4_t four = vdupq_n_f32(4);
-    uint32x4_t one = vdupq_n_u32(1);
     // result iterations
-    uint32x4_t n = vdupq_n_u32(0);
+    int32x4_t n = vdupq_n_s32(0);
     // vector with 1 if absolute value of component is less than two
-    uint32x4_t absLesserThanTwo = vdupq_n_u32(1);
+    int32x4_t absLesserThanTwo = vdupq_n_s32(1);
     int i = 0;
     // addv => sum all elements of the vector
-    while(i < maxIteration && vaddvq_u32(absLesserThanTwo) > 0){
+    // if any value is not 0 (-1) in the vector (abs<2) then dont break
+    while(i < maxIteration && vaddvq_s32(absLesserThanTwo) != 0){
         // mls a b c -> a - b*c
         float32x4_t nextZReal = vaddq_f32(vmlsq_f32(vmulq_f32(zReal, zReal), zImaginary, zImaginary), cReal);
         // mla a b c -> a + b*c
@@ -59,17 +59,16 @@ void MandelbrotSIMD32::calculateFractal(precision_t* cRealArray, precision_t* cI
         zImaginary = nextZImaginary;
         // Square of the absolute value -> determine when to stop
         float32x4_t absSquare = vmlaq_f32(vmulq_f32(zReal, zReal), zImaginary, zImaginary);
-        // If square of the absolute is less than 4, abs<2 holds -> 1 else 0
-        absLesserThanTwo = vandq_u32(vcltq_f32(absSquare, four), one);
-        // if any value is 1 in the vector (abs<2) then dont break
-        n = vaddq_u32(n, absLesserThanTwo);
+        // If square of the absolute is less than 4, abs<2 holds -> -1 else 0
+        absLesserThanTwo = vreinterpretq_s32_u32(vcltq_f32(absSquare, four));
+        n = vsubq_s32(n, absLesserThanTwo);
         i++;
     }
     // write n to dest
-    dest[0] = vgetq_lane_u32(n, 0);
-    dest[1] = vgetq_lane_u32(n, 1);
-    dest[2] = vgetq_lane_u32(n, 2);
-    dest[3] = vgetq_lane_u32(n, 3);
+    dest[0] = (unsigned short int) vgetq_lane_s32(n, 0);
+    dest[1] = (unsigned short int) vgetq_lane_s32(n, 1);
+    dest[2] = (unsigned short int) vgetq_lane_s32(n, 2);
+    dest[3] = (unsigned short int) vgetq_lane_s32(n, 3);
 
     cRealArray += 4;
     cImaginaryArray += 4;
