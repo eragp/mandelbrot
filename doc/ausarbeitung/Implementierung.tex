@@ -913,10 +913,7 @@ Da das Backend die berechneten Teilbereiche der Mandelbrotmenge als Regionen zur
 Vielfache der leaflet Tile-Größe sind, wird eine Region dem Benutzer durch mehrere Tiles dargestellt.
 Dieses Verhältnis wird in \autoref{fig:leafletTiles} dargestellt.
 
-Zudem ist die Darstellung der Iterationswerte, sowie Regionsaufteilung durch unterschiedlichen Ebenen innerhalb der
-leaflet Bibliothek realisiert:
-
-\begin{figure}[h!]
+\begin{figure}
 	\centering
 	\includegraphics[width=0.5\linewidth]{img/Implementierung/leafletTiles}
 	\caption{Relation von Backend Regionen zu leaflet Tiles.
@@ -924,6 +921,9 @@ leaflet Bibliothek realisiert:
 		weiß eingezeichnet, alle leaflet Tiles sind rot umrandet angegeben.
 	}\label{fig:leafletTiles}
 \end{figure}
+
+Zudem ist die Darstellung der Iterationswerte, sowie Regionsaufteilung durch unterschiedlichen Ebenen innerhalb der
+leaflet Bibliothek realisiert:
 
 \begin{itemize}
 	\item \verb|MandelbrotLayer| in \verb|TileDisplay.tsx|
@@ -946,7 +946,7 @@ leaflet Bibliothek realisiert:
 	      mit Hilfe der Funktionen aus \verb|Project| von Koordinaten der komplexen Ebene, welche im Backend verwendet werden, zu
 	      leaflet Koordinaten umgerechnet.
 
-	      \begin{figure}[h!]
+	      \begin{figure}
 		      \centering
 		      \includegraphics[width=.85\linewidth]{img/Implementierung/regionGrouping}
 		      \caption{WorkerLayer für eine Gruppierung der Aufteilung des Recursive PredictionBalancers mit 37 Workern}
@@ -987,7 +987,7 @@ welches jeden Punkt auf der Karte durch das Paar \( (latitude, longitude) \) ide
 
 Die Struktur der Parallelisierung wird in einem Netzwerkgraphen unter dem Fraktal dargestellt.
 Mithilfe der Bibliothek \verb|visjs|\footnote{\url{http://visjs.org/}} wird hierzu ein
-Graph mit 3 Ebenen erzeugt:
+Graph (siehe \autoref{fig:networkView}) mit 3 Ebenen erzeugt:
 
 Auf der linken Seite befindet sich ein Knoten in Form eines Programmfensters, der das Browserfrontend darstellt.
 In der Mitte wird ein Knoten für den Backend-Host mit Serverrack als Symbol dargestellt, der mit dem Frontendknoten verbunden ist.
@@ -1002,6 +1002,13 @@ Die Arbeiter werden auf Basis der erhaltenen Regionsaufteilung erzeugt und jewei
 auf Ebenen verteilt.
 Diese Aufteilung wird nach Erhalt jeder Regionsaufteilung vorgenommen und der Graph neu aufgebaut,
 sowie die Größe der Leinwand an die Anzahl an Knoten angepasst.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.5\linewidth]{img/Implementierung/NetworkView}
+	\caption{Darstellung der Architektur der Anwendung als Graph
+	}\label{fig:networkView}
+\end{figure}
 
 \subsubsection{Visualisierung der Rechenzeiten} % components/
 
