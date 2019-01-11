@@ -34,6 +34,45 @@ Die Backend-Worker nehmen die zugewiesenen Rechenaufträge entgegen und führen 
 	\label{fig:architekturuebersicht}
 \end{figure}
 
+\subsection{Lastbalancierung}
+
+Um die Mandelbrotmenge effizient parallel zu berechnen, sollte die Rechenlast möglichst gleichmäßig auf die Worker verteilt werden.
+Die Aufgabe der Lastbalancierung besteht darin zu einer gegebenen Region und einer Anzahl von Workern eine solche Unterteilung in sogenannte Teilregionen zu finden.
+Damit die Unterschiede zwischen guter und schlechter Lastverteilung deutlich werden, stehen in diesem Projekt verschiedene Strategien der Lastbalancierung zur Wahl.
+Die Strategien lassen sich zur Laufzeit austauschen, um einen direkten Vergleich zu ermöglichen.
+
+\subsubsection{Naive Strategie}
+
+Bei der naiven Strategie wird versucht den einzelnen Workern etwa gleich große Teilregionen zuzuweisen.
+Dies geschieht allerdings ohne Beachtung der eventuell unterschiedlichen Rechenzeiten innerhalb der Teilregionen.
+Es kann bei Verwendung dieser Stratgegie also durchaus passieren, dass ein Worker noch rechnet, während alle anderen bereits fertig sind.
+Die naive Strategie wurde hier in einer nicht-rekursiven und einer rekursiven Variante implementiert.
+
+\subsubsection{Strategie mit Vorhersage}
+
+Bei dieser Strategie basiert die Aufteilung der Region auf einer Vorhersage über die Rechenzeit.
+Die Teilregionen werden so gewählt, dass sie, entsprechend der Vorhersage, etwa einen ähnlichen Rechenaufwand haben.
+Die optimale Rechenlast für einen Worker berechnet sich also durch:
+
+\begin{equation*}
+	\frac{Gesamtrechenlast}{AnzahlWorker}
+\end{equation*}
+
+Wenn die Vorhersage hinreichend exakt ist, kann dieser Wert gut angenähert werden.
+Dadurch wird die Last gleichmäßiger auf die Worker verteilt als bei der naiven Strategie.
+
+\paragraph*{Bestimmung der Vorhersage}
+
+Die Zugehörigkeit eines Punktes zur Mandelbrotmenge wird nach \autoref{equ:mandelbrot} iterativ berechnet.
+Deshalb kann die Anzahl der benötigten Iterationen als Abschätzung der Rechenzeit für diesen Punkt verwendet werden.
+Zur Anstellung der Vorhersage wird also die angeforderte Region in deutlich geringerer Auflösung berechnet.
+Dies ist eine gute Annäherung an die tatsächlich Rechendauer, da benachbarte Punkte meist eine ähnliche Anzahl an Iterationen benötigen.
+Einzig am Rand der Mandelbrotmenge kommt es zu Ungenauigkeiten, weil dort Punkte innnerhalb und außerhalb der Menge für die Vorhersage zusammenfallen.
+Es ist wichtig eine gute Balance zwischen Güte und Geschwindigkeit der Vorhersage zu finden.
+Einerseits soll die Bestimmung der Vorhersage nicht länger dauern als die Berechnung der Region selbst, andererseits muss die Vorhersage auch angemessen genau sein
+
+Wie die naive Strategie, gibt es die Strategie mit Vorhersage in einer rekursiven und in einer nicht-rekursiven Variante.
+
 %%%%%%%%
 % Middle level
 % ca 2-3 Seiten
