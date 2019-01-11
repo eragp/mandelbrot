@@ -24,6 +24,10 @@ interface ChartState {
   active: Map<number, boolean>;
   progress: Map<number, number>;
 }
+
+const compTimeString = "computation time: ";
+const varianceString = "variance σ²: ";
+
 /**
  * Shows the computation time of invoked workers
  * Additional documentation on the type of used chart: https://www.chartjs.org/docs/latest/
@@ -89,7 +93,7 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
         title: {
           display: true,
           position: "bottom",
-          text: ["Total node computation time:", "0 µs"]
+          text: [compTimeString, varianceString]
         },
         onHover: event => {
           // change workercontext active worker on hover
@@ -225,8 +229,16 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
     this.chartState.progress.forEach(value => {
       computationTime += value;
     });
-    (((this.chart.config.options as ChartOptions).title as ChartTitleOptions)
-      .text as string[])[1] = usToString(computationTime);
+
+    const variance = (values: number[]) => {
+      const sum = values.reduce((a, c) => a + c);
+      const sumSquared = values.reduce((a, c) => a + c * c, 0);
+      return (sumSquared - (sum * sum) / values.length) / (values.length - 1);
+    };
+    const title = ((this.chart.config.options as ChartOptions).title as ChartTitleOptions)
+      .text as string[];
+    title[0] = compTimeString + usToString(computationTime);
+    title[1] = varianceString + usToString(variance(Array.from(this.chartState.progress.values())));
 
     this.chart.update(animationDuration);
   }
