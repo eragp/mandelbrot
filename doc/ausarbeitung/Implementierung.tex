@@ -804,7 +804,7 @@ werden daher alle Komponenten des Ergebnisvektors des Vergleiches mit 1 verundet
 Das Ergbenis des Vergleiches und der Verundung ist ein Vektor vorzeichenloser 32 oder 64 bit Ganzzahlen, weshalb das
 Postfix für diese Operationen \textit{u32} oder \textit{u64} lautet.
 
-\begin{figure}[h!]
+\begin{figure}
 	\lstinputlisting[caption={Parallelisierte Bearbeitung eines Vektors komplexer Koordinaten in 32 bit Gleitkommapräzision in C++ mit Arm NEON Compiler Intrinsics für SIMD}, label={src:MandelbrotSIMD32.cpp}, firstline=29, lastline=72, firstnumber=29]{../../backend/src/mandelbrot/MandelbrotSIMD32.cpp}
 \end{figure}
 
@@ -833,10 +833,10 @@ Dort muss das Backend bereit sein, eine Websocketverbindung anzunehmen.
 
 Die Klasse \verb|WebSocketClient| bietet dabei folgende Methoden:
 \begin{itemize}
-	\item \verb|sendRequest(request)|:
+	\item \verb|sendRequest(request)|
 
 	      Diese Methode versendet das übergebene RegionRequest-Objekt codiert als \verb|JSON|\footnote{\url{https://www.json.org/}}-Objekt an das Backend.
-	\item \verb|registerRegion(fun), registerRegionData(fun)|:
+	\item \verb|registerRegion(fun), registerRegionData(fun)|
 
 	      An diese Methoden können Callbacks übergeben werden, die aufgerufen werden, wenn das Frontend über die Websocketverbindung
 	      respektive ein \texttt{Region}-Objekt oder ein \texttt{RegionData}-Objekt empfängt.
@@ -854,20 +854,21 @@ ob der darin dargestellte Ausschnitt einer Regionsaufteilung entspricht (dazu wi
 und das dargestellte Fraktal der zuletzt übergebenen Auswahl entspricht.
 Diese Filtrierung ist notwendig, da Worker Regionsdaten auch \enquote{verspätet} absenden können,
 falls bei dem zuvorgehenden Bereich nicht gewartet wurde bis die Berechnungen aller Worker entgegengenommen wurden.
+Die Definitionen der zugehörigen Objekt-Interfaces finden sich in den Dateien \verb|RegionGroup.ts| und \verb|ExchangeTypes.ts| finden.
 
-Die Definitionen der zugehörigen Objekt-Interfaces finden sich in den Dateien \verb|RegionGroup.ts| und \verb|ExchangeTypes.ts|.
-
-Als weitere Hilfsfunktion wird in \verb|RegionRequest.ts| \verb|request| bereitgestellt.
+Anfragen an das Backend werden dabei mit der folgenden Funktion in \verb|RegionRequest.ts| erstellt:
 \begin{itemize}
-	\item \verb|request()|
+	\item \verb|request(map, balancer, implementation)|:
+
+	      Diese extrahiert aus der übergebenen Sicht auf die Mandelbrotmenge, die in der Leaflet-Karte gespeichert ist,
+	      die Parameter zum Anfragen einer Region.
+	      Dazu werden mithilfe des aktuellen Zooms der linke obere und rechte untere Punkt des Sichtbereiches
+	      in dem Leaflet-internen Koordinatensystem auf entsprechende Punkte in der komplexen Ebene projeziert.
+	      Da zum Erzeugen des passenden Objektes auch der gewünschte Lastbalancierer und der Fraktaltyp notwendig sind,
+	      werden diese als weitere Parameter übergeben.
+
+	      Die Funktion gibt direkt ein Objekt zurück, dass das Interface \verb|RegionRequest| erfüllt.
 \end{itemize}
-Diese extrahiert aus der übergebenen Sicht auf die Mandelbrotmenge, die in der Leaflet-Karte gespeichert ist,
-die Parameter zum Anfragen einer Region.
-Dazu werden mithilfe des aktuellen Zooms der linke obere und rechte untere Punkt des Sichtbereiches
-in dem Leaflet-internen Koordinatensystem auf entsprechende Punkte in der komplexen Ebene projeziert.
-Da zum Erzeugen des passenden Objektes auch der gewünschte Lastbalancierer und der Fraktaltyp notwendig sind,
-werden diese als weitere Parameter übergeben.
-Die Funktion gibt direkt ein Objekt zurück, dass das Interface \verb|RegionRequest| erfüllt.
 
 \subsubsection{Darstellung der Regionsdaten} % tileDisplay/
 
@@ -878,18 +879,29 @@ identifiziert wird. Somit ist eine Übersetzung zwischen den Daten des Backends 
 
 \paragraph{MatrixView.ts, RegionOfInterest.ts}\label{par:matrixView}
 Die Klasse \verb|MatrixView.ts| implementiert die Umsetzung einer vom Backend versendeten Region zu
-den von leaflet erwarteten Tiles. Dafür registrieren sich alle sichtbaren Tiles durch die Methode
-\verb|registerTile(point, draw)| mit dem Callback \verb|draw|, welcher ausgeführt wird, sobald die anzuzeigenden Daten für die
-entsprechende Tile verfügbar sind. Diese Iterationswerte des Backends werden dabei der \verb|draw| Funktion als Parameter
-in Form eines \verb|RegionOfInterest| Objekts übergeben.
+den von leaflet erwarteten Tiles.
+\begin{itemize}
+	\item \verb|registerTile(point, draw)|
+
+	      Alle sichtbaren Tiles registrieren sich mit dem Callback \verb|draw|,
+	      welcher ausgeführt wird, sobald die anzuzeigenden Daten für die
+	      entsprechende Tile verfügbar sind. Diese Iterationswerte des Backends werden dabei der \verb|draw| Funktion als Parameter
+	      in Form eines \verb|RegionOfInterest| Objekts übergeben.
+\end{itemize}
+
 
 Ein \verb|RegionOfInterest| Objekt implementiert wiederum die Übersetzung von lokalen \( (x,y) \) Pixel-Werten
-einer Tile zu Indizes in die vom Backend gesendeten Regionsdaten (siehe \autoref{src:regionData.json}). Dabei gibt die
-\verb|get(x, y)| Methode, für einen Tile \( (x,y) \) Pixel-Wert die benötigte Iterationsanzahl zurück (siehe \autoref{src:RegionOfInterest.ts}).
+einer Tile zu Indizes in das vom Backend gesendete Array an Regionsdaten (siehe \autoref{src:regionData.json}).
+\begin{itemize}
+	\item \verb|get(x, y)|
 
-\begin{figure}[h!]
-	\lstinputlisting[caption={Umsetzung von Pixel-Werten der Tiles zu Indizes in Regionsdaten}, label={src:RegionOfInterest.ts}, language=TypeScript, firstline=39, lastline=46, firstnumber=39]{../../frontend/src/tileDisplay/RegionOfInterest.ts}
-\end{figure}
+	      Gibt, für einen Tile \( (x,y) \) Pixel-Wert die benötigte Iterationsanzahl zurück.
+	      %   (siehe \autoref{src:RegionOfInterest.ts}).
+	      %   \begin{figure}[h!]
+	      %       \lstinputlisting[caption={Umsetzung von Pixel-Werten der Tiles zu Indizes in Regionsdaten}, label={src:RegionOfInterest.ts}, language=TypeScript, firstline=41, lastline=48, firstnumber=41]{../../frontend/src/tileDisplay/RegionOfInterest.ts}
+	      %   \end{figure}
+\end{itemize}
+
 
 \paragraph{TileDisplay.tsx}
 Die Klasse \verb|TileDisplay.tsx| verwendet die leaflet Bibliothek direkt, um die Regionsdaten darzustellen.
@@ -897,28 +909,59 @@ Dabei wird dieser die WebSocket Verbindung in Form eines \verb|WebSocketClient|,
 die Implementierung und Gruppierung durch \verb|Observable| Klassen (siehe \autoref{par:observables}) übergeben. Ebenfalls wird der anzuzeigende Ausschnitt der
 Mandelbrotmenge übergeben.
 
+Da das Backend die berechneten Teilbereiche der Mandelbrotmenge als Regionen zurück gibt, dessen Höhe und Breite
+Vielfache der leaflet Tile-Größe sind, wird eine Region dem Benutzer durch mehrere Tiles dargestellt.
+Dieses Verhältnis wird in \autoref{fig:leafletTiles} dargestellt.
+
+Zudem ist die Darstellung der Iterationswerte, sowie Regionsaufteilung durch unterschiedlichen Ebenen innerhalb der
+leaflet Bibliothek realisiert:
+
 \begin{figure}[h!]
 	\centering
 	\includegraphics[width=0.5\linewidth]{img/Implementierung/leafletTiles}
-	\caption{Relation von Backend Regionen zu leaflet Tiles}
-	\label{fig:leafletTiles}
+	\caption{Relation von Backend Regionen zu leaflet Tiles.
+		Dabei ist beispielhaft eine Region des Backends
+		weiß eingezeichnet, alle leaflet Tiles sind rot umrandet angegeben.
+	}\label{fig:leafletTiles}
 \end{figure}
 
-Da das Backend die berechneten Teilbereiche der Mandelbrotmenge als Regionen zurück gibt, dessen Höhe und Breite
-Vielfache der leaflet Tile-Größe sind, wird eine Region dem Benutzer durch mehrere Tiles dargestellt.
-Dieses Verhältnis wird in \autoref{fig:leafletTiles} dargestellt. Dabei ist beispielhaft eine Region des Backends
-weiß eingezeichnet, alle leaflet Tiles sind rot umrandet angegeben. Eine detailliertere Version dieser Anzeige kann
-durch die Auswahl des \verb|DebugLayer|s jederzeit im Frontend eingeblendet werden.
+\begin{itemize}
+	\item \verb|MandelbrotLayer| in \verb|TileDisplay.tsx|
 
-Dargestellt werden die Tiles in einer eigenen Ebene der leaflet Karte, dem \verb|MandelbrotLayer|.
-Dieser erstellt für den sichtbaren Bereich\footnote{Da die Fenstergröße des sichtbaren Bereichs keien Vielfaches der Tilegröße sein muss, können Tiles erzeugt werden, welche teilweise außerhalb des sichtbaren Beriechs liegen}
-alle benötigten Tiles. Für jede der Tiles wird ein \verb|HTML5 canvas|\footnote{\url{https://developer.mozilla.org/kab/docs/Web/API/Canvas_API}} Objekt erstellt, welches es
-ermöglicht, für jeden Pixel einen \( (r,g,b) \) Farbwert zu definierten und anzuzeigen. Wobei die Farbwerte aus den berechneten
-Iterationswerten des Backends mit einem Shader (siehe \autoref{par:shader}) ermittelt werden. Die Iterationswerte können wiederum
-mit einem \verb|MatrixView| Objekt aus den Regionsdaten des Backends gelesen werden.
+	      In dieser eigenen Ebene der leaflet karte werden die Tiles dargestellt.
+	      Dieser erstellt für den sichtbaren Bereich\footnote{
+		      Da die Fenstergröße des sichtbaren Bereichs keien Vielfaches der Tilegröße sein muss,
+		      können Tiles erzeugt werden, welche teilweise außerhalb des sichtbaren Beriechs liegen}
+	      alle benötigten Tiles. Für jede der Tiles wird ein \verb|HTML5 canvas|\footnote{\url{https://developer.mozilla.org/kab/docs/Web/API/Canvas_API}} Objekt erstellt, welches es
+	      ermöglicht, für jeden Pixel einen \( (r,g,b) \) Farbwert zu definierten und anzuzeigen. Wobei die Farbwerte aus den berechneten
+	      Iterationswerten des Backends mit einem Shader (siehe \autoref{par:shader}) ermittelt werden. Die Iterationswerte können wiederum
+	      mit einem \verb|MatrixView| Objekt aus den Regionsdaten des Backends gelesen werden.
 
-Weiterhin wird in \verb|TileDisplay| der \verb|WorkerLayer| (siehe \autoref{par:workerLayer}), welcher die Regionsaufteilung des Backends visualisiert,  hinzugefügt und callbacks auf die Observables definiert, welche die momentan sichtbare Region
-erneut vom Backend anfordern, falls sich einer der ausgewählten Lastbalancierer, oder die gewählte Implementierung ändert.
+	\item \verb|WorkerLayer| in \verb|WorkerLayer.ts|\label{par:workerLayer}
+
+	      Diese Klasse visualisiert die Regionsaufteilung des Lastbalancierers als Overlay, welche über den Iterationswerten
+	      dem Benutzer angezeigt wird.
+	      Dafür wir eine in leaflet bestehende \verb|GeoJSON| API verwendet, mit welcher es möglich
+	      ist, beliebige Polygone auf den bestehenden Kartendaten anzuzeigen. Die Knoten dieser Polygone werden dabei jede \verb|RegionGroup|
+	      mit Hilfe der Funktionen aus \verb|Project| von Koordinaten der komplexen Ebene, welche im Backend verwendet werden, zu
+	      leaflet Koordinaten umgerechnet.
+
+	      \begin{figure}[h!]
+		      \centering
+		      \includegraphics[width=.85\linewidth]{img/Implementierung/regionGrouping}
+		      \caption{WorkerLayer für eine Gruppierung der Aufteilung des Recursive PredictionBalancers mit 37 Workern}
+		      \label{fig:regionGrouping}
+	      \end{figure}
+
+	      Da es wie in \autoref{par:regionGroup} beschrieben zu einer Gruppierung kommt, falls die Anzahl der Worker im Backend zu
+	      groß ist, werden ebenfalls alle Untergruppen einer Gruppe angezeigt (siehe \autoref{fig:regionGrouping}), falls der Benutzer mit der Maus über eine der
+	      dargestellen Gruppierungen geht.
+	\item \verb|DebugLayer| in \verb|TileDisplay.tsx|
+
+	      Diese Ebene gibt Informationen zur Aufteilung der angezeigten leaflet Tiles und den Projektionen von
+	      leaflet Koordinaten zu komplexen Koordinaten.
+\end{itemize}
+
 
 \paragraph{Shader.ts}\label{par:shader}
 Berechnet für einen Iterationswert der Mandelbrotmenge ein Tripel \( (r,g,b) \) von Farbwerten.
@@ -930,38 +973,23 @@ und auf den zulässigen ganzzahligen Wertebereich \( [0,255] \) abbildet (siehe 
 \end{figure}
 
 \paragraph{Project.ts}
-Da die leaflet Bibliothek Tiles verwendet, um die Regionen des Backends anzuzeigen, liegen diese Tiles in
-einem neuen Koordinatensystem, welches jeder Tile auf einer Zoomstufe ein Triple \( (tileX, tileY, zoom) \)
-zuordnet. Weiterhin besitzt leaflet ein internes Koordinatensystem (CRS\footnote{\url{https://en.wikipedia.org/wiki/Spatial_reference_system}}),
+Da die leaflet Bibliothek Tiles verwendet, um die Regionen des Backends anzuzeigen, liegen diese in
+einem neuen Koordinatensystem, welches jeder Tile auf für eine Zoomstufe ein Triple \( (tileX, tileY, zoom) \) zuordnet.
+Weiterhin besitzt leaflet ein internes Koordinatensystem (CRS\footnote{\url{https://en.wikipedia.org/wiki/Spatial_reference_system}}),
 welches jeden Punkt auf der Karte durch das Paar \( (latitude, longitude) \) identifiziert.
-\verb|Projekt.ts| enthält Funktionen, um zwischen diesen 3 Koordinatensystemen (Tile-Koordinaten, leaflet-Koordinaten
-und Koordinaten der komplexen Ebene) zu konvertieren.
+\verb|Projekt.ts| enthält Funktionen, um zwischen diesen 3 Koordinatensystemen
+(Tile-Koordinaten, leaflet-Koordinaten und Koordinaten der komplexen Ebene) zu konvertieren.
 
+% TODO:
 \paragraph{Regionsgruppierung (RegionGroup.ts)}\label{par:regionGroup}
 
-\paragraph{WorkerLayer.ts}\label{par:workerLayer}
-Diese Klasse visualisiert die Regionsaufteilung des Lastbalancierers als Overlay, welche über den Iterationswerten
-dem Benutzer angezeigt wird. Dafür wir eine in leaflet bestehende \verb|GeoJSON| API verwendet, mit welcher es möglich
-ist, beliebige Polygone auf den bestehenden Kartendaten anzuzeigen. Die Eckpunkte für diese Polygone für jede \verb|RegionGroup|
-mit Hilfe der Funktionen aus \verb|Project| von Koordinaten der komplexen Ebene, welche im Backend verwendet werden, zu
-leaflet Koordinaten umgerechnet.
-
-\begin{figure}[h!]
-	\centering
-	\includegraphics[width=\linewidth]{img/Implementierung/regionGrouping}
-	\caption{Gruppierung einer Aufteilung des Recursive PredictionBalancers mit 37 Workern}
-	\label{fig:regionGrouping}
-\end{figure}
-
-Da es wie in \autoref{par:regionGroup} beschrieben zu einer Gruppierung kommt, falls die Anzahl der Worker im Backend zu
-groß ist, werden ebenfalls alle Untergruppen einer Gruppe angezeigt (siehe \autoref{fig:regionGrouping}), falls der Benutzer mit der Maus über eine der
-dargestellen Gruppierungen geht.
-
-\subsubsection{Visualisierung der Programmstruktur}
+\subsubsection{Visualisierung der Architektur des Backends}
 
 Die Struktur der Parallelisierung wird in einem Netzwerkgraphen unter dem Fraktal dargestellt.
 Mithilfe der Bibliothek \verb|visjs|\footnote{\url{http://visjs.org/}} wird hierzu ein
-Graph mit 3 Ebenen erzeugt: Auf der linken Seite befindet sich ein Knoten in Form eines Programmfensters, der das Browserfrontend darstellt.
+Graph mit 3 Ebenen erzeugt:
+
+Auf der linken Seite befindet sich ein Knoten in Form eines Programmfensters, der das Browserfrontend darstellt.
 In der Mitte wird ein Knoten für den Backend-Host mit Serverrack als Symbol dargestellt, der mit dem Frontendknoten verbunden ist.
 Auf der rechten Seite befindet sich schließlich zwischen 2 und 4 Knoten, die jeweils eine Gruppe an Arbeitern
 darstellen. Das Symbol hierfür ist ein Oberkörper mit Arbeitshelm.
@@ -979,29 +1007,44 @@ sowie die Größe der Leinwand an die Anzahl an Knoten angepasst.
 
 Die zeitbezüglichen Komponenten der Visualisierung werden mithilfe der Charts
 der Bibliothek \verb|chartjs|\footnote{\url{http://www.chartjs.org/}} dargestellt.
+\begin{figure}
+	\centering
+	\begin{minipage}{.5\textwidth}
+		\centering
+		\includegraphics[height=.5\linewidth]{img/Implementierung/IdleTime}
+		\caption{Idle Time für 5 Gruppen}
+		\label{fig:idleTime}
+	\end{minipage}%
+	\begin{minipage}{.5\textwidth}
+		\centering
+		\includegraphics[height=.5\linewidth]{img/Implementierung/ComputationTime}
+		\caption{Computation time für 4 Gruppen}
+		\label{fig:computationTime}
+	\end{minipage}
+\end{figure}
 
 \paragraph{Idle Time}
 
 Für die kritische Information der verschwendeten Zeit wird ein Balkengraph verwendet.
 Dieser besitzt einen Balken, der die Differenz zwischen der Rechenzeit aller Knoten und dem am längsten rechnenden Knoten
-aufsummiert und nach Gruppe sortiert darstellt.
-Die Darstellung wird bei Empfang einer Regionsaufteilung (mithilfe \verb|registerRegion| in dem Websocketclient)
-initialisiert indem die Anzahl an Knoten und die Gruppen gespeichert, die Rechenzeit der Knoten auf 0 gesetzt und
+aufsummiert und nach Gruppe sortiert darstellt (siehe \autoref{fig:idleTime}).
+
+Die Darstellung wird bei Empfang einer Regionsaufteilung (mithilfe \verb|registerRegion| in \verb|WebSocketClient|)
+initialisiert indem die Anzahl an Knoten und die Gruppen gespeichert, die Rechenzeit der Knoten auf \( 0 \) gesetzt und
 alle Knoten als aktiv markiert werden.
 Da die tatsächliche Rechenzeit erst am Ende der Berechnung mit den Regionsdaten selbst verfügbar ist,
-wird mithilfe eines Intervalls die Rechenzeit live abgeschätzt, indem sie simpel alle 50 Millisekunden
-um 50 Millisekunden hochgezählt wird, falls die Regionsdaten des Knotens noch nicht empfangen wurden.
+wird mithilfe eines Intervalls die Rechenzeit live abgeschätzt, indem sie alle \( 50ms \) um
+\( 50ms \) hochgezählt wird, falls die Regionsdaten des Knotens noch nicht empfangen wurden.
+
 Da die Charts nicht zur Animation von Übergängen fähig sind, wird das Objekt mit jedem Update neu gerendert.
 Bei Empfang von Regionsdaten (hierzu wird die erwähnte Methode \verb|registerRegionData| verwendet)
 wird die tatsächlich gemessene Rechenzeit eingetragen und der Rechenknoten als inaktiv gekennzeichnet.
 Der Intervall wird gestoppt, sobald alle Arbeiterknoten die Berechnung abgeschlossen haben.
-Einiges an Code ist dabei nur dafür zuständig, beim Schweben über einem Teil des Balkens die Wartezeit
-einer einzelnen Gruppe in einem Tooltip darzustellen.
 
 \paragraph{ComputationTime}
 
 Zur Darstellung des relativen Verhältnisses der Rechenzeiten wird in einem Kuchengraph
-die absolute Rechenzeit der Gruppen dargestellt.
+die absolute Rechenzeit der Gruppen dargestellt (siehe \autoref{fig:computationTime}).
 
 \subsubsection{MISC} % misc/
 
