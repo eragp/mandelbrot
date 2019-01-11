@@ -14,9 +14,24 @@
 #include "Balancer.h"
 
 struct TestCase {
+	/**
+	* The name of your testcase
+	*/
 	std::string testName;
+
+	/**
+	* Number of workers to balance for
+	*/
 	int nodeCount;
+	
+	/**
+	* The the balancing strategy to use
+	*/
 	Balancer* balancer;
+	
+	/**
+	* The region to balance
+	*/
 	Region* region;
 };
 
