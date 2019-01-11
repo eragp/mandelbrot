@@ -58,8 +58,8 @@ für verschiedenste Aufteilungen die Gesamtrechenzeit visualisiert werden kann.
 
 \subsection{Darstellung der Mandelbrotmenge}
 
-Komplexe Zahlen lassen sich auch grafisch darstellen, indem man sie in ein Koordinatensystem einträgt.
-Dabei entspricht die x-Koordinate dem Realteil und die y-Koordinate dem Imaginärteil der Zahl.
+Eine Komplex Zahl \( c \in \mathbb{C} \) lässt sich auch grafisch darstellen, indem man sie in ein zweidimensionales Koordinatensystem einträgt.
+Dabei entspricht die x-Koordinate dem Realteil \( Re(c) \) und die y-Koordinate dem Imaginärteil \( Im(c) \).
 Für das Projekt wird ein Ausschnitt des Bildschirmes als zweidimensionale Darstellung des komplexen Raumes
 betrachtet und für jeden darin liegenden Punkt die Zugehörigkeit zur Mandelbrotmenge bestimmt.
 Dabei wird der Raum jedoch diskretisiert, indem jedem Pixel des Bildschirmes die komplexen Koordinaten $c$
@@ -96,7 +96,7 @@ Die Gestaltung von MPI erlaubt dabei beliebige Zuordnungen, von Kernen auf einem
 
 \subsection{SIMD} \label{par:introduction_simd}
 
-"Simultaneous Instruction, Multiple Data" setzt auf Hardwareebene um, was der Name bereits andeutet:
+\enquote{Simultaneous Instruction, Multiple Data} setzt auf Hardwareebene um, was der Name bereits andeutet:
 Eine Instruktion wird auf verschiedene Daten gleichzeitig angewendet.
 Bei einem Projekt wie dem Mandelbrot kann diese Prinzip der Parallelisierung auch gut angewendet werden,
 da die einzelnen Punkte unabhängig voneinander sind.
@@ -110,7 +110,7 @@ Hierbei ist es kein Problem, mit den abgebrochenen Punkten weiter zu rechnen, so
 Iterationszahl nur hochgezählt wird solange das $z_n$ der Koordinate Betragsmäßig kleiner gleich $2$ ist.
 Dies gilt, da alle $|z_{n+i}| > 2$ sofern $|z_n| > 2$ \cite{424331}.
 
-\begin{figure}
+\begin{figure}[h!]
 	\lstinputlisting[caption={Bearbeitung eines Vektors komplexer Koordinaten in Pseudocode}, label={src:MandelbrotVect}]{code/mandelbrotvect.pseudo}
 \end{figure}
 
@@ -119,8 +119,8 @@ Diese Intrinsics ermöglichen eine Verwendung der nativen SIMD-Befehle, wobei de
 Dadurch wird lesbarer Code ermöglicht, der sich stärker am zu implementierenden Algorithmus orientiert.
 
 Zu den hier benötigten mathematischen Operationen (z.B. der Addition) wird hierbei das Compiler Intrinsic nach folgendem Schema erzeugt:
-"v\textit{opc}q\_f\textit{pr}" mit dem Operationscode \textit{opc} (z.B. \textit{add} für Addition).
-"v" ist das allgemeine Prefix für Vektoroperationen und "q" bedeutet, dass doppelt so viele Register verwendet werden wie ohne "q".
+\enquote{v\textit{opc}q\_f\textit{pr}} mit dem Operationscode \textit{opc} (z.B. \textit{add} für Addition).
+\enquote{v} ist das allgemeine Prefix für Vektoroperationen und \enquote{q} bedeutet, dass doppelt so viele Register verwendet werden wie ohne \enquote{q}.
 Damit werden alle verfügbaren SIMD-Register des ARMv8-A Prozessors des ODroids und Raspberry Pi 3 B+ herangezogen.
 Das Postfix f\textit{pr} bestimmt, dass die Register als Gleitkommazahlen der Präzision \textit{pr} bit (in diesem Fall 32 oder 64) interpretiert werden sollen.
 Damit werden in jeder Operation 4 mal 32 bit Gleitkommazahlen oder 2 mal 64 bit Gleitkommazahlen verrechnet.
