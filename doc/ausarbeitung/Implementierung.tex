@@ -68,8 +68,10 @@ Deshalb kann die Anzahl der benötigten Iterationen als Abschätzung der Rechenz
 Zur Anstellung der Vorhersage wird also die angeforderte Region in deutlich geringerer Auflösung berechnet.
 Dies ist eine gute Annäherung an die tatsächlich Rechendauer, da benachbarte Punkte meist eine ähnliche Anzahl an Iterationen benötigen.
 Einzig am Rand der Mandelbrotmenge kommt es zu Ungenauigkeiten, weil dort Punkte innnerhalb und außerhalb der Menge für die Vorhersage zusammenfallen.
-Es ist wichtig eine gute Balance zwischen Güte und Geschwindigkeit der Vorhersage zu finden.
-Einerseits soll die Bestimmung der Vorhersage nicht länger dauern als die Berechnung der Region selbst, andererseits muss die Vorhersage auch angemessen genau sein
+Die Genauigkeit der Vorhersage zu erhöhen bedeutet zusätzlichen Rechenaufwand während der Balancierung.
+Dieser sollte in einem sinnvollen Verhältnis zum Aufwand der Berechnung der Region selbst stehen.
+Es ist also wichtig eine Balance zwischen Güte und Geschwindigkeit der Vorhersage zu finden.
+
 
 Wie die naive Strategie, gibt es die Strategie mit Vorhersage in einer rekursiven und in einer nicht-rekursiven Variante.
 
