@@ -264,7 +264,7 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	Region test;
+	/*Region test;
 	test.minReal = -1.5;
 	test.maxImaginary = 1.0;
 
@@ -273,6 +273,24 @@ int main(int argc, char** argv) {
 
 	test.width = 2048;
 	test.height = 2048;
+
+	test.vOffset = 0;
+	test.hOffset = 0;
+
+	test.maxIteration = 200;
+	test.validation = 1;
+	test.guaranteedDivisor = 64;
+	test.fractal = mandelbrot;*/
+
+	Region test;
+	test.minReal = -3.75;
+	test.maxImaginary = 1.5;
+
+	test.maxReal = 3.75;
+	test.minImaginary = -1.5;
+
+	test.width = 1920;
+	test.height = 768;
 
 	test.vOffset = 0;
 	test.hOffset = 0;
@@ -289,18 +307,23 @@ int main(int argc, char** argv) {
 	Balancer* predictionNeg = PredictionBalancer::create(new Mandelbrot(), -4);
 	Balancer* predictionRec = RecursivePredictionBalancer::create(new Mandelbrot(), 4);
 
-	int nodeCount = 6;
+	int nodeCount = 32;
 
-	const int testCount = 6;
+	std::vector<TestCase> testCases;
 
-	TestCase testCases[testCount];
-	testCases[0] = { "Column", nodeCount, column, &test };
-	testCases[1] = { "Naive", nodeCount, naive, &test };
-	testCases[2] = { "NaiveRec", nodeCount, naiveRec, &test };
-	testCases[3] = { "Prediction", nodeCount, prediction, &test };
-	testCases[4] = { "PredictionNeg", nodeCount, predictionNeg, &test };
-	testCases[5] = { "PredictionRec", nodeCount, predictionRec, &test };
+	// ==================================================
+	// push_back your testcases here
 
+	testCases.push_back({ "Column", nodeCount, column, &test });
+	testCases.push_back({ "Naive", nodeCount, naive, &test });
+	testCases.push_back({ "NaiveRec", nodeCount, naiveRec, &test });
+	testCases.push_back({ "Prediction", nodeCount, prediction, &test });
+	testCases.push_back({ "PredictionNeg", nodeCount, predictionNeg, &test });
+	testCases.push_back({ "PredictionRec", nodeCount, predictionRec, &test });
+
+	// ==================================================
+
+	int testCount = testCases.size();
 	int failed = 0;
 	for (int i = 0; i < testCount; i++) {
 		if (!testBalancer(testCases[i])) {
