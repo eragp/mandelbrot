@@ -25,7 +25,7 @@ import "./index.css";
 import registerServiceWorker from "./registerServiceWorker";
 
 class App extends React.Component<{}, {}> {
-  render() {
+  public render() {
     const ws = new WebSocketClient(readWSUrl());
 
     const balancer = new BalancerObservable();
