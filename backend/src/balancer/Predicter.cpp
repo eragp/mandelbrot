@@ -27,36 +27,51 @@ Prediction* Predicter::getPrediction(Region region, Fractal* fractal, int predic
         lowRes.width = (region.width / region.guaranteedDivisor) * predictionAccuracy;
         lowRes.height = (region.height / region.guaranteedDivisor) * predictionAccuracy;
 
-        deltaReal = Fractal::deltaReal(lowRes.maxReal, lowRes.minReal, lowRes.width);
-        deltaImaginary = Fractal::deltaImaginary(lowRes.maxImaginary, lowRes.minImaginary, lowRes.height);
-
-        for (unsigned int x = 0; x < lowRes.width; x++) {
-            for (unsigned int y = 0; y < lowRes.height; y++) {
+        // Pass a whole row at once to mandelbrot for computation
+        // This is the maximum value for the vector length
+        int vectorLength = lowRes.width;
+        precision_t* projReal = new precision_t[vectorLength];
+        precision_t* projImag = new precision_t[vectorLength];
+        
+        unsigned short int* data = new unsigned short int[vectorLength];
+        for (unsigned int y = 0; y < lowRes.height; y++) {
+            for (unsigned int x = 0; x < lowRes.width; x += vectorLength) {
                 precision_t cReal = lowRes.minReal + x * deltaReal;
                 precision_t cImaginary = lowRes.maxImaginary - y * deltaImaginary;
-                unsigned short int iterationCount;
-                fractal->calculateFractal(&cReal,
-                                          &cImaginary,
+
+                int reverseY = lowRes.height - y - 1;
+                for (int k = 0; k < vectorLength; k++) {
+                    projReal[k] = lowRes.projectReal(x + k);
+                    projImag[k] = lowRes.projectImag(reverseY);
+                }
+
+                fractal->calculateFractal(projReal,
+                                          projImag,
                                           lowRes.maxIteration,
-                                          1,
-                                          &iterationCount);
-                // Assign iteration count to a (divisor^2)-Block
-                n[x / predictionAccuracy][y / predictionAccuracy] += iterationCount;
-                // Sum over expected iteration per column
-                nColSums[x / predictionAccuracy] += iterationCount;
-                // Sum over expected iteration per row
-                nRowSums[y / predictionAccuracy] += iterationCount;
-                // Sum over all expected iterations
-                nSum += iterationCount;
+                                          vectorLength,
+                                          data);
+                for (int k = 0; k < vectorLength; k++) {
+                    unsigned short int iterationCount = data[k];
+
+                    // Assign iteration count to a (divisor^2)-Block
+                    n[(x + k) / predictionAccuracy][y / predictionAccuracy] += iterationCount;
+                    // Sum over expected iteration per column
+                    nColSums[(x + k) / predictionAccuracy] += iterationCount;
+                    // Sum over expected iteration per row
+                    nRowSums[y / predictionAccuracy] += iterationCount;
+                    // Sum over all expected iterations
+                    nSum += iterationCount;
+                }
             }
         }
 
         // Set deltas to represent delta per prediction piece
-        deltaReal *= predictionAccuracy;
-        deltaImaginary *= predictionAccuracy;
+        deltaReal = Fractal::deltaReal(lowRes.maxReal, lowRes.minReal, lowRes.width) * predictionAccuracy;
+        deltaImaginary = Fractal::deltaImaginary(lowRes.maxImaginary, lowRes.minImaginary, lowRes.height) * predictionAccuracy;
 
-    // predicitionAccuracy < 0: (predicitionAccuracy^2) (divisor^2)-Blocks in each pixel sample
-    } else if (predictionAccuracy < 0) {
+        // predicitionAccuracy < 0: (predicitionAccuracy^2) (divisor^2)-Blocks in each pixel sample
+    }
+    else if (predictionAccuracy < 0) {
         // Make predictionAccuracy positive, sign just determines the operation internally predictionAccuracy is always positive
         predictionAccuracy = -predictionAccuracy;
 
@@ -116,7 +131,7 @@ Prediction* Predicter::getPrediction(Region region, Fractal* fractal, int predic
     }
 
     Prediction* prediction = new Prediction();
-    
+
     prediction->predictionLengthX = predictionLengthX;
     prediction->predictionLengthY = predictionLengthY;
 
