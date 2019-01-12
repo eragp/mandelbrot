@@ -13,13 +13,11 @@ import {
 } from "./misc/Observable";
 import { getURLParams } from "./misc/URLParams";
 
-
 // Custom Components
 import ComputationTime from "./components/ComputationTime";
 import NetworkView from "./components/NetworkView";
 import IdleTime from "./components/IdleTime";
 import SelectBox from "./components/SelectBox";
-
 
 // CSS
 import "./index.css";
@@ -29,7 +27,6 @@ import registerServiceWorker from "./registerServiceWorker";
 class App extends React.Component<{}, {}> {
   render() {
     const ws = new WebSocketClient();
-
 
     const balancer = new BalancerObservable();
     const group = new GroupObservable();

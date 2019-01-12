@@ -45,6 +45,15 @@ export default class SelectBox extends React.Component<SelectBoxProps, SelectBox
     };
   }
 
+  public render() {
+    return (
+      <div className="row">
+        <ItemBox onChange={this.setBalancer.bind(this)} {...this.state.balancer} />
+        <ItemBox onChange={this.setImpl.bind(this)} {...this.state.impl} />
+      </div>
+    );
+  }
+
   private setBalancer(val: string) {
     if (val === this.state.balancer.active) {
       return;
@@ -67,15 +76,6 @@ export default class SelectBox extends React.Component<SelectBoxProps, SelectBox
         impl: Object.assign(prev.impl, { active: val })
       };
     });
-  }
-
-  render() {
-    return (
-      <div className="row">
-        <ItemBox onChange={this.setBalancer.bind(this)} {...this.state.balancer} />
-        <ItemBox onChange={this.setImpl.bind(this)} {...this.state.impl} />
-      </div>
-    );
   }
 }
 
