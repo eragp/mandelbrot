@@ -34,14 +34,14 @@ export class StatsCollector {
 
     // Register for regionData and region subdivisions
     wsclient.registerRegionRaw(r => {
-        this.setWaiting(r.regionCount);
-        this.setBalancerTime(r.regionCount, r.balancerTime);
+      this.setWaiting(r.regionCount);
+      this.setBalancerTime(r.regionCount, r.balancerTime);
     });
     wsclient.registerRegionData(r => {
-        this.setComputationTime(r.workerInfo.rank, r.workerInfo.computationTime);
-        this.setMpiTime(r.workerInfo.rank, r.workerInfo.mpiTime);
-        this.setWaiting(this.getWaiting() - 1);
-    })
+      this.setComputationTime(r.workerInfo.rank, r.workerInfo.computationTime);
+      this.setMpiTime(r.workerInfo.rank, r.workerInfo.mpiTime);
+      this.setWaiting(this.getWaiting() - 1);
+    });
   }
 
   /**

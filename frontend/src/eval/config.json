@@ -3,14 +3,13 @@
       "width":1280,
       "height":720
    },
-   "balancers":[
-      "predictionRecursive"
+   "settings":[
+      {
+         "balancer": "predictionRecursive",
+         "implementation": "mandelbrot32",
+         "nodes": 0
+      }
    ],
-   "implementations":[
-      "mandelbrot32",
-      "mandelbrot64"
-   ],
-   "nodeCount": 37,
    "cluster": "himmuc",
    "description":"Testing different balancer implementations",
    "pois":[

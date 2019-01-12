@@ -6,56 +6,12 @@ import {
 } from "../misc/Observable";
 import { Point3D } from "../misc/Point";
 import { StatsCollector } from "./StatsCollector";
+import { Output, Setting, PoI, Tour } from "./ConfigTypes";
 
 import "./TourMonitor.css";
 
-interface Tour {
-  screen: ScreenOpts;
-  balancers: string[];
-  implementations: string[];
-  nodeCount: number;
-  cluster: string;
-  description: string;
-  pois: PoI[];
-}
-interface ScreenOpts {
-  width: number;
-  height: number;
-}
-interface PoI {
-  real: number;
-  imag: number;
-  zoom: number;
-}
-
-interface Output {
-  config: Tour;
-  datapoints: Run[];
-}
-interface Run {
-  balancer: string;
-  implementation: string;
-  data: Datapoint;
-}
-interface Datapoint {
-  poi: PoI;
-  balancer: BalancerTime;
-  workers: WorkerTime[];
-}
-interface BalancerTime {
-  time: number;
-  regionCount: number;
-}
-interface WorkerTime {
-  rank: number;
-  computationTime: number;
-  mpiTime: number;
-  drawTime: number;
-}
-
 interface Config {
-  balancer: string;
-  impl: string;
+  setting: Setting;
   poi: PoI;
 }
 
@@ -84,11 +40,9 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
 
     // generate config combinations
     this.configs = [];
-    for (const balancer of config.balancers) {
-      for (const impl of config.implementations) {
-        for (const poi of config.pois) {
-          this.configs.push({ balancer, impl, poi });
-        }
+    for (const setting of config.settings) {
+      for (const poi of config.pois) {
+        this.configs.push({ setting, poi });
       }
     }
 
@@ -160,22 +114,21 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
     const oldBl = this.props.balancer.get();
     const oldImp = this.props.impl.get();
 
-    this.props.balancer.setNoNotify(c.balancer);
-    this.props.impl.setNoNotify(c.impl);
+    this.props.balancer.setNoNotify(c.setting.balancer);
+    this.props.impl.setNoNotify(c.setting.implementation);
     this.props.viewCenter.setNoNotify(new Point3D(c.poi.real, c.poi.imag, c.poi.zoom));
-    if (oldBl !== c.balancer) {
+    if (oldBl !== c.setting.balancer) {
       this.props.balancer.notify();
-    } else if (oldImp !== c.impl) {
+    } else if (oldImp !== c.setting.implementation) {
       this.props.impl.notify();
     } else {
       this.props.viewCenter.notify();
     }
     this.props.stats.onDone(stats => {
       output.datapoints.push({
-        balancer: c.balancer,
-        implementation: c.impl,
+        setting: c.setting,
+        poi: c.poi,
         data: {
-          poi: c.poi,
           balancer: {
             time: stats.balancer.time,
             regionCount: stats.balancer.regionCount
@@ -200,25 +153,20 @@ const RenderConfig = (props: Config) => {
   return (
     <table>
       <tbody>
-        <tr>
-          <td>balancer:</td>
-          <td>
-            <pre className="config">{props.balancer}</pre>
-          </td>
-        </tr>
-        <tr>
-          <td>implementation:</td>
-          <td>
-            <pre className="config">{props.impl}</pre>
-          </td>
-        </tr>
-        <tr>
-          <td>Point of Interest</td>
-          <td>
-            <pre className="config">{JSON.stringify(props.poi)}</pre>
-          </td>
-        </tr>
+        {tr("Balancer:", props.setting.balancer)}
+        {tr("Implementation:", props.setting.implementation)}
+        {tr("Nodes:", props.setting.nodes)}
+        {tr("Point of Interest:", props.poi)}
       </tbody>
     </table>
   );
 };
+
+const tr = (name: string, val: any) => (
+  <tr>
+    <td>{name}</td>
+    <td>
+      <pre className="config">{JSON.stringify(val)}</pre>
+    </td>
+  </tr>
+);
