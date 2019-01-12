@@ -463,32 +463,8 @@ Bei der rekursiven Variante wird mithilfe folgender Kriterien entschieden, ob ho
 	\item Sonst: Teile parallel zur kürzeren Seite. Dies gibt dem Lastbalancierer mehr Möglichkeiten die Trennlinie zwischen den Teilregionen zu setzen, was zu einer genaueren Teilung führt.
 \end{itemize}
 
+Die Teilung ansich funktioniert wie die nicht-rekursive Aufteilung auf zwei Worker.
 Der Rekursionskontext (\verb|struct BalancingContext|) wurde extern definiert, da dieser für die Strategie mit Vorhersage wiederverwendet wird.
-
-\paragraph*{Rekursive Variante}\label{lastbalancierung_naiv_rekursion}
-% recursiveNaive
-Dies funktioniert sehr gut, wenn die Anzahl der Worker eine 2er-Potenz ist.
-Wenn das nicht der Fall ist, so müssen für einige Worker die Regionen öfters geteilt werden als für andere.
-Die Anzahl der Blätter des Rekursionsbaumes (hier ein Binärbaum) muss also der Anzahl der Worker entsprechen.
-
-Um die Werte, die während der rekursiven Auswertung benötigt werden, einfach weiterreichen zu können wurde die Struktur \verb|BalancingContext| definiert.
-Diese beinhaltet einen Zeiger auf das Ergebnisarray (\verb|result|) und den aktuellen Index (\verb|resultIndex|) in dieses.
-Zusätzlich ist in \verb|partsLeft| gespeichert, wie viele Teilregionen der jeweilige Rekursionsschritt noch erzeugen muss.
-Auch die Deltas für Real- und Imaginärteil sind in der Struktur abgelegt, um wiederholte Berechnungen zu vermeiden.
-
-Aus \verb|partsLeft| kann auch die Abbruchbedingung der Rekursion gefolgert werden:
-\begin{equation}\label{lastbalancierung_rekursion_abbruch}
-	partsLeft = 1
-\end{equation}
-
-Ist die Abbruchbedingung (\ref{lastbalancierung_rekursion_abbruch}) erfüllt, so genügt es die übergebene Region in das Ergebnisarray einzutragen und \verb|resultIndex| zu inkrementieren.
-Ansonsten muss die Region halbiert werden. Ist die Region vertikal oder horizontal nicht mehr teilbar (d.h. \verb|region.width| bzw. \verb|region.height| $\leq$ \verb|region.guaranteedDivisor|), so wird in die andere Richtung geteilt.
-Kann die Region in beide Richtungen geteilt werden, so wird parallel zur kürzeren Seite geteilt.
-Dies gibt dem Lastbalancierer mehr Möglichkeiten die Trennlinie zwischen den Teilregionen zu setzen, was zu einer genaueren Teilung führt.
-Wenn die Region unteilbar ist, so muss eine leere Region erzeugt werden.
-
-Die beiden Hälften berechnen sich wie bei der Aufteilung auf zwei Worker mit der \hyperref[lastbalancierung_naiv]{nicht-rekursiven Strategie}.
-Dann wird die Funktion für jede Hälfte rekursiv aufgerufen, wobei \verb|partsLeft| entsprechend halbiert wird.
 
 \subsubsection{Strategie mit Vorhersage}
 
