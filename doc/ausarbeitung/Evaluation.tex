@@ -21,9 +21,11 @@
 
 \subsubsection{SIMD}
 
+%TODO auf mehr punkten laufen lassen
+
 SIMD unterstützt in den Präzisionen 32 und 64 bit Parallelisierung von einer Rechenoperationen auf
 4 beziehungsweise 2 unterschiedlichen Werten. Der Effekt beläuft sich dabei, wie in \autoref{fig:SIMD-speedup} zu sehen,
-auf eine durchschnittliche Beschleunigung um den Faktor 1,9 und 1,2. %TODO hier genaue werte einsetzen
+auf eine durchschnittliche Beschleunigung um den Faktor 1,9 und 1,2.
 
 \begin{figure}
 	\centering
@@ -35,11 +37,25 @@ auf eine durchschnittliche Beschleunigung um den Faktor 1,9 und 1,2. %TODO hier 
 Dass die Performanzerhöhung nicht genau 4 oder 2 ist, lässt sich mit dem Erhöhten Aufwand der Verwendung
 der SIMD Instruktionen erklären.
 Da hierzu die Werte aus den normalen Registern in spezielle SIMD-Register und zurück
-kopiert werden müssen, entsteht eine gewisse Verzögerung durch zusätzliche Schiebeoperationen.
-Zudem werden für eine Menge an Punkten stets die Zahl an terationen durchgeführt,
+kopiert werden müssen, entsteht eine gewisse Verzögerung durch zusätzliche Transportoperationen.
+Je größer die benötigte Zahl an Operationen, desto weniger fällt dieser konstante Zusatzaufwand ins Gewicht.
+Dies kann zum Beispiel in \autoref{fig:SIMD-speedup-vs-comptime} beobachtet werden.
+
+Zudem werden für eine Menge an Punkten stets die Zahl an Iterationen durchgeführt,
 die das Maximum aller Iterationszahlen der Punkte ist.
-Dies wird dadurch bestätigt, dass die Beschleunigung am größten ist (ca. 2,5 und 1,3),
-wenn alle Punkte gleich große Iterationszahlen haben.
+Bei Iterationszahlen \(i_k\) des Punktvektors \(P\) ist daher
+anstatt einer Rechenzeit von \(\sum_{k \in P} \frac{i_k }{ | P | }\) eine Rechenzeit von
+\(\sum_{k \in P} \frac{max(i_k)_{k \in P }}{|P|} = max(i_k)_{k \in P }\) pro Punktvektor zu erwarten.
+Damit wird die Beschleunigung durch SIMD kleiner, je inhomogener die Iterationszahlen sind.
+Dass die Iterationszahlen im Allgemeinen am Rand der Mandelbrotmenge inhomogener sind,
+wo auch die Gesamtrechenzeit geringer ist, sollte bei der Betrachtung von \autoref{fig:SIMD-speedup-vs-comptime} berücksichtigt werden.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\linewidth]{img/Evaluation/speedupvscomptime}
+    \caption{Beschleunigungsfaktor durch SIMD in Abhängigkeit von der durchschnittlichen Rechenzeit}
+  	\label{fig:SIMD-speedup-vs-comptime}
+\end{figure}
 
 \paragraph{Notiz, entdeckt durch das In-Betracht-Ziehen der Leerregionen}
 
