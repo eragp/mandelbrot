@@ -15,7 +15,7 @@ RecursivePredictionBalancer::~RecursivePredictionBalancer() {
 
 // Worst case scenario: Prediction changes suddenly from small to big values
 Region *RecursivePredictionBalancer::balanceLoad(Region region, int nodeCount) {
-	auto *allRegions = new Region[nodeCount];
+	Region *allRegions = new Region[nodeCount];
 	Prediction* prediction = Predicter::getPrediction(region, f, predictionAccuracy);
 	
 	BalancingContext context = { allRegions, 0, nodeCount, 0, prediction->deltaReal, prediction->deltaImaginary };
