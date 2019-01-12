@@ -1,11 +1,14 @@
 import { registerCallback } from "../misc/registerCallback";
 import WSClient from "../connection/WSClient";
+import { WorkerInfo, Region, RegionData } from "../connection/ExchangeTypes";
 
 interface Worker {
   rank: number;
   computationTime: number;
   mpiTime: number;
   drawTime: number;
+  pixelCount: number;
+  iterationCount: number;
 }
 interface Balancer {
   time: number;
@@ -38,8 +41,10 @@ export class StatsCollector {
         this.setBalancerTime(r.regionCount, r.balancerTime);
     });
     wsclient.registerRegionData(r => {
-        this.setComputationTime(r.workerInfo.rank, r.workerInfo.computationTime);
-        this.setMpiTime(r.workerInfo.rank, r.workerInfo.mpiTime);
+        const worker = this.addRank(r.workerInfo.rank);
+        this.setComputationTime(worker, r.workerInfo.computationTime);
+        this.setMpiTime(worker, r.workerInfo.mpiTime);
+        this.setPixelCount(worker, r.workerInfo.region);
         this.setWaiting(this.getWaiting() - 1);
     })
   }
@@ -58,8 +63,8 @@ export class StatsCollector {
    * @param id
    * @param time in us
    */
-  public setComputationTime(rank: number, time: number) {
-    this.addRank(rank).computationTime = Math.floor(time);
+  public setComputationTime(rank: Worker, time: number) {
+    rank.computationTime = Math.floor(time);
   }
 
   /**
@@ -67,8 +72,16 @@ export class StatsCollector {
    * @param id
    * @param time in us
    */
-  public setMpiTime(rank: number, time: number) {
-    this.addRank(rank).mpiTime = Math.floor(time);
+  public setMpiTime(rank: Worker, time: number) {
+    rank.mpiTime = Math.floor(time);
+  }
+
+  public setPixelCount(rank: Worker, r: Region){
+    rank.pixelCount = r.width * r.height;
+  }
+
+  public setIterationCount(rank: Worker, r: RegionData){
+      rank.iterationCount = r.data.reduce((prev, cur) => cur+prev, 0);
   }
 
   public setBalancerTime(regionCount: number, time: number) {
@@ -111,7 +124,9 @@ export class StatsCollector {
         rank,
         computationTime: 0,
         mpiTime: 0,
-        drawTime: 0
+        drawTime: 0,
+        pixelCount: 0,
+        iterationCount: 0
       };
       this.data.worker.set(rank, w);
     }
