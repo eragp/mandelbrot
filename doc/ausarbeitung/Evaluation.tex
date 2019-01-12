@@ -38,14 +38,20 @@ Dass die Performanzerhöhung nicht genau 4 oder 2 ist, lässt sich mit dem Erhö
 der SIMD Instruktionen erklären.
 Da hierzu die Werte aus den normalen Registern in spezielle SIMD-Register und zurück
 kopiert werden müssen, entsteht eine gewisse Verzögerung durch zusätzliche Transportoperationen.
+Die tatsächliche Rechenzeit für eine Vektorisierung von \(n\) Punkten sollte also \autoref{equ:simd-time} entsprechen.
+
+\begin{equation}\label{equ:simd-time}
+    t_{SIMD} \approx \frac{t_{normal}}{n}+ const
+\end{equation}
+
 Je größer die benötigte Zahl an Operationen, desto weniger fällt dieser konstante Zusatzaufwand ins Gewicht.
 Dies kann zum Beispiel in \autoref{fig:SIMD-speedup-vs-comptime} beobachtet werden.
 
 Zudem werden für eine Menge an Punkten stets die Zahl an Iterationen durchgeführt,
 die das Maximum aller Iterationszahlen der Punkte ist.
-Bei Iterationszahlen \(i_k\) des Punktvektors \(P\) ist daher
-anstatt einer Rechenzeit von \(\sum_{k \in P} \frac{i_k }{ | P | }\) eine Rechenzeit von
-\(\sum_{k \in P} \frac{max(i_k)_{k \in P }}{|P|} = max(i_k)_{k \in P }\) pro Punktvektor zu erwarten.
+Bei Iterationszahlen \(i_k\) des Punktvektors \(p\) ist daher
+anstatt einer Rechenzeit von \(\sum_{k \in p} \frac{i_k }{ | p | }\) eine Rechenzeit von
+\(\sum_{k \in p} \frac{max(i_k)_{k \in p }}{|p|} = max(i_k)_{k \in p }\) pro Punktvektor zu erwarten.
 Damit wird die Beschleunigung durch SIMD kleiner, je inhomogener die Iterationszahlen sind.
 Dass die Iterationszahlen im Allgemeinen am Rand der Mandelbrotmenge inhomogener sind,
 wo auch die Gesamtrechenzeit geringer ist, sollte bei der Betrachtung von \autoref{fig:SIMD-speedup-vs-comptime} berücksichtigt werden.
