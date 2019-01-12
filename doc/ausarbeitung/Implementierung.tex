@@ -46,7 +46,6 @@ Die Strategien lassen sich zur Laufzeit austauschen, um einen direkten Vergleich
 Bei der naiven Strategie wird versucht den einzelnen Workern etwa gleich große Teilregionen zuzuweisen.
 Dies geschieht allerdings ohne Beachtung der eventuell unterschiedlichen Rechenzeiten innerhalb der Teilregionen.
 Es kann bei Verwendung dieser Stratgegie also durchaus passieren, dass ein Worker noch rechnet, während alle anderen bereits fertig sind.
-Die naive Strategie wurde hier in einer nicht-rekursiven und einer rekursiven Variante implementiert.
 
 \subsubsection{Strategie mit Vorhersage}
 
@@ -72,8 +71,18 @@ Die Genauigkeit der Vorhersage zu erhöhen bedeutet zusätzlichen Rechenaufwand 
 Dieser sollte in einem sinnvollen Verhältnis zum Aufwand der Berechnung der Region selbst stehen.
 Es ist also wichtig eine Balance zwischen Güte und Geschwindigkeit der Vorhersage zu finden.
 
+\subsubsection{Implementierungsvarianten}
 
-Wie die naive Strategie, gibt es die Strategie mit Vorhersage in einer rekursiven und in einer nicht-rekursiven Variante.
+Sowohl die naive Strategie als auch die Strategie mit Vorhersage lassen sich in zwei Varianten umsetzen.
+Man kann hierbei einen ganzheitlichen oder einen rekursiven Ansatz wählen.
+Bei ersterem wird die gesamte Region in einem Schritt in die gewünschte Anzahl an Teilregionen geteilt.
+Dazu werden Zeilen und Spalten gebildet.
+Die Grundidee eines rekursiven Ansatzes ist es das Problem so lange in einfachere Teilprobleme aufzuteilen, bis die Lösung offensichtlich ist (Basisfall).
+Hier ist der Basisfall die Aufteilung einer Region auf genau einen Worker.
+Um diesen zu erreichen wird die Region solange halbiert, bis genug Teilregionen für jeden Worker entstanden sind.
+
+Wo die Grenzen zwischen den Zeilen und Spalten (nicht-rekursiv) bzw. den Hälften (rekursiv) liegen, wird von der zugrundeliegenden Lastbalancierungsstrategie bestimmt.
+
 
 %%%%%%%%
 % Middle level
