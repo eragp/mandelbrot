@@ -2,7 +2,8 @@ import * as React from "react";
 import {
   BalancerObservable,
   ImplementationObservable,
-  ViewCenterObservable
+  ViewCenterObservable,
+  WorkerObservable
 } from "../misc/Observable";
 import { Point3D } from "../misc/Point";
 import { StatsCollector } from "./StatsCollector";
@@ -20,6 +21,7 @@ interface TourMonitorProps {
   viewCenter: ViewCenterObservable;
   balancer: BalancerObservable;
   impl: ImplementationObservable;
+  workerCount: WorkerObservable;
 }
 interface TourMonitorState {
   running: boolean;
@@ -36,7 +38,7 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
   constructor(props: TourMonitorProps) {
     super(props);
     // read configs
-    const config = require("./config.json") as Tour;
+    const config = require("./scaleGraph.json") as Tour;
 
     // generate config combinations
     this.configs = [];
@@ -108,22 +110,30 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
       this.done(output);
       return;
     }
-    const c = configs.pop() as Config;
+    const c = configs[0] as Config;
     console.log("Tour: Changing config to: ", c);
 
+    // only notify the observable that has changed once
     const oldBl = this.props.balancer.get();
     const oldImp = this.props.impl.get();
+    const oldCenter = this.props.viewCenter.get();
 
     this.props.balancer.setNoNotify(c.setting.balancer);
     this.props.impl.setNoNotify(c.setting.implementation);
-    this.props.viewCenter.setNoNotify(new Point3D(c.poi.real, c.poi.imag, c.poi.zoom));
+    const pt = new Point3D(c.poi.real, c.poi.imag, c.poi.zoom);
+    this.props.viewCenter.setNoNotify(pt);
+    this.props.workerCount.setNoNotify(c.setting.nodes);
+
     if (oldBl !== c.setting.balancer) {
       this.props.balancer.notify();
     } else if (oldImp !== c.setting.implementation) {
       this.props.impl.notify();
-    } else {
+    } else if (!oldCenter.equals(pt)) {
       this.props.viewCenter.notify();
+    } else {
+      this.props.workerCount.notify();
     }
+
     this.props.stats.onDone(stats => {
       output.datapoints.push({
         setting: c.setting,
@@ -139,12 +149,12 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
 
       this.setState(state =>
         Object.assign(state, {
-          progress: ((state.configLength - configs.length) * 100) / state.configLength,
+          progress: ((state.configLength - configs.length + 1) * 100) / state.configLength,
           output: JSON.stringify(output),
           currentConfig: c
         })
       );
-      this.runConfig(output, configs);
+      this.runConfig(output, configs.slice(1));
     });
   }
 }
@@ -153,16 +163,16 @@ const RenderConfig = (props: Config) => {
   return (
     <table>
       <tbody>
-        {tr("Balancer:", props.setting.balancer)}
-        {tr("Implementation:", props.setting.implementation)}
-        {tr("Nodes:", props.setting.nodes)}
-        {tr("Point of Interest:", props.poi)}
+        {Tr("Balancer:", props.setting.balancer)}
+        {Tr("Implementation:", props.setting.implementation)}
+        {Tr("Nodes:", props.setting.nodes)}
+        {Tr("Point of Interest:", props.poi)}
       </tbody>
     </table>
   );
 };
 
-const tr = (name: string, val: any) => (
+const Tr = (name: string, val: any) => (
   <tr>
     <td>{name}</td>
     <td>

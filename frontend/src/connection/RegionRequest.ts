@@ -9,6 +9,7 @@ let currentTopLeft: Point3D;
 let currentBottomRight: Point3D;
 let currentBalancer: string;
 let currentImplementation: string;
+let currentWorkerCount: number;
 /**
  *  Sends a region request for the currently visible region
  *
@@ -16,7 +17,12 @@ let currentImplementation: string;
  * Otherwise the corresponding request for the backend is returned.
  * @param {*} map current Leaflet map
  */
-export const request = (map: Map, balancer: string, implementation: string): Request | null => {
+export const request = (
+  map: Map,
+  balancer: string,
+  implementation: string,
+  workerCount: number
+): Request | null => {
   const bounds = map.getPixelBounds();
   const zoom = map.getZoom();
 
@@ -28,7 +34,8 @@ export const request = (map: Map, balancer: string, implementation: string): Req
     topLeft.equals(currentTopLeft) &&
     botRight.equals(currentBottomRight) &&
     currentBalancer === balancer &&
-    currentImplementation === implementation
+    currentImplementation === implementation &&
+    workerCount === currentWorkerCount
   ) {
     return null;
   }
@@ -36,6 +43,7 @@ export const request = (map: Map, balancer: string, implementation: string): Req
   currentBottomRight = botRight;
   currentBalancer = balancer;
   currentImplementation = implementation;
+  currentWorkerCount = workerCount;
 
   const tlComplex = project(topLeft.x, topLeft.y, topLeft.z, 0, 0, TileSize);
   const brComplex = project(botRight.x, botRight.y, botRight.z, 0, 0, TileSize);
@@ -68,8 +76,7 @@ export const request = (map: Map, balancer: string, implementation: string): Req
     },
     balancer,
     fractal: implementation,
-    // TODO: exchange this for a real value
-    nodes: 0
+    nodes: workerCount
   };
   return region;
 };

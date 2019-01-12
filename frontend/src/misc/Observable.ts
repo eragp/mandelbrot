@@ -81,3 +81,9 @@ export class ViewCenterObservable extends Observable<Point3D> {
     super(null, null);
   }
 }
+
+export class WorkerObservable extends Observable<number> {
+  constructor() {
+    super(0, null);
+  }
+}

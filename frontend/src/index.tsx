@@ -9,7 +9,8 @@ import {
   BalancerObservable,
   ImplementationObservable,
   GroupObservable,
-  ViewCenterObservable
+  ViewCenterObservable,
+  WorkerObservable
 } from "./misc/Observable";
 import { getURLParams } from "./misc/URLParams";
 
@@ -39,6 +40,7 @@ class App extends React.Component<{}, {}> {
     const group = new GroupObservable();
     const impl = new ImplementationObservable();
     const viewCenter = new ViewCenterObservable();
+    const workerCount = new WorkerObservable();
 
     viewCenter.set(getURLParams());
 
@@ -51,12 +53,19 @@ class App extends React.Component<{}, {}> {
             balancer={balancer}
             implementation={impl}
             viewCenter={viewCenter}
+            workerCount={workerCount}
             stats={stats}
           />
         </div>
         <div className="row">
           <ModalWrapper buttonLabel="start Evaluation">
-            <TourMonitor stats={stats} viewCenter={viewCenter} balancer={balancer} impl={impl} />
+            <TourMonitor
+              stats={stats}
+              viewCenter={viewCenter}
+              balancer={balancer}
+              impl={impl}
+              workerCount={workerCount}
+            />
           </ModalWrapper>
         </div>
         <div className="mainBottom row">
