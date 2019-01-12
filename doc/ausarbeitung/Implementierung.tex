@@ -533,7 +533,7 @@ Zuerst muss eine Unterklasse von \verb|Balancer| (\autoref{src:Balancer.h}) erst
 \end{figure}
 
 Danach wird die neue Strategie über die Methode \verb|BalancerPolicy::chooseBalancer| verfügbar gemacht.
-Dazu muss die neue Strategie mithilfe der statischen Variablen \verb|Klassenname::NAME| benannt werden.
+Dazu muss sie mithilfe der statischen Variablen \verb|Klassenname::NAME| benannt werden.
 \verb|BalancerPolicy| muss nun so erweitert werden, dass, bei Eingabe des vorher festgelegten Namens, ein neues Objekt der entsprechenden Klasse zurückgegeben wird.
 In \verb|BalancerPolicy| kann auch die Genauigkeit der Vorhersage für die oben aufgeführten Strategien festgelegt werden.
 
@@ -546,13 +546,16 @@ Bei der Eingabe von \verb|region| und \verb|nodeCount| erfüllt ein korrekter R�
 	      \begin{itemize}
 		      \item \verb|guaranteedDivisor|, \verb|validation|, \verb|maxIteration| und \verb|fractal| sind in \verb|region| und \verb|subregion| gleich
 		      \item \verb|subregion.guaranteedDivisor| teilt \verb|subregion.width| und \\ \verb|subregion.height| ohne Rest
-		      \item \verb|subregion.hOffset| und \verb|subregion.vOffset| sind so gesetzt, dass sie den Abstand der oberen linken Ecke von \verb|subregion| zur oberen linken Ecke von \verb|region| angeben
+		      \item \verb|subregion.hOffset| und \verb|subregion.vOffset| sind so gesetzt, dass sie den Abstand der oberen linken Ecke von \verb|subregion| zur oberen linken Ecke von \verb|region| in Pixeln angeben
 		      \item Die Deltas für die komplexen Werte sind unverändert, d.h. die Größe des Bereiches der komplexen Ebene, der von einem Pixel abgedeckt wird, ist unverändert
 		            % $\frac{region.maxReal - region.minReal}{region.width} = \frac{subregion.maxReal - subregion.minReal}{subregion.width}$ und \\ $\frac{region.maxImaginary - region.minImaginary}{region.height} = \frac{subregion.maxImaginary - subregion.minImaginary}{subregion.height}$
 	      \end{itemize}
 \end{itemize}
 
 Ob diese Bedingungen erfüllt sind kann mit dem Test in \verb|BalancerTest| überprüft werden.
+Dazu muss der neue Testfall (\verb|struct TestCase|) durch Angabe von Name, Anzahl an Workern, Balancierungsstrategie und Testregion spezifiziert werden.
+Dann kann er an der im Quellcode markierten Stelle zum Vektor der Testfälle hinzugefügt werden.
+Anschließend muss der Test mittels \verb|cmake| in \verb|backend/tests| neu kompiliert werden.
 
 \subsection{Kommunikation der Prozesse per MPI}\label{sec:mpi}
 
