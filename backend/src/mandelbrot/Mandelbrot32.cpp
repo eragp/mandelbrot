@@ -1,7 +1,5 @@
 #include "Mandelbrot32.h"
-
-#ifdef __ARM_NEON
-#include <arm_neon.h>
+#define float32_t float
 
 int calculateFractalNonParallel32(precision_t cReal, precision_t cImaginary, unsigned short int maxIteration){
     int i = 0;
@@ -17,15 +15,9 @@ int calculateFractalNonParallel32(precision_t cReal, precision_t cImaginary, uns
     return i;
 }
 
-#endif
-
 // Non-simd-izable version
 void Mandelbrot32::calculateFractal(precision_t* cReal, precision_t* cImaginary, unsigned short int maxIteration, int vectorLength, unsigned short int* dest) {
     for(int j = 0; j < vectorLength; j++){
-        #ifdef __ARM_NEON
         dest[j] = calculateFractalNonParallel32(cReal[j], cImaginary[j], maxIteration);
-        #else
-        dest[j] = 0;
-        #endif
     }
 }

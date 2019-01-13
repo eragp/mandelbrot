@@ -65,7 +65,7 @@ interface Implementation {
 export const Implementations: Implementation[] = [
   {
     key: "mandelbrot",
-    title: "Default Implementation",
+    title: "80 bit float",
     description: "TODO: add doc"
   },
   {
