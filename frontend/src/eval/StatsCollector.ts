@@ -37,8 +37,8 @@ export class StatsCollector {
 
     // Register for regionData and region subdivisions
     wsclient.registerRegionRaw(r => {
-        this.setWaiting(r.regionCount);
-        this.setBalancerTime(r.regionCount, r.balancerTime);
+      this.setWaiting(r.regionCount);
+      this.setBalancerTime(r.regionCount, r.balancerTime);
     });
     wsclient.registerRegionData(r => {
         const worker = this.addRank(r.workerInfo.rank);

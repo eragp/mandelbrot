@@ -21,7 +21,8 @@ import {
   BalancerObservable,
   GroupObservable,
   ImplementationObservable,
-  ViewCenterObservable
+  ViewCenterObservable,
+  WorkerObservable
 } from "../misc/Observable";
 import { registerCallback } from "../misc/registerCallback";
 import { StatsCollector } from "../eval/StatsCollector";
@@ -35,6 +36,7 @@ interface TileDisplayProps {
   group: GroupObservable;
   implementation: ImplementationObservable;
   viewCenter: ViewCenterObservable;
+  workerCount: WorkerObservable;
   stats?: StatsCollector;
 }
 export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
@@ -82,7 +84,12 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
 
     // Request a new region subdivision via websocket on view change
     this.registerNewView((curMap: Map) => {
-      const r = requestRegion(curMap, this.props.balancer.get(), this.props.implementation.get());
+      const r = requestRegion(
+        curMap,
+        this.props.balancer.get(),
+        this.props.implementation.get(),
+        this.props.workerCount.get()
+      );
       if (r) {
         websocketClient.sendRequest(r);
       }
@@ -92,6 +99,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
     //  => update all view subscribers about a policy change as if the view had changed
     this.props.balancer.subscribe(() => this.updateAllViews());
     this.props.implementation.subscribe(() => this.updateAllViews());
+    this.props.workerCount.subscribe(() => this.updateAllViews());
 
     // add event listeners to the map for region requests
     map.on({
@@ -153,7 +161,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
           // end timer
           const t1 = performance.now();
           if (stats) {
-            stats.setDrawTime(tileData.rank , (t1 - t0) * 1000);
+            stats.setDrawTime(tileData.rank, (t1 - t0) * 1000);
           }
 
           done(null, tile);

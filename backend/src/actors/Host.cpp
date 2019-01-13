@@ -66,7 +66,7 @@ std::vector<RegionData> Host::mpi_to_websocket_result;
 std::mutex Host::mpi_to_websocket_result_lock;
 
 // Websocket server
-websocketpp::server<websocketpp::config::asio> Host::websocket_server;
+server_endpoint_type Host::websocket_server;
 websocketpp::connection_hdl Host::client;
 
 void Host::start_server() {
@@ -429,9 +429,10 @@ void Host::init(int world_rank, int world_size) {
     // This also allows the Workers to get the rank of the Host
     MPI_Request test_requests[usable_nodes_count];
     MPI_Status test_status[usable_nodes_count];
-    // Send test messages to all Worker
+    // Send test messages to every Worker
     for (int rank = 0 ; rank < world_size ; rank++) {
         if (rank != world_rank) {
+            // Skip Host
             int acc = 0;
             if (rank > world_rank) {
                 acc = 1;
@@ -449,12 +450,13 @@ void Host::init(int world_rank, int world_size) {
             // Error handling - end
         }
     }
+    // Start timer
     std::chrono::high_resolution_clock::time_point test_time_start = std::chrono::high_resolution_clock::now();
     unsigned long test_time = 0;
-    // Check if all Workers started their receive operation
+    // Check if every Worker has started its receive operation
+    int *array_of_indices = new int[usable_nodes_count];
     do {
         int outcount;
-        int *array_of_indices = new int[usable_nodes_count];
         int ierr = MPI_Testsome(usable_nodes_count, test_requests, &outcount, array_of_indices, test_status);
         // Error handling
         if (ierr != MPI_SUCCESS){
@@ -470,22 +472,26 @@ void Host::init(int world_rank, int world_size) {
             }
         }
         // Error handling - end
+        // Every send operation was successful
         if (outcount == MPI_UNDEFINED) {
             std::cout << "Tests successful. Break test loop." << std::endl;
             break;
         }
+        // One or more send operations were successful. Set their MPI_Request to MPI_REQUEST_NULL
         if (outcount != 0) {
             for (int i = 0 ; i < outcount ; i++) {
                 test_requests[array_of_indices[i]] = MPI_REQUEST_NULL;
             }
         }
-        delete[] array_of_indices;
+        // Check how much time has passed
         std::chrono::high_resolution_clock::time_point test_time_end = std::chrono::high_resolution_clock::now();
         test_time = std::chrono::duration_cast<std::chrono::microseconds>(test_time_end - test_time_start).count();
     } while (test_time < 1000000);
-    // Workers that didn't start their receive operation are set to not usable
+    delete[] array_of_indices;
+    // Update usable_nodes and usable_nodes_count according to the test results
     for (int rank = 0 ; rank < world_size ; rank++) {
         if (rank != world_rank) {
+            // Skip Host.
             int acc = 0;
             if (rank > world_rank) {
                 acc = 1;
@@ -493,6 +499,7 @@ void Host::init(int world_rank, int world_size) {
             if (test_requests[rank - acc] != MPI_REQUEST_NULL) {
                 usable_nodes[rank] = false;
                 usable_nodes_count--;
+                // Cancel uncompleted send operations
                 MPI_Cancel(&test_requests[rank - acc]);
                 MPI_Status cancel_status;
                 MPI_Wait(&test_requests[rank - acc], &cancel_status);
@@ -554,17 +561,20 @@ void Host::init(int world_rank, int world_size) {
         
         // Listen for incoming complete computations from workers (MPI)
         // Receive one message of dynamic length containing "workerInfo" and the computed "worker_data"
-        // TODO: asynchronous (maybe?)
         MPI_Status status;
         int probe_flag;
-        MPI_Iprobe(MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, &probe_flag, &status);
-        if (probe_flag == true) { // Rank: 2
-            probe_flag = 0;
+        // Check if it is possible to receive a finished computation
+        MPI_Iprobe(MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, &probe_flag, &status); // Tag: 2
+        if (probe_flag == true) {
             int recv_len;
+            // Determine the length of the incoming message
             MPI_Get_count(&status, MPI_BYTE, &recv_len);
             std::cout << "Host is receiving Data from Worker " << status.MPI_SOURCE << " Total length: " << recv_len << " Bytes." << std::endl;
+            // Allocate the receive buffer
             uint8_t* recv = new uint8_t[recv_len];
+            // Execute the actual receive operation
             int ierr = MPI_Recv(recv, recv_len, MPI_BYTE, status.MPI_SOURCE, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE); // Tag: 2
+            // Error handling
             if(ierr != MPI_SUCCESS){
                 std::cerr << "Error on receiving data from worker: " << std::endl;
                 char err_buffer[MPI_MAX_ERROR_STRING];
@@ -573,6 +583,7 @@ void Host::init(int world_rank, int world_size) {
                 fprintf(stderr, err_buffer);
                 continue;
             }
+            // Error handling - end
 
             // Stop the clock for MPI communication
             std::chrono::high_resolution_clock::time_point mpiCommunicationEnd = std::chrono::high_resolution_clock::now();
