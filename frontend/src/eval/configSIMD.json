@@ -6,16 +6,6 @@
     "settings":[
       {
          "balancer": "predictionRecursive",
-         "implementation": "mandelbrotsimd32",
-         "nodes":37
-      },
-      {
-         "balancer": "predictionRecursive",
-         "implementation": "mandelbrotsimd64",
-         "nodes":37
-      },
-      {
-         "balancer": "predictionRecursive",
          "implementation": "mandelbrot64",
          "nodes":37
       },

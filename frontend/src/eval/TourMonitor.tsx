@@ -154,6 +154,7 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
           currentConfig: c
         })
       );
+      console.log(JSON.stringify(output));
       this.runConfig(output, configs.slice(1));
     });
   }

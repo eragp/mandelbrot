@@ -41,11 +41,12 @@ export class StatsCollector {
       this.setBalancerTime(r.regionCount, r.balancerTime);
     });
     wsclient.registerRegionData(r => {
+        this.setWaiting(this.getWaiting() - 1);
         const worker = this.addRank(r.workerInfo.rank);
         this.setComputationTime(worker, r.workerInfo.computationTime);
         this.setMpiTime(worker, r.workerInfo.mpiTime);
         this.setPixelCount(worker, r.workerInfo.region);
-        this.setWaiting(this.getWaiting() - 1);
+        this.setIterationCount(worker, r);
     })
   }
 
