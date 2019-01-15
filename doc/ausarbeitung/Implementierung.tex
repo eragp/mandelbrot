@@ -500,6 +500,38 @@ Dazu müssen die Spaltensummen der Vorhersage aufaddiert werden.
 Um Lücken auszuschließen werden die Grenzen der Spalten explizit aufeinander gesetzt, d.h. bei zwei benachbarten Teilregionen entspricht die obere Grenze der Einen der unteren Grenze der Anderen.
 Damit es auch für die Aufteilung in Teilregionen eine Vorhersage gibt, wird eine Kopie der Vorhersage erstellt, welche nur die Werte für die aktuelle Spalte enthält.
 
+\begin{figure}[!h]
+	\begin{lstlisting}[language=python, caption={Aufteilung in Spalten im Pseudocode}, label={src:prediction_pseudo}]
+		def balanceLoad (region, nodeCount)
+			# Will be per tile
+			prediction = sampleFractal(region)
+			cols = computeColCount(nodeCount)
+			deltaRes = region.guaranteedDivisor
+			deltaReal = deltaReal(region)
+			desiredN = computeOptimalLoad(prediction, cols)
+			cur = region
+			curN = 0
+			colsMade = 0
+			for i = 0 to prediction.cols.vectorLength
+				if colsMade + 1 == cols
+					cur = rest of region # Part of region thats not already assigned to a col
+					result.append(cur)
+					break
+				curN += prediction.cols[i]
+				cur.width += deltaRes
+				cur.maxReal += deltaReal
+				# Make sure that each col has at least width = deltaRes
+				if curN >= desiredN OR prediction.cols.length - i - 1 < cols
+					result.append(cur) # Copy of cur
+					cur.minReal = cur.maxReal
+					cur.width = 0
+					curN = 0
+					colsMade++
+					continue
+			return splitColsInParts(result)
+	\end{lstlisting}
+\end{figure}
+
 \paragraph*{Rekursive Variante}
 % recursive prediction
 Die rekursive Variante der Strategie mit Vorhersage verwendet dasselbe Rekursionsschema wie ihr naives Gegenstück.
