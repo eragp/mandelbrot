@@ -491,14 +491,14 @@ So wird vermieden, dass diese während des Balancierens immer neu berechnet werd
 \paragraph*{Nicht-rekursive Variante}\label{lastbalancierung_vorhersage}
 % non-recursive prediction
 Für die nicht-rekursive Aufteilung wird die Region erst in Spalten aufgeteilt und in einem zweiten Schritt wird dann die horizontale Unterteilung in Teilregionen vorgenommen.
-Da die beiden Schritte analog zueinander sind wird hier nur das Aufteilen in Spalten beschrieben.
+Da die beiden Schritte analog zueinander sind wird hier nur das Aufteilen in Spalten anhand des Pseudocodes in \autoref{src:prediction_pseudo} beschrieben.
 
-Die optimale Rechenlast pro Spalte berechnet sich nach \autoref{equ:desiredN} wobei die Anzahl der Worker durch die Anzahl an Spalten ersetzt werden muss.
+Die optimale Rechenlast pro Spalte (\verb|desiredN|) berechnet sich nach \autoref{equ:desiredN} wobei die Anzahl der Worker durch die Anzahl an Spalten ersetzt werden muss.
 Als Abschätzung der Gesamtrechenlast wird die Gesamtsumme der Vorhersage verwendet.
 Eine Spalte, die als leere Region beginnt, wird nun solange um eine Spalte von Tiles vergrößert bis die optimale Rechenlast erreicht oder überschritten wird.
 Dazu müssen die Spaltensummen der Vorhersage aufaddiert werden.
 Um Lücken auszuschließen werden die Grenzen der Spalten explizit aufeinander gesetzt, d.h. bei zwei benachbarten Teilregionen entspricht die obere Grenze der Einen der unteren Grenze der Anderen.
-Damit es auch für die Aufteilung in Teilregionen eine Vorhersage gibt, wird eine Kopie der Vorhersage erstellt, welche nur die Werte für die aktuelle Spalte enthält.
+Damit es auch für die Aufteilung in Teilregionen eine Vorhersage gibt, wird eine Kopie der Vorhersage erstellt, welche nur die Werte für die aktuelle Spalte enthält (nicht im PSeudocode).
 
 \begin{figure}[!h]
 	\begin{lstlisting}[language=python, caption={Aufteilung in Spalten im Pseudocode}, label={src:prediction_pseudo}]
@@ -531,6 +531,11 @@ Damit es auch für die Aufteilung in Teilregionen eine Vorhersage gibt, wird ein
 			return splitColsInParts(result)
 	\end{lstlisting}
 \end{figure}
+
+Im eigentlichen Code wurden ein paar Optimierungen am Pseudocode vorgenommen.
+Um float-Ungenauigkeitenbeim wiederholten Addieren zu minimieren werden die Werte in \verb|cur| nicht aufaddiert, sondern aus den Zählern berechnet.
+Außerdem werden die Spalten ohne Zwischenspeicherung in die nötigen Teilregionen aufgeteilt.
+Zusätzlich wird \verb|desiredN| nach jeder abgeschlossenen Spalte für die Verbleibenden neu berechnet, da es sehr unwahrscheinlich ist, dass dieser Wert genau erreicht wird.
 
 \paragraph*{Rekursive Variante}
 % recursive prediction
