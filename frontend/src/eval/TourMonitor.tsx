@@ -38,7 +38,7 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
   constructor(props: TourMonitorProps) {
     super(props);
     // read configs
-    const config = require("./scaleGraph.json") as Tour;
+    const config = require("./configSIMD.json") as Tour;
 
     // generate config combinations
     this.configs = [];

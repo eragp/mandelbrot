@@ -1,0 +1,75 @@
+{
+    "screen":{
+       "width":1280,
+       "height":720
+    },
+    "settings":[
+      {
+         "balancer": "predictionRecursive",
+         "implementation": "mandelbrotsimd32",
+         "nodes":37
+      },
+      {
+         "balancer": "predictionRecursive",
+         "implementation": "mandelbrotsimd64",
+         "nodes":37
+      },
+      {
+         "balancer": "predictionRecursive",
+         "implementation": "mandelbrot64",
+         "nodes":37
+      },
+      {
+         "balancer": "predictionRecursive",
+         "implementation": "mandelbrot32",
+         "nodes":37
+      }
+    ],
+    "nodeCount": 37,
+    "cluster": "himmuc",
+    "description":"Testing different balancer implementations",
+    "pois":[
+       {
+          "real":0.0,
+          "imag":0.0,
+          "zoom":0
+       },
+       {
+          "real":-0.04926860332489014,
+          "imag":0.9887520653946033,
+          "zoom":1
+       },
+       {
+          "real":-1.4102668762207031,
+          "imag":0.06935050509118243,
+          "zoom":3
+       },
+       {
+          "real":-0.7428462728857994,
+          "imag":0.2057771115182378,
+          "zoom":12
+       },
+       {
+          "real":-0.10538328811526299,
+          "imag":0.9246602339954608,
+          "zoom":12
+       },
+       {
+          "real":-0.11273874342441559,
+          "imag":0.9306590888545648,
+          "zoom":11
+       },
+       {
+          "real":-1.7914929389953613,
+          "imag":0.007840128847674543,
+          "zoom":5
+       },
+       {
+          "real":-1.7767410716041923,
+          "imag":0.008209272087905154,
+          "zoom":15
+       }
+    ]
+ }
+ 
+ 
