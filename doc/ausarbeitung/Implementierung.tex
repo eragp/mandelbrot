@@ -53,9 +53,9 @@ Bei dieser Strategie basiert die Aufteilung der Region auf einer Vorhersage übe
 Die Teilregionen werden so gewählt, dass sie, entsprechend der Vorhersage, etwa einen ähnlichen Rechenaufwand haben.
 Die optimale Rechenlast für einen Worker berechnet sich also durch:
 
-\begin{equation*}
+\begin{equation}\label{equ:desiredN}
 	\frac{Gesamtrechenlast}{AnzahlWorker}
-\end{equation*}
+\end{equation}
 
 Wenn die Vorhersage hinreichend exakt ist, kann dieser Wert gut angenähert werden.
 Dadurch wird die Last gleichmäßiger auf die Worker verteilt als bei der naiven Strategie.
@@ -435,7 +435,7 @@ Ist keine Region in der Datenstruktur abgelegt wird per \verb|wait| auf eine Än
 Mithilfe der \verb|condition_variable|\footnote{\url{https://en.cppreference.com/w/cpp/thread/condition_variable}} \verb|Host::mpi_to_websocket_result_available|
 nutzt sie die C++11 nativen mutex-Mechanismen um über das Vorhandensein neuer Regionen informiert zu werden.
 
-\begin{figure}
+\begin{figure}[!h]
 	\lstinputlisting[caption={Ausschnitt aus den Daten einer versendeten Teilregion. Punkt (x,y) liegt in \texttt{"data"} an Index $i=x+y*width$.}, label={src:regionData.json}, language=json]{./code/regionData.short.json}
 \end{figure}
 
@@ -444,12 +444,12 @@ Der Implementierung der Lastbalancierung liegen die in \autoref{sec:load_balanci
 Wichtig bei der Umsetzung dieser ist, dass der garantierte Teiler (\verb|guaranteedDivisor|) von Höhe und Breite der Teilregionen dem der angeforderten Region entspricht (vgl. \autoref{fig:concept_coordinates}).
 Eine Tile (ein Bereich mit Breite und Höhe gleich dem garantierte Teiler\footnote{Eine Region lässt sich also immer in eine ganzzahlige Anzahl von Tiles aufteilen, vgl. \autoref{fig:leafletTiles}}, die Bezeichnung \textit{Tile} kommt aus dem Frontend) muss also als atomare Einheit betrachtet werden, da es sonst im Frontend zu Schwierigkeiten bei der Darstellung kommt.
 
-Die Klassenstruktur der Lastbalancierer entspricht dem Strategy-Pattern\footnote{\url{https://sourcemaking.com/design_patterns/strategy}}. So kann der Balancierer zur Laufzeit leicht gewechselt werden und auch die Erweiterung des Projekts um eine weitere Strategie gestaltet sich einfach.
+Die Klassenstruktur der Lastbalancierer entspricht dem Strategy-Pattern (vgl. \cite{gamma_design_1995} S. 315-323). So kann der Balancierer zur Laufzeit leicht gewechselt werden und auch die Erweiterung des Projekts um eine weitere Strategie gestaltet sich einfach.
 Was dabei genau beachtet werden muss findet sich im Teil Erweiterung (\ref{lastbalancierung_erweiterung}).
 
 \subsubsection{Naive Strategie}
 
-Die naive Strategie (\verb|NaiveBalancer| und \verb|RecursiveNaiveBalancer|) lässt sich in beiden Varianten einfach nach dem oben beschriebenen Konzept umsetzen.
+Die naive Strategie (\verb|NaiveBalancer| und \verb|RecursiveNaiveBalancer|) lässt sich in beiden Varianten recht einfach nach dem oben beschriebenen Konzept umsetzen.
 Die Erhaltung des garantierten Teilers wird dadurch erreicht, dass die Höhe und Breite der Teilregionen auf ein Vielfaches dieses Teilers gesetzt werden.
 Diese können bei der nicht-rekursiven Variante vor der eigentlichen Aufteilung bestimmt werden.
 Da sich $\frac{witdh}{guaranteedDivisor}$ nicht unbedingt durch die Anzahl an Workern teilen lässt, kann es sein, dass einige Teilregionen um \verb|guaranteedDivisor| Pixel breiter sind.
@@ -468,11 +468,14 @@ Der Rekursionskontext (\verb|struct BalancingContext|) wurde extern definiert, d
 
 \subsubsection{Strategie mit Vorhersage}
 
-Bei dieser Strategie (zu finden in den Klassen \verb|PredictionBalancer| und \\ \verb|RecursivePredictionBalancer|) basiert die Aufteilung der Region auf einer Vorhersage über die Rechenzeit.
+Auch diese Strategie (\verb|PredictionBalancer| und \verb|RecursivePredictionBalancer|) folgt den oben beschriebenen Konzept. 
+Allerdings wurde die Berechnung der Vorhersage in eine eigene Klasse ausgelagert, da die Berechnung der Vorhersage für die rekursive und die nicht-rekursive Variante gleich ist.
+Die Struktur der Vorhersage sorgt auch dafür, dass der garantierte Teiler erhalten bleibt.
+Für die Berechnung der Vorhersage ist es notwendig, dass bei der Erststellung eine Referenz auf ein \verb|Fractal|-Objekt (siehe \ref{sec:mandelbrot_calculation}) erhalten.
 
 \paragraph*{Bestimmung der Vorhersage}
 % predicter
-Die Vorhersage (\verb|struct Prediction|) wird von der Klasse Predicter angestellt.
+Die Vorhersage (\verb|struct Prediction|) wird von der Klasse \verb|Predicter| angestellt.
 Dazu wird die Region in einer sehr viel geringeren Auflösung berechnet.
 Die benötigte Anzahl an Iterationen wird jeweils pro Tile abgespeichert.
 So wird sichergestellt, dass der garantierte Teiler auch nach der Aufteilung noch gilt, da die Balancierer die Vorhersage Eintrag für Eintrag verarbeiten.
@@ -483,44 +486,68 @@ Die Genauigkeit der Vorhersage kann über das Attribut \verb|predictionAccuracy|
 	\item $predictionAccuracy = 0$: Unzulässig, es wird ein Null-Pointer zurückgegeben.
 \end{itemize}
 Zusätzlich beinhaltet die Vorhersage die Summen der benötigten Iterationen pro Spalte und Zeile, sowie die Gesamtsumme.
-Auch die Deltas für Real- und Imaginärteil pro Tile und die Anzahl der Zeilen und Spalten werden angegeben.
+So wird vermieden, dass diese während des Balancierens immer neu berechnet werden müssen.
 
 \paragraph*{Nicht-rekursive Variante}\label{lastbalancierung_vorhersage}
 % non-recursive prediction
-Für die nicht-rekursive Variante wird zuerst die benötigte Anzahl an Zeilen und Spalten bestimmt.
-Dies geschieht genauso wie bei der naiven Strategie.
+Für die nicht-rekursive Aufteilung wird die Region erst in Spalten aufgeteilt und in einem zweiten Schritt wird dann die horizontale Unterteilung in Teilregionen vorgenommen.
+Da die beiden Schritte analog zueinander sind wird hier nur das Aufteilen in Spalten anhand des Pseudocodes in \autoref{src:prediction_pseudo} beschrieben.
 
-Die erzeugten Teilregionen sollen in etwa den gleichen Rechenaufwand haben. Dieser berechnet sich durch:
-\begin{equation}\label{lastbalancierung_vorhersage_formel}
-	desiredN = \frac{nSum}{nodeCount}
-\end{equation}
-Dabei ist \verb|nSum| die Gesamtsumme der Vorhersage und \verb|nodeCount| wieder die Anzahl der Worker.
+Die optimale Rechenlast pro Spalte (\verb|desiredN|) berechnet sich nach \autoref{equ:desiredN} wobei die Anzahl der Worker durch die Anzahl an Spalten ersetzt werden muss.
+Als Abschätzung der Gesamtrechenlast wird die Gesamtsumme der Vorhersage verwendet.
+Eine Spalte, die als leere Region beginnt, wird nun solange um eine Spalte von Tiles vergrößert bis die optimale Rechenlast erreicht oder überschritten wird.
+Dazu müssen die Spaltensummen der Vorhersage aufaddiert werden.
+Um Lücken auszuschließen werden die Grenzen der Spalten explizit aufeinander gesetzt, d.h. bei zwei benachbarten Teilregionen entspricht die obere Grenze der Einen der unteren Grenze der Anderen.
+Damit es auch für die Aufteilung in Teilregionen eine Vorhersage gibt, wird eine Kopie der Vorhersage erstellt, welche nur die Werte für die aktuelle Spalte enthält (nicht im PSeudocode).
 
-Danach wird die Region erst in Spalten aufgeteilt und in einem zweiten Schritt wird dann die horizontale Unterteilung in Teilregionen vorgenommen.
+\begin{figure}[!h]
+	\begin{lstlisting}[language=python, caption={Aufteilung in Spalten im Pseudocode}, label={src:prediction_pseudo}]
+		def balanceLoad (region, nodeCount)
+			# Will be per tile
+			prediction = sampleFractal(region)
+			cols = computeColCount(nodeCount)
+			deltaRes = region.guaranteedDivisor
+			deltaReal = deltaReal(region)
+			desiredN = computeOptimalLoad(prediction, cols)
+			cur = region
+			curN = 0
+			colsMade = 0
+			for i = 0 to prediction.cols.vectorLength
+				if colsMade + 1 == cols
+					cur = rest of region # Part of region thats not already assigned to a col
+					result.append(cur)
+					break
+				curN += prediction.cols[i]
+				cur.width += deltaRes
+				cur.maxReal += deltaReal
+				# Make sure that each col has at least width = deltaRes
+				if curN >= desiredN OR prediction.cols.length - i - 1 < cols
+					result.append(cur) # Copy of cur
+					cur.minReal = cur.maxReal
+					cur.width = 0
+					curN = 0
+					colsMade++
+					continue
+			return splitColsInParts(result)
+	\end{lstlisting}
+\end{figure}
 
-Zur Aufteilung wird über die Spaltensummen in der Vorhersage iteriert (vgl. \autoref{src:PredictionBalancerAuszug.cpp}). Diese werden aufaddiert und bilden so den Zähler \verb|currentN|.
-Sobald \verb|currentN| $\geq$ \verb|desiredN| gilt oder für alle restlichen Spalten nur noch je ein Eintrag in den Spaltensummen vorhanden ist, wird eine Spalte abgeschlossen.
-Dazu werden \verb|maxReal| und \verb|width| aus den Zählern berechnet. Es ist wichtig \verb|maxReal| immer neu aus \verb|region.minReal| zu berechnen, anstatt nur das Delta aufzuaddieren, da sich sonst der Fehler, der bei Fließkommaaddition unvermeidbar ist, auch mit aufaddiert. \verb|minReal| und \verb|hOffset| stehen bereits in der Region \verb|tmp|, die Werte wurden bei der Berechnung der vorhergehenden Spalte bereits gesetzt.
-Jetzt wird \verb|tmp| für die nächste Spalte vorbereitet, das heißt \verb|tmp.minReal| wird auf \verb|tmp.maxReal| gesetzt und \verb|tmp.hOffset| wird um \verb|tmp.width| erhöht. Ersteres vermeidet das Entstehen von Lücken zuverlässig.
-Außerdem wird \verb|desiredN| für die verbleibenden Spalten nach (\ref{lastbalancierung_vorhersage_formel}) neu berechnet und die Zähler werden zurückgesetzt.
-Bevor die Aufteilung der Spalte in Teilregionen startet, wird eine Kopie der Vorhersage erstellt, die nur die Werte für die aktuelle Spalte enthält.
-Das Aufteilen einer Spalte in Teilregion geschieht analog zum Aufteilen in Spalten.
-
-Die letzte Spalte wird gesondert behandelt: Sie muss so gewählt werden, dass sie den gesamten Rest der Eingaberegion abdeckt, ansonsten können Lücken entstehen.
-Dies gilt genauso bei der Unterteilung der einzelnen Spalten.
+Im eigentlichen Code wurden ein paar Optimierungen am Pseudocode vorgenommen.
+Um float-Ungenauigkeitenbeim wiederholten Addieren zu minimieren werden die Werte in \verb|cur| nicht aufaddiert, sondern aus den Zählern berechnet.
+Außerdem werden die Spalten ohne Zwischenspeicherung in die nötigen Teilregionen aufgeteilt.
+Zusätzlich wird \verb|desiredN| nach jeder abgeschlossenen Spalte für die Verbleibenden neu berechnet, da es sehr unwahrscheinlich ist, dass dieser Wert genau erreicht wird.
 
 \paragraph*{Rekursive Variante}
 % recursive prediction
-Die rekursive Variante der Strategie mit Vorhersage verwendet dasselbe Rekursionsschema wie ihr \hyperref[lastbalancierung_naiv_rekursion]{naives Gegenstück}.
-Die Abbruchbedingung ist also wie in (\ref{lastbalancierung_rekursion_abbruch}).
-Auch die Entscheidung, ob horizontal oder vertikal geteilt werden soll, wird auf die gleiche Art und Weise gefällt.
+Die rekursive Variante der Strategie mit Vorhersage verwendet dasselbe Rekursionsschema wie ihr naives Gegenstück.
+Also wird auch die Entscheidung, ob horizontal oder vertikal geteilt werden soll, auf die gleiche Art und Weise gefällt.
 Der Unterschied zwischen den beiden Strategien liegt also hauptsächlich in den beiden Methoden zur Aufteilung.
 
 Bei dieser Strategie werden die Regionen nicht einfach halbiert, sondern in zwei Teile aufgeteilt, die laut der Vorhersage ähnlich rechenintensiv sind.
 Dazu wird ähnlich vorgegangen, wie bei der \hyperref[lastbalancierung_vorhersage]{nicht-rekursiven Variante} für die Aufteilung auf zwei Worker.
 Deshalb profitiert diese Strategie auch besonders davon, dass immer parallel zur kürzeren Seite geteilt wird.
 Die Vorhersage ist in diese Richtung nämlich feingliedriger, da weniger Tiles der Vorhersage zu einer Spalte bzw. Zeile zusammengefasst werden müssen als wenn parallel zur längeren Seite aufgeteilt werden würde.
-Allerdings wird hier, wenn möglich, sichergestellt, dass beide Teilregionen groß genug sind um jeweils auf $\frac{context.partsLeft}{2}$ Worker aufgeteilt zu werden.
+Allerdings wird hier, wenn möglich, sichergestellt, dass beide Teilregionen groß genug sind um jeweils auf die Hälfte der Worker aufgeteilt zu werden.
 Es ist hierbei auch wichtig die Vorhersage so zu teilen, dass es für jede Hälfte eine Vorhersage gibt, die dann an den rekursiven Aufruf übergeben werden kann.
 
 \subsubsection{Erweiterung}\label{lastbalancierung_erweiterung}
@@ -528,8 +555,8 @@ Es ist hierbei auch wichtig die Vorhersage so zu teilen, dass es für jede Hälf
 Da die Lastbalancierung nach dem Strategy-Pattern realisiert ist, gestaltet sich die Erweiterung um eine neue Balancierungsstrategie recht einfach.
 Zuerst muss eine Unterklasse von \verb|Balancer| (\autoref{src:Balancer.h}) erstellt werden, um ein gemeinsames Interface zu ezwingen und somit die polymorphe Nutzung der neuen Klasse zu ermöglichen.
 
-\begin{figure}
-	\lstinputlisting[caption={Das gemeinsame Interface der Lastbalancierung}, label={src:Balancer.h}, firstline=5, lastline=11]{../../backend/include/Balancer.h}
+\begin{figure}[h!]
+	\lstinputlisting[caption={Das gemeinsame Interface der Lastbalancierung}, label={src:Balancer.h}, firstline=7, lastline=11]{../../backend/include/Balancer.h}
 \end{figure}
 
 Danach wird die neue Strategie über die Methode \verb|BalancerPolicy::chooseBalancer| verfügbar gemacht.
@@ -759,7 +786,7 @@ Die Implementierung ist in \autoref{src:mpi_recv_host} zu sehen.
 	\lstinputlisting[caption={Empfangen der berechneten Daten im Worker}, label={src:mpi_recv_host}, firstline=562, firstnumber=562, lastline=586]{../../backend/src/actors/Host.cpp}
 \end{figure}
 
-\subsection{Berechnung der Mandelbrotmenge}
+\subsection{Berechnung der Mandelbrotmenge}\label{sec:mandelbrot_calculation}
 
 Die Berechnung der einzelnen Punkte der Mandelbrotmenge ist in eine eigene Klasse ausgelagert.
 Wie bei der \hyperref[sec:load_balancing]{Lastbalancierung} sind die Klassen nach dem Strategy-Pattern strukturiert, um eine spätere Erweiterung um andere Fraktale zu vereinfachen.
@@ -787,7 +814,7 @@ Da hierbei keine Vektorisierung stattfindet ist es sinnvoll \verb|vectorLength| 
 Es ist zu beachten, dass \verb|cReal| und \verb|cImaginary| als Zeiger auf diese Werte zu übergeben sind.
 Außerdem muss eine Speicherstelle für den Rückgabewert bereitgestellt und als \verb|dest| übergeben werden.
 Diese Art und Weise der Übergabe macht ein gemeinsames Interface mit den \hyperref[subsec:simd]{vektorisierten Versionen} möglich.
-Für die nicht parallele Berechnung wäre dies nicht nötig, da einzelne Werte auch direkt übergeben werden könnten.
+Für die nicht-vektorisierte Berechnung wäre dies nicht nötig, wird aber hier genutzt um die Aufrufe der virtuellen Methode auf einen pro Zeile zu reduzieren.
 
 Die Berechnung eines Punktes ist nun nicht weiter schwer, es muss lediglich \autoref{equ:mandelbrot} als C++-Code umgesetzt werden.
 Bei $|z_n| > 2$ oder äquivalent $Re(z_n)^2 + Im(z_n)^2$ kann die Berechnung abgebrochen werden, da der Punkt sicher nicht in der Mandelbrotmenge liegt.
