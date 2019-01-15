@@ -38,15 +38,19 @@ export class StatsCollector {
     // Register for regionData and region subdivisions
     wsclient.registerRegionRaw(r => {
       this.setWaiting(r.regionCount);
+      this.data.worker = new Map();
       this.setBalancerTime(r.regionCount, r.balancerTime);
     });
     wsclient.registerRegionData(r => {
-        this.setWaiting(this.getWaiting() - 1);
         const worker = this.addRank(r.workerInfo.rank);
         this.setComputationTime(worker, r.workerInfo.computationTime);
         this.setMpiTime(worker, r.workerInfo.mpiTime);
         this.setPixelCount(worker, r.workerInfo.region);
         this.setIterationCount(worker, r);
+        // Check number of collected workers
+        if(this.data.worker.size === this.getWaiting()){
+            this.done();
+        }
     })
   }
 
@@ -102,9 +106,7 @@ export class StatsCollector {
   }
 
   public setWaiting(w: number) {
-    if ((this.waiting = w) === 0) {
-      this.done();
-    }
+    this.waiting = w;
   }
 
   public done() {

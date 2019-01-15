@@ -152,6 +152,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
             std::cerr << "Inclompletely specified region requested: " << request_string;
             return;
         }
+        // Reproducible and equivalent balancing for all implementation choices
         std::cout << "Host: chose fractal " << fractal_str << std::endl;
 
         region.minReal = request["region"]["minReal"].GetDouble();

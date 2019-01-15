@@ -6,12 +6,12 @@
     "settings":[
       {
          "balancer": "predictionRecursive",
-         "implementation": "mandelbrot64",
+         "implementation": "mandelbrot32",
          "nodes":37
       },
       {
          "balancer": "predictionRecursive",
-         "implementation": "mandelbrot32",
+         "implementation": "mandelbrot64",
          "nodes":37
       }
     ],
