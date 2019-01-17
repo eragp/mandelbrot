@@ -11,8 +11,7 @@ import {
   GroupObservable,
   ViewCenterObservable
 } from "./misc/Observable";
-import { getURLParams } from "./misc/URLParams";
-
+import { readViewCenterParams, readWSUrl } from "./misc/URLParams";
 
 // Custom Components
 import ComputationTime from "./components/ComputationTime";
@@ -20,23 +19,21 @@ import NetworkView from "./components/NetworkView";
 import IdleTime from "./components/IdleTime";
 import SelectBox from "./components/SelectBox";
 
-
 // CSS
 import "./index.css";
 // Bootstrap
 import registerServiceWorker from "./registerServiceWorker";
 
 class App extends React.Component<{}, {}> {
-  render() {
-    const ws = new WebSocketClient();
-
+  public render() {
+    const ws = new WebSocketClient(readWSUrl());
 
     const balancer = new BalancerObservable();
     const group = new GroupObservable();
     const impl = new ImplementationObservable();
     const viewCenter = new ViewCenterObservable();
 
-    viewCenter.set(getURLParams());
+    viewCenter.set(readViewCenterParams());
 
     return (
       <div className="index">
