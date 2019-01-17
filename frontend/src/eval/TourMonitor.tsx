@@ -8,7 +8,7 @@ import {
 } from "../misc/Observable";
 import { Point3D } from "../misc/Point";
 import { StatsCollector } from "./StatsCollector";
-import { Output, PoI, Tour } from "./ConfigTypes";
+import { Output, PoI } from "./ConfigTypes";
 
 import "./TourMonitor.css";
 import { Balancers, Implementations } from "../Constants";
@@ -64,7 +64,7 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
   }
 
   public render() {
-    const progress = `${this.state.progress}%`;
+    const progress = `${this.state.progress.toFixed(2)}%`;
     return (
       <div className="tour">
         <h2>Tour {this.state.running ? "running..." : "done"}</h2>
@@ -72,7 +72,7 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
           <div
             className="progress-bar"
             role="progressbar"
-            aria-valuenow={this.state.progress}
+            aria-valuenow={this.state.progress.toFixed(2)}
             aria-valuemin={0}
             aria-valuemax={100}
             style={{ width: progress }}
@@ -174,7 +174,13 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
 
     // reset stats
     this.props.stats.done();
-    this.setState(state => Object.assign(state, { running: true }));
+    this.setState(state =>
+      Object.assign(state, {
+        running: true,
+        currentConfig: this.configs[0],
+        configLength: this.configs.length
+      })
+    );
     this.runConfig(out, this.configs);
   }
 
@@ -261,8 +267,8 @@ const RenderConfig = (props: Config) => {
         {Tr("Balancer:", props.balancer)}
         {Tr("Implementation:", props.implementation)}
         {Tr("Nodes:", props.nodeCount)}
-        {Tr("maxIteration:", props.maxIteration)}
-        {Tr("Point of Interest:", props.poi)}
+        {Tr("max Iteration:", props.maxIteration)}
+        {Tr("PoI:", props.poi)}
       </tbody>
     </table>
   );

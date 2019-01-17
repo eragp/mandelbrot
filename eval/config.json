@@ -7,7 +7,7 @@
        "predictionRecursive"
     ],
     "implementations":[
-       "mandelbrot"
+       "mandelbrot", "mandelbrot64"
     ],
     "maxIteration": [1019, 1019, 1],
     "nodeCount": [37, 37, 1],
