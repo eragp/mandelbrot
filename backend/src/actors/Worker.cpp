@@ -150,7 +150,7 @@ void Worker::init(int world_rank, int world_size) {
                     }
                     // Computations
                     // Project all points to be computed
-                    int reverseY = region.height - y - 1;
+                    int reverseY = region.height - y;
                     for(int k = 0; k < vectorLength; k++){
                         projReal[k] = region.projectReal(x+k);
                         projImag[k] = region.projectImag(reverseY);
