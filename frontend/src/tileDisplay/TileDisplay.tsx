@@ -22,7 +22,8 @@ import {
   GroupObservable,
   ImplementationObservable,
   ViewCenterObservable,
-  WorkerObservable
+  WorkerObservable,
+  IterationObservable
 } from "../misc/Observable";
 import { registerCallback } from "../misc/registerCallback";
 import { StatsCollector } from "../eval/StatsCollector";
@@ -35,6 +36,7 @@ interface TileDisplayProps {
   balancer: BalancerObservable;
   group: GroupObservable;
   implementation: ImplementationObservable;
+  iterationCount: IterationObservable;
   viewCenter: ViewCenterObservable;
   workerCount: WorkerObservable;
   stats?: StatsCollector;
@@ -88,7 +90,8 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
         curMap,
         this.props.balancer.get(),
         this.props.implementation.get(),
-        this.props.workerCount.get()
+        this.props.workerCount.get(),
+        this.props.iterationCount.get()
       );
       if (r) {
         websocketClient.sendRequest(r);
@@ -100,6 +103,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
     this.props.balancer.subscribe(() => this.updateAllViews());
     this.props.implementation.subscribe(() => this.updateAllViews());
     this.props.workerCount.subscribe(() => this.updateAllViews());
+    this.props.iterationCount.subscribe(() => this.updateAllViews());
 
     // add event listeners to the map for region requests
     map.on({

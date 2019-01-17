@@ -7,10 +7,10 @@
        "predictionRecursive"
     ],
     "implementations":[
-       "mandelbrot32",
-       "mandelbrot64"
+       "mandelbrot"
     ],
-    "nodeCount": 37,
+    "maxIteration": [1019, 1019, 1],
+    "nodeCount": [37, 37, 1],
     "cluster": "himmuc",
     "description":"Testing different balancer implementations",
     "pois":[

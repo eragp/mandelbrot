@@ -1,14 +1,12 @@
 export interface Tour {
   screen: ScreenOpts;
-  settings: Setting[];
+  balancers: string[];
+  implementations: string[];
+  maxIteration: number[];
+  nodeCount: number[];
   cluster: string;
   description: string;
   pois: PoI[];
-}
-export interface Setting {
-  balancer: string;
-  implementation: string;
-  nodes: number;
 }
 export interface ScreenOpts {
   width: number;
@@ -27,19 +25,28 @@ export interface Output {
 export interface Run {
   setting: Setting;
   poi: PoI;
-  data: Timings;
+  data: Data;
 }
-export interface Timings {
-  balancer: BalancerTime;
-  workers: WorkerTime[];
+
+export interface Setting {
+  balancer: string;
+  implementation: string;
+  maxIteration: number;
+  nodeCount: number;
 }
-export interface BalancerTime {
+export interface Data {
+  balancer: BalancerData;
+  workers: WorkerData[];
+}
+export interface BalancerData {
   time: number;
   regionCount: number;
 }
-export interface WorkerTime {
+export interface WorkerData {
   rank: number;
   computationTime: number;
   mpiTime: number;
   drawTime: number;
+  pixelCount: number;
+  iterationCount: number;
 }

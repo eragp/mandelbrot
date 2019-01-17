@@ -1,6 +1,6 @@
 import { registerCallback } from "../misc/registerCallback";
 import WSClient from "../connection/WSClient";
-import { WorkerInfo, Region, RegionData } from "../connection/ExchangeTypes";
+import { Region, RegionData } from "../connection/ExchangeTypes";
 
 interface Worker {
   rank: number;
@@ -42,16 +42,16 @@ export class StatsCollector {
       this.setBalancerTime(r.regionCount, r.balancerTime);
     });
     wsclient.registerRegionData(r => {
-        const worker = this.addRank(r.workerInfo.rank);
-        this.setComputationTime(worker, r.workerInfo.computationTime);
-        this.setMpiTime(worker, r.workerInfo.mpiTime);
-        this.setPixelCount(worker, r.workerInfo.region);
-        this.setIterationCount(worker, r);
-        // Check number of collected workers
-        if(this.data.worker.size === this.getWaiting()){
-            this.done();
-        }
-    })
+      const worker = this.addRank(r.workerInfo.rank);
+      this.setComputationTime(worker, r.workerInfo.computationTime);
+      this.setMpiTime(worker, r.workerInfo.mpiTime);
+      this.setPixelCount(worker, r.workerInfo.region);
+      this.setIterationCount(worker, r);
+      // Check number of collected workers
+      if (this.data.worker.size === this.getWaiting()) {
+        this.done();
+      }
+    });
   }
 
   /**
@@ -81,12 +81,12 @@ export class StatsCollector {
     rank.mpiTime = Math.floor(time);
   }
 
-  public setPixelCount(rank: Worker, r: Region){
+  public setPixelCount(rank: Worker, r: Region) {
     rank.pixelCount = r.width * r.height;
   }
 
-  public setIterationCount(rank: Worker, r: RegionData){
-      rank.iterationCount = r.data.reduce((prev, cur) => cur+prev, 0);
+  public setIterationCount(rank: Worker, r: RegionData) {
+    rank.iterationCount = r.data.reduce((prev, cur) => cur + prev, 0);
   }
 
   public setBalancerTime(regionCount: number, time: number) {

@@ -10,7 +10,8 @@ import {
   ImplementationObservable,
   GroupObservable,
   ViewCenterObservable,
-  WorkerObservable
+  WorkerObservable,
+  IterationObservable
 } from "./misc/Observable";
 import { getURLParams } from "./misc/URLParams";
 
@@ -39,6 +40,7 @@ class App extends React.Component<{}, {}> {
     const balancer = new BalancerObservable();
     const group = new GroupObservable();
     const impl = new ImplementationObservable();
+    const iter = new IterationObservable();
     const viewCenter = new ViewCenterObservable();
     const workerCount = new WorkerObservable();
 
@@ -52,6 +54,7 @@ class App extends React.Component<{}, {}> {
             wsclient={ws}
             balancer={balancer}
             implementation={impl}
+            iterationCount={iter}
             viewCenter={viewCenter}
             workerCount={workerCount}
             stats={stats}
@@ -64,6 +67,7 @@ class App extends React.Component<{}, {}> {
               viewCenter={viewCenter}
               balancer={balancer}
               impl={impl}
+              iter={iter}
               workerCount={workerCount}
             />
           </ModalWrapper>

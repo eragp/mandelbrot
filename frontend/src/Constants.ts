@@ -9,6 +9,8 @@ export const MAX_DISPLAY_REGIONS = 4;
 // x/-x and y/-y have to be the same (symmetric)
 export const bounds = [4, 4];
 
+export const NodeCount = 0;
+
 // Color set for Groups
 export const ColorSet = [
   "#B08BEB",

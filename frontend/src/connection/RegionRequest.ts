@@ -1,6 +1,6 @@
 import { getBottomRightPoint, getTopLeftPoint, project } from "../tileDisplay/Project";
 import { Request } from "../connection/ExchangeTypes";
-import { TileSize, MaxIteration } from "../Constants";
+import { TileSize } from "../Constants";
 import { Point3D } from "../misc/Point";
 import { Map } from "leaflet";
 
@@ -10,6 +10,7 @@ let currentBottomRight: Point3D;
 let currentBalancer: string;
 let currentImplementation: string;
 let currentWorkerCount: number;
+let currentMaxIteration: number;
 /**
  *  Sends a region request for the currently visible region
  *
@@ -20,8 +21,9 @@ let currentWorkerCount: number;
 export const request = (
   map: Map,
   balancer: string,
-  implementation: string,
-  workerCount: number
+  fractal: string,
+  nodes: number,
+  maxIteration: number
 ): Request | null => {
   const bounds = map.getPixelBounds();
   const zoom = map.getZoom();
@@ -34,16 +36,18 @@ export const request = (
     topLeft.equals(currentTopLeft) &&
     botRight.equals(currentBottomRight) &&
     currentBalancer === balancer &&
-    currentImplementation === implementation &&
-    workerCount === currentWorkerCount
+    currentImplementation === fractal &&
+    nodes === currentWorkerCount &&
+    maxIteration === currentMaxIteration
   ) {
     return null;
   }
   currentTopLeft = topLeft;
   currentBottomRight = botRight;
   currentBalancer = balancer;
-  currentImplementation = implementation;
-  currentWorkerCount = workerCount;
+  currentImplementation = fractal;
+  currentWorkerCount = nodes;
+  currentMaxIteration = maxIteration;
 
   const tlComplex = project(topLeft.x, topLeft.y, topLeft.z, 0, 0, TileSize);
   const brComplex = project(botRight.x, botRight.y, botRight.z, 0, 0, TileSize);
@@ -70,13 +74,13 @@ export const request = (
       validation: zoom,
       // Divisor for width and height. Will be used to perform load balancing
       guaranteedDivisor: TileSize,
-      maxIteration: MaxIteration,
-      fractal: implementation,
+      maxIteration,
+      fractal,
       regionCount: 0
     },
     balancer,
-    fractal: implementation,
-    nodes: workerCount
+    fractal,
+    nodes
   };
   return region;
 };

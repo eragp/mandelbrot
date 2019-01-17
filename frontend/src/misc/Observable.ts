@@ -1,4 +1,4 @@
-import { Balancers, Implementations, ColorSet } from "../Constants";
+import { Balancers, Implementations, ColorSet, MaxIteration, NodeCount } from "../Constants";
 import { Point3D } from "./Point";
 
 class Observable<T> {
@@ -84,6 +84,12 @@ export class ViewCenterObservable extends Observable<Point3D> {
 
 export class WorkerObservable extends Observable<number> {
   constructor() {
-    super(0, null);
+    super(NodeCount, null);
+  }
+}
+
+export class IterationObservable extends Observable<number> {
+  constructor() {
+    super(MaxIteration, null);
   }
 }

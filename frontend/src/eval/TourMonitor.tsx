@@ -3,16 +3,21 @@ import {
   BalancerObservable,
   ImplementationObservable,
   ViewCenterObservable,
-  WorkerObservable
+  WorkerObservable,
+  IterationObservable
 } from "../misc/Observable";
 import { Point3D } from "../misc/Point";
 import { StatsCollector } from "./StatsCollector";
-import { Output, Setting, PoI, Tour } from "./ConfigTypes";
+import { Output, PoI, Tour } from "./ConfigTypes";
 
 import "./TourMonitor.css";
+import { Balancers, Implementations } from "../Constants";
 
 interface Config {
-  setting: Setting;
+  balancer: string;
+  implementation: string;
+  maxIteration: number;
+  nodeCount: number;
   poi: PoI;
 }
 
@@ -22,6 +27,7 @@ interface TourMonitorProps {
   balancer: BalancerObservable;
   impl: ImplementationObservable;
   workerCount: WorkerObservable;
+  iter: IterationObservable;
 }
 interface TourMonitorState {
   running: boolean;
@@ -37,34 +43,24 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
 
   constructor(props: TourMonitorProps) {
     super(props);
-    // read configs
-    const config = require("./configSIMD.json") as Tour;
-
-    // generate config combinations
-    this.configs = [];
-    for (const setting of config.settings) {
-      for (const poi of config.pois) {
-        this.configs.push({ setting, poi });
-      }
-    }
-
-    const out: Output = { config, datapoints: [] };
+    this.onFileChange = this.onFileChange.bind(this);
     this.state = {
-      running: true,
+      running: false,
       progress: 0,
-      configLength: this.configs.length,
+      configLength: 0,
       output: "",
-      currentConfig: this.configs[0]
+      currentConfig: {
+        balancer: "",
+        implementation: "",
+        maxIteration: 0,
+        nodeCount: 0,
+        poi: {
+          real: 0,
+          imag: 0,
+          zoom: 0
+        }
+      }
     };
-
-    // set size of leaflet container
-    this.map = document.getElementById("viewer") as HTMLElement;
-    this.map.style.width = `${config.screen.width}px`;
-    this.map.style.height = `${config.screen.height}px`;
-
-    // reset stats
-    this.props.stats.done();
-    this.runConfig(out, this.configs);
   }
 
   public render() {
@@ -84,6 +80,23 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
             {progress}
           </div>
         </div>
+        <div>
+          <table>
+            <tbody>
+              <tr>
+                <td>
+                  <p>Configuration file:</p>
+                </td>
+                <td>
+                  <input
+                    type="file"
+                    onChange={e => this.onFileChange(e.target.files as FileList)}
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
         <p>currently running configuration:</p>
         <RenderConfig {...this.state.currentConfig} />
         <p>JSON output (triple click to select all):</p>
@@ -92,16 +105,77 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
     );
   }
 
-  private done(output: Output) {
-    // reset leaflet container to original size
-    this.map.style.width = "";
-    this.map.style.height = "";
+  private onFileChange(files: FileList) {
+    let fr = new FileReader();
+    fr.onload = () => this.start(fr.result as string);
+    fr.readAsText(files[0]);
+  }
 
-    console.log("Stats collection is done");
-    console.log(JSON.stringify(output));
-    this.setState(state =>
-      Object.assign(state, { output: JSON.stringify(output), running: false })
-    );
+  private start(configJSON: string) {
+    // generate config combinations
+    const config = JSON.parse(configJSON);
+    this.configs = [];
+    for (const balancer of config.balancers) {
+      if (!Balancers.some(b => b.key === balancer)) {
+        console.error("Invalid balancer: ", balancer);
+        return;
+      }
+      for (const implementation of config.implementations) {
+        if (!Implementations.some(i => i.key === implementation)) {
+          console.error("Invalid implementation: ", balancer);
+          return;
+        }
+        if (config.maxIteration.length !== 3 && config.maxIteration.length !== 1) {
+          console.error("Invalid maxIteration specification: ", config.maxIteration);
+          return;
+        }
+        let min_I = config.maxIteration[0];
+        let max_I = config.maxIteration[0];
+        let step_I = config.maxIteration[0];
+        if (config.maxIteration.length === 3) {
+          max_I = config.maxIteration[1];
+          step_I = config.maxIteration[2];
+        }
+        for (let maxIteration = min_I; maxIteration <= max_I; maxIteration += step_I) {
+          if (config.nodeCount.length !== 3 && config.nodeCount.length !== 1) {
+            console.error("Invalid nodeCount specification: ", config.nodeCount);
+            return;
+          }
+          let min_N = config.nodeCount[0];
+          let max_N = config.nodeCount[0];
+          let step_N = config.nodeCount[0];
+          if (config.maxIteration.length === 3) {
+            max_N = config.nodeCount[1];
+            step_N = config.nodeCount[2];
+          }
+          for (let nodeCount = min_N; nodeCount <= max_N; nodeCount += step_N) {
+            for (const poi of config.pois) {
+              this.configs.push({
+                balancer,
+                implementation,
+                maxIteration,
+                nodeCount,
+                poi
+              });
+            }
+          }
+        }
+      }
+    }
+
+    console.log("generated configs: ", this.configs);
+
+    const out: Output = { config, datapoints: [] };
+
+    // set size of leaflet container
+    this.map = document.getElementById("viewer") as HTMLElement;
+    this.map.style.width = `${config.screen.width}px`;
+    this.map.style.height = `${config.screen.height}px`;
+
+    // reset stats
+    this.props.stats.done();
+    this.setState(state => Object.assign(state, { running: true }));
+    this.runConfig(out, this.configs);
   }
 
   private runConfig(output: Output, configs: Config[]) {
@@ -116,17 +190,21 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
     // only notify the observable that has changed once
     const oldBl = this.props.balancer.get();
     const oldImp = this.props.impl.get();
+    const oldIter = this.props.iter.get();
     const oldCenter = this.props.viewCenter.get();
 
-    this.props.balancer.setNoNotify(c.setting.balancer);
-    this.props.impl.setNoNotify(c.setting.implementation);
+    this.props.balancer.setNoNotify(c.balancer);
+    this.props.impl.setNoNotify(c.implementation);
+    this.props.iter.setNoNotify(c.maxIteration);
     const pt = new Point3D(c.poi.real, c.poi.imag, c.poi.zoom);
     this.props.viewCenter.setNoNotify(pt);
-    this.props.workerCount.setNoNotify(c.setting.nodes);
+    this.props.workerCount.setNoNotify(c.nodeCount);
 
-    if (oldBl !== c.setting.balancer) {
+    if (oldBl !== c.balancer) {
       this.props.balancer.notify();
-    } else if (oldImp !== c.setting.implementation) {
+    } else if (oldImp !== c.implementation) {
+      this.props.impl.notify();
+    } else if (oldIter !== c.maxIteration) {
       this.props.impl.notify();
     } else if (!oldCenter.equals(pt)) {
       this.props.viewCenter.notify();
@@ -136,7 +214,12 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
 
     this.props.stats.onDone(stats => {
       output.datapoints.push({
-        setting: c.setting,
+        setting: {
+          balancer: c.balancer,
+          implementation: c.implementation,
+          maxIteration: c.maxIteration,
+          nodeCount: c.nodeCount
+        },
         poi: c.poi,
         data: {
           balancer: {
@@ -154,9 +237,20 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
           currentConfig: c
         })
       );
-      console.log(JSON.stringify(output));
+      console.log("current stats: ", JSON.stringify(output));
       this.runConfig(output, configs.slice(1));
     });
+  }
+
+  private done(output: Output) {
+    // reset leaflet container to original size
+    this.map.style.width = "";
+    this.map.style.height = "";
+
+    console.log("Stats collection is done: ", JSON.stringify(output));
+    this.setState(state =>
+      Object.assign(state, { output: JSON.stringify(output), running: false })
+    );
   }
 }
 
@@ -164,9 +258,10 @@ const RenderConfig = (props: Config) => {
   return (
     <table>
       <tbody>
-        {Tr("Balancer:", props.setting.balancer)}
-        {Tr("Implementation:", props.setting.implementation)}
-        {Tr("Nodes:", props.setting.nodes)}
+        {Tr("Balancer:", props.balancer)}
+        {Tr("Implementation:", props.implementation)}
+        {Tr("Nodes:", props.nodeCount)}
+        {Tr("maxIteration:", props.maxIteration)}
         {Tr("Point of Interest:", props.poi)}
       </tbody>
     </table>

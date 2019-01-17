@@ -1,4 +1,4 @@
-import { RegionData, Regions, WorkerInfo, workerInfoEquals } from "./ExchangeTypes";
+import { Request, RegionData, Regions, WorkerInfo, workerInfoEquals } from "./ExchangeTypes";
 import { groupRegions, RegionGroup } from "../misc/RegionGroup";
 import { registerCallback } from "../misc/registerCallback";
 
@@ -57,7 +57,7 @@ export default class WebSocketClient implements WS {
           {
             // do not filter empty RegionData
             const r = msg as RegionData;
-            // filter answers for not current region 
+            // filter answers for not current region
             if (!this.insideCurrentRegions(r.workerInfo)) {
               break;
             }
@@ -103,7 +103,7 @@ export default class WebSocketClient implements WS {
     return registerCallback(this.regionCallback, fun);
   }
   public registerRegionRaw(fun: (region: Regions) => any) {
-      return registerCallback(this.regionRawCallback, fun);
+    return registerCallback(this.regionRawCallback, fun);
   }
 
   /**
