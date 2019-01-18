@@ -123,15 +123,14 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     Region region{};
 
     const char* balancer;
-    int predictionAccuracy;
+    int predictionAccuracy = 4; // Remove standard value, when implemented in frontend
 
     const char* fractal_str;
     Fractal* fractal_bal = nullptr;
     try {
         balancer = request["balancer"].GetString();
-        predictionAccuracy = request["predictionAccuracy"].GetInt();
+        // predictionAccuracy = request["predictionAccuracy"].GetInt(); // Uncomment this line
 
-        
         enum fractal_type fractal_type;
         fractal_str = request["fractal"].GetString();
         // Case insensitive compares (just convenience for frontend devs)
