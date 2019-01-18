@@ -121,12 +121,18 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
 
     int regionCount = 0;
     Region region{};
+
     const char* balancer;
+    int predictionAccuracy;
+
     const char* fractal_str;
     Fractal* fractal_bal = nullptr;
     try {
-        enum fractal_type fractal_type;
         balancer = request["balancer"].GetString();
+        predictionAccuracy = request["predictionAccuracy"].GetInt();
+
+        
+        enum fractal_type fractal_type;
         fractal_str = request["fractal"].GetString();
         // Case insensitive compares (just convenience for frontend devs)
         if(boost::iequals(fractal_str, "mandelbrot32")){
@@ -198,7 +204,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         std::cout << "RegionCount is " << regionCount << std::endl;
     }
 
-    Balancer *b = BalancerPolicy::chooseBalancer(balancer, fractal_bal);
+    Balancer *b = BalancerPolicy::chooseBalancer(balancer, predictionAccuracy, fractal_bal);
     // Measure time needed for balancing - Start
     std::chrono::high_resolution_clock::time_point balancerTimeStart = std::chrono::high_resolution_clock::now();
     // Call balanceLoad

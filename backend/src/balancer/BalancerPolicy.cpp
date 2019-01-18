@@ -10,24 +10,21 @@
 #include <string>
 #include <iostream>
 
-// TODO: Maybe make this method non-static and store fractal and predictionAccuracy in object
-Balancer* BalancerPolicy::chooseBalancer(std::string balancerName, Fractal* fractal) {
-    const int predictionAccuracy = 4;
-
+Balancer* BalancerPolicy::chooseBalancer(std::string balancerName, int predictionAccuracy, Fractal* fractal) {
     // C++ doesn't like string in switch :(
     if (balancerName == NaiveBalancer::NAME) {
         std::cout << "Chose naive balancer" << std::endl;
-        // TODO: Fractal is not needed --> delete? depends on implementation in Host
+        // Fractal is not needed
         delete fractal;
         return new NaiveBalancer();
     } else if (balancerName == RecursiveNaiveBalancer::NAME) {
         std::cout << "Chose recursive naive balancer" << std::endl;
-        // TODO: Fractal is not needed --> delete? depends on implementation in Host
+        // Fractal is not needed
         delete fractal;
         return new RecursiveNaiveBalancer();
     } else if (balancerName == ColumnBalancer::NAME) {
         std::cout << "Chose column balancer" << std::endl;
-        // TODO: Fractal is not needed --> delete? depends on implementation in Host
+        // Fractal is not needed
         delete fractal;
         return new ColumnBalancer();
     } else if (balancerName == PredictionBalancer::NAME) {
@@ -38,7 +35,7 @@ Balancer* BalancerPolicy::chooseBalancer(std::string balancerName, Fractal* frac
         return RecursivePredictionBalancer::create(fractal, predictionAccuracy);
     } else {
         std::cerr << "Unknown balancer name, returning NaiveBalancer" << std::endl;
-        // TODO: Fractal is not needed --> delete? depends on implementation in Host
+        // Fractal is not needed
         delete fractal;
         return new NaiveBalancer();
     }
