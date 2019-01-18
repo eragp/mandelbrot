@@ -19,7 +19,36 @@
 % vergleich x86 -> Max
 \subsection{Performanzerhöhung alternative Parallelisierungsmechanismen}
 
-\subsubsection{SIMD}
+\subsubsection{Datenerhebung}
+% Max
+% Datenerhebung auf himmuc cluster
+% Messen der Timings im backend (Wie kommen die Daten im frontend zu stande?)
+% Auswahl der repräsentativen Punkte
+% Grobes Intro zu der folgenden Evaluation
+
+\subsubsection{Skalierung}
+
+% Tobi
+% MPI Skalierung
+% Skalierungsgraph (Naiver Balancer, Maxcomputation time per Region vs Node count)
+% 	3 Plots Regionen außen, Randregionen und Regionen in der Mitte
+% 	Jeweils auf separater y-Achse Mpi time 
+% Wie gut ist die MPI Kommunikation. Ab wann macht es keinen Sinn mehr, mehr Worker einzusetzen
+
+
+% OpenMP & MPI skalierung
+% Bar graph (1 MPI Prozess pro worker, 1 MPI Prozess & 4 OpenMP pro Worker, 4 MPI Prozesse pro worker)
+% 	Worker & Iteration Anzahl fest, optimal wählen, Randregion
+
+
+\subsubsection{SIMD (Implementierungen)}
+
+% Niels:
+% PLOTS: (mandelbrot 32, 64, simd 32,  64, 80 bit default)
+% comp time vs iteration count plot
+% speed up factor vs number of iterations
+% (niedriger, höher ist besser)
+
 
 % refactor:
 % three bar graphs - average computation time for worst 25%, average 50% and best 50%
@@ -43,7 +72,7 @@ kopiert werden müssen, entsteht eine gewisse Verzögerung durch zusätzliche Tr
 Die tatsächliche Rechenzeit für eine Vektorisierung von \(n\) Punkten sollte also \autoref{equ:simd-time} entsprechen.
 
 \begin{equation}\label{equ:simd-time}
-    t_{SIMD} \approx \frac{t_{normal}}{n}+ const
+	t_{SIMD} \approx \frac{t_{normal}}{n}+ const
 \end{equation}
 
 Je größer die benötigte Zahl an Operationen, desto weniger fällt dieser konstante Zusatzaufwand ins Gewicht.
@@ -61,8 +90,8 @@ wo auch die Gesamtrechenzeit geringer ist, sollte bei der Betrachtung von \autor
 \begin{figure}
 	\centering
 	\includegraphics[width=0.9\linewidth]{img/Evaluation/speedupvscomptime}
-    \caption{Beschleunigungsfaktor durch SIMD in Abhängigkeit von der durchschnittlichen Rechenzeit}
-  	\label{fig:SIMD-speedup-vs-comptime}
+	\caption{Beschleunigungsfaktor durch SIMD in Abhängigkeit von der durchschnittlichen Rechenzeit}
+	\label{fig:SIMD-speedup-vs-comptime}
 \end{figure}
 
 \paragraph{Notiz, entdeckt durch das In-Betracht-Ziehen der Leerregionen}
@@ -76,3 +105,32 @@ kann eine suboptimale Aufteilung enstehen, schlechter noch als die des naiven re
 
 Dies kann abgeschwächt werden, indem eine Region stets nur soviel Workerressourcen erhält,
 wie sie maximal auslasten könnte (Fläche/Fläche minimaler Aufteilung)
+
+
+\subsubsection{Balancer}
+
+% Florian
+% Wir haben zwei Klassen (naive, prediction) und wählen davon jeweils den besten 
+% (naive Recursive, prediction Recursive)
+
+% Erst naiver Balancer, dann prediction dafür jeweils:
+% 	Plot der distribution function (Median, Max)
+% 	Maximale Rechenzeit & Wie gut sind die Werte um den Median verteilt
+% 	3 Plots mit Regionen außerhalb, im Rand und innerhalb der Mandelbrotmenge
+
+% Genauigkeit der Vorhersage vs maximale Rechenzeit für Randregionen 
+	% Plot: y: max comp time, balancer time  x: prediction Accuracy (Randregion)
+% 	Diese "optimale" Genauigkeit wird aber bereits in allen vorherigen Evaluierungen des  prediction Balancers verwendet
+
+% Florian: Predictionaccuracy im Backend dynamisch auswählbar machen
+
+\subsubsection{Didaktik}
+% Max
+% Konstanter Overhead wurde getestet,
+% auf himmuc leider nicht so gut erkennbar, da Netzwerk overhead zu groß ist.
+% Lokal nicht so ein Problem. Somit würde das Programm auf superMUC seinen Zweck erfüllen.
+
+\subsubsection{Zusammenfassung}
+% Speedup
+% Kombinationen von Unterschiedlichen Verbesserungen. als Plot.
+% (Eine Klasse von Regionen)

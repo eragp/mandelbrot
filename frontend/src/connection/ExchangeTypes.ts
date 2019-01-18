@@ -8,6 +8,7 @@ export interface RegionRequest {
   balancer: string;
   fractal: string;
   nodes: number;
+  predictionAccuracy: number;
 }
 
 export interface Region {
