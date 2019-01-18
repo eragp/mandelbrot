@@ -15,6 +15,7 @@ On each step the currently collected statistics get logged to the console and di
 To copy the output to the clipboard, either copy it from the console, or **tripple click** the generated `json` string at the bottom and press `^C`.
 
 The evaluation window can be exited by clicking anywhere outside the modal dialog.
+
 ## Config JSON specification
 
 - `screen`:
