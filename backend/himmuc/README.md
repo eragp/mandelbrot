@@ -196,6 +196,5 @@ python3 himmuc/start_himmuc.py -h
    ssh -S .tunnel.ssh -O exit rpi<host number>
 
    # To stop the node allocation
-   ps aux | grep srun
-   kill <srun pid>
+   scancel -u <user-name>
    ```

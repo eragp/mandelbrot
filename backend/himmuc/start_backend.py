@@ -3,6 +3,7 @@ import subprocess
 import argparse
 import re
 import os
+import threading
 
 
 def print_begin(*args, **kwargs):
@@ -81,10 +82,26 @@ if __name__ == '__main__':
                 "System running. Websocket connection to backend is now available at"
             )
             print("\tws://himmuc.caps.in.tum.de:{}".format(args.port))
+            
+            e = threading.Event()
+            e.clear()
+            def print_stdout():
+                i = 0
+                for line in srun.stdout:
+                    i = (i+1)%5
+                    appendix = " (enter to stop)" if i == 0 else ""
+                    print("{}{}".format(line[:-1], appendix)) # print output
+                    if e.is_set():
+                        break
+            
+            t = threading.Thread(target=print_stdout)
+            t.start()
             try:
                 command = input("Press enter (in doubt, twice) to stop - do *not* ctrl-c")
             except KeyboardInterrupt:
                 pass
+            e.set()
+
             print_begin("Stopping port forwarding...")
             sshproc.kill()
             try:
