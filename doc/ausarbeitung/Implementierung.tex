@@ -450,6 +450,7 @@ Was dabei genau beachtet werden muss findet sich im Teil Erweiterung (\ref{lastb
 \subsubsection{Naive Strategie}
 
 Die naive Strategie (\verb|NaiveBalancer| und \verb|RecursiveNaiveBalancer|) lässt sich in beiden Varianten recht einfach nach dem oben beschriebenen Konzept umsetzen.
+Zusätzlich wurde noch \verb|ColumnBalancer| implementiert, dabei handelt es sich um eine Variante des nicht-rekursive Ansatzes, die nur Spalten erzeugt.
 Die Erhaltung des garantierten Teilers wird dadurch erreicht, dass die Höhe und Breite der Teilregionen auf ein Vielfaches dieses Teilers gesetzt werden.
 Diese können bei der nicht-rekursiven Variante vor der eigentlichen Aufteilung bestimmt werden.
 Da sich $\frac{witdh}{guaranteedDivisor}$ nicht unbedingt durch die Anzahl an Workern teilen lässt, kann es sein, dass einige Teilregionen um \verb|guaranteedDivisor| Pixel breiter sind.
