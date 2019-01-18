@@ -27,36 +27,51 @@ Prediction* Predicter::getPrediction(Region region, Fractal* fractal, int predic
         lowRes.width = (region.width / region.guaranteedDivisor) * predictionAccuracy;
         lowRes.height = (region.height / region.guaranteedDivisor) * predictionAccuracy;
 
-        deltaReal = Fractal::deltaReal(lowRes.maxReal, lowRes.minReal, lowRes.width);
-        deltaImaginary = Fractal::deltaImaginary(lowRes.maxImaginary, lowRes.minImaginary, lowRes.height);
+        // Pass a whole row at once to mandelbrot for computation
+        // This is the maximum value for the vector length
+        int vectorLength = lowRes.width;
+        precision_t* projReal = new precision_t[vectorLength];
+        precision_t* projImag = new precision_t[vectorLength];
+        unsigned short int* data = new unsigned short int[vectorLength];
 
-        for (unsigned int x = 0; x < lowRes.width; x++) {
-            for (unsigned int y = 0; y < lowRes.height; y++) {
-                precision_t cReal = lowRes.minReal + x * deltaReal;
-                precision_t cImaginary = lowRes.maxImaginary - y * deltaImaginary;
-                unsigned short int iterationCount;
-                fractal->calculateFractal(&cReal,
-                                          &cImaginary,
+        for (unsigned int y = 0; y < lowRes.height; y++) {
+            for (unsigned int x = 0; x < lowRes.width; x += vectorLength) {
+                int reverseY = lowRes.height - y;
+                for (int k = 0; k < vectorLength; k++) {
+                    projReal[k] = lowRes.projectReal(x + k);
+                    projImag[k] = lowRes.projectImag(reverseY);
+                }
+
+                fractal->calculateFractal(projReal,
+                                          projImag,
                                           lowRes.maxIteration,
-                                          1,
-                                          &iterationCount);
-                // Assign iteration count to a (divisor^2)-Block
-                n[x / predictionAccuracy][y / predictionAccuracy] += iterationCount;
-                // Sum over expected iteration per column
-                nColSums[x / predictionAccuracy] += iterationCount;
-                // Sum over expected iteration per row
-                nRowSums[y / predictionAccuracy] += iterationCount;
-                // Sum over all expected iterations
-                nSum += iterationCount;
+                                          vectorLength,
+                                          data);
+                for (int k = 0; k < vectorLength; k++) {
+                    unsigned short int iterationCount = data[k];
+
+                    // Assign iteration count to a (divisor^2)-Block
+                    n[(x + k) / predictionAccuracy][y / predictionAccuracy] += iterationCount;
+                    // Sum over expected iteration per column
+                    nColSums[(x + k) / predictionAccuracy] += iterationCount;
+                    // Sum over expected iteration per row
+                    nRowSums[y / predictionAccuracy] += iterationCount;
+                    // Sum over all expected iterations
+                    nSum += iterationCount;
+                }
             }
         }
 
         // Set deltas to represent delta per prediction piece
-        deltaReal *= predictionAccuracy;
-        deltaImaginary *= predictionAccuracy;
+        deltaReal = Fractal::deltaReal(lowRes.maxReal, lowRes.minReal, lowRes.width) * predictionAccuracy;
+        deltaImaginary = Fractal::deltaImaginary(lowRes.maxImaginary, lowRes.minImaginary, lowRes.height) * predictionAccuracy;
 
+        delete[] projReal;
+        delete[] projImag;
+        delete[] data;
+    }
     // predicitionAccuracy < 0: (predicitionAccuracy^2) (divisor^2)-Blocks in each pixel sample
-    } else if (predictionAccuracy < 0) {
+    else if (predictionAccuracy < 0) {
         // Make predictionAccuracy positive, sign just determines the operation internally predictionAccuracy is always positive
         predictionAccuracy = -predictionAccuracy;
 
@@ -77,30 +92,41 @@ Prediction* Predicter::getPrediction(Region region, Fractal* fractal, int predic
             lowRes.height += 1;
         }
 
-        deltaReal = Fractal::deltaReal(lowRes.maxReal, lowRes.minReal, lowRes.width);
-        deltaImaginary = Fractal::deltaImaginary(lowRes.maxImaginary, lowRes.minImaginary, lowRes.height);
+        // Pass a whole row at once to mandelbrot for computation
+        // This is the maximum value for the vector length
+        int vectorLength = lowRes.width;
+        precision_t* projReal = new precision_t[vectorLength];
+        precision_t* projImag = new precision_t[vectorLength];
+        unsigned short int* data = new unsigned short int[vectorLength];
 
-        for (unsigned int x = 0; x < lowRes.width; x++) {
-            for (unsigned int y = 0; y < lowRes.height; y++) {
-                precision_t cReal = lowRes.minReal + x * deltaReal;
-                precision_t cImaginary = lowRes.maxImaginary - y * deltaImaginary;
-                unsigned short int iterationCount;
-                fractal->calculateFractal(&cReal,
-                                          &cImaginary,
+        for (unsigned int y = 0; y < lowRes.height; y++) {
+            for (unsigned int x = 0; x < lowRes.width; x += vectorLength) {
+                int reverseY = lowRes.height - y;
+                for (int k = 0; k < vectorLength; k++) {
+                    projReal[k] = lowRes.projectReal(x + k);
+                    projImag[k] = lowRes.projectImag(reverseY);
+                }
+
+                fractal->calculateFractal(projReal,
+                                          projImag,
                                           lowRes.maxIteration,
-                                          1,
-                                          &iterationCount);
+                                          vectorLength,
+                                          data);
 
-                // Put iterationCount in every entry which belongs to this prediction part
-                int xStartIndex = x * predictionAccuracy;
-                int yStartIndex = y * predictionAccuracy;
-                for (int i = 0; i < predictionAccuracy; i++) {
-                    for (int j = 0; j < predictionAccuracy; j++) {
-                        if (xStartIndex + i < predictionLengthX && yStartIndex + j < predictionLengthY) {
-                            n[xStartIndex + i][yStartIndex + j] += iterationCount;
-                            nColSums[xStartIndex + i] += iterationCount;
-                            nRowSums[yStartIndex + j] += iterationCount;
-                            nSum += iterationCount;
+                for (int k = 0; k < vectorLength; k++) {
+                    unsigned short int iterationCount = data[k];
+
+                    // Put iterationCount in every entry which belongs to this prediction part
+                    int xStartIndex = (x + k) * predictionAccuracy;
+                    int yStartIndex = y * predictionAccuracy;
+                    for (int i = 0; i < predictionAccuracy; i++) {
+                        for (int j = 0; j < predictionAccuracy; j++) {
+                            if (xStartIndex + i < predictionLengthX && yStartIndex + j < predictionLengthY) {
+                                n[xStartIndex + i][yStartIndex + j] += iterationCount;
+                                nColSums[xStartIndex + i] += iterationCount;
+                                nRowSums[yStartIndex + j] += iterationCount;
+                                nSum += iterationCount;
+                            }
                         }
                     }
                 }
@@ -108,15 +134,20 @@ Prediction* Predicter::getPrediction(Region region, Fractal* fractal, int predic
         }
 
         // Set deltas to represent delta per prediction piece
-        deltaReal /= predictionAccuracy;
-        deltaImaginary /= predictionAccuracy;
-    } else {
+        deltaReal = Fractal::deltaReal(lowRes.maxReal, lowRes.minReal, lowRes.width) / predictionAccuracy;
+        deltaImaginary = Fractal::deltaImaginary(lowRes.maxImaginary, lowRes.minImaginary, lowRes.height) / predictionAccuracy;
+
+        delete[] projReal;
+        delete[] projImag;
+        delete[] data;
+    }
+    else {
         std::cerr << "predictionAccuracy cannot be 0." << std::endl;
         return nullptr;
     }
 
     Prediction* prediction = new Prediction();
-    
+
     prediction->predictionLengthX = predictionLengthX;
     prediction->predictionLengthY = predictionLengthY;
 

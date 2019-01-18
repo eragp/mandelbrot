@@ -9,7 +9,6 @@ struct BalancingContext {
 
 	int resultIndex;
 	int partsLeft;
-	int recCounter;
 
 	double deltaReal;
 	double deltaImaginary;

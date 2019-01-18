@@ -10,7 +10,7 @@ const std::string RecursiveNaiveBalancer::NAME = "naiveRecursive";
 Region *RecursiveNaiveBalancer::balanceLoad(Region region, int nodeCount) {
 	Region *allRegions = new Region[nodeCount];
 	
-	BalancingContext context = { allRegions, 0, nodeCount, 0, 0.0, 0.0 };
+	BalancingContext context = { allRegions, 0, nodeCount, 0.0, 0.0 };
 	context.deltaReal = Fractal::deltaReal(region.maxReal, region.minReal, region.width);
 	context.deltaImaginary = Fractal::deltaImaginary(region.maxImaginary, region.minImaginary, region.height);
 
@@ -61,7 +61,6 @@ int RecursiveNaiveBalancer::balancingHelper(Region region, BalancingContext cont
 		}
 	}
 
-	context.recCounter++;
 	int nodeCount = context.partsLeft;
 
 	context.partsLeft = nodeCount / 2 + nodeCount % 2;	// Assign more workers to halves[0], since it tends to be bigger

@@ -89,7 +89,7 @@ if __name__ == '__main__':
                 i = 0
                 for line in srun.stdout:
                     i = (i+1)%5
-                    appendix = " (enter to stop)" if i == 0 else ""
+                    appendix = " (reminder: press enter to stop)" if i == 0 else ""
                     print("{}{}".format(line[:-1], appendix)) # print output
                     if e.is_set():
                         break
