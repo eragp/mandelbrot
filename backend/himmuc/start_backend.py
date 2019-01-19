@@ -5,6 +5,7 @@ import re
 import os
 import threading
 
+# based on https://stackoverflow.com/a/287944
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
