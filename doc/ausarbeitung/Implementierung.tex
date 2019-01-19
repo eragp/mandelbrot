@@ -1,18 +1,11 @@
-
 % Sollte größter Teil werden
 % - High level overview?
 % - Wie läuft das auf meinem System?
 % - Code Dokumentation / Entwicklerdokumentation
 
-
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Abschnitt - Grober Überblick
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
 
 %%%%%%%%
 % Low level
@@ -526,17 +519,15 @@ Die Deltas werden u.a. für die Berechnung des Fraktals in den Workern verwendet
 
 \subsubsection{Berechnung ohne SIMD}
 
-Die Klasse \verb|Mandelbrot| dient dazu jeweils einen Punkt der Mandelbrotmenge zu berechnen.
-Da hierbei keine Vektorisierung stattfindet ist es sinnvoll \verb|vectorLength| auf 0 zu setzen.
-Es ist zu beachten, dass \verb|cReal| und \verb|cImaginary| als Zeiger auf diese Werte zu übergeben sind.
-Außerdem muss eine Speicherstelle für den Rückgabewert bereitgestellt und als \verb|dest| übergeben werden.
+Die Klasse \verb|Mandelbrot| stellt die Methode \verb|calculate_fractal| bereit,
+mithilfe derer für ein übergebenes Array an Punkten die Iterationszahl bestimmt wird.
 Diese Art und Weise der Übergabe macht ein gemeinsames Interface mit den \hyperref[subsec:simd]{vektorisierten Versionen} möglich.
-Für die nicht-vektorisierte Berechnung wäre dies nicht nötig, wird aber hier genutzt um die Aufrufe der virtuellen Methode auf einen pro Zeile zu reduzieren.
 
 Die Berechnung eines Punktes ist nun nicht weiter schwer, es muss lediglich \autoref{equ:mandelbrot} als C++-Code umgesetzt werden.
-Bei $|z_n| > 2$ oder äquivalent $Re(z_n)^2 + Im(z_n)^2$ kann die Berechnung abgebrochen werden, da der Punkt sicher nicht in der Mandelbrotmenge liegt.
-Dies ist ebenfalls nötig wenn die maximale Anzahl an Iterationen erreicht wurde.
-Die benötigte Anzahl an Iterationen kann dann als Ergebnis zurückgegeben werden.
+Bei $|z_n| > 2$ die Berechnung abgebrochen werden, da der Punkt sicher nicht in der Mandelbrotmenge liegt.
+Um Rechenzeit zu sparen wird dabei in allen Implementierungen die äquivalente Formel $Re(z_n)^2 + Im(z_n)^2 > 4$ evaluiert.
+Die Berechnung wird ebenfalls abgebrochen, wenn die maximale Anzahl an Iterationen erreicht wurde.
+Die benötigte Anzahl an Iterationen wird in ein übergebenes Array geschrieben.
 
 \subsubsection{Berechnung mithilfe von SIMD}\label{subsec:simd}
 
@@ -547,10 +538,9 @@ Damit werden alle verfügbaren SIMD-Register des ARMv8-A Prozessors des ODroids 
 Zusätzlich wurden Optimierungen mithilfe der NEON-nativen multiply-add (\textit{mla}) und multiply-subtract (\textit{mls}) Befehle vorgenommen.
 Zudem kann der parallele Vergleich zweier Vektoren (\textit{clt}) ausgenutzt werden, wobei als Ergebnis jedoch nicht 1 und 0 ausgegeben werden,
 sondern alle Bits der Ergebnisvektorkomponente auf 1 gesetzt werden sofern die Bedingung erfüllt ist und sonst auf 0.
-Um im weiteren Verlauf effizient die Vektorkomponenten aufzuaddieren (\textit{addv}), sodass die Summe der Anzahl nicht abgebrochener Berechnungen entspricht,
-werden daher alle Komponenten des Ergebnisvektors des Vergleiches mit 1 verundet.
-Das Ergbenis des Vergleiches und der Verundung ist ein Vektor vorzeichenloser 32 oder 64 bit Ganzzahlen, weshalb das
-Postfix für diese Operationen \textit{u32} oder \textit{u64} lautet.
+Um im weiteren Verlauf effizient die Vektorkomponenten aufzuaddieren (\textit{addv}) wird die ursprünglich vorzeichenlose Zahl als vorzeichenbehaftet interpretiert.
+Jede Komponente für die die Bedingung zu wahr evaluiert hat, kann nun als $-1$ interpretiert werden.
+Die Summe über die Komponenten entspricht damit der negierten Anzahl an noch nicht abgeschlossenen Punkten.  
 
 \begin{figure}
 	\lstinputlisting[caption={Parallelisierte Bearbeitung eines Vektors komplexer Koordinaten in 32 bit Gleitkommapräzision in C++ mit Arm NEON Compiler Intrinsics für SIMD}, label={src:MandelbrotSIMD32.cpp}, firstline=29, lastline=72, firstnumber=29]{../../backend/src/mandelbrot/MandelbrotSIMD32.cpp}

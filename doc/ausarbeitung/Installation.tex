@@ -128,3 +128,6 @@ Entrypoint main = style.css mandelbrot.js
 Das Kommando \verb|npm start| startet dabei einen lokalen WebServer, welcher eine kompilierte Version des Frontends
 unter der Adresse \verb|http://localhost:3000| anbietet. Danach wird der Standardwebbrowser des Systems verwendet, um diese
 URL zu öffnen.
+
+Das Frontend verbindet sich automatisch mit der lokalen Adresse \url{ws://localhost:9002}.
+Dies kann über den Get-Parameter \verb|ws| in der URL auf die Adresse des eigenen Backends gesetzt werden.
