@@ -1,0 +1,17 @@
+{
+  "screen": {
+    "width": 1280,
+    "height": 720
+  },
+  "balancers": ["predictionRecursive"],
+  "implementations": ["mandelbrot"],
+  "maxIteration": [1019],
+  "nodeCount": [37],
+  "predictionAccuracy": [4],
+  "runs": 10,
+  "cluster": "himmuc",
+  "description": "Testing predictionRecursive balancer at border of the mandelbrot set",
+  "pois": [
+    { "real": -0.7334021404385567, "imag": 0.2165058705628719, "zoom": 11 }
+  ]
+}
