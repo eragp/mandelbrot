@@ -4,7 +4,9 @@ import {
   ImplementationObservable,
   ViewCenterObservable,
   WorkerObservable,
-  IterationObservable
+  IterationObservable,
+  PredAccObservable,
+  RunObservable
 } from "../misc/Observable";
 import { Point3D } from "../misc/Point";
 import { StatsCollector } from "./StatsCollector";
@@ -15,6 +17,7 @@ import { Balancers, Implementations } from "../Constants";
 
 interface Config {
   run: number;
+  predictionAccuracy: number;
   balancer: string;
   implementation: string;
   maxIteration: number;
@@ -29,6 +32,8 @@ interface TourMonitorProps {
   impl: ImplementationObservable;
   workerCount: WorkerObservable;
   iter: IterationObservable;
+  predAcc: PredAccObservable;
+  run: RunObservable;
 }
 interface TourMonitorState {
   running: boolean;
@@ -52,6 +57,7 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
       output: "",
       currentConfig: {
         run: 1,
+        predictionAccuracy: 0,
         balancer: "",
         implementation: "",
         maxIteration: 0,
@@ -108,7 +114,7 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
   }
 
   private onFileChange(files: FileList) {
-    let fr = new FileReader();
+    const fr = new FileReader();
     fr.onload = () => this.start(fr.result as string);
     if (files.length > 0) {
       fr.readAsText(files[0]);
@@ -146,39 +152,64 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
             console.error("Invalid maxIteration specification: ", config.maxIteration);
             return;
           }
-          if (config.maxIteration.length !== 3 && config.maxIteration.length !== 1) {
-            console.error("Invalid maxIteration specification: ", config.maxIteration);
-            return;
-          }
-          let min_I = config.maxIteration[0];
-          let max_I = config.maxIteration[0];
-          let step_I = config.maxIteration[0];
+          let minI = config.maxIteration[0];
+          let maxI = config.maxIteration[0];
+          let stepI = config.maxIteration[0];
           if (config.maxIteration.length === 3) {
-            max_I = config.maxIteration[1];
-            step_I = config.maxIteration[2];
+            maxI = config.maxIteration[1];
+            stepI = config.maxIteration[2];
           }
-          for (let maxIteration = min_I; maxIteration <= max_I; maxIteration += step_I) {
+          for (let maxIteration = minI; maxIteration <= maxI; maxIteration += stepI) {
+            if (!config.nodeCount) {
+              console.error("Invalid nodeCount: undefined");
+              return;
+            }
             if (config.nodeCount.length !== 3 && config.nodeCount.length !== 1) {
               console.error("Invalid nodeCount specification: ", config.nodeCount);
               return;
             }
-            let min_N = config.nodeCount[0];
-            let max_N = config.nodeCount[0];
-            let step_N = config.nodeCount[0];
+            let minN = config.nodeCount[0];
+            let maxN = config.nodeCount[0];
+            let stepN = config.nodeCount[0];
             if (config.nodeCount.length === 3) {
-              max_N = config.nodeCount[1];
-              step_N = config.nodeCount[2];
+              maxN = config.nodeCount[1];
+              stepN = config.nodeCount[2];
             }
-            for (let nodeCount = min_N; nodeCount <= max_N; nodeCount += step_N) {
-              for (const poi of config.pois) {
-                this.configs.push({
-                  run,
-                  balancer,
-                  implementation,
-                  maxIteration,
-                  nodeCount,
-                  poi
-                });
+            if (!config.predictionAccuracy) {
+              console.error("Invalid predictionAccuracy: undefined");
+              return;
+            }
+            if (config.predictionAccuracy.length !== 3 && config.predictionAccuracy.length !== 1) {
+              console.error(
+                "Invalid predictionAccuracy specification: ",
+                config.predictionAccuracy
+              );
+              return;
+            }
+            let minP = config.predictionAccuracy[0];
+            let maxP = config.predictionAccuracy[0];
+            let stepP = config.predictionAccuracy[0];
+            if (config.predictionAccuracy.length === 3) {
+              maxP = config.predictionAccuracy[1];
+              stepP = config.predictionAccuracy[2];
+            }
+            for (
+              let predictionAccuracy = minP;
+              predictionAccuracy <= maxP;
+              predictionAccuracy += stepP
+            ) {
+              for (let nodeCount = minN; nodeCount <= maxN; nodeCount += stepN) {
+                for (const poi of config.pois) {
+                  this.configs.push({
+                    run,
+                    predictionAccuracy,
+                    balancer,
+                    implementation,
+                    maxIteration,
+                    nodeCount,
+                    poi
+                  });
+                }
               }
             }
           }
@@ -226,6 +257,8 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
     this.props.impl.setNoNotify(c.implementation);
     this.props.iter.setNoNotify(c.maxIteration);
     this.props.workerCount.setNoNotify(c.nodeCount);
+    this.props.predAcc.setNoNotify(c.predictionAccuracy);
+    this.props.run.setNoNotify(c.run);
     const pt = new Point3D(c.poi.real, c.poi.imag, c.poi.zoom);
     if (!this.props.viewCenter.set(pt)) {
       this.props.balancer.notify();
@@ -239,6 +272,7 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
           balancer: c.balancer,
           implementation: c.implementation,
           maxIteration: c.maxIteration,
+          predictionAccuracy: c.predictionAccuracy,
           nodeCount: c.nodeCount,
           run: c.run
         },

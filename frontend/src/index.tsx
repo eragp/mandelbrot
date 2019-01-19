@@ -11,7 +11,9 @@ import {
   GroupObservable,
   ViewCenterObservable,
   WorkerObservable,
-  IterationObservable
+  IterationObservable,
+  PredAccObservable,
+  RunObservable
 } from "./misc/Observable";
 import { readViewCenterParams, readWSUrl } from "./misc/URLParams";
 import TourMonitor from "./eval/TourMonitor";
@@ -32,7 +34,6 @@ import { StatsCollector } from "./eval/StatsCollector";
 
 class App extends React.Component<{}, {}> {
   render() {
-
     const ws = new WebSocketClient(readWSUrl());
     const stats = new StatsCollector(ws);
 
@@ -42,6 +43,8 @@ class App extends React.Component<{}, {}> {
     const iter = new IterationObservable();
     const viewCenter = new ViewCenterObservable();
     const workerCount = new WorkerObservable();
+    const predAcc = new PredAccObservable();
+    const run = new RunObservable();
 
     viewCenter.set(readViewCenterParams());
 
@@ -57,6 +60,8 @@ class App extends React.Component<{}, {}> {
             viewCenter={viewCenter}
             workerCount={workerCount}
             stats={stats}
+            predAcc={predAcc}
+            run={run}
           />
         </div>
         <div className="row">
@@ -68,6 +73,8 @@ class App extends React.Component<{}, {}> {
               impl={impl}
               iter={iter}
               workerCount={workerCount}
+              predAcc={predAcc}
+              run={run}
             />
           </ModalWrapper>
         </div>

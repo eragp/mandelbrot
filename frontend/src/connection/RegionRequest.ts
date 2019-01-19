@@ -3,6 +3,16 @@ import { Request } from "../connection/ExchangeTypes";
 import { TileSize } from "../Constants";
 // import { Point3D } from "../misc/Point";
 import { Map } from "leaflet";
+import { Point3D } from "../misc/Point";
+
+let oldTopLeft: Point3D;
+let oldBottomRight: Point3D;
+let oldBalancer: string;
+let oldFractal: string;
+let oldNodes: number;
+let oldMaxIteration: number;
+let oldPredictionAccuracy: number;
+let oldRun: number;
 
 /**
  *  Sends a region request for the currently visible region
@@ -14,7 +24,9 @@ export const request = (
   balancer: string,
   fractal: string,
   nodes: number,
-  maxIteration: number
+  maxIteration: number,
+  predictionAccuracy: number,
+  run: number
 ): Request | null => {
   const bounds = map.getPixelBounds();
   const zoom = map.getZoom();
@@ -28,6 +40,27 @@ export const request = (
     Math.abs(botRight.x - topLeft.x) * TileSize,
     Math.abs(topLeft.y - botRight.y) * TileSize
   ];
+  if (
+    topLeft.equals(oldTopLeft) &&
+    botRight.equals(oldBottomRight) &&
+    balancer === oldBalancer &&
+    fractal === oldFractal &&
+    nodes === oldNodes &&
+    maxIteration === oldMaxIteration &&
+    predictionAccuracy === oldPredictionAccuracy &&
+    run === oldRun
+  ) {
+    return null;
+  }
+  oldTopLeft = topLeft;
+  oldBottomRight = botRight;
+  oldBalancer = balancer;
+  oldFractal = fractal;
+  oldNodes = nodes;
+  oldMaxIteration = maxIteration;
+  oldPredictionAccuracy = predictionAccuracy;
+  oldRun = run;
+
   const region = {
     type: "regionRequest",
     region: {
@@ -51,6 +84,7 @@ export const request = (
       fractal,
       regionCount: 0
     },
+    predictionAccuracy,
     balancer,
     fractal,
     nodes

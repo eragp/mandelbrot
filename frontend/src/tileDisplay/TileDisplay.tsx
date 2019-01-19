@@ -23,7 +23,9 @@ import {
   ImplementationObservable,
   ViewCenterObservable,
   WorkerObservable,
-  IterationObservable
+  IterationObservable,
+  PredAccObservable,
+  RunObservable
 } from "../misc/Observable";
 import { registerCallback } from "../misc/registerCallback";
 import { StatsCollector } from "../eval/StatsCollector";
@@ -39,6 +41,8 @@ interface TileDisplayProps {
   iterationCount: IterationObservable;
   viewCenter: ViewCenterObservable;
   workerCount: WorkerObservable;
+  predAcc: PredAccObservable;
+  run: RunObservable;
   stats?: StatsCollector;
 }
 export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
@@ -91,9 +95,13 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
         this.props.balancer.get(),
         this.props.implementation.get(),
         this.props.workerCount.get(),
-        this.props.iterationCount.get()
+        this.props.iterationCount.get(),
+        this.props.predAcc.get(),
+        this.props.run.get()
       );
+      if (r) {
         websocketClient.sendRequest(r);
+      }
     });
 
     // Handle balancer change as view change
@@ -102,6 +110,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
     this.props.implementation.subscribe(() => this.updateAllViews());
     this.props.workerCount.subscribe(() => this.updateAllViews());
     this.props.iterationCount.subscribe(() => this.updateAllViews());
+    this.props.predAcc.subscribe(() => this.updateAllViews());
 
     // add event listeners to the map for region requests
     map.on({

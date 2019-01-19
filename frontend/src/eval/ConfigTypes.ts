@@ -4,6 +4,7 @@ export interface Tour {
   implementations: string[];
   maxIteration: number[];
   nodeCount: number[];
+  predictionAccuracy: number[];
   runs: number;
   cluster: string;
   description: string;
@@ -35,6 +36,7 @@ export interface Setting {
   implementation: string;
   maxIteration: number;
   nodeCount: number;
+  predictionAccuracy: number;
 }
 export interface Data {
   balancer: BalancerData;

@@ -129,7 +129,8 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     Fractal* fractal_bal = nullptr;
     try {
         balancer = request["balancer"].GetString();
-        // predictionAccuracy = request["predictionAccuracy"].GetInt(); // Uncomment this line
+        predictionAccuracy = request["predictionAccuracy"].GetInt();
+        std::cout << "Chose prediction Accuracy: " << predictionAccuracy << std::endl;
 
         enum fractal_type fractal_type;
         fractal_str = request["fractal"].GetString();
