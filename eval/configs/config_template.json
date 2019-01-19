@@ -7,7 +7,7 @@
   "implementations": ["mandelbrot"],
   "maxIteration": [1019],
   "nodeCount": [37],
-  "predictionAccuracy": [4, 7, 1],
+  "predictionAccuracy": [4],
   "runs": 1,
   "cluster": "himmuc",
   "description": "Testing different balancer implementations",
