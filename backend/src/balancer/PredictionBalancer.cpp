@@ -18,10 +18,10 @@ PredictionBalancer::~PredictionBalancer() {
 Region *PredictionBalancer::balanceLoad(Region region, int nodeCount) {
 	Prediction* prediction = Predicter::getPrediction(region, f, predictionAccuracy);
 
-    auto *allRegions = new Region[nodeCount];
+    Region *allRegions = new Region[nodeCount];
 
     // Same as in naive
-    auto cols = (int) sqrt(nodeCount); // cols = Quantity of separate parts in x direction --> Number of Columns
+    int cols = (int) sqrt(nodeCount); // cols = Quantity of separate parts in x direction --> Number of Columns
     while (nodeCount % cols != 0) {    // Find the next integral divisor of nodeCount smaller than its sqrt
         cols--;
     }
@@ -30,19 +30,8 @@ Region *PredictionBalancer::balanceLoad(Region region, int nodeCount) {
     int desiredN = prediction->nSum / cols;
 
 
-    Region tmp{};
-    // These stay the same over all iterations
-    tmp.minImaginary = region.minImaginary;
-    tmp.maxImaginary = region.maxImaginary;
-    tmp.height = region.height;
-    tmp.maxIteration = region.maxIteration;
-    tmp.vOffset = region.vOffset;
-    tmp.validation = region.validation;
-    tmp.guaranteedDivisor = region.guaranteedDivisor;
-
-    // This will change, so will width and maxReal
-    tmp.minReal = region.minReal;
-    tmp.hOffset = region.hOffset;
+    // Only width, hOffset, minReal and maxReal will change
+    Region tmp = region;
 
     int currentN = 0;
     int currentCol = 0;
@@ -98,7 +87,7 @@ Region *PredictionBalancer::balanceLoad(Region region, int nodeCount) {
         usedPredictionCols++;
 
         // Reached 1/cols of nSum or there is only one piece of prediction left for each remaining col
-        if (currentN >= desiredN || prediction->predictionLengthX - i <= cols - currentCol) {
+        if (currentN >= desiredN || prediction->predictionLengthX - (i + 1) <= cols - currentCol) {
             tmp.maxReal = region.minReal + (i + 1) * prediction->deltaReal;
             tmp.width = region.guaranteedDivisor * usedPredictionCols;
 
@@ -140,7 +129,7 @@ Region *PredictionBalancer::balanceLoad(Region region, int nodeCount) {
             tmp.hOffset += tmp.width;
 
             // Debug
-            std::cout << "currentN for col " << currentCol << ": " << currentN << std::endl;
+            // std::cout << "currentN for col " << currentCol << ": " << currentN << std::endl;
             //---
             // Update cumulativeN
             cumulativeN += currentN;
@@ -198,23 +187,12 @@ Region *PredictionBalancer::splitCol(Region col, int parts, Prediction* predicti
 		return nullptr;
 	}*/
 
-	auto *regions = new Region[parts];
+	Region *regions = new Region[parts];
 
     int desiredN = prediction->nSum / parts;
 
-    Region tmp{};
-    // These stay the same over all iterations
-    tmp.minReal = col.minReal;
-    tmp.maxReal = col.maxReal;
-    tmp.width = col.width;
-    tmp.maxIteration = col.maxIteration;
-    tmp.hOffset = col.hOffset;
-    tmp.validation = col.validation;
-    tmp.guaranteedDivisor = col.guaranteedDivisor;
-
-    // This will change, so will height and minImaginary
-    tmp.maxImaginary = col.maxImaginary;
-    tmp.vOffset = col.vOffset;
+    // Only height, vOffset, minImaginary and maxImaginary will change
+    Region tmp = col;
 
     int currentN = 0;
     int currentPart = 0;
@@ -240,7 +218,7 @@ Region *PredictionBalancer::splitCol(Region col, int parts, Prediction* predicti
         usedPredictionRows++;
 
         // Reached 1/parts of nSum or there is only one piece of prediction left for each remaining part
-        if (currentN >= desiredN || prediction->predictionLengthY - i <= parts - currentPart) {
+        if (currentN >= desiredN || prediction->predictionLengthY - (i + 1) <= parts - currentPart) {
             tmp.minImaginary = col.maxImaginary - (i + 1) * prediction->deltaImaginary;
             tmp.height = col.guaranteedDivisor * usedPredictionRows;
 
@@ -251,7 +229,7 @@ Region *PredictionBalancer::splitCol(Region col, int parts, Prediction* predicti
             tmp.vOffset += tmp.height;
 
             // Debug
-            std::cout << "currentN for part " << currentPart << ": " << currentN << std::endl;
+            // std::cout << "currentN for part " << currentPart << ": " << currentN << std::endl;
             //---
             // Update cumulativeN
             cumulativeN += currentN;

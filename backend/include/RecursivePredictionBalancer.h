@@ -4,17 +4,10 @@
 #include "Region.h"
 #include "Fractal.h"
 #include "Prediction.h"
+#include "BalancingContext.h"
 
 #include <vector>
 #include <string>
-
-struct BalancingContext {
-	Region* result;
-
-	int resultIndex;
-	int recCounter;
-	int onLowestLevel;
-};
 
 class RecursivePredictionBalancer : public Balancer {
 private:
@@ -32,9 +25,13 @@ private:
 
 	int balancingHelper(Region region, Prediction* prediction, BalancingContext context);
 
-	Region *halveRegionVertically(Region region, Prediction prediction, Prediction* left, Prediction* right);
+	Region *halveRegionVertically(Region region, Prediction prediction, Prediction* left, Prediction* right, int nodeCount);
 
-	Region *halveRegionHorizontally(Region region, Prediction prediction, Prediction* top, Prediction* bot);
+	Region *halveRegionHorizontally(Region region, Prediction prediction, Prediction* top, Prediction* bot, int nodeCount);
+
+	bool tooFewLeft(int splitPos, bool vertical, int width, int height, int guaranteedDivisor, int nodeCount);
+
+	bool enoughAreaForWorkers(int splitPos, bool vertical, int width, int height, int guaranteedDivisor, int nodeCount);
 
 public:
 	static const std::string NAME;

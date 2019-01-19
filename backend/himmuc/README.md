@@ -13,6 +13,8 @@ and run (from the backend folder, one directory above this README)
 python3 himmuc/start_himmuc.py -h
 ```
 
+Also make sure to have copied your ssh-key to the vm-schulz when using `-b` (build).
+
 Example output:
 ```
 $ ./run_himmuc.sh muendler 10 9
@@ -194,6 +196,5 @@ python3 himmuc/start_himmuc.py -h
    ssh -S .tunnel.ssh -O exit rpi<host number>
 
    # To stop the node allocation
-   ps aux | grep srun
-   kill <srun pid>
+   scancel -u <user-name>
    ```

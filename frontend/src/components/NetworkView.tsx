@@ -9,11 +9,11 @@ import "./NetworkView.css";
 import workerImage from "./img/worker.backgroundCircle.svg";
 import serverImage from "./img/server.backgroundCircle.svg";
 import applicationImage from "./img/application.backgroundCircle.svg";
-import WorkerContext from "../misc/GroupContext";
 import { RegionGroup } from "../misc/RegionGroup";
+import { GroupObservable } from "../misc/Observable";
 
 interface NetworkViewProps {
-  workerContext: WorkerContext;
+  group: GroupObservable;
   wsclient: WebSocketClient;
 }
 
@@ -24,8 +24,8 @@ interface NetworkHoverEvent {
 }
 // TODO highlight node on workercontext active worker change
 
-const groupToNet = id => id + 2;
-const netToGroup = id => id - 2;
+const groupToNet = (id: number) => id + 2;
+const netToGroup = (id: number) => id - 2;
 
 export default class NetworkView extends React.Component<NetworkViewProps, {}> {
   private network: Network;
@@ -74,12 +74,12 @@ export default class NetworkView extends React.Component<NetworkViewProps, {}> {
 
     this.network.on("hoverNode", (node: NetworkHoverEvent) => {
       if (node.node >= 2) {
-        this.props.workerContext.setActiveWorker(node.node - 2);
+        this.props.group.set(node.node - 2);
       }
     });
     this.network.on("blurNode", node => {
       if (node.node >= 2) {
-        this.props.workerContext.setActiveWorker(undefined);
+        this.props.group.set(undefined);
       }
     });
 
@@ -99,13 +99,13 @@ export default class NetworkView extends React.Component<NetworkViewProps, {}> {
     /**
      * Register for changing active worker
      */
-    this.props.workerContext.subscribe(activeNode => {
-      if (activeNode !== undefined) {
-        this.network.selectNodes([activeNode + 2]);
-      } else {
-        this.network.unselectAll();
-      }
-    });
+    // this.props.group.subscribe(activeNode => {
+    //   if (activeNode) {
+    //     this.network.selectNodes([activeNode + 2]);
+    //   } else {
+    //     this.network.unselectAll();
+    //   }
+    // });
   }
 
   public render() {
@@ -142,8 +142,7 @@ export default class NetworkView extends React.Component<NetworkViewProps, {}> {
     });
 
     this.groups.forEach((group, i) => {
-      // const color = this.props.workerContext.getWorkerColor(rank);
-      const color = this.props.workerContext.getWorkerColor(group.id);
+      const color = this.props.group.getColor(group.id);
       const level = Math.floor(i / 2) + 2;
       const id = group.id + 2;
       // push group node

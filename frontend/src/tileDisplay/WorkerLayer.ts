@@ -1,11 +1,11 @@
 import L from "leaflet/dist/leaflet-src.js";
 import { Point, LatLng, GeoJSON } from "leaflet";
 import { unproject } from "./Project";
-import { tileSize } from "../Constants";
+import { TileSize } from "../Constants";
 import WebSocketClient from "../connection/WSClient";
-import WorkerContext from "../misc/GroupContext";
 import { Feature, FeatureCollection } from "geojson";
 import { RegionGroup } from "../misc/RegionGroup";
+import { GroupObservable } from "../misc/Observable";
 
 /**
  *
@@ -20,7 +20,7 @@ function toGeoJSON(regions: RegionGroup[], pixelToLatLng: (a: Point) => LatLng):
 
   const toLatLngArray = (real: number, imag: number, zoom: number): number[] => {
     const tl = unproject(real, imag, zoom);
-    const pixelCoords = L.point(tl.x * tileSize, -tl.y * tileSize);
+    const pixelCoords = L.point(tl.x * TileSize, -tl.y * TileSize);
     const latLng = pixelToLatLng(pixelCoords);
     return [latLng.lng, latLng.lat];
   };
@@ -49,11 +49,12 @@ export default class WorkerLayer extends L.GeoJSON {
   private nodeLayers: Map<number, GeoJSON<any>>;
   private nodeGroups: Map<number, RegionGroup>;
   private currentGroup: RegionGroup[];
+  private workerContext: GroupObservable;
 
   constructor(
     wsclient: WebSocketClient,
     pixelToLatLng: (p: Point) => LatLng,
-    workerContext: WorkerContext
+    workerContext: GroupObservable
   ) {
     const style = (feature: Feature): {} => {
       let regionStyle = {
@@ -64,9 +65,9 @@ export default class WorkerLayer extends L.GeoJSON {
         dashArray: "3",
         fillOpacity: 0.3
       };
-      if (feature.properties !== null && feature.properties.isGroup) {
+      if (feature.properties && feature.properties.isGroup) {
         regionStyle = Object.assign(regionStyle, {
-          fillColor: workerContext.getWorkerColor(feature.properties.node)
+          fillColor: workerContext.getColor(feature.properties.node)
         });
       } else {
         regionStyle = Object.assign(regionStyle, {
@@ -84,12 +85,14 @@ export default class WorkerLayer extends L.GeoJSON {
       }
       layer.on({
         mouseover: () => {
-          if (feature.properties !== null && feature.properties.isGroup)
-            workerContext.setActiveWorker(node);
+          if (feature.properties !== null && feature.properties.isGroup){
+              workerContext.set(node);
+          }
         },
         mouseout: () => {
-          if (feature.properties !== null && feature.properties.isGroup)
-            workerContext.setActiveWorker(undefined);
+          if (feature.properties !== null && feature.properties.isGroup){
+            workerContext.set(undefined);
+          }
         }
       });
       this.nodeLayers.set(node, layer);
@@ -102,6 +105,7 @@ export default class WorkerLayer extends L.GeoJSON {
 
     this.nodeLayers = new Map();
     this.nodeGroups = new Map();
+    this.workerContext = workerContext;
 
     const onNewRegion = (group: RegionGroup[]) => {
       this.clearLayers();
@@ -114,21 +118,21 @@ export default class WorkerLayer extends L.GeoJSON {
     };
     wsclient.registerRegion(onNewRegion);
 
-    workerContext.subscribe((worker: number | undefined) => {
+    workerContext.subscribe((groupId: number | undefined) => {
       this.nodeLayers.forEach((layer: GeoJSON) => {
         this.resetStyle(layer);
       });
-      if (worker !== undefined) {
-        const layer = this.nodeLayers.get(worker);
+      if (groupId) {
+        const layer = this.nodeLayers.get(groupId);
         if (layer) {
           layer.setStyle({
             fillOpacity: 0.7
           });
         }
-        const group = this.nodeGroups.get(worker);
-        if (group && group.getChildren() !== null) {
+        const group = this.nodeGroups.get(groupId);
+        if (group && group.getLeafs()) {
           onNewRegion(this.currentGroup);
-          this.addData(toGeoJSON(group.getChildren() as RegionGroup[], pixelToLatLng));
+          this.addData(toGeoJSON(group.getLeafs() as RegionGroup[], pixelToLatLng));
         }
       }
     });

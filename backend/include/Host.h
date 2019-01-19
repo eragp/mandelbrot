@@ -3,6 +3,7 @@
 
 #include <websocketpp/config/asio_no_tls.hpp>
 #include <websocketpp/server.hpp>
+#include <websocketpp/extensions/permessage_deflate/enabled.hpp>
 
 #include <map>
 #include <queue>
@@ -11,7 +12,19 @@
 #include <condition_variable>
 
 #include "Region.h"
-#include "RegionData.h"
+#include "RegionData.h" 
+
+struct deflate_server_config : public websocketpp::config::asio {
+	// ... additional custom config if you need it for other things
+
+	/// permessage_compress extension
+    struct permessage_deflate_config {};
+
+    typedef websocketpp::extensions::permessage_deflate::enabled
+        <permessage_deflate_config> permessage_deflate_type;
+};
+
+typedef websocketpp::server<deflate_server_config> server_endpoint_type;
 
 class Host {
 public:
@@ -25,6 +38,7 @@ private:
     
     // Defines if a Node can or should be used
     static bool* usable_nodes;
+    static int usable_nodes_count;
 
     // Store for the current big region
     static Region current_big_region;
@@ -33,7 +47,7 @@ private:
 
     // Transfer region requests from Websocket-Thread to MPI-Thread
     static bool mpi_send_regions;
-    static std::map<int, Region> websocket_request_to_mpi;
+    static std::vector<Region> websocket_request_to_mpi;
     static std::mutex websocket_request_to_mpi_lock;
 
     // Transfer RegionData from MPI-Thread to Websocket-Result-Thread
@@ -42,13 +56,13 @@ private:
     static std::condition_variable mpi_to_websocket_result_available;
 
     // Websocket server
-    static websocketpp::server<websocketpp::config::asio> websocket_server;
+    static server_endpoint_type websocket_server;
     static void start_server();
     static websocketpp::connection_hdl client;
     static void register_client(websocketpp::connection_hdl conn);
     static void deregister_client(websocketpp::connection_hdl conn);
     static void send();
-    static void handle_region_request(websocketpp::connection_hdl hdl, websocketpp::server<websocketpp::config::asio>::message_ptr msg);
+    static void handle_region_request(websocketpp::connection_hdl hdl, server_endpoint_type::message_ptr msg);
 };
 #endif
 

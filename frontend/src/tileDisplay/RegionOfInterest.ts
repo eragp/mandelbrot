@@ -9,6 +9,7 @@ export default class RegionOfInterest {
   public data: number[];
   public width: number;
   public height: number;
+  public rank: number;
   private ROIWidth: number;
   private ROIHeight: number;
 
@@ -19,7 +20,8 @@ export default class RegionOfInterest {
    * @param {number} width width of the super region
    * @param {number} height height of the super region
    */
-  constructor(tl: Point3D, br: Point3D, data: number[], width: number, height: number) {
+  constructor(rank: number, tl: Point3D, br: Point3D, data: number[], width: number, height: number) {
+    this.rank = rank;
     this.topLeft = tl;
     this.bottomRight = br;
     this.data = data;

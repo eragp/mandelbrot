@@ -1,3 +1,7 @@
+.index {
+    min-width: 768px;
+}
+
 .mainTop {
     height: 75vh;
     width: 100vw;
@@ -5,5 +9,10 @@
 
 .mainBottom {
     height: 25vh;
-    width: 100vw;
+    max-width: 1200px;
+    margin: auto;
+}
+
+.eval-button {
+    
 }

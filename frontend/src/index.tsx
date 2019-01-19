@@ -1,58 +1,63 @@
+import "bootstrap/dist/css/bootstrap.css";
+
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-// Bootstrap
-import "bootstrap/dist/css/bootstrap.css";
-// Custom Components
+
 import TileDisplay from "./tileDisplay/TileDisplay";
-import registerServiceWorker from "./registerServiceWorker";
-
 import WebSocketClient from "./connection/WSClient";
-import { getURLParams } from "./misc/URLParams";
+import {
+  BalancerObservable,
+  ImplementationObservable,
+  GroupObservable,
+  ViewCenterObservable
+} from "./misc/Observable";
+import { readViewCenterParams, readWSUrl } from "./misc/URLParams";
 
 // Custom Components
-import NodeProgress from "./visualization/ComputationTime";
-import BalancerChoice from "./visualization/BalancerChoice";
-import BalancerPolicy from "./misc/BalancerPolicy";
-import WorkerContext from "./misc/GroupContext";
-import NetworkView from "./visualization/NetworkView";
-import IdleTime from "./visualization/IdleTime";
+import ComputationTime from "./components/ComputationTime";
+import NetworkView from "./components/NetworkView";
+import IdleTime from "./components/IdleTime";
+import SelectBox from "./components/SelectBox";
 
 // CSS
 import "./index.css";
+// Bootstrap
+import registerServiceWorker from "./registerServiceWorker";
 
 class App extends React.Component<{}, {}> {
-  render() {
-    const websocketclient = new WebSocketClient();
-    const balancerPolicy = new BalancerPolicy();
-    const workerContext = new WorkerContext();
+  public render() {
+    const ws = new WebSocketClient(readWSUrl());
 
-    // const params = new URLSearchParams(document.location.search);
-    // console.log(params);
-    // params.set("test", 132);
-    // window.history.replaceState({}, '', `${document.location.pathname}?${params}`);
+    const balancer = new BalancerObservable();
+    const group = new GroupObservable();
+    const impl = new ImplementationObservable();
+    const viewCenter = new ViewCenterObservable();
+
+    viewCenter.set(readViewCenterParams());
 
     return (
-      <div>
+      <div className="index">
         <div className="mainTop">
           <TileDisplay
-            workerContext={workerContext}
-            wsclient={websocketclient}
-            balancerPolicy={balancerPolicy}
-            viewCenter={getURLParams()}
+            group={group}
+            wsclient={ws}
+            balancer={balancer}
+            implementation={impl}
+            viewCenter={viewCenter}
           />
         </div>
         <div className="mainBottom row">
           <div className="col-3">
-            <BalancerChoice balancerPolicy={balancerPolicy} />
+            <SelectBox balancer={balancer} implementation={impl} />
           </div>
-          <div className="col-5">
-            <NetworkView workerContext={workerContext} wsclient={websocketclient} />
+          <div className="col">
+            <NetworkView group={group} wsclient={ws} />
           </div>
           <div className="col-1">
-            <IdleTime workerContext={workerContext} wsclient={websocketclient} />
+            <IdleTime group={group} wsclient={ws} />
           </div>
           <div className="col-3">
-            <NodeProgress workerContext={workerContext} wsClient={websocketclient} />
+            <ComputationTime group={group} wsClient={ws} />
           </div>
         </div>
       </div>

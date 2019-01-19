@@ -9,15 +9,16 @@ import {
   ChartHoverOptions
 } from "chart.js";
 import WebSocketClient from "../connection/WSClient";
+import { GroupObservable } from "../misc/Observable";
 
 import "./IdleTime.css";
-import WorkerContext from "../misc/GroupContext";
 import { RegionGroup, groupRegions } from "../misc/RegionGroup";
 import { WorkerInfo } from "../connection/ExchangeTypes";
+import { usToString } from "../misc/Conversion";
 
 interface IdleTimeProps {
+  group: GroupObservable;
   wsclient: WebSocketClient;
-  workerContext: WorkerContext;
 }
 
 interface IdleTimeState {
@@ -25,6 +26,9 @@ interface IdleTimeState {
   active: Map<number, boolean>;
   progress: Map<number, number>;
 }
+
+// Display idle time in seconds
+const factor = 1e6;
 /**
  * Shows the computation time of invoked workers
  * Additional documentation on the type of used chart: https://www.chartjs.org/docs/latest/
@@ -37,26 +41,28 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
   private hoveredItem: any;
   private hoveredSegment: any;
 
-
   constructor(props: IdleTimeProps) {
     super(props);
 
     const pseudoWorker: WorkerInfo = {
-        rank: 0,
-        computationTime: 0,
-        region: {
-            guaranteedDivisor: 0,
-            hOffset: 0,
-            vOffset: 0,
-            height: 0,
-            maxImag: 0,
-            maxIteration: 0,
-            maxReal: 0,
-            minImag: 0,
-            minReal: 0,
-            validation: 0,
-            width: 0,
-        }
+      rank: 0,
+      computationTime: 0,
+      mpiTime: 0,
+      region: {
+        guaranteedDivisor: 0,
+        hOffset: 0,
+        vOffset: 0,
+        height: 0,
+        maxImag: 0,
+        maxIteration: 0,
+        maxReal: 0,
+        minImag: 0,
+        minReal: 0,
+        validation: 0,
+        width: 0,
+        fractal: "mandelbrot",
+        regionCount: 0
+      }
     };
     this.chartState = {
       nodes: groupRegions([pseudoWorker]),
@@ -68,25 +74,9 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
 
   public componentDidMount() {
     // TODO does not work
-    const customLabel = (tooltipItem: ChartTooltipItem, data: ChartData) => {
-      if (!data.datasets || !tooltipItem.datasetIndex || !tooltipItem.index) {
-        return "";
-      }
-      const dataset = data.datasets[tooltipItem.datasetIndex];
-      if (!dataset.data) {
-        return "";
-      }
-      let label = dataset.label;
-
-      if (label) {
-        label += ": ";
-      } else {
-        label = "";
-      }
-      label += dataset.data[tooltipItem.index];
-      label += " ms";
-      return label;
-    };
+    const customLabel = (tooltipItem: any, data: any) =>
+      // needs to be multiplied by factor, because the cart data is in seconds
+      usToString(data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index] * factor);
 
     const ctx = document.getElementById("idleTime") as HTMLCanvasElement;
     const config: ChartConfiguration = {
@@ -111,13 +101,13 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
           // change workercontext active worker on hover
           const data = this.chart.getDatasetAtEvent(event)[0] as ChartDataSets;
           if (data) {
-            this.props.workerContext.setActiveWorker(
+            this.props.group.set(
               // @ts-ignore: data does not have complete .d.ts file
-              this.chartState.nodes[data._datasetIndex]
+              this.chartState.nodes[data._datasetIndex].id
             );
             this.hoveredItem = data;
           } else if (this.hoveredItem) {
-            this.props.workerContext.setActiveWorker(undefined);
+            this.props.group.set(undefined);
             this.hoveredItem = undefined;
           }
         },
@@ -150,7 +140,6 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
     // so that they are set inactive when the first tile/region
     // by them comes in
     this.props.wsclient.registerRegionData(data => {
-      this.stopNodeProgress();
       // Stop corresponding worker progress bar
       // assume that regionData is passed here
 
@@ -163,7 +152,6 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
       // => store progress for each node separated
       this.chartState.progress.set(data.workerInfo.rank, data.workerInfo.computationTime);
       this.updateChart(0);
-      this.initNodeProgress();
     });
 
     this.props.wsclient.registerRegion(groups => {
@@ -174,17 +162,17 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
       const active = new Map();
       const progress = new Map();
 
-      const animationDuration = 750;
+      const animationDuration = 50;
       for (const group of groups) {
         for (const region of group.getLeafs()) {
-            active.set(region.id, true);
-            progress.set(region.id, animationDuration * 1000);
+          active.set(region.id, true);
+          progress.set(region.id, animationDuration * 1000);
         }
       }
       this.chartState = {
-        nodes: nodes,
-        active: active,
-        progress: progress
+        nodes,
+        active,
+        progress
       };
       this.updateChart(animationDuration);
       // Start redrawing as soon as animation has finished
@@ -195,24 +183,23 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
 
     // Highlight segement on active worker change
     // Inspired by https://github.com/chartjs/Chart.js/issues/1768
-    this.props.workerContext.subscribe(activeWorker => {
+    this.props.group.subscribe(groupIndex => {
       // Activate new tooltip if necessary
-      if (activeWorker !== undefined) {
-        const workerIndex = this.chartState.nodes.findIndex(g => g.id === activeWorker);
+      if (groupIndex) {
+        const index = this.chartState.nodes.findIndex(g => g.id === groupIndex);
         // @ts-ignore: does not have complete .d.ts file
-        const activeSegment = (this.chart.data.datasets as ChartDataSets[])[workerIndex]._meta[0]
-          .data[0];
+        const activeSegment = (this.chart.data.datasets as ChartDataSets[])[index]._meta[0].data[0];
         // @ts-ignore: does not have complete .d.ts file
         this.chart.tooltip.initialize();
         // @ts-ignore: does not have complete .d.ts file
         this.chart.tooltip._active = [activeSegment];
+
         (this.chart.data.datasets as ChartDataSets[])[
-          workerIndex
+          index
           // @ts-ignore: does not have complete .d.ts file
         ]._meta[0].controller.setHoverStyle(activeSegment);
         this.hoveredSegment = activeSegment;
       } else {
-        // Remove tooltip
         // @ts-ignore: does not have complete .d.ts file
         (this.chart.data.datasets as ChartDataSets[])[0]._meta[0].controller.removeHoverStyle(
           this.hoveredSegment
@@ -241,29 +228,29 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
   private updateChart(animationDuration?: number) {
     const datasets: ChartDataSets[] = [];
     const groupCompTime = (group: RegionGroup) => {
-        let compTime = 0;
-        for (const region of group.getLeafs()) {
-            compTime += this.chartState.progress.get(region.id) as number;
-        }
-        return compTime;
+      let compTime = 0;
+      for (const region of group.getLeafs()) {
+        compTime += this.chartState.progress.get(region.id) as number;
+      }
+      return compTime;
     };
     let maxComputationTime = 0;
-    for(const g of this.chartState.nodes){
-        const compTime = groupCompTime(g);
-        if (compTime > maxComputationTime) {
-            maxComputationTime = compTime;
-        }
+    for (const g of this.chartState.nodes) {
+      const compTime = groupCompTime(g);
+      if (compTime > maxComputationTime) {
+        maxComputationTime = compTime;
+      }
     }
     // Ensure that the order from the nodes array is kept for the datasets
     this.chartState.nodes.forEach(group => {
       const rank = group.id;
-      // Display idle time in seconds
-      const factor = 1000000;
-      const idleTime = group === undefined ? 0 : ((maxComputationTime - (groupCompTime(group))) / factor);
+      const groupSize = group.getLeafs().length;
+      // IdleTime is displayed in seconds, averaged over the size of the group
+      const idleTime = (maxComputationTime - groupCompTime(group)) / (groupSize * factor);
       datasets.push({
         label: "Group " + rank,
         data: [idleTime],
-        backgroundColor: this.props.workerContext.getWorkerColor(rank),
+        backgroundColor: this.props.group.getColor(rank),
         stack: "idle-time"
       });
     });
@@ -289,8 +276,11 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
         this.chartState.nodes.forEach(group => {
           for (const region of group.getLeafs()) {
             if (state.active.get(region.id)) {
-                state.progress.set(region.id, (state.progress.get(region.id) as number) + interval * 1000);
-                update = true;
+              state.progress.set(
+                region.id,
+                (state.progress.get(region.id) as number) + interval * 1000
+              );
+              update = true;
             }
           }
         });

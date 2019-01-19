@@ -3,6 +3,34 @@ import subprocess
 import argparse
 import re
 import os
+import threading
+
+# based on https://stackoverflow.com/a/287944
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+def print_warning(string, *args, **kwargs):
+    string = "{}{}{}".format(bcolors.WARNING, string, bcolors.ENDC)
+    print(string, *args, **kwargs)
+
+def print_fail(string, *args, **kwargs):
+    string = "{}{}{}".format(bcolors.FAIL, string, bcolors.ENDC)
+    print(string, *args, **kwargs)
+
+def print_blue(string, *args, **kwargs):
+    string = "{}{}{}".format(bcolors.OKBLUE, string, bcolors.ENDC)
+    print(string, *args, **kwargs)
+
+def print_green(string, *args, **kwargs):
+    string = "{}{}{}".format(bcolors.OKGREEN, string, bcolors.ENDC)
+    print(string, *args, **kwargs)
 
 
 def print_begin(*args, **kwargs):
@@ -58,7 +86,7 @@ if __name__ == '__main__':
             stdout=subprocess.PIPE,
             universal_newlines=True,
             cwd=binary_dir) as srun:
-        print("started mandelbrot")
+        print_green("started mandelbrot")
         _hostpattern = re.compile(r".*Host: \d+ of \d+ on node ({}\d\d).*".format(args.partition))
         host_node = 'ERROR'
         print_begin("Search host node...")
@@ -70,42 +98,64 @@ if __name__ == '__main__':
             if _match:
                 host_node = _match.group(1)
                 break
-        print("{} found".format(host_node))
+        print_green("{} found".format(host_node))
         argsssh = ["ssh", "-L 0.0.0.0:{}:localhost:9002".format(args.port), "-N", host_node]
         print_begin(
             "Establish port {} forwarding to host node {}:9002 ...".format(
                 args.port, host_node))
         with subprocess.Popen(argsssh, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL) as sshproc:
-            print("established")
-            print(
+            print_green("established")
+            print_green(
                 "System running. Websocket connection to backend is now available at"
             )
-            print("\tws://himmuc.caps.in.tum.de:{}".format(args.port))
+            print_blue("\tws://himmuc.caps.in.tum.de:{}".format(args.port))
+            print(
+                "Copy and paste this link for an autoconfigured frontend"
+            )
+            print_blue("\thttp://localhost:3000/?backend=ws://himmuc.caps.in.tum.de:{}".format(args.port))
+            
+            e = threading.Event()
+            e.clear()
+            def print_stdout():
+                i = 0
+                _max = 5
+                for line in srun.stdout:
+                    i = (i+1) % _max 
+                    reminder = "{}{}{}".format(bcolors.WARNING, " (Reminder: enter to stop)", bcolors.ENDC) if i == 0 else ""
+                    print("{}{}".format(line[:-1], reminder), flush=True) # print output - note that it wall appear after successful input request
+                    if e.is_set():
+                        break
+            
+            t = threading.Thread(target=print_stdout)
+            t.start()
             try:
-                command = input("Press enter (in doubt, twice) to stop ")
+                print_warning("Press enter (in doubt, twice) to stop - do *not* ctrl-c")
+                command = input("\n")
             except KeyboardInterrupt:
                 pass
+            e.set()
+
             print_begin("Stopping port forwarding...")
             sshproc.kill()
             try:
                 sshproc.wait(5)
-                print("stopped ({})".format(sshproc.returncode))
+                print_green("stopped ({})".format(sshproc.returncode))
             except subprocess.TimeoutExpired:
                 print_begin("failed, sending signal 9...")
                 try:
                     sshproc.wait(5)
-                    print("stopped ({})".format(sshproc.returncode))
+                    print_green("stopped ({})".format(sshproc.returncode))
                 except subprocess.TimeoutExpired:
-                    print("failed")
+                    print_fail("failed")
         print_begin("Stopping mandelbrot host and workers...")
         srun.kill()
         try:
             srun.wait(5)
-            print("stopped ({})".format(srun.returncode))
+            print_green("stopped ({})".format(srun.returncode))
         except subprocess.TimeoutExpired:
             print_begin("failed, sending signal 9...")
             try:
                 srun.wait(5)
-                print("stopped ({})".format(srun.returncode))
+                print_green("stopped ({})".format(srun.returncode))
             except subprocess.TimeoutExpired:
-                print("failed")
+                print_fail("failed")

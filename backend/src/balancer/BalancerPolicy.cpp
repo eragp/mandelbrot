@@ -1,6 +1,7 @@
 #include "BalancerPolicy.h"
 #include "Balancer.h"
 #include "NaiveBalancer.h"
+#include "RecursiveNaiveBalancer.h"
 #include "ColumnBalancer.h"
 #include "PredictionBalancer.h"
 #include "RecursivePredictionBalancer.h"
@@ -19,6 +20,11 @@ Balancer* BalancerPolicy::chooseBalancer(std::string balancerName, Fractal* frac
         // TODO: Fractal is not needed --> delete? depends on implementation in Host
         delete fractal;
         return new NaiveBalancer();
+    } else if (balancerName == RecursiveNaiveBalancer::NAME) {
+        std::cout << "Chose recursive naive balancer" << std::endl;
+        // TODO: Fractal is not needed --> delete? depends on implementation in Host
+        delete fractal;
+        return new RecursiveNaiveBalancer();
     } else if (balancerName == ColumnBalancer::NAME) {
         std::cout << "Chose column balancer" << std::endl;
         // TODO: Fractal is not needed --> delete? depends on implementation in Host
