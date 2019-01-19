@@ -1,21 +1,12 @@
 import { getBottomRightPoint, getTopLeftPoint, project } from "../tileDisplay/Project";
 import { Request } from "../connection/ExchangeTypes";
 import { TileSize } from "../Constants";
-import { Point3D } from "../misc/Point";
+// import { Point3D } from "../misc/Point";
 import { Map } from "leaflet";
 
-// making sure only new requests actually get sent
-let currentTopLeft: Point3D;
-let currentBottomRight: Point3D;
-let currentBalancer: string;
-let currentImplementation: string;
-let currentWorkerCount: number;
-let currentMaxIteration: number;
 /**
  *  Sends a region request for the currently visible region
  *
- * If the region has not changed from the last request, null is returned.
- * Otherwise the corresponding request for the backend is returned.
  * @param {*} map current Leaflet map
  */
 export const request = (
@@ -30,24 +21,6 @@ export const request = (
 
   const topLeft = getTopLeftPoint(bounds, TileSize, zoom);
   const botRight = getBottomRightPoint(bounds, TileSize, zoom);
-
-  // has the visible region changed?
-  if (
-    topLeft.equals(currentTopLeft) &&
-    botRight.equals(currentBottomRight) &&
-    currentBalancer === balancer &&
-    currentImplementation === fractal &&
-    nodes === currentWorkerCount &&
-    maxIteration === currentMaxIteration
-  ) {
-    return null;
-  }
-  currentTopLeft = topLeft;
-  currentBottomRight = botRight;
-  currentBalancer = balancer;
-  currentImplementation = fractal;
-  currentWorkerCount = nodes;
-  currentMaxIteration = maxIteration;
 
   const tlComplex = project(topLeft.x, topLeft.y, topLeft.z, 0, 0, TileSize);
   const brComplex = project(botRight.x, botRight.y, botRight.z, 0, 0, TileSize);

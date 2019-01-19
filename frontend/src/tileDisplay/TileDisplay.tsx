@@ -93,9 +93,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
         this.props.workerCount.get(),
         this.props.iterationCount.get()
       );
-      if (r) {
         websocketClient.sendRequest(r);
-      }
     });
 
     // Handle balancer change as view change
@@ -224,6 +222,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
 
     this.props.viewCenter.subscribe(pt => {
       if (!pt.equals(this.center)) {
+        console.log("updating view Center", pt);
         const p = complexToLeaflet(pt.x, pt.y, pt.z);
         map.setView([p.x, p.y], p.z);
         this.updateAllViews();

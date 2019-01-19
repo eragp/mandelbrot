@@ -8,12 +8,13 @@ import {
 } from "../misc/Observable";
 import { Point3D } from "../misc/Point";
 import { StatsCollector } from "./StatsCollector";
-import { Output, PoI } from "./ConfigTypes";
+import { Tour, Output, PoI } from "./ConfigTypes";
 
 import "./TourMonitor.css";
 import { Balancers, Implementations } from "../Constants";
 
 interface Config {
+  run: number;
   balancer: string;
   implementation: string;
   maxIteration: number;
@@ -45,6 +46,7 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
     super(props);
     this.onFileChange = this.onFileChange.bind(this);
     this.state = {
+      run: 1,
       running: false,
       progress: 0,
       configLength: 0,
@@ -113,50 +115,53 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
 
   private start(configJSON: string) {
     // generate config combinations
-    const config = JSON.parse(configJSON);
+    const config = JSON.parse(configJSON) as Tour;
     this.configs = [];
-    for (const balancer of config.balancers) {
-      if (!Balancers.some(b => b.key === balancer)) {
-        console.error("Invalid balancer: ", balancer);
-        return;
-      }
-      for (const implementation of config.implementations) {
-        if (!Implementations.some(i => i.key === implementation)) {
-          console.error("Invalid implementation: ", balancer);
+    for (let run = 1; run <= config.runs; run++) {
+      for (const balancer of config.balancers) {
+        if (!Balancers.some(b => b.key === balancer)) {
+          console.error("Invalid balancer: ", balancer);
           return;
         }
-        if (config.maxIteration.length !== 3 && config.maxIteration.length !== 1) {
-          console.error("Invalid maxIteration specification: ", config.maxIteration);
-          return;
-        }
-        let min_I = config.maxIteration[0];
-        let max_I = config.maxIteration[0];
-        let step_I = config.maxIteration[0];
-        if (config.maxIteration.length === 3) {
-          max_I = config.maxIteration[1];
-          step_I = config.maxIteration[2];
-        }
-        for (let maxIteration = min_I; maxIteration <= max_I; maxIteration += step_I) {
-          if (config.nodeCount.length !== 3 && config.nodeCount.length !== 1) {
-            console.error("Invalid nodeCount specification: ", config.nodeCount);
+        for (const implementation of config.implementations) {
+          if (!Implementations.some(i => i.key === implementation)) {
+            console.error("Invalid implementation: ", balancer);
             return;
           }
-          let min_N = config.nodeCount[0];
-          let max_N = config.nodeCount[0];
-          let step_N = config.nodeCount[0];
-          if (config.maxIteration.length === 3) {
-            max_N = config.nodeCount[1];
-            step_N = config.nodeCount[2];
+          if (config.maxIteration.length !== 3 && config.maxIteration.length !== 1) {
+            console.error("Invalid maxIteration specification: ", config.maxIteration);
+            return;
           }
-          for (let nodeCount = min_N; nodeCount <= max_N; nodeCount += step_N) {
-            for (const poi of config.pois) {
-              this.configs.push({
-                balancer,
-                implementation,
-                maxIteration,
-                nodeCount,
-                poi
-              });
+          let min_I = config.maxIteration[0];
+          let max_I = config.maxIteration[0];
+          let step_I = config.maxIteration[0];
+          if (config.maxIteration.length === 3) {
+            max_I = config.maxIteration[1];
+            step_I = config.maxIteration[2];
+          }
+          for (let maxIteration = min_I; maxIteration <= max_I; maxIteration += step_I) {
+            if (config.nodeCount.length !== 3 && config.nodeCount.length !== 1) {
+              console.error("Invalid nodeCount specification: ", config.nodeCount);
+              return;
+            }
+            let min_N = config.nodeCount[0];
+            let max_N = config.nodeCount[0];
+            let step_N = config.nodeCount[0];
+            if (config.maxIteration.length === 3) {
+              max_N = config.nodeCount[1];
+              step_N = config.nodeCount[2];
+            }
+            for (let nodeCount = min_N; nodeCount <= max_N; nodeCount += step_N) {
+              for (const poi of config.pois) {
+                this.configs.push({
+                  run,
+                  balancer,
+                  implementation,
+                  maxIteration,
+                  nodeCount,
+                  poi
+                });
+              }
             }
           }
         }
@@ -193,21 +198,22 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
     const c = configs[0] as Config;
     console.log("Tour: Changing config to: ", c);
 
-    // only notify the observable that has changed once
-    const oldBl = this.props.balancer.get();
-    const oldImp = this.props.impl.get();
-    const oldIter = this.props.iter.get();
-    const oldCenter = this.props.viewCenter.get();
+    // // only notify the observable that has changed once
+    // const oldBl = this.props.balancer.get();
+    // const oldImp = this.props.impl.get();
+    // const oldIter = this.props.iter.get();
+    // const oldCenter = this.props.viewCenter.get();
 
     this.props.balancer.setNoNotify(c.balancer);
     this.props.impl.setNoNotify(c.implementation);
     this.props.iter.setNoNotify(c.maxIteration);
-    const pt = new Point3D(c.poi.real, c.poi.imag, c.poi.zoom);
-    this.props.viewCenter.setNoNotify(pt);
     this.props.workerCount.setNoNotify(c.nodeCount);
+    const pt = new Point3D(c.poi.real, c.poi.imag, c.poi.zoom);
+    if (!this.props.viewCenter.set(pt)) {
+      this.props.balancer.notify();
+    }
 
     // notify all view observers
-    this.props.viewCenter.notify();
 
     this.props.stats.onDone(stats => {
       output.datapoints.push({
@@ -215,7 +221,8 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
           balancer: c.balancer,
           implementation: c.implementation,
           maxIteration: c.maxIteration,
-          nodeCount: c.nodeCount
+          nodeCount: c.nodeCount,
+          run: c.run
         },
         poi: c.poi,
         data: {

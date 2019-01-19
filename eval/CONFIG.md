@@ -2,7 +2,7 @@
 
 The settings for a configuration run are set in a config.json file.
 
-The number of configurations to be run is `|balancers| * |implementations| * |maxIteration| * |nodeCount| * |pois|`.
+The number of configurations to be run is `|balancers| * |implementations| * |maxIteration| * |nodeCount| * |pois| * runs`.
 
 ## Running a configuration
 
@@ -80,6 +80,13 @@ The evaluation window can be exited by clicking anywhere outside the modal dialo
   }, ...
   ```
 
+- `runs`:
+  All generated settings are executed `runs` times.
+
+  ```json
+  "runs": 10,
+  ```
+
 Example for a full config:
 
 ```json
@@ -92,6 +99,7 @@ Example for a full config:
   "implementations": ["mandelbrot", "mandelbrot64"],
   "maxIteration": [1019, 1019, 1],
   "nodeCount": [37, 37, 1],
+  "runs": 10,
   "cluster": "himmuc",
   "description": "Testing different balancer implementations",
   "pois": [

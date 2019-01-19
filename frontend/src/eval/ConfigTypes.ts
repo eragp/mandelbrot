@@ -4,6 +4,7 @@ export interface Tour {
   implementations: string[];
   maxIteration: number[];
   nodeCount: number[];
+  runs: number;
   cluster: string;
   description: string;
   pois: PoI[];
@@ -29,6 +30,7 @@ export interface Run {
 }
 
 export interface Setting {
+  run: number;
   balancer: string;
   implementation: string;
   maxIteration: number;
