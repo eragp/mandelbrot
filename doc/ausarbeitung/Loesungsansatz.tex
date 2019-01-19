@@ -1,0 +1,129 @@
+%%%%%%%%
+% Highlevel
+% ca 1-2 Seiten
+% Buzzwords, grober Überriss
+
+% Hier wird erklärt, mit welchem Ansatz an das Projekt herangegangen wurde
+\section{Lösungsansatz}
+
+% Warum wurde sich für die Darstellung der Mandelbrotmenge entschieden
+\subsection{Verwendung der Mandelbrotmenge}
+
+Es handelt bei der Bestimmung der Mandelbrotmenge um eine rechenintensive Operation, wobei
+die benötigte Zeit durch Erhöhen der Iterationszahl beliebig erhöht werden kann.
+Zusätzlich ist die Berechnung für jede einzelne komplexe Zahl unabhängig von
+jeder anderen Zahl.
+
+Diese Eigenschaften ermöglichen es zweierlei Dinge vollständig frei zu kontrollieren:
+\begin{itemize}
+	\item Die Dauer der Berechnung
+	\item Die Aufteilung der Berechnung auf unterschiedliche Rechenkerne
+\end{itemize}
+
+Somit kann gesichert werden, dass eine wahrnehmbare Zeit (100-200 ms) zur Berechnung benötigt wird.
+Zudem kann die Unterteilung des zu berechnden Raumes frei gewählt werden, sodass
+für verschiedenste Aufteilungen die Gesamtrechenzeit visualisiert werden kann.
+
+Als Projekt, das an nicht technisch versierten Anwendern spricht auch der ästethische
+Faktor des Mandelbrotfraktals für eine Verwendung.
+Er kann ein erstes Interesse für die Anwendung wecken.
+
+\subsection{HimMUC als Rechencluster}
+Als Cluster unabhängiger Rechenknoten wurde freundlicherweise vom Lehrstuhl für Rechnerarchitektur und Verteilte System der TU München
+das HimMUC Cluster\footnote{\url{http://www.caps.in.tum.de/himmuc/}} bereitgestellt.
+Es besteht aus jeweils 40 Raspberry Pi B+\footnote{Für ein Beispiel, siehe \url{https://www.raspberrypi.org/products/raspberry-pi-3-model-b/}} und ODroids.
+
+% Wie ist die (grobe) Architektur des Programmes (parallelisiertes Backend, Oberfläche)
+\subsection{Architekturübersicht}
+% TODO Ein bisschen mehr details
+Das Problem fordert eine Unterteilung in drei wesentliche Bausteine, wie sie in \autoref{fig:architekturuebersicht} zu sehen sind.
+Eine Benutzeroberfläche in einem Web Browser des Benutzers (“Frontend”), welches die Benutzerinteraktionen entgegennimmt und mit dem Backend kommuniziert.
+Ein Backend-Host übernimmt dazu die Kommunikationsfunktion, verwaltet die eingehenden Rechenaufträge und verteilt sie an die Backend-Worker.
+Das Ergebnis dieser Berechnung sendet der Host dann an das Frontend zurück.
+Die Backend-Worker nehmen die zugewiesenen Rechenaufträge entgegen und führen die eigentlichen Berechnungen verteilt aus.
+
+\begin{figure}
+	% Bindet das als PDF exportierte pptx ein -> vektorgrafik
+	% -> pptx bearbeiten statt pdf
+	\centering
+	\includegraphics[width=0.98\linewidth]{img/Implementierung/Kommunikation.pdf}
+	\caption{Architekturübersicht}
+	\label{fig:architekturuebersicht}
+\end{figure}
+
+\subsection{Lastbalancierung}\label{sec:load_balancing_concepts}
+
+Um die Mandelbrotmenge effizient parallel zu berechnen, sollte die Rechenlast möglichst gleichmäßig auf die Worker verteilt werden.
+Die Aufgabe der Lastbalancierung besteht darin zu einer gegebenen Region und einer Anzahl von Workern eine solche Unterteilung in sogenannte Teilregionen zu finden.
+Damit die Unterschiede zwischen guter und schlechter Lastverteilung deutlich werden, stehen in diesem Projekt verschiedene Strategien der Lastbalancierung zur Wahl.
+Die Strategien lassen sich zur Laufzeit austauschen, um einen direkten Vergleich zu ermöglichen.
+
+\subsubsection{Naive Strategie}
+
+Bei der naiven Strategie wird versucht den einzelnen Workern etwa gleich große Teilregionen zuzuweisen.
+Dies geschieht allerdings ohne Beachtung der eventuell unterschiedlichen Rechenzeiten innerhalb der Teilregionen.
+Es kann bei Verwendung dieser Stratgegie also durchaus passieren, dass ein Worker noch rechnet, während alle anderen bereits fertig sind.
+
+\subsubsection{Strategie mit Vorhersage}
+
+Bei dieser Strategie basiert die Aufteilung der Region auf einer Vorhersage über die Rechenzeit.
+Die Teilregionen werden so gewählt, dass sie, entsprechend der Vorhersage, etwa einen ähnlichen Rechenaufwand haben.
+Die optimale Rechenlast für einen Worker berechnet sich also durch:
+
+\begin{equation}\label{equ:desiredN}
+	\frac{Gesamtrechenlast}{AnzahlWorker}
+\end{equation}
+
+Wenn die Vorhersage hinreichend exakt ist, kann dieser Wert gut angenähert werden.
+Dadurch wird die Last gleichmäßiger auf die Worker verteilt als bei der naiven Strategie.
+
+\paragraph*{Bestimmung der Vorhersage}
+
+Die Zugehörigkeit eines Punktes zur Mandelbrotmenge wird nach \autoref{equ:mandelbrot} iterativ berechnet.
+Deshalb kann die Anzahl der benötigten Iterationen als Abschätzung der Rechenzeit für diesen Punkt verwendet werden.
+Zur Anstellung der Vorhersage wird also die angeforderte Region in deutlich geringerer Auflösung berechnet.
+Dies ist eine gute Annäherung an die tatsächlich Rechendauer, da benachbarte Punkte meist eine ähnliche Anzahl an Iterationen benötigen.
+Einzig am Rand der Mandelbrotmenge kommt es zu Ungenauigkeiten, weil dort Punkte innnerhalb und außerhalb der Menge für die Vorhersage zusammenfallen.
+Die Genauigkeit der Vorhersage zu erhöhen bedeutet zusätzlichen Rechenaufwand während der Balancierung.
+Dieser sollte in einem sinnvollen Verhältnis zum Aufwand der Berechnung der Region selbst stehen.
+Es ist also wichtig eine Balance zwischen Güte und Geschwindigkeit der Vorhersage zu finden.
+
+\subsubsection{Implementierungsvarianten}
+
+Sowohl die naive Strategie als auch die Strategie mit Vorhersage lassen sich in zwei Varianten umsetzen.
+Man kann hierbei einen ganzheitlichen oder einen rekursiven Ansatz wählen.
+Bei ersterem wird die gesamte Region in einem Schritt in die gewünschte Anzahl an Teilregionen geteilt.
+Dazu werden Zeilen und Spalten gebildet.
+Die Grundidee eines rekursiven Ansatzes ist es das Problem so lange in einfachere Teilprobleme aufzuteilen, bis die Lösung offensichtlich ist (Basisfall).
+Hier ist der Basisfall die Aufteilung einer Region auf genau einen Worker.
+Um diesen zu erreichen wird die Region solange halbiert, bis genug Teilregionen für jeden Worker entstanden sind.
+
+Wo die Grenzen zwischen den Zeilen und Spalten (nicht-rekursiv) bzw. den Hälften (rekursiv) liegen, wird von der zugrundeliegenden Lastbalancierungsstrategie bestimmt.
+
+
+
+% Welche Lastbalancierungsmechanismen wurden umgesetzt?
+
+% Wie wurde die Parallelisierung mit MPI angegangen?
+
+% Wie wurde die Parallelisierung mit SIMD angegangen?
+\subsection{Parallelisierung mithilfe von SIMD}
+
+Um das Parallelisierungskonzept mithilfe von SIMD zu erklären,
+ist es hilfreich zunächst vor Augen zu führen, wie ein Vektor komplexer Koordinaten ohne SIMD verarbeitet würde.
+Dies ist in \autoref{src:MandelbrotVect} zu sehen.
+Die Berechnung der einzelnen Kooridnaten bleibt gleich, nur die Abbruchbedingung wird auf alle bearbeiteten Koordinaten erweitert.
+
+Es muss dabei solange weiter iteriert werden, bis für alle Komponenten die Berechnung abgebrochen werden darf.
+Hierbei ist es kein Problem mit den abgebrochenen Punkten weiter zu rechnen, sofern die
+Iterationszahl nur hochgezählt wird wenn das $z_n$ der Koordinate Betragsmäßig kleiner gleich $2$ ist.
+Dies gilt, da alle $|z_{n+i}| > 2$ sofern $|z_n| > 2$ \cite{424331}.
+
+\begin{figure}[h!]
+	\lstinputlisting[caption={Bearbeitung eines Vektors komplexer Koordinaten in Pseudocode}, label={src:MandelbrotVect}]{code/mandelbrotvect.pseudo}
+\end{figure}
+
+Damit kann die Berechnung relativ simpel via Arm NEON Compiler Intrinsics\footnote{Details im Abschnitt 'Compiler Intrinsics' unter \url{https://developer.arm.com/technologies/neon}} implementiert werden (siehe dazu \autoref{src:MandelbrotSIMD32.cpp}).
+% 1 Seite
+
+% Wie wurde die Parallelisierung mit OpenMP angegangen?
