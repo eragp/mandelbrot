@@ -103,8 +103,7 @@ if __name__ == '__main__':
         ], stderr=subprocess.DEVNULL)
         subprocess.run([
             "ssh", sshserver_rpi, 
-        ], input="eragp-mandelbrot/backend/himmuc/build_mandelbrot.sh; exit\n", universal_newlines=True,
-        stderr=subprocess.DEVNULL)
+        ], input="eragp-mandelbrot/backend/himmuc/build_mandelbrot.sh; exit\n", universal_newlines=True)
 
     # Start execution on backend
     # also forward local port 9002 to the chosen port on the himmuc

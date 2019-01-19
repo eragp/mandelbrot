@@ -14,7 +14,18 @@ const int default_res = 256;
 // General initialization of host and worker processes
 int init(int argc, char **argv, const char* type, void (*initFunc) (int world_rank, int world_size)) {
 
-    MPI_Init(&argc, &argv);
+    // Set thread level to MPI_THREAD_FUNNELED. We use MPI in exactly one thread per actor.
+    int providedMPIThreadLevel;
+    MPI_Init_thread(&argc, &argv, MPI_THREAD_FUNNELED, &providedMPIThreadLevel);
+
+    // std::cout << "Provided thread level: " << providedMPIThreadLevel << " ; Needed thread level: " << MPI_THREAD_FUNNELED << std::endl;
+
+    if (providedMPIThreadLevel < MPI_THREAD_FUNNELED) {
+        std::cerr << "MPI thread level support is insufficient." << std::endl;
+        MPI_Abort(MPI_COMM_WORLD, 1);
+        return -1;  // Return with error
+    }
+
     int world_rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
     int world_size;
@@ -28,7 +39,7 @@ int init(int argc, char **argv, const char* type, void (*initFunc) (int world_ra
         " on node " << proc_name << std::endl;
 
     if (world_size < 2) {
-       std:: cerr << "Need at least 2 processes to run. Currently have " << world_size << std::endl;
+       std::cerr << "Need at least 2 processes to run. Currently have " << world_size << std::endl;
         MPI_Finalize();
         return -1;  // return with error
     }
