@@ -46,12 +46,12 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
     super(props);
     this.onFileChange = this.onFileChange.bind(this);
     this.state = {
-      run: 1,
       running: false,
       progress: 0,
       configLength: 0,
       output: "",
       currentConfig: {
+        run: 1,
         balancer: "",
         implementation: "",
         maxIteration: 0,
@@ -74,7 +74,7 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
           <div
             className="progress-bar"
             role="progressbar"
-            aria-valuenow={this.state.progress.toFixed(2)}
+            aria-valuenow={Math.round(this.state.progress * 100) / 100}
             aria-valuemin={0}
             aria-valuemax={100}
             style={{ width: progress }}
@@ -110,7 +110,9 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
   private onFileChange(files: FileList) {
     let fr = new FileReader();
     fr.onload = () => this.start(fr.result as string);
-    fr.readAsText(files[0]);
+    if (files.length > 0) {
+      fr.readAsText(files[0]);
+    }
   }
 
   private start(configJSON: string) {
@@ -118,14 +120,30 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
     const config = JSON.parse(configJSON) as Tour;
     this.configs = [];
     for (let run = 1; run <= config.runs; run++) {
+      if (!config.balancers) {
+        console.error("Invalid balancers: undefined");
+        return;
+      }
       for (const balancer of config.balancers) {
         if (!Balancers.some(b => b.key === balancer)) {
           console.error("Invalid balancer: ", balancer);
           return;
         }
+        if (!config.implementations) {
+          console.error("Invalid implementations: undefined");
+          return;
+        }
         for (const implementation of config.implementations) {
           if (!Implementations.some(i => i.key === implementation)) {
             console.error("Invalid implementation: ", balancer);
+            return;
+          }
+          if (!config.maxIteration) {
+            console.error("Invalid maxIterations: undefined");
+            return;
+          }
+          if (config.maxIteration.length !== 3 && config.maxIteration.length !== 1) {
+            console.error("Invalid maxIteration specification: ", config.maxIteration);
             return;
           }
           if (config.maxIteration.length !== 3 && config.maxIteration.length !== 1) {

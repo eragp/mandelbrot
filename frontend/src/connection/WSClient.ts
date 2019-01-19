@@ -1,8 +1,9 @@
 import { Request, RegionData, Regions, WorkerInfo, workerInfoEquals } from "./ExchangeTypes";
 import { groupRegions, RegionGroup } from "../misc/RegionGroup";
 import { registerCallback } from "../misc/registerCallback";
+import { WsUrl } from "../Constants";
+import { setWSUrl } from "../misc/URLParams";
 
-const url = "ws://localhost:9002";
 export interface WS {
   sendRequest(request: any): void;
   registerRegion(fun: (groups: RegionGroup[]) => any): Promise<any>;
@@ -18,13 +19,18 @@ export default class WebSocketClient implements WS {
   private socket: WebSocket;
   private currentRegions: WorkerInfo[];
 
-  constructor() {
+  constructor(url?: string) {
+    // if no url was provided use the default one
+    if (!url) {
+      url = WsUrl;
+      setWSUrl(url);
+    }
+    console.log("connecting to ", url);
     /**
      * Callbacks for any methods interested in new Region subdivisions or regionData (=result of one worker)
      */
     const regionCallback = this.regionCallback;
     const workerCallback = this.workerCallback;
-
     // Web Socket setup
     // Necessary due to a backend bug
     // TODO: remove this as it's a dirty hack

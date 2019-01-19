@@ -153,6 +153,26 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         else if(boost::iequals(fractal_str, "mandelbrot")){
             fractal_type = mandelbrot;
             fractal_bal = new Mandelbrot();
+        }
+        else if(boost::iequals(fractal_str, "mandelbrotopenmp32")){
+            fractal_type = mandelbrotOpenMP32;
+            fractal_bal = new Mandelbrot32();
+        }
+        else if(boost::iequals(fractal_str, "mandelbrotopenmp64")){
+            fractal_type = mandelbrotOpenMP64;
+            fractal_bal = new Mandelbrot64();
+        }
+        else if(boost::iequals(fractal_str, "mandelbrotopenmpsimd32")){
+            fractal_type = mandelbrotOpenMPSIMD32;
+            fractal_bal = new Mandelbrot32();
+        }
+        else if(boost::iequals(fractal_str, "mandelbrotopenmpsimd64")){
+            fractal_type = mandelbrotOpenMPSIMD64;
+            fractal_bal = new Mandelbrot64();
+        }
+        else if(boost::iequals(fractal_str, "mandelbrotopenmp")){
+            fractal_type = mandelbrotOpenMP;
+            fractal_bal = new Mandelbrot();
         } else {
             std::cerr << "Inclompletely specified region requested: " << request_string;
             return;
