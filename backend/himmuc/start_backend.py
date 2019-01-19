@@ -86,16 +86,14 @@ if __name__ == '__main__':
             e = threading.Event()
             e.clear()
             def print_stdout():
-                i = 0
                 for line in srun.stdout:
-                    i = (i+1)%5
-                    appendix = " (reminder: press enter to stop)" if i == 0 else ""
-                    print("{}{}".format(line[:-1], appendix)) # print output
+                    print("{}".format(line[:-1])) # print output - note that it wall appear after successful input request
                     if e.is_set():
                         break
             
             t = threading.Thread(target=print_stdout)
             t.start()
+            print("Output of the process will be printed as soon as program is stopped")
             try:
                 command = input("Press enter (in doubt, twice) to stop - do *not* ctrl-c")
             except KeyboardInterrupt:
