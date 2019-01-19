@@ -51,6 +51,7 @@ Die Backend-Worker nehmen die zugewiesenen Rechenaufträge entgegen und führen 
 	\label{fig:architekturuebersicht}
 \end{figure}
 
+% Welche Lastbalancierungsmechanismen wurden umgesetzt?
 \subsection{Lastbalancierung}\label{sec:load_balancing_concepts}
 
 Um die Mandelbrotmenge effizient parallel zu berechnen, sollte die Rechenlast möglichst gleichmäßig auf die Worker verteilt werden.
@@ -100,11 +101,59 @@ Um diesen zu erreichen wird die Region solange halbiert, bis genug Teilregionen 
 
 Wo die Grenzen zwischen den Zeilen und Spalten (nicht-rekursiv) bzw. den Hälften (rekursiv) liegen, wird von der zugrundeliegenden Lastbalancierungsstrategie bestimmt.
 
-
-
-% Welche Lastbalancierungsmechanismen wurden umgesetzt?
-
 % Wie wurde die Parallelisierung mit MPI angegangen?
+\subsection{Konzept der ausgetauschten Nachrichten}
+
+Um eine zwischen den unabhängigen Systemen eine einheitliche Kommunikation zu ermöglichen,
+wurde ein Protokoll spezifiziert um Flächen in der komplexen Ebene und ihre Auflösung eindeutig zu bestimmen.
+Der grobe Inhalt und die Richtung der Nachrichten ist \autoref{fig:concept_messages} zu entnehmen,
+die exakte Spezifikation in der jeweiligen Sprache ist den angegebenen Dateien zu entnehmen.
+
+\begin{figure}
+	\includegraphics[width=0.9\linewidth]{img/Implementierung/Nachrichtenuebersicht.pdf}
+	\caption{Konzept der versendeten Nachrichten. Die genauen Definitionen der Nachrichten sind in den angegeben Dateien nachzusehen.}
+	\label{fig:concept_messages}
+\end{figure}
+
+% TODO improve
+
+Ein Beispiel für eine gültige Regionsanfrage ist in \autoref{src:regionRequest.json} zu finden.
+Einerseits wird hierbei eine Region in komplexen Koordinaten beschrieben, wobei der obere linke Punkt $(maxImag, minReal)$
+und der rechte untere Punkt $(minImag, maxReal)$ in der komplexen Ebene einen zu berechnenden Bereich aufspannen.
+Da die reelle Ebene jedoch beliebig genau aufgelöst werden kann, muss zudem noch die Anzahl an Pixeln
+pro Seite des Rechteckes definiert werden, \verb|width| und \verb|height|.
+Wie in \autoref{fig:concept_coordinates} zu sehen, ist zudem der horizontale Offset und vertikale Offset
+die linke obere Koordinate der Region bezüglich der gesamten sichtbaren Anfrage in Pixeln (diese Werte
+gewinnen in den Regionsaufteilungen an Bedeutung).
+Der Wert \verb|validation| ist technisch gesehen nicht mehr notwendig, wird aber mit dem Zoom-wert der Leafletkarte gefüllt
+um zu vermeiden dass Regionsdaten von zuvor berechneten Regionen falsch verwendet werden.
+
+\begin{figure}
+	\lstinputlisting[caption={Eine gültige Anfrage einer Region in JSON}, label={src:regionRequest.json}, language=json]{./code/regionRequest.json}
+\end{figure}
+\begin{figure}
+	\begin{tikzpicture}
+		% Superregion
+		\draw (0,0) rectangle (14,8) node[below left] {Regionrequest/ Angefragte Region};
+		% subregion
+		\draw (3,2) rectangle (8,6) node[below left] {Region};
+		% width height
+		\draw (3,6) -- node[above, red] {width$=m*gD$} (8,6);
+		\draw (3,6) -- node[left, red] {height$=n*gD$} (3,2);
+		% vOffset/hOffset
+		\draw[blue, ->] (3,8) -- (3,6) node[midway, anchor=west] {vOffset};
+		\draw[blue, ->] (0,6) -- (3,6) node[midway, anchor=north] {hOffset};
+		% x/y
+		\draw[green, ->] (3,6) -- (5,5) node[below] {(x+hOffset, y+vOffset)};
+		\draw (0, 0) node[below right] {$gd$ = guaranteedDivisor, $n,m \in \mathbb{N}^{+}$, $x < width$, $y < height$};
+	\end{tikzpicture}
+	\caption{Konzept der Kooridinaten in den Regionsobjekten. Alle Koordinaten beziehen sich auf die Darstellungsebene und sind daher in Pixeln.}
+	\label{fig:concept_coordinates}
+\end{figure}
+
+In zurückkehrenden \verb|RegionData|-Nachrichten sind Arrays der berechneten Iterationszahlen eingebunden.
+Dabei wird der Punkt (x, y) in der gesendeten Region (Punkt (x+hOffset, y+vOffset) in der angefragten Region)
+im Datenarray an Index $i = x + y * width$ gespeichert.
 
 % Wie wurde die Parallelisierung mit SIMD angegangen?
 \subsection{Parallelisierung mithilfe von SIMD}

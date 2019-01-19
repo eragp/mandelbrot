@@ -49,56 +49,6 @@
 
 \section{Dokumentation der Implementierung}
 
-\subsection{Konzept der ausgetauschten Nachrichten}
-
-Um eine zwischen den unabhängigen Systemen eine einheitliche Kommunikation zu ermöglichen,
-wurde ein Protokoll spezifiziert um Flächen in der komplexen Ebene und ihre Auflösung eindeutig zu bestimmen.
-Der grobe Inhalt und die Richtung der Nachrichten ist \autoref{fig:concept_messages} zu entnehmen,
-die exakte Spezifikation in der jeweiligen Sprache ist den angegebenen Dateien zu entnehmen.
-
-\begin{figure}
-	\includegraphics[width=0.9\linewidth]{img/Implementierung/Nachrichtenuebersicht.pdf}
-	\caption{Konzept der versendeten Nachrichten. Die genauen Definitionen der Nachrichten sind in den angegeben Dateien nachzusehen.}
-	\label{fig:concept_messages}
-\end{figure}
-
-% TODO improve
-
-Ein Beispiel für eine gültige Regionsanfrage ist in \autoref{src:regionRequest.json} zu finden.
-Einerseits wird hierbei eine Region in komplexen Koordinaten beschrieben, wobei der obere linke Punkt $(maxImag, minReal)$
-und der rechte untere Punkt $(minImag, maxReal)$ in der komplexen Ebene einen zu berechnenden Bereich aufspannen.
-Da die reelle Ebene jedoch beliebig genau aufgelöst werden kann, muss zudem noch die Anzahl an Pixeln
-pro Seite des Rechteckes definiert werden, \verb|width| und \verb|height|.
-Wie in \autoref{fig:concept_coordinates} zu sehen, ist zudem der horizontale Offset und vertikale Offset
-die linke obere Koordinate der Region bezüglich der gesamten sichtbaren Anfrage in Pixeln (diese Werte
-gewinnen in den Regionsaufteilungen an Bedeutung).
-Der Wert \verb|validation| ist technisch gesehen nicht mehr notwendig, wird aber mit dem Zoom-wert der Leafletkarte gefüllt
-um zu vermeiden dass Regionsdaten von zuvor berechneten Regionen falsch verwendet werden.
-
-\begin{figure}
-	\lstinputlisting[caption={Eine gültige Anfrage einer Region in JSON}, label={src:regionRequest.json}, language=json]{./code/regionRequest.json}
-\end{figure}
-\begin{figure}
-	\begin{tikzpicture}
-		% Superregion
-		\draw (0,0) rectangle (14,8) node[below left] {Regionrequest/ Angefragte Region};
-		% subregion
-		\draw (3,2) rectangle (8,6) node[below left] {Region};
-		% width height
-		\draw (3,6) -- node[above, red] {width$=m*gD$} (8,6);
-		\draw (3,6) -- node[left, red] {height$=n*gD$} (3,2);
-		% vOffset/hOffset
-		\draw[blue, ->] (3,8) -- (3,6) node[midway, anchor=west] {vOffset};
-		\draw[blue, ->] (0,6) -- (3,6) node[midway, anchor=north] {hOffset};
-		% x/y
-		\draw[green, ->] (3,6) -- (5,5) node[below] {(x+hOffset, y+vOffset)};
-		\draw (0, 0) node[below right] {$gd$ = guaranteedDivisor, $n,m \in \mathbb{N}^{+}$, $x < width$, $y < height$};
-	\end{tikzpicture}
-	\caption{Konzept der Kooridinaten in den Regionsobjekten. Alle Koordinaten beziehen sich auf die Darstellungsebene und sind daher in Pixeln.}
-	\label{fig:concept_coordinates}
-\end{figure}
-
-
 \subsection{Implementierung des Backends}
 
 Zur hardwarenahe Berechnung der Mandelbrotmenge wird ein sogenanntes Backend gestartet.
@@ -108,28 +58,16 @@ Dazu besteht das Backend aus zwei ausführbaren Dateien, \verb|host| und \verb|w
 
 \subsubsection{Inkludierte Header und CMake Anweisungen}
 
-Die zusammenstellung der ausführbaren Dateien wird in CMake definiert.
-Dabei unterscheiden sich diese lediglich in den eingebundenen Quelldateien:
-In die Datei \verb|host| werden \verb|host.main.cpp| und \verb|actors/Host.cpp| eingebunden, während
-in \verb|worker| \verb|worker.main.cpp| und \verb|actors/Worker.cpp| eingebunden werden.
+Sämtliche Headerdateien sind ohne Untergruppierung im Ordner \verb|include| des Projektes abgelegt.
 
-Diese und alle weiteren Build-Vorgaben werden in der Datei \verb|CMakeLists.txt| für
-\verb|cmake|\footnote{Ein Programm, welches die Erstellung von Makefiles vereinfacht in dem es sie automatisch an die Umgebung des Build-Systems anpasst. \url{https://cmake.org/}}
-in der hier beschriebenen Reihenfolge spezifiziert.
-Es sollte hierbei eine CMake-Version über 3.7.0 gewählt werden und die C++11 Standards\footnote{\url{https://isocpp.org/wiki/faq/cpp11}} werden vorrausgesetzt.
-Zudem werden für das Projekt "Mandelbrot" werden alle Dateien im Order \verb|include| eingebunden.
-In diesem Ordner liegen die Header-Dateien für alle projektinternen C++-Quelldateien.
-Anschließend werden alle C++-Quelldateien (Endung "\verb|.cpp|") aus dem Ordner \verb|src| in einer Liste gesammelt, mit Ausnahme jedoch der oben genannten, exklusiven Quelldateien.
-Die erzeugte Liste und die jeweils exklusiven Dateien werden dann den ausführbaren Dateien \verb|host| und \verb|worker| zugeordnet.
+Sie werden zusammen mit den Header-Bibliotheken \verb|rapidjson| und \verb|websocketpp| sowie der vorkompilierten
+Bibliothek \verb|boost_static| von CMake eingebunden um das Projekt zu builden.
 
-Um die verwendeten Bibliotheken verfügbar zu machen werden anschließend die Header der installierten MPI-Bibliothek
-sowie die Header der Bibliotheken rapidjson\footnote{\url{http://rapidjson.org}}, websocketpp\footnote{\url{https://github.com/zaphoyd/websocketpp}} und boost\footnote{\url{https://www.boost.org/}}
-Diese werden respektive verwendet um JSON zu parsen und enkodieren, Websocket-Verbindungen aufzubauen und darüber zu kommunizieren sowie um diese Bibliothek zu unterstützen.
-Da für die boost Bibliothek dabei Header nicht genügen und die systemweite Verfügbarkeit der kompilierten boost-Bibliothek nicht garantiert werden kann, wird die Teilbibliothek boost\_system statisch
-in die ausführbaren Datei \verb|host| eingebunden.
+Für einen erfolgreichen Build wird CMake einer Version von mindestens 3.7.0 und die C++11 Standarts vorrausgesetzt.
+Ergebnis des Builds sind die ausführbaren Dateien \verb|host| und \verb|worker| welche die
+beschriebenen Funktionen innerhalb des Backends umsetzen.
 
-Zuletzt werden über Compilerflags alle Kompilierfehler und -warnungen aktiviert sowie die POSIX-Thread-Bibliothek eingebunden,
-die Optimierung auf die höchste Stufe gesetzt und spezielle Flags für die Websocketlibrary und MPI gesetzt.
+Eine detailliertere Beschreibung ist im Anhang zu finden.
 
 \subsubsection{Mainfunktion und Initialisierung}
 
@@ -140,25 +78,14 @@ die erst zurückkehrt, wenn das Programm abgeschlossen ist und MPI beendet werde
 Die Funktion muss als Parameter den Rang bzw. die Id des aktuellen MPI-Prozesses und die Anzahl der initialisierten
 Prozesse entgegen nehmen.
 
-Ein beispielhafter Aufruf ist in \autoref{src:host.main.cpp} zu sehen. Damit wird MPI initialisiert und nach der
-erfolgreichen Initialisierung der eigentliche \hyperref[cls:Host]{Host-Prozess} über \verb|Host::init| gestartet.
-
-\begin{figure}[h]
-	\lstinputlisting[caption={Initialisierung des Host-Prozesses in host.main.cpp}, label={src:host.main.cpp}]{../../backend/src/host.main.cpp}
-\end{figure}
-
-\begin{figure}
-	\lstinputlisting[caption={Initialisierung der MPI-Prozesse in init.cpp}, label={src:init.cpp}, firstline=15, lastline=39, firstnumber=15]{../../backend/src/init.cpp}
-\end{figure}
-
 \subsection{Host Funktionalitäten}\label{cls:Host}
 
 \subsubsection{Websocketverbindung}
 
 Direkt nach der Initialisierung des Host-Programms wird ein separater Thread gestartet, der über Websocket
 Anfragen zur Berechnung einer Region entgegennimmt sowie ein Thread, der berechnete Regionen an den verbundenen Client übergibt.
-Die Methode \verb|Host::start_server| initialisiert dabei lediglich den Websocketserver.
-Über den Typ des Servers wird eine Kompression versendeter Nachrichten über die im Standart akzeptierte Extension perMessageDeflate aktiviert.
+%Die Methode \verb|Host::start_server| initialisiert dabei lediglich den Websocketserver.
+Über den Typ des Servers wird eine Kompression versendeter Nachrichten über die im Standart akzeptierte Extension \enquote{perMessageDeflate} aktiviert.
 Zudem wird der Websocketserver mit \verb|server.init_asio()| mit der Transport Policy "transport::asio"
 konfiguriert, sodass Multithreadzugriff auf Sende- und Empfangsmethoden problemlos möglich ist \cite{websocketppManual}.
 
@@ -171,9 +98,6 @@ Der zweite bei der Initialisierung gestartete Thread führt die Methode \hyperre
 \paragraph{Host::handle\_region\_request}\label{cls:Host::handle_region_request}
 
 Die Methode dekodiert einen empfangene Nachricht als JSON Regionsanfrage und behandelt sie nach folgendem Schema:
-In dem JSON wird unter dem Schlüssel \verb|"balancer"| ein String erwartet, der den zu wählenden Lastbalancierer bestimmt.
-Mögliche Zeichenketten hierfür sind in den Klassen der Balancierer unter \verb|backend/src/balancer| in der globalen Variable
-\verb|Klassenname::NAME| gespeichert.
 
 \begin{enumerate}
 	\item Parse das empfangene RegionRequest-Objekt. Bei Fehlern wird die Funktion abgebrochen.
@@ -183,60 +107,40 @@ Mögliche Zeichenketten hierfür sind in den Klassen der Balancierer unter \verb
 	\item Übergebe die aufgeteilten Regionen an den Thread, der diese per MPI an die Worker sendet.
 \end{enumerate}
 
+In dem JSON wird unter dem Schlüssel \texttt{"balancer"} ein String erwartet, der den zu wählenden Lastbalancierer bestimmt.
+Mögliche Zeichenketten hierfür sind in den Klassen der Balancierer unter \verb|backend/src/balancer| in der globalen Variable
+\verb|Klassenname::NAME| gespeichert.
+
 Es ist hierbei wichtig, dass das senden an die Worker erst nach der Antwort an das Frontend geschieht und wird daher garantiert.
 Dadurch kann im Frontend sichergestellt sein, dass alle eintreffenden RegionData-Objekte zu einer Regionsaufteilung gehören,
 die bereits empfangen wurde.
 
-%% TODO move to seperate section
-
-
-
-
-Nach dem Parsen der Nachricht wird die Region global festgelegt und beim korrekten Lastbalancierer eine Zerlegung der angefragten Region über \verb|Balancer::balanceLoad| gestartet.
-
-Jeder Region wird ein Worker zugewiesen.
-Dabei ist der Rang des Workers, der eine Region berechnen soll genau der Index der Region in dem zurückgegebenen Array.
-Ist ein Worker nicht verfügbar, so werden sein und alle folgenden Ränge um eins erhöht (siehe \autoref{src:Host.cpp.handle_region_request}).
-Damit kann der Websocketprozess unabhängig von der tatsächlichen Verteilung den Rang des berechnenden Worker-Prozesses
-bestimmen und in der Antwort an den Client zu der Aufteilung der Prozesse einfügen.
-Die Struktur und eine gültige Antwort des Websocketservers kann \autoref{src:region.json} entnommen werden.
-
-Nachdem die Aufteilung als Antwort auf die Anfrage dem Websocketprozess bereitgestellt wurde, werden die Teilregionen in eine per Mutexlock-gesicherte Datenstruktur
-gelegt. Der MPI verwendende Thread, der diese Regionen anschließend an die Worker sendet wird über das Setzen des booleschen Wertes \verb|mpi_set_regions|
-auf \verb|true| darüber informiert, dass neue Regionen zum versenden zur Verfügung stehen.
-
-Indem die Regionaufteilung zuerst an das Frontend und anschließend an die Worker gesendet wird,
-wird sichergestellt, dass das Frontend alle empfangenen Regionsdaten korrekt der angefragten Region zuordnen kann.
-Dabei wird zwar Rechenzeit verschenkt, jedoch steigt durch die Erstellung sehr kleiner oder leerer Teilregionen
-die Wahrscheinlichkeit, dass ein Arbeiter mit seiner Region zu früh abgeschlossen ist.
-Würde dann dessen Region vor der Gesamtaufteilung beim Frontend ankommen, besteht die Gefahr,
-dass es die Daten verwirft.
-
-\begin{figure}
-	\lstinputlisting[caption={Algorithmus zur Zuordnung von Regionen auf Worker in Host.cpp}, label={src:Host.cpp.handle_region_request}, firstline=222, firstnumber=222, lastline=231]{../../backend/src/actors/Host.cpp}
-\end{figure}
-
-\begin{figure}
-	\lstinputlisting[caption={Ausschnitt aus einer gültigen Antwort auf die Region aus \autoref{src:regionRequest.json} in JSON}, label={src:region.json}, language=json]{./code/region.json}
-\end{figure}
-
 \paragraph{Host::send}\label{cls:Host::send}
 
 Während ein Thread das Empfangen von Nachrichten übernimmt, behandelt diese Methode von den Workern fertig berechnete Regionen.
-Er versendet in einer Dauerschleife Regionsdaten an den aktuell verbundenen Client.
-Nach jedem Durchlauf oder wenn der Thread per \verb|notify| (oder auch durch mögliche andere Nebeneffekte) aufgeweckt wird,
-überprüft er auf das Vorhandensein neuer Regionen, wählt die erste aus und entfernt sie aus der Datenstruktur.
-Nachdem das Lock auf die geteilte Datenstruktur gelöst wurde, werden die Regionsdaten JSON codiert versendet.
-Ein Beispiel für versendete Regionsdaten kann \autoref{src:regionData.json} entnommen werden.
-Dabei wird der Punkt (x, y) in der gesendeten Region (Punkt (x+hOffset, y+vOffset) in der angefragten Region)
-im Datenarray an Index $i = x + y * width$ gespeichert.
-Ist keine Region in der Datenstruktur abgelegt wird per \verb|wait| auf eine Änderung gewartet.
-Mithilfe der \verb|condition_variable|\footnote{\url{https://en.cppreference.com/w/cpp/thread/condition_variable}} \verb|Host::mpi_to_websocket_result_available|
-nutzt sie die C++11 nativen mutex-Mechanismen um über das Vorhandensein neuer Regionen informiert zu werden.
+Die Methode setzt dabei eine Dauerschleife nach folgendem Schema um:
 
-\begin{figure}[!h]
-	\lstinputlisting[caption={Ausschnitt aus den Daten einer versendeten Teilregion. Punkt (x,y) liegt in \texttt{"data"} an Index $i=x+y*width$.}, label={src:regionData.json}, language=json]{./code/regionData.short.json}
-\end{figure}
+\begin{enumerate}
+    \item Überprüfe auf das Vorhandensein fertig berechneter Regionen \label{enum:Host::send.step1}
+    \item Ist keine Region verfügbar
+    \begin{enumerate}
+        \item Warte blockierend auf eine Änderung
+        \item Springe zu Schritt \ref{enum:Host::send.step1}
+    \end{enumerate}
+    \item Ist eine Region verfügbar
+    \begin{enumerate}
+        \item Locke die geteilte Datenstruktur
+        \item Entnimm eine Region daraus
+        \item Löse das Lock
+    \end{enumerate}
+    \item Codiere die Regionsdaten in JSON und versende sie über Websocket an den aktuell verbundenen Client
+    \item Springe anschließend zu Schritt \ref{enum:Host::send.step1}
+\end{enumerate}
+
+Ein Beispiel für versendete Regionsdaten kann \autoref{src:regionData.json} entnommen werden.
+
+Mithilfe einer \texttt{condition\_variable}\footnote{\url{https://en.cppreference.com/w/cpp/thread/condition_variable}}
+nutzt sie die C++11 nativen mutex-Mechanismen um über das Vorhandensein neuer Regionen informiert zu werden.
 
 \subsection{Implementierung der Lastbalancierung}\label{sec:load_balancing}
 Der Implementierung der Lastbalancierung liegen die in \autoref{sec:load_balancing_concepts} beschriebenen Konzepte zugrunde.
@@ -252,7 +156,7 @@ Die naive Strategie (\verb|NaiveBalancer| und \verb|RecursiveNaiveBalancer|) lä
 Zusätzlich wurde noch \verb|ColumnBalancer| implementiert, dabei handelt es sich um eine Variante des nicht-rekursive Ansatzes, die nur Spalten erzeugt.
 Die Erhaltung des garantierten Teilers wird dadurch erreicht, dass die Höhe und Breite der Teilregionen auf ein Vielfaches dieses Teilers gesetzt werden.
 Diese können bei der nicht-rekursiven Variante vor der eigentlichen Aufteilung bestimmt werden.
-Da sich $\frac{witdh}{guaranteedDivisor}$ nicht unbedingt durch die Anzahl an Workern teilen lässt, kann es sein, dass einige Teilregionen um \verb|guaranteedDivisor| Pixel breiter sind.
+Da sich $\frac{width}{guaranteedDivisor}$ nicht unbedingt durch die Anzahl an Workern teilen lässt, kann es sein, dass einige Teilregionen um \verb|guaranteedDivisor| Pixel breiter sind.
 Selbiges gilt für die Höhe.
 
 Bei der rekursiven Variante wird mithilfe folgender Kriterien entschieden, ob horizontal oder vertikal geteilt wird:
@@ -263,7 +167,7 @@ Bei der rekursiven Variante wird mithilfe folgender Kriterien entschieden, ob ho
 	\item Sonst: Teile parallel zur kürzeren Seite. Dies gibt dem Lastbalancierer mehr Möglichkeiten die Trennlinie zwischen den Teilregionen zu setzen, was zu einer genaueren Teilung führt.
 \end{itemize}
 
-Die Teilung ansich funktioniert wie die nicht-rekursive Aufteilung auf zwei Worker.
+Die Teilung an sich funktioniert wie die nicht-rekursive Aufteilung auf zwei Worker.
 Der Rekursionskontext (\verb|struct BalancingContext|) wurde extern definiert, da dieser für die Strategie mit Vorhersage wiederverwendet wird.
 
 \subsubsection{Strategie mit Vorhersage}
@@ -392,46 +296,32 @@ Das Message Passing Interface (MPI) wird ausschließlich im Backend zur Kommunik
 
 \paragraph{MPI und Threads}
 
-Da sowohl im Host, als auch in den Workern mehrere Threads arbeiten, muss die Kompatibilität von MPI mit Threads genau betrachtet werden. Laut der offiziellen \verb|MPI Dokumentation|\footnote{\url{https://www.mpi-forum.org/docs/mpi-3.1/mpi31-report.pdf}} müssen die konkreten Implementierungen von MPI keinerlei Threads unterstützen, die meisten bekannten Implementierungen (wie beispielsweise \verb|Open MPI|\footnote{\url{https://www.open-mpi.org/doc/v3.1/man3/MPI_Init_thread.3.php}}) tun dies aber, falls sie entsprechend konfiguriert wurden.
+Da sowohl im Host, als auch in den Workern mehrere Threads arbeiten, muss die Kompatibilität von MPI mit Threads genau betrachtet werden.
+Laut der offiziellen \verb|MPI Dokumentation|\footnote{\url{https://www.mpi-forum.org/docs/mpi-3.1/mpi31-report.pdf}} müssen die konkreten Implementierungen von MPI keinerlei Threads unterstützen, die meisten bekannten Implementierungen (wie beispielsweise \verb|Open MPI|\footnote{\url{https://www.open-mpi.org/doc/v3.1/man3/MPI_Init_thread.3.php}}) tun dies aber, falls sie entsprechend konfiguriert wurden.
 
-Es wurde besonders darauf geachtet, dass nur ein Thread pro Prozess MPI-Aufrufe tätigt, wodurch die Thread-Umgebung mit MPI\_THREAD\_FUNNELED initialisiert werden kann. Dadurch kann MPI einige Optimierungen durchführen, die nicht möglich wären, wenn mehrere Threads MPI-Aufrufe tätigen. Zudem sind die meisten MPI Implementierungen noch nicht auf eine performante Umsetzung von mehreren Threads ausgelegt, weshalb das Thread-Level so niedrig wie möglich gehalten werden sollte.
+Es wurde besonders darauf geachtet, dass nur ein Thread pro Prozess MPI-Aufrufe tätigt, wodurch die Thread-Umgebung mit MPI\_THREAD\_FUNNELED initialisiert werden kann.
+Dadurch kann MPI einige Optimierungen durchführen, die nicht möglich wären, wenn mehrere Threads MPI-Aufrufe tätigen.
+Zudem sind die meisten MPI Implementierungen noch nicht auf eine performante Umsetzung von mehreren Threads ausgelegt, weshalb das Thread-Level so niedrig wie möglich gehalten werden sollte.
 
 \paragraph{Busy-Waiting von MPI}\label{para:mpi_busy_waiting}
 
-Da MPI grundsätzlich auf Höchstleistung ausgelegt ist, werden die Empfangsoperationen mit Busy-Waiting umgesetzt. Das führt einerseits dazu, dass ankommende Nachrichten ohne Verzögerung empfangen werden und die Bearbeitung der Daten sofort starten kann. Andererseits führt das aber zu einer 100-Prozentigen Auslastung des Rechenkerns, was andere Prozesse von der Durchführung ihrer Arbeit abhalten kann und zu einem erhöhten Stromverbrauch führt.
+Bei den verwendeten Implementierungen von MPI, MPICH und OpenMP, wird bei blockierenden Nachrichtensende und -empfangsoperationen Busy-Waiting umgesetzt.
+Das führt einerseits dazu, dass die Verzögerung beim Empfangen von Nachrichten minimiert wird und die Bearbeitung der Daten sofort starten kann.
+Andererseits führt das aber zu einer 100-Prozentigen Auslastung des Rechenkerns, was andere Prozesse von der Durchführung ihrer Arbeit abhalten kann und zu einem erhöhten Stromverbrauch führt.
 
-Im Fall des blockierenden MPI\_Recv wird solange aktiv ohne Pause getestet, ob eine Nachricht empfangen wurde, bis dies auch wirklich geschehen ist. Falls eine nicht-blockierende Empfangsoperation mit MPI\_Irecv gestartet wird, muss diese anschließend auch abgeschlossen werden. Dazu kann einerseits MPI\_Wait dienen, das solange wartet, bis die Empfangsoperation abgeschlossen ist. Hierzu wird ebenfalls Busy-Waiting nutzt. Andererseits kann auch MPI\_Test genutzt werden, was nur überprüft, ob die Empfangsoperation abgeschlossen ist ohne auf deren Abschluss zu warten. Auch hier gibt es keine andere Möglichkeit, als immer wieder (beispielsweise in einer Schleife) MPI\_Test aufzurufen. Der einzige Vorteil besteht darin, dass zwischen diesen wiederholten Aufrufen andere Arbeit erledigt oder der Prozess für eine gewisse Zeit schlafen gelegt werden kann. Mit MPI\_Probe bzw. MPI\_Iprobe verhält es sich ähnlich wie mit MPI\_Recv bzw. MPI\_Test. Also wird auch hier Busy-Waiting eingesetzt.
+Im Fall des blockierenden MPI\_Recv wird solange aktiv ohne Pause getestet, ob eine Nachricht empfangen werden kann, bis dies der Fall ist.
+Falls eine nicht-blockierende Empfangsoperation mit MPI\_Irecv gestartet wird, muss diese anschließend auch abgeschlossen werden.
+Dazu kann einerseits MPI\_Wait dienen, das solange wartet, bis die Empfangsoperation abgeschlossen ist. Hierzu wird ebenfalls Busy-Waiting nutzt.
+Andererseits kann auch MPI\_Test genutzt werden, was nur überprüft, ob die Empfangsoperation abgeschlossen ist ohne auf deren Abschluss zu warten.
+Auch hier gibt es keine andere Möglichkeit, als immer wieder (beispielsweise in einer Schleife) MPI\_Test aufzurufen.
+Der einzige Vorteil besteht darin, dass zwischen diesen wiederholten Aufrufen andere Arbeit erledigt oder der Prozess für eine gewisse Zeit schlafen gelegt werden kann.
+Mit MPI\_Probe bzw. MPI\_Iprobe verhält es sich ähnlich wie mit MPI\_Recv bzw. MPI\_Test.
+Also wird auch hier Busy-Waiting eingesetzt.
 
 %TODO: x und y bestimmen. x=1?
-In der Implementierung wurde deshalb im Host und im Worker ein eine nicht-blockierende Empfangsmethode gewählt, die den Thread für x Millisekunden schlafen legt, bevor ein erneuter Empfangsversuch gestartet wird. Die damit einhergehende Verzögerung verfälscht das Ergebnis nicht schwerwiegend, da die Berechnung einer Region für gewöhnlich deutlich länger als y Millisekunden benötigt.
+In der Implementierung wurde deshalb im Host und im Worker ein eine nicht-blockierende Empfangsmethode gewählt, die den Thread für x Millisekunden schlafen legt, bevor Überprüft wird, ob Daten empfangen wurden.
+Die damit einhergehende Verzögerung verfälscht das Ergebnis nicht schwerwiegend, da die Berechnung einer Region für gewöhnlich deutlich länger als y Millisekunden benötigt.
 %TODO: Im Host das auch wirklich implementieren
-
-\paragraph{Nutzbarkeit der Worker definieren}
-
-Es besteht die Möglichkeit, explizit zu definieren ob ein Worker Rechenaufträge bekommen soll oder nicht. Hierzu existiert im Host das globale Boolean-Array usable\_nodes. Ein Prozess mit Rang x ist benutzbar, wenn usable\_nodes am Index x true ist. Nicht benutzbar ist er, wenn die Variable auf false gesetzt ist. Zudem existiert noch die globale Variable usable\_nodes\_count, die angibt wie viele Worker benutzbar sind. Genutzt wird dieses Feature, falls beim \hyperref[para:init_worker_test]{Initialen Test aller Worker} Worker als nicht benutzbar eingestuft werden.
-%TODO: Eventuell noch anmerken, dass man in einer zukünftigen Version herausfinden könnte, ob Worker nach ihrem initialen Test absturzen. Dann kann man sie gleich auf diese Weise ausschalten.
-
-\paragraph{Initialer Test aller Worker}\label{para:init_worker_test}
-
-Bevor Rechenaufträge an die Worker weitergeleitet werden, wird zunächst jeder Worker einzeln getestet. Dies dient auch dazu, den Workern den Rang des Hosts zu übermitteln.
-
-Dazu sendet der Host mittels der nicht-blockierenden, synchronen Sendeoperation MPI\_Issend einen Test-Wert an alle Worker. Durch die synchrone Eigenschaft wird die Operation erst abgeschlossen, wenn eine passende Empfangsoperation gestartet und der Sendeoperation zugeordnet wurde. Es wurde eine nicht-blockierende Sendeoperation gewählt, um den Test für alle Worker parallel ausführen zu können. Der Source-Code ist in \autoref{src:mpi_test_send_host} zu finden.
-
-Wurden alle Sendeoperationen gestartet, muss auf deren Abschluss gewartet werden. Falls nun ein Worker nicht wie erwartet reagiert und die Empfangsoperation nicht durchführt, muss das Warten auf den Abschluss der Sendeoperation abgebrochen werden können. Deshalb wird MPI\_Testsome in einer Endlosschleife genutzt, die nur abbricht falls alle Sendeoperationen erfolgreich waren (alle MPI\_Requests sind MPI\_REQUEST\_NULL, wodurch MPI\_Testsome in outcount MPI\_UNDEFINED zurückgibt) oder ein Timer abgelaufen ist. Falls eine oder mehrere Sendeoperationen innerhalb eines Schleifendurchlaufs erfolgreich abgeschlossen wurden, wird deren MPI\_Request auf MPI\_REQUEST\_NULL gesetzt um dies explizit zu zeigen. Sie werden in den nächsten Schleifendurchläufen von MPI\_Testsome ignoriert. In \autoref{src:mpi_test_testsome} ist der entsprechende Code zu finden.
-
-Nachdem die Schleife abgebrochen wurde, muss noch überprüft werden, welche Sendeoperationen erfolgreich waren und welche nicht. War die Operation erfolgreich, wird der entsprechende Worker als nutzbar eingestuft. Falls nicht, wird die noch laufende Sendeoperation mit MPI\_Cancel abgebrochen und der Worker als nicht benutzbar eingestuft. Der Code kann in \autoref{src:mpi_test_result} eingesehen werden.
-
-\begin{figure}[h!]
-	\lstinputlisting[caption={Starten der Sendeoperation zum Testen der Worker}, label={src:mpi_test_send_host}, firstline=428, firstnumber=428, lastline=452]{../../backend/src/actors/Host.cpp}
-\end{figure}
-
-\begin{figure}[h!]
-	\lstinputlisting[caption={Warten auf den Abschluss aller Sendeoperationen des Workertests}, label={src:mpi_test_testsome}, firstline=453, firstnumber=453, lastline=490]{../../backend/src/actors/Host.cpp}
-\end{figure}
-
-\begin{figure}[h!]
-	\lstinputlisting[caption={Einstufung der Worker als nutzbar bzw. nicht nutzbar entsprechend des Testergebnisses}, label={src:mpi_test_result}, firstline=491, firstnumber=491, lastline=519]{../../backend/src/actors/Host.cpp}
-\end{figure}
 
 \subsubsection{Genereller Aufbau der MPI-Kommunikation}
 
@@ -440,12 +330,39 @@ Im Folgenden wird kurz der generelle Aufbau der MPI-Kommunikationsroutinen im Ho
 \paragraph{MPI-Kommunikation im Host}\label{para:mpi_generell_host}
 
 %TODO: Evtl. Websocket-Thread erwähnen zu Beginn bei den neuen Aufträgen
-Die essenziellen Teile der MPI-Kommunikation des Hosts, also das \hyperref[para:send_host]{Senden von Rechenaufträgen} und das \hyperref[para:recv_host]{Empfangen der berechneten Daten}, befinden sich in einer gemeinsamen Endlosschleife. Dabei wird immer zuerst überprüft, ob neue Rechenaufträge an die Worker zu senden sind. Gegebenenfalls werden die Sendeoperationen durchgeführt. Anschließend wird überprüft, ob berechnete Daten empfangen werden können. Ist das der Fall, so wird die Empfangsoperation durchgeführt, die Daten reorganisiert und über eine gemeinsame Datenstruktur an einen Websocket-Thread weitergeleitet, der die Informationen an das Frontend reicht. Nun wird die Schleife von neuem begonnen.
+Die essenziellen Teile der MPI-Kommunikation des Hosts, also das \hyperref[para:send_host]{Senden von Rechenaufträgen} und das \hyperref[para:recv_host]{Empfangen der berechneten Daten}, befinden sich in einer gemeinsamen Endlosschleife.
+\begin{enumerate}
+    \item Ist das Flag gesetzt, dass neue Rechenaufträge an die Worker zu senden sind \label{enum:Host::mpi.step1}
+    \begin{enumerate}
+        \item Sende alle Aufträge per MPI an die jeweiligen Worker. Der Rang bestimmt sich aus dem Index in der Datenstruktur für die Rechenaufträge.
+    \end{enumerate}
+    \item Können berechnete Daten von einem der Worker empfangen werden
+    \begin{enumerate}
+        \item Formatiere die empfangenen Daten, um Metainformationen hinzuzufügen
+        \item Locke die mit dem Websocket-Sende Thread geteilte Datenstruktur.
+        \item Lege die Daten in die Datenstruktur
+        \item Löse das Lock
+    \end{enumerate}
+    \item Wurde keine Operation durchgeführt, schlafe $z$ ms, um die Prozessorlast zu verringern
+    \item Springe zu Schritt \ref{enum:Host::mpi.step1}
+\end{enumerate}
+
+Dabei wird immer zuerst überprüft, ob neue Rechenaufträge an die Worker zu senden sind.
+Gegebenenfalls werden die Sendeoperationen durchgeführt.
+Anschließend wird überprüft, ob berechnete Daten empfangen werden können.
+Ist das der Fall, so wird die Empfangsoperation durchgeführt, die Daten reorganisiert und über eine gemeinsame Datenstruktur an einen Websocket-Thread weitergeleitet, der die Informationen an das Frontend reicht.
+Nun wird die Schleife von neuem begonnen.
 Es wird also sowohl für das überprüfen, ob neue Rechenaufträge vorhanden sind, als auch für das Empfangen der berechneten Daten \hyperref[para:mpi_busy_waiting]{Busy-Waiting} eingesetzt.
 
 \paragraph{MPI-Kommunikation im Worker}\label{para:mpi_generell_worker}
 
-Auch hier wird das \hyperref[para:recv_worker]{Empfangen der Rechenaufträge} und das \hyperref[para:send_worker]{Senden der berechneten Daten} in einer Endlosschleife bewerkstelligt. Zu beginn wird so lange gewartet, bis ein neuer Rechenauftrag empfangen wurde. Direkt im Anschluss wird die Berechnung der empfangenen Region gestartet, wobei während der Kalkulation auf neu ankommende Rechenaufträge gelauscht wird. Ist ein neuer Auftrag zu empfangen, so wird die laufende Berechnung abgebrochen und die Schleife von vorne gestartet. Falls die Berechnung nicht unterbrochen wurde, werden die Daten organisiert und an den Host geschickt. Nun beginnt die Schleife von vorne.
+Auch hier wird das \hyperref[para:recv_worker]{Empfangen der Rechenaufträge} und das \hyperref[para:send_worker]{Senden der berechneten Daten} in einer Endlosschleife bewerkstelligt.
+Zu beginn wird so lange gewartet, bis ein neuer Rechenauftrag empfangen wurde.
+Direkt im Anschluss wird die Berechnung der empfangenen Region gestartet, wobei während der Kalkulation auf neu ankommende Rechenaufträge gelauscht wird.
+Ist ein neuer Auftrag zu empfangen, so wird die laufende Berechnung abgebrochen und die Schleife von vorne gestartet.
+Falls die Berechnung nicht unterbrochen wurde, werden die Daten organisiert und an den Host geschickt.
+Nun beginnt die Schleife von vorne.
+
 Es ist auch hier zu erkennen, dass \hyperref[para:mpi_busy_waiting]{Busy-Waiting} für das Empfangen von neuen Rechenaufträgen eingesetzt wird.
 
 \subsubsection{Übertragung neuer Rechenaufträge vom Host an die Worker}

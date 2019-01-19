@@ -157,3 +157,106 @@ ssh -S .tunnel.ssh -O exit rpi<host number>
 # To stop the node allocation
 scancel -u <user name>
 \end{lstlisting}
+
+\subsection{Detaillierte Beschreibung der Header und der CMake Instruktionen}
+
+Die zusammenstellung der ausführbaren Dateien wird in CMake definiert.
+Dabei unterscheiden sich diese lediglich in den eingebundenen Quelldateien:
+In die Datei \verb|host| werden \verb|host.main.cpp| und \verb|actors/Host.cpp| eingebunden, während
+in \verb|worker| \verb|worker.main.cpp| und \verb|actors/Worker.cpp| eingebunden werden.
+
+Diese und alle weiteren Build-Vorgaben werden in der Datei \verb|CMakeLists.txt| für
+\verb|cmake|\footnote{Ein Programm, welches die Erstellung von Makefiles vereinfacht in dem es sie automatisch an die Umgebung des Build-Systems anpasst. \url{https://cmake.org/}}
+in der hier beschriebenen Reihenfolge spezifiziert.
+Es sollte hierbei eine CMake-Version über 3.7.0 gewählt werden und die C++11 Standards\footnote{\url{https://isocpp.org/wiki/faq/cpp11}} werden vorrausgesetzt.
+Zudem werden für das Projekt "Mandelbrot" werden alle Dateien im Order \verb|include| eingebunden.
+In diesem Ordner liegen die Header-Dateien für alle projektinternen C++-Quelldateien.
+Anschließend werden alle C++-Quelldateien (Endung "\verb|.cpp|") aus dem Ordner \verb|src| in einer Liste gesammelt, mit Ausnahme jedoch der oben genannten, exklusiven Quelldateien.
+Die erzeugte Liste und die jeweils exklusiven Dateien werden dann den ausführbaren Dateien \verb|host| und \verb|worker| zugeordnet.
+
+Um die verwendeten Bibliotheken verfügbar zu machen werden anschließend die Header der installierten MPI-Bibliothek
+sowie die Header der Bibliotheken rapidjson\footnote{\url{http://rapidjson.org}}, websocketpp\footnote{\url{https://github.com/zaphoyd/websocketpp}} und boost\footnote{\url{https://www.boost.org/}}
+Diese werden respektive verwendet um JSON zu parsen und enkodieren, Websocket-Verbindungen aufzubauen und darüber zu kommunizieren sowie um diese Bibliothek zu unterstützen.
+Da für die boost Bibliothek dabei Header nicht genügen und die systemweite Verfügbarkeit der kompilierten boost-Bibliothek nicht garantiert werden kann, wird die Teilbibliothek boost\_system statisch
+in die ausführbaren Datei \verb|host| eingebunden.
+
+Zuletzt werden über Compilerflags alle Kompilierfehler und -warnungen aktiviert sowie die POSIX-Thread-Bibliothek eingebunden,
+die Optimierung auf die höchste Stufe gesetzt und spezielle Flags für die Websocketlibrary und MPI gesetzt.
+
+\subsection{Beispielhafte Einbindung der MPI-Initialisierungsfunktion}
+
+Ein beispielhafter Aufruf der Prozessinitialisierung von einer Mainfunktion aus ist in \autoref{src:host.main.cpp} zu sehen. Damit wird MPI initialisiert und nach der
+erfolgreichen Initialisierung der eigentliche \hyperref[cls:Host]{Host-Prozess} über \verb|Host::init| gestartet.
+
+\begin{figure}[h]
+	\lstinputlisting[caption={Initialisierung des Host-Prozesses in host.main.cpp}, label={src:host.main.cpp}]{../../backend/src/host.main.cpp}
+\end{figure}
+
+\begin{figure}
+	\lstinputlisting[caption={Initialisierung der MPI-Prozesse in init.cpp}, label={src:init.cpp}, firstline=15, lastline=39, firstnumber=15]{../../backend/src/init.cpp}
+\end{figure}
+
+\subsection{Detaillierter Ablauf der Host::handle\_region\_request Methode}
+
+Nach dem Parsen der Nachricht wird die Region global festgelegt und beim korrekten Lastbalancierer eine Zerlegung der angefragten Region über \verb|Balancer::balanceLoad| gestartet.
+
+Jeder Region wird ein Worker zugewiesen.
+Dabei ist der Rang des Workers, der eine Region berechnen soll genau der Index der Region in dem zurückgegebenen Array.
+Ist ein Worker nicht verfügbar, so werden sein und alle folgenden Ränge um eins erhöht (siehe \autoref{src:Host.cpp.handle_region_request}).
+Damit kann der Websocketprozess unabhängig von der tatsächlichen Verteilung den Rang des berechnenden Worker-Prozesses
+bestimmen und in der Antwort an den Client zu der Aufteilung der Prozesse einfügen.
+Die Struktur und eine gültige Antwort des Websocketservers kann \autoref{src:region.json} entnommen werden.
+
+Nachdem die Aufteilung als Antwort auf die Anfrage dem Websocketprozess bereitgestellt wurde, werden die Teilregionen in eine per Mutexlock-gesicherte Datenstruktur
+gelegt. Der MPI verwendende Thread, der diese Regionen anschließend an die Worker sendet wird über das Setzen des booleschen Wertes \verb|mpi_set_regions|
+auf \verb|true| darüber informiert, dass neue Regionen zum versenden zur Verfügung stehen.
+
+Indem die Regionaufteilung zuerst an das Frontend und anschließend an die Worker gesendet wird,
+wird sichergestellt, dass das Frontend alle empfangenen Regionsdaten korrekt der angefragten Region zuordnen kann.
+Dabei wird zwar Rechenzeit verschenkt, jedoch steigt durch die Erstellung sehr kleiner oder leerer Teilregionen
+die Wahrscheinlichkeit, dass ein Arbeiter mit seiner Region zu früh abgeschlossen ist.
+Würde dann dessen Region vor der Gesamtaufteilung beim Frontend ankommen, besteht die Gefahr,
+dass es die Daten verwirft.
+
+\begin{figure}
+	\lstinputlisting[caption={Algorithmus zur Zuordnung von Regionen auf Worker in Host.cpp}, label={src:Host.cpp.handle_region_request}, firstline=222, firstnumber=222, lastline=231]{../../backend/src/actors/Host.cpp}
+\end{figure}
+
+\begin{figure}
+	\lstinputlisting[caption={Ausschnitt aus einer gültigen Antwort auf die Region aus \autoref{src:regionRequest.json} in JSON}, label={src:region.json}, language=json]{./code/region.json}
+\end{figure}
+
+\subsection{Beispiele für versendete Daten}
+
+\begin{figure}[!h]
+	\lstinputlisting[caption={Ausschnitt aus den Daten einer versendeten Teilregion. Punkt (x,y) liegt in \texttt{"data"} an Index $i=x+y*width$.}, label={src:regionData.json}, language=json]{./code/regionData.short.json}
+\end{figure}
+
+\subsection{Nutzbarkeit einzelner Worker}
+
+Es besteht die Möglichkeit, explizit zu definieren ob ein Worker Rechenaufträge bekommen soll oder nicht.
+Hierzu existiert im Host das globale Boolean-Array usable\_nodes.
+Ein Prozess mit Rang x ist benutzbar, wenn usable\_nodes am Index x true ist.
+Nicht benutzbar ist er, wenn die Variable auf false gesetzt ist.
+Zudem existiert noch die globale Variable usable\_nodes\_count, die angibt wie viele Worker benutzbar sind.
+Genutzt wird dieses Feature, falls beim \hyperref[para:init_worker_test]{Initialen Test aller Worker} Worker als nicht benutzbar eingestuft werden.
+%TODO: Eventuell noch anmerken, dass man in einer zukünftigen Version herausfinden könnte, ob Worker nach ihrem initialen Test absturzen. Dann kann man sie gleich auf diese Weise ausschalten.
+
+\paragraph{Initialer Test aller Worker}\label{para:init_worker_test}
+
+Bevor Rechenaufträge an die Worker weitergeleitet werden, wird zunächst jeder Worker einzeln getestet.
+Dies dient auch dazu, den Workern den Rang des Hosts zu übermitteln.
+
+Dazu sendet der Host mittels der nicht-blockierenden, synchronen Sendeoperation MPI\_Issend einen Test-Wert an alle Worker.
+Durch die synchrone Eigenschaft wird die Operation erst abgeschlossen, wenn eine passende Empfangsoperation gestartet und der Sendeoperation zugeordnet wurde.
+Es wurde eine nicht-blockierende Sendeoperation gewählt, um den Test für alle Worker parallel ausführen zu können.
+
+Wurden alle Sendeoperationen gestartet, muss auf deren Abschluss gewartet werden.
+Falls nun ein Worker nicht wie erwartet reagiert und die Empfangsoperation nicht durchführt, muss das Warten auf den Abschluss der Sendeoperation abgebrochen werden können.
+Deshalb wird MPI\_Testsome in einer Endlosschleife genutzt, die nur abbricht falls alle Sendeoperationen erfolgreich waren (alle MPI\_Requests sind MPI\_REQUEST\_NULL, wodurch MPI\_Testsome in outcount MPI\_UNDEFINED zurückgibt) oder ein Timer abgelaufen ist.
+Falls eine oder mehrere Sendeoperationen innerhalb eines Schleifendurchlaufs erfolgreich abgeschlossen wurden, wird deren MPI\_Request auf MPI\_REQUEST\_NULL gesetzt um dies explizit zu zeigen.
+Sie werden in den nächsten Schleifendurchläufen von MPI\_Testsome ignoriert.
+
+Nachdem die Schleife abgebrochen wurde, muss noch überprüft werden, welche Sendeoperationen erfolgreich waren und welche nicht.
+War die Operation erfolgreich, wird der entsprechende Worker als nutzbar eingestuft.
+Falls nicht, wird die noch laufende Sendeoperation mit MPI\_Cancel abgebrochen und der Worker als nicht benutzbar eingestuft.
