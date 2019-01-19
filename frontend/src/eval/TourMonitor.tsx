@@ -165,7 +165,7 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
             let min_N = config.nodeCount[0];
             let max_N = config.nodeCount[0];
             let step_N = config.nodeCount[0];
-            if (config.maxIteration.length === 3) {
+            if (config.nodeCount.length === 3) {
               max_N = config.nodeCount[1];
               step_N = config.nodeCount[2];
             }
