@@ -1,14 +1,49 @@
 #pragma once
+
+// Define the precision for computations globally
+typedef long double precision_t;
+
+enum fractal_type {
+    mandelbrot,
+    mandelbrot32,
+    mandelbrot64,
+    mandelbrotSIMD32,
+    mandelbrotSIMD64,
+    mandelbrotOpenMP,
+    mandelbrotOpenMP32,
+    mandelbrotOpenMP64,
+    mandelbrotOpenMPSIMD32,
+    mandelbrotOpenMPSIMD64,
+};
+
 class Fractal {
    public:
-    virtual int calculateFractal(long double cReal, long double cImaginary, int maxIteration) = 0;
+    /**
+     * Calculates the fractal iteration value for a given complex (real, imaginary) pair
+     * @param cReal real coordinate
+     * @param cImaginary imaginary coordinate
+     * @param maxIteration maximum amount of iterations to perform
+     * @param vectorLength number of coordinates to be calculated at once
+     * @param dest memory position where result(number of iterations for coordinates) should be stored
+     */
+    virtual void calculateFractal(precision_t* cReal, precision_t* cImaginary, unsigned short int maxIteration, int vectorLength, unsigned short int* dest) = 0;
     virtual ~Fractal();
 
-    //TODO is this still necessary? -> Yes, except xToReal und yToReal in the future. (@Florian uses them in a Balancer; He will change that)
-    static double deltaReal(double maxReal, double minReal, int xRes);
-    static double deltaImaginary(double maxImaginary, double minImaginary, int yRes);
-    static long double xToReal(long x, long zoom, long localX, long size);
-    static long double yToImaginary(long y, long zoom, long localY, long size);
-    // static int realToX(double real, double maxReal, double minReal, int width);
-    // static int imaginaryToY(double imaginary, double maxImaginary, double minImaginary, int height);
+    /**
+     * Calculates the step size of a single pixel in the x direction (real) on the complex plane.
+     * @param maxReal max real bound
+     * @param minReal min real bound
+     * @param xRes pixel resolution from minReal -> maxReal
+     * @return step size on real axis
+     */
+    static precision_t deltaReal(precision_t maxReal, precision_t minReal, int xRes);
+
+    /**
+     * Calculates the step size of a single pixel in the y direction (imaginary) on the complex plane.
+     * @param maxImaginary max imaginary bound
+     * @param minImaginary min imaginary bound
+     * @param yRes pixel resolution from minImaginary -> maxImaginary
+     * @return step size on imaginary axis
+     */
+    static precision_t deltaImaginary(precision_t maxImaginary, precision_t minImaginary, int yRes);
 };

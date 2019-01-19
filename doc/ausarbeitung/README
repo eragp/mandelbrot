@@ -1,0 +1,5 @@
+Unter Linux ist diese Latex-Vorlage mit "make" in ein PDF übersetzbar.
+Mit "make clean" werden die von LaTeX generierten Dateien wieder entfernt.
+
+Verändern Sie nur die Datei Ausarbeitung.tex Sollten sie zusätzliche Dateien
+(Graphiken, etc.) verwenden, legen Sie diese bitte in einem Unterordner ab.

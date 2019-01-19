@@ -1,0 +1,18 @@
+\section{Ergebnisse / Evaluation}
+\begin{itemize}
+	\item Skalierbarkeitsgraph
+	\item Wie gut ist SIMD / OpenMP / MPI / Mischformen?
+	\item Frontend Overhead messen
+\end{itemize}
+
+Notiz, entdeckt durch das In-Betracht-Ziehen der Leerregionen:
+
+Probleme bei der Verwendung des Rekursiven Lastbalanierers:
+Da es stets im Diskreten eine Minimalgröße für die aufgeteilten Regionen gibt,
+kann es sein, dass eine Region für die eine hohe Last vorhergesagt wird viele Worker reserviert -
+diese jedoch nicht vollständig ausreizen kann, da die Maximalaufteilung schon erreicht wurde.
+Durch die dadurch entstehenden Leerregionen von nicht verwendbaren Workern
+kann eine suboptimale Aufteilung enstehen, schlechter noch als die des naiven rekursiven Balancierers.
+
+Dies kann abgeschwächt werden, indem eine Region stets nur soviel Workerressourcen erhält,
+wie sie maximal auslasten könnte (Fläche/Fläche minimaler Aufteilung)
