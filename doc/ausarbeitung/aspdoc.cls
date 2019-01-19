@@ -21,6 +21,7 @@
 \RequirePackage[ngerman]{babel} % TODO: Make this an option
 \RequirePackage[babel,german=quotes]{csquotes}
 \RequirePackage{amsmath}
+\RequirePackage{amssymb}
 \RequirePackage{graphicx}
 \RequirePackage{color}
 \RequirePackage{listings}
@@ -120,8 +121,36 @@
 \if@solution\chead{\textbf{Lösung}}\fi
 \ohead{\pagemark}
 
+
+% Add json
+% from https://tex.stackexchange.com/a/433961
+\usepackage{xcolor}
+
+\definecolor{eclipseStrings}{RGB}{42,0.0,255}
+\definecolor{eclipseKeywords}{RGB}{127,0,85}
+\colorlet{numb}{magenta!60!black}
+\lstdefinelanguage{json}{
+    basicstyle=\normalfont\ttfamily,
+    commentstyle=\color{eclipseStrings}, % style of comment
+    stringstyle=\color{eclipseKeywords}, % style of strings
+    string=[s]{"}{"},
+    comment=[l]{:\ "},
+    morecomment=[l]{:"},
+    literate=
+        *{0}{{{\color{numb}0}}}{1}
+         {1}{{{\color{numb}1}}}{1}
+         {2}{{{\color{numb}2}}}{1}
+         {3}{{{\color{numb}3}}}{1}
+         {4}{{{\color{numb}4}}}{1}
+         {5}{{{\color{numb}5}}}{1}
+         {6}{{{\color{numb}6}}}{1}
+         {7}{{{\color{numb}7}}}{1}
+         {8}{{{\color{numb}8}}}{1}
+         {9}{{{\color{numb}9}}}{1}
+}
+
 \lstset{ %
-  language=C,
+  language=C++,
   basicstyle=\upshape\footnotesize\ttfamily,
   numbers=left,                   % where to put the line-numbers
   numberstyle=\tiny\color{gray},  % the style that is used for the line-numbers
@@ -146,6 +175,7 @@
            {~}{{\tttilde}}1
            {:)}{{\rotatebox{270}{\hspace{-.5em}\rmfamily :)}}}2
 }
+\renewcommand{\lstlistingname}{Quelltext}% Listing -> Quelltext
 
 % Clear author macro so that we can check whether an author is set
 \def\@author{}

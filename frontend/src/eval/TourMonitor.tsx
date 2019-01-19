@@ -221,17 +221,8 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
     this.props.viewCenter.setNoNotify(pt);
     this.props.workerCount.setNoNotify(c.nodeCount);
 
-    if (oldBl !== c.balancer) {
-      this.props.balancer.notify();
-    } else if (oldImp !== c.implementation) {
-      this.props.impl.notify();
-    } else if (oldIter !== c.maxIteration) {
-      this.props.impl.notify();
-    } else if (!oldCenter.equals(pt)) {
-      this.props.viewCenter.notify();
-    } else {
-      this.props.workerCount.notify();
-    }
+    // notify all view observers
+    this.props.viewCenter.notify();
 
     this.props.stats.onDone(stats => {
       output.datapoints.push({
@@ -283,7 +274,15 @@ const RenderConfig = (props: Config) => {
         {Tr("Implementation:", props.implementation)}
         {Tr("Nodes:", props.nodeCount)}
         {Tr("max Iteration:", props.maxIteration)}
-        {Tr("PoI:", props.poi)}
+        <tr>
+          <td>PoI</td>
+          <td>
+            <pre className="config">
+              real: {props.poi.real.toFixed(2)}, imag: {props.poi.imag.toFixed(2)}, zoom:{" "}
+              {props.poi.imag.toFixed(2)}
+            </pre>
+          </td>
+        </tr>
       </tbody>
     </table>
   );
