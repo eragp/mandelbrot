@@ -98,7 +98,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
       moveend: () => this.updateAllViews()
     });
 
-    function drawPixel(
+    const drawPixel = (
       imgData: ImageData,
       x: number,
       y: number,
@@ -106,14 +106,14 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
       g: number,
       b: number,
       alpha: number
-    ) {
+    ) => {
       const d = imgData.data;
       const i = (x << 2) + ((y * imgData.width) << 2);
       d[i] = r; // red
       d[i + 1] = g; // green
       d[i + 2] = b; // blue
       d[i + 3] = alpha || 255; // alpha
-    }
+    };
 
     L.GridLayer.MandelbrotLayer = L.GridLayer.extend({
       createTile(coords: Point3D, done: (e: Error | null, t: HTMLCanvasElement) => any) {
@@ -153,7 +153,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
           // end timer
           const t1 = performance.now();
           if (stats) {
-            stats.setDrawTime(tileData.rank , (t1 - t0) * 1000);
+            stats.setDrawTime(tileData.rank, (t1 - t0) * 1000);
           }
 
           done(null, tile);
