@@ -1,0 +1,43 @@
+{
+    "type": "region",
+    "regionCount": 37,
+    "regions": [{
+        "rank": 1,
+        "computationTime": 0,
+        "region": {
+            "minReal": -0.251953125,
+            "maxImag": -0.8408203125,
+            "maxReal": -0.24609375,
+            "minImag": -0.8427734375,
+            "width": 384,
+            "height": 128,
+            "hOffset": 0,
+            "vOffset": 0,
+            "maxIteration": 1019,
+            "validation": 8,
+            "guaranteedDivisor": 64
+        }
+    }, {
+        "rank": 2,
+        "computationTime": 0,
+        "region": {
+            "minReal": -0.251953125,
+            ......
+    }, {
+        "rank": 37,
+        "computationTime": 0,
+        "region": {
+            "minReal": -0.2275390625,
+            "maxImag": -0.84765625,
+            "maxReal": -0.2216796875,
+            "minImag": -0.8486328125,
+            "width": 384,
+            "height": 64,
+            "hOffset": 1600,
+            "vOffset": 448,
+            "maxIteration": 1019,
+            "validation": 8,
+            "guaranteedDivisor": 64
+        }
+    }]
+}

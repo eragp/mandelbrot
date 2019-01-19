@@ -1,0 +1,18 @@
+{
+    "type": "regionRequest",
+    "region": {
+        "minReal": -0.251953125,
+        "maxImag": -0.8388671875,
+        "maxReal": -0.2216796875,
+        "minImag": -0.8505859375,
+        "width": 1984,
+        "height": 768,
+        "hOffset": 0,
+        "vOffset": 0,
+        "validation": 8,
+        "guaranteedDivisor": 64,
+        "maxIteration": 1019
+    },
+    "balancer": "naiveRecursive",
+    "fractal": "mandelbrot"
+}
