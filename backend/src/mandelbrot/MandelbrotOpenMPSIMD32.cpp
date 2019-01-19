@@ -20,7 +20,7 @@ void MandelbrotOpenMPSIMD32::calculateFractal(precision_t* cRealArray, precision
         throw std::invalid_argument("vectorLength may not be less than 1.");
     }
     #pragma omp parallel for default(none) shared(cReal, cImaginary, maxIteration, vectorLength, dest) schedule(nonmonotonic:dynamic, 10)
-    for(int j = 0; j < (vectorLength/4); j++){
+    for(unsigned int j = 0; j < (vectorLength/4); j++){
     // General form of vector commands
     // v<cmd>q_f<pr>
     // v -> vector command
@@ -28,16 +28,17 @@ void MandelbrotOpenMPSIMD32::calculateFractal(precision_t* cRealArray, precision
     // f -> float
     // 32 bit vectorization
     // Load casted values from array to simd vector
+    unsigned int offset = j * 4;
     float32x4_t cReal = vdupq_n_f32(0);// = vld1q_f32(cRealArray); if casting weren't necessary this would work
-    cReal = vsetq_lane_f32((float32_t) cRealArray[0], cReal, 0);
-    cReal = vsetq_lane_f32((float32_t) cRealArray[1], cReal, 1);
-    cReal = vsetq_lane_f32((float32_t) cRealArray[2], cReal, 2);
-    cReal = vsetq_lane_f32((float32_t) cRealArray[3], cReal, 3);
+    cReal = vsetq_lane_f32((float32_t) cRealArray[offset+0], cReal, 0);
+    cReal = vsetq_lane_f32((float32_t) cRealArray[offset+1], cReal, 1);
+    cReal = vsetq_lane_f32((float32_t) cRealArray[offset+2], cReal, 2);
+    cReal = vsetq_lane_f32((float32_t) cRealArray[offset+3], cReal, 3);
     float32x4_t cImaginary = vdupq_n_f32(0);
-    cImaginary = vsetq_lane_f32((float32_t) cImaginaryArray[0], cImaginary, 0);
-    cImaginary = vsetq_lane_f32((float32_t) cImaginaryArray[1], cImaginary, 1);
-    cImaginary = vsetq_lane_f32((float32_t) cImaginaryArray[2], cImaginary, 2);
-    cImaginary = vsetq_lane_f32((float32_t) cImaginaryArray[3], cImaginary, 3);
+    cImaginary = vsetq_lane_f32((float32_t) cImaginaryArray[offset+0], cImaginary, 0);
+    cImaginary = vsetq_lane_f32((float32_t) cImaginaryArray[offset+1], cImaginary, 1);
+    cImaginary = vsetq_lane_f32((float32_t) cImaginaryArray[offset+2], cImaginary, 2);
+    cImaginary = vsetq_lane_f32((float32_t) cImaginaryArray[offset+3], cImaginary, 3);
     // The z values
     float32x4_t zReal = vdupq_n_f32(0);
     float32x4_t zImaginary = vdupq_n_f32(0);
@@ -66,14 +67,11 @@ void MandelbrotOpenMPSIMD32::calculateFractal(precision_t* cRealArray, precision
         i++;
     }
     // write n to dest
-    dest[0] = (unsigned short int) vgetq_lane_s32(n, 0);
-    dest[1] = (unsigned short int) vgetq_lane_s32(n, 1);
-    dest[2] = (unsigned short int) vgetq_lane_s32(n, 2);
-    dest[3] = (unsigned short int) vgetq_lane_s32(n, 3);
+    dest[offset+0] = (unsigned short int) vgetq_lane_s32(n, 0);
+    dest[offset+1] = (unsigned short int) vgetq_lane_s32(n, 1);
+    dest[offset+2] = (unsigned short int) vgetq_lane_s32(n, 2);
+    dest[offset+3] = (unsigned short int) vgetq_lane_s32(n, 3);
 
-    cRealArray += 4;
-    cImaginaryArray += 4;
-    dest += 4;
     }
     #else
     #pragma omp parallel for default(none) shared(vectorLength, dest) schedule(static)
