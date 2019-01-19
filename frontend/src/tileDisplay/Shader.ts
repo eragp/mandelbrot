@@ -3,6 +3,16 @@ class Shader {
     return [10, 20, 40].map(m => (n * m) % 256);
   }
 
+  // Copied from https://giansass.com/blog/mandelbrot-set-part-2-opengl-program/
+  public static smooth2(n: number, maxIteration: number): number[] {
+    const t = n / maxIteration;
+    return [
+      9 * (1 - t) * t * t * t,
+      15 * (1 - t) * (1 - t) * t * t,
+      8.5 * (1 - t) * (1 - t) * (1 - t) * t
+    ].map(v => (v * 255) % 256);
+  }
+
   /**
    * The smooth color mapping linearly interpolates the colors given by Division Colors
    * @param n iteration
@@ -50,7 +60,6 @@ class Shader {
     const c = c1[2] + ratio * (c2[2] - c1[2]);
 
     return [a, b, c].map(v => Math.round(clamp(v) * 255));
-    // ====================================================
   }
 
   public static testPattern(x: number, y: number): number[] {
