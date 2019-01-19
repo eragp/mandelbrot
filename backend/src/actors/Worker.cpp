@@ -6,6 +6,11 @@
 #include "Mandelbrot64.h"
 #include "MandelbrotSIMD32.h"
 #include "MandelbrotSIMD64.h"
+#include "MandelbrotOpenMP.h"
+#include "MandelbrotOpenMP32.h"
+#include "MandelbrotOpenMP64.h"
+#include "MandelbrotOpenMPSIMD32.h"
+#include "MandelbrotOpenMPSIMD64.h"
 #include "Region.h"
 #include "Tile.h"
 #include "WorkerInfo.h"
@@ -46,6 +51,13 @@ void Worker::init(int world_rank, int world_size) {
         std::cout << "Worker " << world_rank << " received test, but value is incorrect." << std::endl;
     }
     int host_rank = status.MPI_SOURCE;
+
+    // Check if OpenMp is enabled
+    #ifdef _OPENMP
+        std::cout << "Worker " << world_rank << ": OpenMP is enabled." << std::endl;
+    #else
+        std::cout << "Worker " << world_rank << ": OpenMP is NOT enabled." << std::endl;
+    #endif
 
     Fractal *f ;
 
@@ -101,6 +113,21 @@ void Worker::init(int world_rank, int world_size) {
                 case mandelbrotSIMD64:
                     f = new MandelbrotSIMD64();
                     break;
+                case mandelbrotOpenMP32:
+                    f = new MandelbrotOpenMP32();
+                    break;
+                case mandelbrotOpenMP64:
+                    f = new MandelbrotOpenMP64();
+                    break;
+                case mandelbrotOpenMPSIMD32:
+                    f = new MandelbrotOpenMPSIMD32();
+                    break;
+                case mandelbrotOpenMPSIMD64:
+                    f = new MandelbrotOpenMPSIMD64();
+                    break;
+                case mandelbrotOpenMP:
+                    f = new MandelbrotOpenMP();
+                    break;
                 default:
                     f = new Mandelbrot();
             }
@@ -123,7 +150,7 @@ void Worker::init(int world_rank, int world_size) {
                     }
                     // Computations
                     // Project all points to be computed
-                    int reverseY = region.height - y - 1;
+                    int reverseY = region.height - y;
                     for(int k = 0; k < vectorLength; k++){
                         projReal[k] = region.projectReal(x+k);
                         projImag[k] = region.projectImag(reverseY);

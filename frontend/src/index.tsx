@@ -13,8 +13,7 @@ import {
   WorkerObservable,
   IterationObservable
 } from "./misc/Observable";
-import { getURLParams } from "./misc/URLParams";
-
+import { readViewCenterParams, readWSUrl } from "./misc/URLParams";
 import TourMonitor from "./eval/TourMonitor";
 
 // Custom Components
@@ -33,8 +32,8 @@ import { StatsCollector } from "./eval/StatsCollector";
 
 class App extends React.Component<{}, {}> {
   render() {
-    const ws = new WebSocketClient();
 
+    const ws = new WebSocketClient(readWSUrl());
     const stats = new StatsCollector(ws);
 
     const balancer = new BalancerObservable();
@@ -44,7 +43,7 @@ class App extends React.Component<{}, {}> {
     const viewCenter = new ViewCenterObservable();
     const workerCount = new WorkerObservable();
 
-    viewCenter.set(getURLParams());
+    viewCenter.set(readViewCenterParams());
 
     return (
       <div className="index">

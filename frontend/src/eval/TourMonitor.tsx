@@ -8,10 +8,11 @@ import {
 } from "../misc/Observable";
 import { Point3D } from "../misc/Point";
 import { StatsCollector } from "./StatsCollector";
-import { Output, PoI } from "./ConfigTypes";
+import { Output, PoI, Tour } from "./ConfigTypes";
 
 import "./TourMonitor.css";
 import { Balancers, Implementations } from "../Constants";
+import { instanceOf } from "prop-types";
 
 interface Config {
   balancer: string;
@@ -108,21 +109,35 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
   private onFileChange(files: FileList) {
     let fr = new FileReader();
     fr.onload = () => this.start(fr.result as string);
-    fr.readAsText(files[0]);
+    if(files.length > 0){
+        fr.readAsText(files[0]);
+    }
   }
 
   private start(configJSON: string) {
     // generate config combinations
-    const config = JSON.parse(configJSON);
+    const config = JSON.parse(configJSON) as Tour;
     this.configs = [];
+    if(!(config.balancers)){
+        console.error("Invalid balancers: undefined");
+        return;
+    }
     for (const balancer of config.balancers) {
       if (!Balancers.some(b => b.key === balancer)) {
         console.error("Invalid balancer: ", balancer);
         return;
       }
+      if(!(config.implementations)){
+        console.error("Invalid implementations: undefined");
+        return;
+      }
       for (const implementation of config.implementations) {
         if (!Implementations.some(i => i.key === implementation)) {
           console.error("Invalid implementation: ", balancer);
+          return;
+        }
+        if(!(config.maxIteration)){
+          console.error("Invalid maxIterations: undefined");
           return;
         }
         if (config.maxIteration.length !== 3 && config.maxIteration.length !== 1) {

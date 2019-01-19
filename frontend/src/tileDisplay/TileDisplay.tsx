@@ -15,7 +15,7 @@ import { Point3D } from "../misc/Point";
 import MatrixView from "./MatrixView";
 import WebSocketClient from "../connection/WSClient";
 import WorkerLayer from "./WorkerLayer";
-import { setURLParams } from "../misc/URLParams";
+import { setViewCenterParams } from "../misc/URLParams";
 import RegionOfInterest from "./RegionOfInterest";
 import {
   BalancerObservable,
@@ -230,7 +230,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
       }
     });
     // change URL params when region changes
-    this.props.viewCenter.subscribe(center => setURLParams(center));
+    this.props.viewCenter.subscribe(center => setViewCenterParams(center));
 
     map.addControl(
       L.control.zoomBox({
