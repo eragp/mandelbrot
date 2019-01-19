@@ -144,7 +144,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
           for (let y = 0; y < size.y; y++) {
             for (let x = 0; x < size.x; x++) {
               const n = tileData.get(x, y);
-              const [r, g, b] = Shader.default(n, MaxIteration);
+              const [r, g, b] = Shader.smooth(n, MaxIteration);
               drawPixel(imgData, x, y, r, g, b, 255);
             }
           }
