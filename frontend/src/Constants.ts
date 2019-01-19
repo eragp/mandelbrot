@@ -1,3 +1,4 @@
+export const WsUrl = "ws://localhost:9002";
 export const TileSize = 64;
 export const LeafletBound = 1024;
 export const MaxIteration = 1019; // Prime so that %256 never gets black
@@ -65,7 +66,7 @@ interface Implementation {
 export const Implementations: Implementation[] = [
   {
     key: "mandelbrot",
-    title: "Default Implementation",
+    title: "80 bit float",
     description: "TODO: add doc"
   },
   {

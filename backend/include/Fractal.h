@@ -9,6 +9,11 @@ enum fractal_type {
     mandelbrot64,
     mandelbrotSIMD32,
     mandelbrotSIMD64,
+    mandelbrotOpenMP,
+    mandelbrotOpenMP32,
+    mandelbrotOpenMP64,
+    mandelbrotOpenMPSIMD32,
+    mandelbrotOpenMPSIMD64,
 };
 
 class Fractal {

@@ -89,7 +89,7 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
         title: {
           display: true,
           position: "bottom",
-          text: ["Total node computation time:", "0 µs"]
+          text: ["Maximal node computation time:", "0 µs"]
         },
         onHover: event => {
           // change workercontext active worker on hover
@@ -221,12 +221,14 @@ export default class ComputationTime extends React.Component<NodeProgressProps, 
     };
     this.chart.data = data;
 
-    let computationTime = 0;
+    let maxComputationTime = 0;
     this.chartState.progress.forEach(value => {
-      computationTime += value;
+      if(maxComputationTime < value){
+          maxComputationTime = value;
+      }
     });
     (((this.chart.config.options as ChartOptions).title as ChartTitleOptions)
-      .text as string[])[1] = usToString(computationTime);
+      .text as string[])[1] = usToString(maxComputationTime);
 
     this.chart.update(animationDuration);
   }

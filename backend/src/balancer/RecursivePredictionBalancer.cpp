@@ -18,7 +18,7 @@ Region *RecursivePredictionBalancer::balanceLoad(Region region, int nodeCount) {
 	Region *allRegions = new Region[nodeCount];
 	Prediction* prediction = Predicter::getPrediction(region, f, predictionAccuracy);
 	
-	BalancingContext context = { allRegions, 0, nodeCount, 0, prediction->deltaReal, prediction->deltaImaginary };
+	BalancingContext context = { allRegions, 0, nodeCount, prediction->deltaReal, prediction->deltaImaginary };
 	int partsMade = balancingHelper(region, prediction, context);
 
 	if (partsMade != nodeCount) {
@@ -73,8 +73,6 @@ int RecursivePredictionBalancer::balancingHelper(Region region, Prediction* pred
 			halves[i].hOffset = 0;
 		}
 	}
-
-	context.recCounter++;
 
 	context.partsLeft = nodeCount / 2 + nodeCount % 2;	// Assign more workers to halves[0], since it tends to be bigger
 	context.resultIndex = balancingHelper(halves[0], halve0, context);
