@@ -247,12 +247,6 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
     const c = configs[0] as Config;
     console.log("Tour: Changing config to: ", c);
 
-    // // only notify the observable that has changed once
-    // const oldBl = this.props.balancer.get();
-    // const oldImp = this.props.impl.get();
-    // const oldIter = this.props.iter.get();
-    // const oldCenter = this.props.viewCenter.get();
-
     this.props.balancer.setNoNotify(c.balancer);
     this.props.impl.setNoNotify(c.implementation);
     this.props.iter.setNoNotify(c.maxIteration);
