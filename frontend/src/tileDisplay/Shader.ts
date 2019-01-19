@@ -4,7 +4,7 @@ class Shader {
   }
 
   // Copied from https://giansass.com/blog/mandelbrot-set-part-2-opengl-program/
-  public static smooth2(n: number, maxIteration: number): number[] {
+  public static exponentialSmooth(n: number, maxIteration: number): number[] {
     const t = n / maxIteration;
     return [
       9 * (1 - t) * t * t * t,
@@ -18,7 +18,7 @@ class Shader {
    * @param n iteration
    * @param maxIteration  max iteration
    */
-  public static smooth(n: number, maxIteration: number): number[] {
+  public static lerpSmooth(n: number, maxIteration: number): number[] {
     // Black if in the mandelbrot set
     if (n === maxIteration) {
       return [0, 0, 0];
