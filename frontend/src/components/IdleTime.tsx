@@ -230,10 +230,10 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
     let maxComputationTime = 0;
     for (const g of this.chartState.nodes) {
       for (const region of g.getLeafs()) {
-          const compTime = this.chartState.progress.get(region.id) as number;
-          if(compTime > maxComputationTime){
-            maxComputationTime = compTime;
-          }
+        const compTime = this.chartState.progress.get(region.id) as number;
+        if (compTime > maxComputationTime) {
+          maxComputationTime = compTime;
+        }
       }
     }
     // Ensure that the order from the nodes array is kept for the datasets
@@ -242,13 +242,13 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
       const groupSize = group.getLeafs().length;
       // IdleTime is displayed in seconds, averaged over the size of the group
       let idleTime = 0;
-      for(const region of group.getLeafs()){
-          idleTime += maxComputationTime - (this.chartState.progress.get(region.id) as number);
+      for (const region of group.getLeafs()) {
+        idleTime += maxComputationTime - (this.chartState.progress.get(region.id) as number);
       }
-      const idleTimeAVG = idleTime / (groupSize * factor);
+      const idleTimeAvg = idleTime / (groupSize * factor);
       datasets.push({
         label: "Group " + rank,
-        data: [idleTimeAVG],
+        data: [idleTimeAvg],
         backgroundColor: this.props.group.getColor(rank),
         stack: "idle-time"
       });
