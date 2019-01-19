@@ -168,6 +168,10 @@ Hierbei ist es kein Problem mit den abgebrochenen Punkten weiter zu rechnen, sof
 Iterationszahl nur hochgezählt wird wenn das $z_n$ der Koordinate Betragsmäßig kleiner gleich $2$ ist.
 Dies gilt, da alle $|z_{n+i}| > 2$ sofern $|z_n| > 2$ \cite{424331}.
 
+Außerdem ist zu beachten, dass die Iterationszahl vor der Berechnung der nächsten Iteration erhöht werden muss.
+Dies liegt darin begründet die Iterationszahl die Anzahl der Rechenschritte repräsentieren soll und 
+der nächste Schritt sicher ausgeführt wird. Auch dann, wenn in auf Basis der neuen Berechnung bereits abgebrochen wäre.
+
 \begin{figure}[h!]
 	\lstinputlisting[caption={Bearbeitung eines Vektors komplexer Koordinaten in Pseudocode}, label={src:MandelbrotVect}]{code/mandelbrotvect.pseudo}
 \end{figure}
