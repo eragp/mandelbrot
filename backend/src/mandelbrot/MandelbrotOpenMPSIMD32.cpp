@@ -20,7 +20,7 @@ void MandelbrotOpenMPSIMD32::calculateFractal(precision_t* cRealArray, precision
         throw std::invalid_argument("vectorLength may not be less than 1.");
     }
     #pragma omp parallel for default(none) shared(cRealArray, cImaginaryArray, maxIteration, vectorLength, dest) schedule(nonmonotonic:dynamic, 10)
-    for(unsigned int j = 0; j < (vectorLength/4); j++){
+    for(int j = 0; j < (vectorLength/4); j++){
     // General form of vector commands
     // v<cmd>q_f<pr>
     // v -> vector command
@@ -28,7 +28,7 @@ void MandelbrotOpenMPSIMD32::calculateFractal(precision_t* cRealArray, precision
     // f -> float
     // 32 bit vectorization
     // Load casted values from array to simd vector
-    unsigned int offset = j * 4;
+    int offset = j * 4;
     float32x4_t cReal = vdupq_n_f32(0);// = vld1q_f32(cRealArray); if casting weren't necessary this would work
     cReal = vsetq_lane_f32((float32_t) cRealArray[offset+0], cReal, 0);
     cReal = vsetq_lane_f32((float32_t) cRealArray[offset+1], cReal, 1);

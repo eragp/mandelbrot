@@ -26,13 +26,14 @@ void MandelbrotSIMD64::calculateFractal(precision_t* cRealArray, precision_t* cI
     // q -> double amount of used registers (quad=>4)
     // f -> float
     // 64 bit vectorization
+    int offset = j*2;
     // Load values from array to simd vector
     float64x2_t cReal = vdupq_n_f64(0);// = vld4q_f64(cRealArray);
-    cReal = vsetq_lane_f64((float64_t) cRealArray[0], cReal, 0);
-    cReal = vsetq_lane_f64((float64_t) cRealArray[1], cReal, 1);
+    cReal = vsetq_lane_f64((float64_t) cRealArray[offset+0], cReal, 0);
+    cReal = vsetq_lane_f64((float64_t) cRealArray[offset+1], cReal, 1);
     float64x2_t cImaginary = vdupq_n_f64(0);// = vld4q_f64(cImaginaryArray);
-    cImaginary = vsetq_lane_f64((float64_t) cImaginaryArray[0], cImaginary, 0);
-    cImaginary = vsetq_lane_f64((float64_t) cImaginaryArray[1], cImaginary, 1);
+    cImaginary = vsetq_lane_f64((float64_t) cImaginaryArray[offset+0], cImaginary, 0);
+    cImaginary = vsetq_lane_f64((float64_t) cImaginaryArray[offset+1], cImaginary, 1);
     // The z values
     float64x2_t zReal = vdupq_n_f64(0);
     float64x2_t zImaginary = vdupq_n_f64(0);
@@ -66,12 +67,8 @@ void MandelbrotSIMD64::calculateFractal(precision_t* cRealArray, precision_t* cI
         absLesserThanTwo = vreinterpretq_s64_u64(vcltq_f64(absSquare, four));
     }
     // write n to dest
-    dest[0] = (unsigned short int) vgetq_lane_s64(n, 0);
-    dest[1] = (unsigned short int) vgetq_lane_s64(n, 1);
-
-    cRealArray += 2;
-    cImaginaryArray += 2;
-    dest += 2;
+    dest[offset+0] = (unsigned short int) vgetq_lane_s64(n, 0);
+    dest[offset+1] = (unsigned short int) vgetq_lane_s64(n, 1);
     }
     #else
     for(int j = 0; j < vectorLength; j++){
