@@ -15,9 +15,9 @@ int calculateFractalOpenMP(precision_t cReal, precision_t cImaginary, unsigned s
 }
 
 // Non-simd-izable version
-void MandelbrotOpenMP::calculateFractal(precision_t* cReal, precision_t* cImaginary, unsigned short int maxIteration, int vectorLength, unsigned short int* dest) {
+void MandelbrotOpenMP::calculateFractal(precision_t* cReal, precision_t* cImaginary, unsigned short int maxIteration, unsigned int vectorLength, unsigned short int* dest) {
     #pragma omp parallel for default(none) shared(cReal, cImaginary, maxIteration, vectorLength, dest) schedule(nonmonotonic:dynamic, 10)
-    for(int j = 0; j < vectorLength; j++){
+    for(unsigned int j = 0; j < vectorLength; j++){
         dest[j] = calculateFractalOpenMP(cReal[j], cImaginary[j], maxIteration);
     }
 }

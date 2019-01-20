@@ -14,19 +14,19 @@
 
 // Probably more open to compiler optimization
 // vectorlength >= 1 !!
-void MandelbrotSIMD32::calculateFractal(precision_t* cRealArray, precision_t* cImaginaryArray, unsigned short int maxIteration, int vectorLength, unsigned short int* dest) {
+void MandelbrotSIMD32::calculateFractal(precision_t* cRealArray, precision_t* cImaginaryArray, unsigned short int maxIteration, unsigned int vectorLength, unsigned short int* dest) {
     #ifdef __ARM_NEON
-    if(vectorLength <= 0){
+    if(vectorLength == 0){
         throw std::invalid_argument("vectorLength may not be less than 1.");
     }
-    for(int j = 0; j < (vectorLength/4); j++){
+    for(unsigned int j = 0; j < (vectorLength/4); j++){
     // General form of vector commands
     // v<cmd>q_f<pr>
     // v -> vector command
     // q -> double amount of used registers
     // f -> float
     // 32 bit vectorization
-    int offset = j*4;
+    unsigned int offset = j*4;
     // Load casted values from array to simd vector
     float32x4_t cReal = vdupq_n_f32(0);// = vld1q_f32(cRealArray); if casting weren't necessary this would work
     cReal = vsetq_lane_f32((float32_t) cRealArray[offset+0], cReal, 0);
@@ -74,7 +74,7 @@ void MandelbrotSIMD32::calculateFractal(precision_t* cRealArray, precision_t* cI
     dest[offset+3] = (unsigned short int) vgetq_lane_s32(n, 3);
     }
     #else
-    for(int j = 0; j < vectorLength; j++){
+    for(unsigned int j = 0; j < vectorLength; j++){
         dest[j] = 0;
     }
     #endif

@@ -15,8 +15,8 @@ int calculateFractalNonParallel(precision_t cReal, precision_t cImaginary, unsig
 }
 
 // Non-simd-izable version
-void Mandelbrot::calculateFractal(precision_t* cReal, precision_t* cImaginary, unsigned short int maxIteration, int vectorLength, unsigned short int* dest) {
-    for(int j = 0; j < vectorLength; j++){
+void Mandelbrot::calculateFractal(precision_t* cReal, precision_t* cImaginary, unsigned short int maxIteration, unsigned int vectorLength, unsigned short int* dest) {
+    for(unsigned int j = 0; j < vectorLength; j++){
         dest[j] = calculateFractalNonParallel(cReal[j], cImaginary[j], maxIteration);
     }
 }
