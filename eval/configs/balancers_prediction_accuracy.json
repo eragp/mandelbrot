@@ -6,9 +6,15 @@
   "balancers": ["predictionRecursive"],
   "implementations": ["mandelbrot"],
   "maxIteration": [1019],
+<<<<<<< HEAD
   "nodeCount": [37],
   "predictionAccuracy": [-5, 5, 2],
   "runs": 1,
+=======
+  "nodeCount": [17],
+  "predictionAccuracy": [-4, 8, 2],
+  "runs": 10,
+>>>>>>> be05f36e52b3ae661f8b6e36de9a0d5ca062e300
   "cluster": "himmuc",
   "description": "Testing prediction accuracy on points at the border of the mandelbrot set",
   "pois": [

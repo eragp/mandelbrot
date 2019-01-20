@@ -198,6 +198,8 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
               predictionAccuracy <= maxP;
               predictionAccuracy += stepP
             ) {
+              if (predictionAccuracy == 0)
+                continue
               for (let nodeCount = minN; nodeCount <= maxN; nodeCount += stepN) {
                 for (const poi of config.pois) {
                   this.configs.push({
