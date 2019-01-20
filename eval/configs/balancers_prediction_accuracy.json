@@ -7,8 +7,8 @@
   "implementations": ["mandelbrot"],
   "maxIteration": [1019],
   "nodeCount": [37],
-  "predictionAccuracy": [-4, 4, 2],
-  "runs": 10,
+  "predictionAccuracy": [-5, 5, 2],
+  "runs": 1,
   "cluster": "himmuc",
   "description": "Testing prediction accuracy on points at the border of the mandelbrot set",
   "pois": [

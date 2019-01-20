@@ -1,0 +1,5564 @@
+{
+  "config": {
+    "screen": { "width": 1280, "height": 720 },
+    "balancers": ["predictionRecursive"],
+    "implementations": ["mandelbrot"],
+    "maxIteration": [1019],
+    "nodeCount": [37],
+    "predictionAccuracy": [-5, 5, 2],
+    "runs": 1,
+    "cluster": "himmuc",
+    "description": "Testing prediction accuracy on points at the border of the mandelbrot set",
+    "pois": [
+      { "real": -1.1352806091308594, "imag": -0.3451214891342549, "zoom": 2 },
+      { "real": -0.7334021404385567, "imag": 0.2165058705628719, "zoom": 11 },
+      { "real": -0.04665714770453633, "imag": 0.9851097719948892, "zoom": 25 }
+    ]
+  },
+  "datapoints": [
+    {
+      "setting": {
+        "balancer": "predictionRecursive",
+        "implementation": "mandelbrot",
+        "maxIteration": 1019,
+        "predictionAccuracy": -5,
+        "nodeCount": 37,
+        "run": 1
+      },
+      "poi": {
+        "real": -1.1352806091308594,
+        "imag": -0.3451214891342549,
+        "zoom": 2
+      },
+      "data": {
+        "balancer": { "time": 3034, "regionCount": 36 },
+        "workers": [
+          {
+            "rank": 18,
+            "computationTime": 181969,
+            "mpiTime": 18600,
+            "drawTime": 4789,
+            "pixelCount": 61440,
+            "iterationCount": 293537
+          },
+          {
+            "rank": 35,
+            "computationTime": 350073,
+            "mpiTime": 16903,
+            "drawTime": 3392,
+            "pixelCount": 65536,
+            "iterationCount": 539456
+          },
+          {
+            "rank": 29,
+            "computationTime": 535105,
+            "mpiTime": 6710,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 823924
+          },
+          {
+            "rank": 9,
+            "computationTime": 559726,
+            "mpiTime": 20685,
+            "drawTime": 2094,
+            "pixelCount": 32768,
+            "iterationCount": 860787
+          },
+          {
+            "rank": 17,
+            "computationTime": 797969,
+            "mpiTime": 8807,
+            "drawTime": 1695,
+            "pixelCount": 36864,
+            "iterationCount": 1199054
+          },
+          {
+            "rank": 28,
+            "computationTime": 1439339,
+            "mpiTime": 8667,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 2231332
+          },
+          {
+            "rank": 14,
+            "computationTime": 2629698,
+            "mpiTime": 4417,
+            "drawTime": 599,
+            "pixelCount": 4096,
+            "iterationCount": 4173824
+          },
+          {
+            "rank": 5,
+            "computationTime": 2697005,
+            "mpiTime": 6706,
+            "drawTime": 299,
+            "pixelCount": 4096,
+            "iterationCount": 4173824
+          },
+          {
+            "rank": 36,
+            "computationTime": 2694687,
+            "mpiTime": 8970,
+            "drawTime": 797,
+            "pixelCount": 16384,
+            "iterationCount": 4162121
+          },
+          {
+            "rank": 16,
+            "computationTime": 3370790,
+            "mpiTime": 6450,
+            "drawTime": 899,
+            "pixelCount": 8192,
+            "iterationCount": 5221966
+          },
+          {
+            "rank": 19,
+            "computationTime": 5216677,
+            "mpiTime": 3808,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 8154757
+          },
+          {
+            "rank": 7,
+            "computationTime": 5262452,
+            "mpiTime": 13206,
+            "drawTime": 2095,
+            "pixelCount": 40960,
+            "iterationCount": 8074611
+          },
+          {
+            "rank": 12,
+            "computationTime": 5291754,
+            "mpiTime": 17902,
+            "drawTime": 800,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 20,
+            "computationTime": 5310707,
+            "mpiTime": 4033,
+            "drawTime": 399,
+            "pixelCount": 8192,
+            "iterationCount": 8163528
+          },
+          {
+            "rank": 11,
+            "computationTime": 5316253,
+            "mpiTime": 3088,
+            "drawTime": 699,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 10,
+            "computationTime": 5342204,
+            "mpiTime": 17530,
+            "drawTime": 399,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 8,
+            "computationTime": 5358069,
+            "mpiTime": 6444,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 8303040
+          },
+          {
+            "rank": 13,
+            "computationTime": 5380094,
+            "mpiTime": 8602,
+            "drawTime": 599,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 27,
+            "computationTime": 5394767,
+            "mpiTime": 7239,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 21,
+            "computationTime": 5391337,
+            "mpiTime": 12486,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 26,
+            "computationTime": 5400797,
+            "mpiTime": 5341,
+            "drawTime": 799,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 25,
+            "computationTime": 5385760,
+            "mpiTime": 20932,
+            "drawTime": 699,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 30,
+            "computationTime": 5401693,
+            "mpiTime": 6209,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 8201859
+          },
+          {
+            "rank": 32,
+            "computationTime": 5405433,
+            "mpiTime": 10955,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 24,
+            "computationTime": 5413230,
+            "mpiTime": 15489,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 4,
+            "computationTime": 5435745,
+            "mpiTime": 9501,
+            "drawTime": 299,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 31,
+            "computationTime": 5493539,
+            "mpiTime": 12366,
+            "drawTime": 699,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 23,
+            "computationTime": 5524160,
+            "mpiTime": 2997,
+            "drawTime": 699,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 6,
+            "computationTime": 6659591,
+            "mpiTime": 47834,
+            "drawTime": 24234,
+            "pixelCount": 450560,
+            "iterationCount": 10464076
+          },
+          {
+            "rank": 22,
+            "computationTime": 7262183,
+            "mpiTime": 4037,
+            "drawTime": 797,
+            "pixelCount": 16384,
+            "iterationCount": 11084304
+          },
+          {
+            "rank": 34,
+            "computationTime": 7705051,
+            "mpiTime": 4390,
+            "drawTime": 598,
+            "pixelCount": 12288,
+            "iterationCount": 12024194
+          },
+          {
+            "rank": 2,
+            "computationTime": 7952231,
+            "mpiTime": 8867,
+            "drawTime": 798,
+            "pixelCount": 12288,
+            "iterationCount": 12521472
+          },
+          {
+            "rank": 3,
+            "computationTime": 7953977,
+            "mpiTime": 9434,
+            "drawTime": 697,
+            "pixelCount": 12288,
+            "iterationCount": 12521472
+          },
+          {
+            "rank": 33,
+            "computationTime": 8671084,
+            "mpiTime": 24588,
+            "drawTime": 2892,
+            "pixelCount": 49152,
+            "iterationCount": 13479953
+          },
+          {
+            "rank": 15,
+            "computationTime": 10315306,
+            "mpiTime": 5551,
+            "drawTime": 897,
+            "pixelCount": 16384,
+            "iterationCount": 15811441
+          },
+          {
+            "rank": 1,
+            "computationTime": 17065490,
+            "mpiTime": 19840,
+            "drawTime": 0,
+            "pixelCount": 122880,
+            "iterationCount": 26768237
+          }
+        ]
+      }
+    },
+    {
+      "setting": {
+        "balancer": "predictionRecursive",
+        "implementation": "mandelbrot",
+        "maxIteration": 1019,
+        "predictionAccuracy": -5,
+        "nodeCount": 37,
+        "run": 1
+      },
+      "poi": {
+        "real": -0.7334021404385567,
+        "imag": 0.2165058705628719,
+        "zoom": 11
+      },
+      "data": {
+        "balancer": { "time": 3075, "regionCount": 36 },
+        "workers": [
+          {
+            "rank": 36,
+            "computationTime": 597212,
+            "mpiTime": 4624,
+            "drawTime": 200,
+            "pixelCount": 4096,
+            "iterationCount": 913637
+          },
+          {
+            "rank": 23,
+            "computationTime": 712437,
+            "mpiTime": 9590,
+            "drawTime": 200,
+            "pixelCount": 4096,
+            "iterationCount": 1089557
+          },
+          {
+            "rank": 31,
+            "computationTime": 812376,
+            "mpiTime": 18915,
+            "drawTime": 499,
+            "pixelCount": 4096,
+            "iterationCount": 1214676
+          },
+          {
+            "rank": 34,
+            "computationTime": 959856,
+            "mpiTime": 20203,
+            "drawTime": 7898,
+            "pixelCount": 8192,
+            "iterationCount": 1470748
+          },
+          {
+            "rank": 32,
+            "computationTime": 1013854,
+            "mpiTime": 7544,
+            "drawTime": 399,
+            "pixelCount": 4096,
+            "iterationCount": 1548439
+          },
+          {
+            "rank": 35,
+            "computationTime": 1056859,
+            "mpiTime": 4974,
+            "drawTime": 199,
+            "pixelCount": 4096,
+            "iterationCount": 1579565
+          },
+          {
+            "rank": 18,
+            "computationTime": 1158690,
+            "mpiTime": 9360,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 1774498
+          },
+          {
+            "rank": 26,
+            "computationTime": 1257849,
+            "mpiTime": 11786,
+            "drawTime": 299,
+            "pixelCount": 4096,
+            "iterationCount": 1920843
+          },
+          {
+            "rank": 27,
+            "computationTime": 1697914,
+            "mpiTime": 13943,
+            "drawTime": 199,
+            "pixelCount": 4096,
+            "iterationCount": 2593949
+          },
+          {
+            "rank": 9,
+            "computationTime": 2074533,
+            "mpiTime": 14801,
+            "drawTime": 1298,
+            "pixelCount": 16384,
+            "iterationCount": 3178965
+          },
+          {
+            "rank": 29,
+            "computationTime": 2499394,
+            "mpiTime": 3517,
+            "drawTime": 400,
+            "pixelCount": 4096,
+            "iterationCount": 3818079
+          },
+          {
+            "rank": 1,
+            "computationTime": 2549436,
+            "mpiTime": 14520,
+            "drawTime": 5486,
+            "pixelCount": 98304,
+            "iterationCount": 3921798
+          },
+          {
+            "rank": 28,
+            "computationTime": 2732652,
+            "mpiTime": 25440,
+            "drawTime": 199,
+            "pixelCount": 4096,
+            "iterationCount": 4173824
+          },
+          {
+            "rank": 33,
+            "computationTime": 3061348,
+            "mpiTime": 15813,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 4674668
+          },
+          {
+            "rank": 17,
+            "computationTime": 3906217,
+            "mpiTime": 11915,
+            "drawTime": 399,
+            "pixelCount": 8192,
+            "iterationCount": 5965681
+          },
+          {
+            "rank": 30,
+            "computationTime": 5275225,
+            "mpiTime": 3061,
+            "drawTime": 798,
+            "pixelCount": 8192,
+            "iterationCount": 7876466
+          },
+          {
+            "rank": 22,
+            "computationTime": 5346821,
+            "mpiTime": 9602,
+            "drawTime": 399,
+            "pixelCount": 8192,
+            "iterationCount": 7977255
+          },
+          {
+            "rank": 12,
+            "computationTime": 5469412,
+            "mpiTime": 4747,
+            "drawTime": 398,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 25,
+            "computationTime": 5468946,
+            "mpiTime": 7814,
+            "drawTime": 398,
+            "pixelCount": 8192,
+            "iterationCount": 8347134
+          },
+          {
+            "rank": 16,
+            "computationTime": 5464637,
+            "mpiTime": 13383,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 15,
+            "computationTime": 5466321,
+            "mpiTime": 11981,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 11,
+            "computationTime": 5469569,
+            "mpiTime": 10902,
+            "drawTime": 400,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 14,
+            "computationTime": 5463909,
+            "mpiTime": 21830,
+            "drawTime": 400,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 24,
+            "computationTime": 5467563,
+            "mpiTime": 22385,
+            "drawTime": 399,
+            "pixelCount": 8192,
+            "iterationCount": 8344218
+          },
+          {
+            "rank": 13,
+            "computationTime": 5478100,
+            "mpiTime": 15515,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 21,
+            "computationTime": 5539545,
+            "mpiTime": 20090,
+            "drawTime": 1198,
+            "pixelCount": 12288,
+            "iterationCount": 8456680
+          },
+          {
+            "rank": 2,
+            "computationTime": 5605255,
+            "mpiTime": 25047,
+            "drawTime": 4686,
+            "pixelCount": 98304,
+            "iterationCount": 8619239
+          },
+          {
+            "rank": 8,
+            "computationTime": 7172079,
+            "mpiTime": 14407,
+            "drawTime": 997,
+            "pixelCount": 16384,
+            "iterationCount": 10963454
+          },
+          {
+            "rank": 19,
+            "computationTime": 7597109,
+            "mpiTime": 23496,
+            "drawTime": 1792,
+            "pixelCount": 36864,
+            "iterationCount": 11620717
+          },
+          {
+            "rank": 10,
+            "computationTime": 7738291,
+            "mpiTime": 19836,
+            "drawTime": 2490,
+            "pixelCount": 40960,
+            "iterationCount": 11838335
+          },
+          {
+            "rank": 3,
+            "computationTime": 8703322,
+            "mpiTime": 36802,
+            "drawTime": 12159,
+            "pixelCount": 229376,
+            "iterationCount": 13395616
+          },
+          {
+            "rank": 7,
+            "computationTime": 10720685,
+            "mpiTime": 17206,
+            "drawTime": 1996,
+            "pixelCount": 16384,
+            "iterationCount": 16355072
+          },
+          {
+            "rank": 5,
+            "computationTime": 12802451,
+            "mpiTime": 29427,
+            "drawTime": 6676,
+            "pixelCount": 147456,
+            "iterationCount": 19632471
+          },
+          {
+            "rank": 20,
+            "computationTime": 15686933,
+            "mpiTime": 12896,
+            "drawTime": 1198,
+            "pixelCount": 24576,
+            "iterationCount": 23446706
+          },
+          {
+            "rank": 4,
+            "computationTime": 16319899,
+            "mpiTime": 33430,
+            "drawTime": 8770,
+            "pixelCount": 172032,
+            "iterationCount": 24462442
+          },
+          {
+            "rank": 6,
+            "computationTime": 16414914,
+            "mpiTime": 14125,
+            "drawTime": 0,
+            "pixelCount": 57344,
+            "iterationCount": 25125162
+          }
+        ]
+      }
+    },
+    {
+      "setting": {
+        "balancer": "predictionRecursive",
+        "implementation": "mandelbrot",
+        "maxIteration": 1019,
+        "predictionAccuracy": -5,
+        "nodeCount": 37,
+        "run": 1
+      },
+      "poi": {
+        "real": -0.04665714770453633,
+        "imag": 0.9851097719948892,
+        "zoom": 25
+      },
+      "data": {
+        "balancer": { "time": 4405, "regionCount": 36 },
+        "workers": [
+          {
+            "rank": 27,
+            "computationTime": 940637,
+            "mpiTime": 16165,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 1464862
+          },
+          {
+            "rank": 20,
+            "computationTime": 1366143,
+            "mpiTime": 2500,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 2080493
+          },
+          {
+            "rank": 18,
+            "computationTime": 1627932,
+            "mpiTime": 11149,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 2537087
+          },
+          {
+            "rank": 23,
+            "computationTime": 1845827,
+            "mpiTime": 12186,
+            "drawTime": 597,
+            "pixelCount": 12288,
+            "iterationCount": 2878480
+          },
+          {
+            "rank": 26,
+            "computationTime": 2184445,
+            "mpiTime": 14300,
+            "drawTime": 997,
+            "pixelCount": 16384,
+            "iterationCount": 3402993
+          },
+          {
+            "rank": 21,
+            "computationTime": 3035089,
+            "mpiTime": 31804,
+            "drawTime": 1097,
+            "pixelCount": 12288,
+            "iterationCount": 4731589
+          },
+          {
+            "rank": 11,
+            "computationTime": 3177648,
+            "mpiTime": 12857,
+            "drawTime": 299,
+            "pixelCount": 8192,
+            "iterationCount": 4953135
+          },
+          {
+            "rank": 29,
+            "computationTime": 3485325,
+            "mpiTime": 18659,
+            "drawTime": 1396,
+            "pixelCount": 32768,
+            "iterationCount": 5430807
+          },
+          {
+            "rank": 25,
+            "computationTime": 3600053,
+            "mpiTime": 21194,
+            "drawTime": 1197,
+            "pixelCount": 24576,
+            "iterationCount": 5609921
+          },
+          {
+            "rank": 22,
+            "computationTime": 4293351,
+            "mpiTime": 13219,
+            "drawTime": 1696,
+            "pixelCount": 24576,
+            "iterationCount": 6537242
+          },
+          {
+            "rank": 2,
+            "computationTime": 5355675,
+            "mpiTime": 7243,
+            "drawTime": 800,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 9,
+            "computationTime": 5674041,
+            "mpiTime": 5946,
+            "drawTime": 1099,
+            "pixelCount": 12288,
+            "iterationCount": 8858330
+          },
+          {
+            "rank": 28,
+            "computationTime": 6042694,
+            "mpiTime": 11767,
+            "drawTime": 1995,
+            "pixelCount": 49152,
+            "iterationCount": 9415527
+          },
+          {
+            "rank": 34,
+            "computationTime": 6253762,
+            "mpiTime": 17176,
+            "drawTime": 3091,
+            "pixelCount": 61440,
+            "iterationCount": 9742685
+          },
+          {
+            "rank": 10,
+            "computationTime": 6298492,
+            "mpiTime": 7652,
+            "drawTime": 1098,
+            "pixelCount": 16384,
+            "iterationCount": 9819131
+          },
+          {
+            "rank": 36,
+            "computationTime": 6384654,
+            "mpiTime": 23831,
+            "drawTime": 3991,
+            "pixelCount": 73728,
+            "iterationCount": 9950558
+          },
+          {
+            "rank": 33,
+            "computationTime": 6544310,
+            "mpiTime": 12756,
+            "drawTime": 3289,
+            "pixelCount": 61440,
+            "iterationCount": 10197045
+          },
+          {
+            "rank": 35,
+            "computationTime": 6563296,
+            "mpiTime": 24354,
+            "drawTime": 3187,
+            "pixelCount": 73728,
+            "iterationCount": 10230082
+          },
+          {
+            "rank": 24,
+            "computationTime": 6716511,
+            "mpiTime": 8531,
+            "drawTime": 1995,
+            "pixelCount": 36864,
+            "iterationCount": 10236642
+          },
+          {
+            "rank": 32,
+            "computationTime": 6900564,
+            "mpiTime": 16598,
+            "drawTime": 3992,
+            "pixelCount": 73728,
+            "iterationCount": 10754495
+          },
+          {
+            "rank": 30,
+            "computationTime": 6958485,
+            "mpiTime": 10578,
+            "drawTime": 2994,
+            "pixelCount": 61440,
+            "iterationCount": 10598211
+          },
+          {
+            "rank": 14,
+            "computationTime": 7267997,
+            "mpiTime": 4192,
+            "drawTime": 998,
+            "pixelCount": 12288,
+            "iterationCount": 11339793
+          },
+          {
+            "rank": 17,
+            "computationTime": 7556571,
+            "mpiTime": 5718,
+            "drawTime": 1995,
+            "pixelCount": 24576,
+            "iterationCount": 11774620
+          },
+          {
+            "rank": 19,
+            "computationTime": 7991746,
+            "mpiTime": 3386,
+            "drawTime": 896,
+            "pixelCount": 16384,
+            "iterationCount": 12176971
+          },
+          {
+            "rank": 7,
+            "computationTime": 7988661,
+            "mpiTime": 9114,
+            "drawTime": 697,
+            "pixelCount": 12288,
+            "iterationCount": 12472605
+          },
+          {
+            "rank": 31,
+            "computationTime": 9098588,
+            "mpiTime": 19556,
+            "drawTime": 5289,
+            "pixelCount": 98304,
+            "iterationCount": 13848287
+          },
+          {
+            "rank": 1,
+            "computationTime": 10961559,
+            "mpiTime": 11354,
+            "drawTime": 897,
+            "pixelCount": 16384,
+            "iterationCount": 16695296
+          },
+          {
+            "rank": 15,
+            "computationTime": 11586492,
+            "mpiTime": 9591,
+            "drawTime": 2393,
+            "pixelCount": 49152,
+            "iterationCount": 17644618
+          },
+          {
+            "rank": 8,
+            "computationTime": 12198628,
+            "mpiTime": 17316,
+            "drawTime": 1295,
+            "pixelCount": 24576,
+            "iterationCount": 19030649
+          },
+          {
+            "rank": 16,
+            "computationTime": 12743754,
+            "mpiTime": 19017,
+            "drawTime": 2094,
+            "pixelCount": 32768,
+            "iterationCount": 19862284
+          },
+          {
+            "rank": 13,
+            "computationTime": 14588970,
+            "mpiTime": 9457,
+            "drawTime": 1096,
+            "pixelCount": 24576,
+            "iterationCount": 22765345
+          },
+          {
+            "rank": 4,
+            "computationTime": 15476388,
+            "mpiTime": 9986,
+            "drawTime": 1396,
+            "pixelCount": 24576,
+            "iterationCount": 23588522
+          },
+          {
+            "rank": 5,
+            "computationTime": 16022497,
+            "mpiTime": 7262,
+            "drawTime": 1198,
+            "pixelCount": 24576,
+            "iterationCount": 24986613
+          },
+          {
+            "rank": 3,
+            "computationTime": 16036954,
+            "mpiTime": 18906,
+            "drawTime": 1698,
+            "pixelCount": 24576,
+            "iterationCount": 25042944
+          },
+          {
+            "rank": 6,
+            "computationTime": 16053095,
+            "mpiTime": 3184,
+            "drawTime": 1097,
+            "pixelCount": 24576,
+            "iterationCount": 25042944
+          },
+          {
+            "rank": 12,
+            "computationTime": 16057425,
+            "mpiTime": 9013,
+            "drawTime": 0,
+            "pixelCount": 24576,
+            "iterationCount": 25042944
+          }
+        ]
+      }
+    },
+    {
+      "setting": {
+        "balancer": "predictionRecursive",
+        "implementation": "mandelbrot",
+        "maxIteration": 1019,
+        "predictionAccuracy": -3,
+        "nodeCount": 37,
+        "run": 1
+      },
+      "poi": {
+        "real": -1.1352806091308594,
+        "imag": -0.3451214891342549,
+        "zoom": 2
+      },
+      "data": {
+        "balancer": { "time": 4463, "regionCount": 36 },
+        "workers": [
+          {
+            "rank": 16,
+            "computationTime": 59375,
+            "mpiTime": 2249,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 93135
+          },
+          {
+            "rank": 9,
+            "computationTime": 102476,
+            "mpiTime": 5875,
+            "drawTime": 3096,
+            "pixelCount": 28672,
+            "iterationCount": 162118
+          },
+          {
+            "rank": 18,
+            "computationTime": 100278,
+            "mpiTime": 21899,
+            "drawTime": 1794,
+            "pixelCount": 32768,
+            "iterationCount": 160716
+          },
+          {
+            "rank": 17,
+            "computationTime": 113213,
+            "mpiTime": 12682,
+            "drawTime": 1895,
+            "pixelCount": 24576,
+            "iterationCount": 179822
+          },
+          {
+            "rank": 15,
+            "computationTime": 796503,
+            "mpiTime": 20397,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 1227405
+          },
+          {
+            "rank": 28,
+            "computationTime": 1402076,
+            "mpiTime": 4501,
+            "drawTime": 299,
+            "pixelCount": 4096,
+            "iterationCount": 2172947
+          },
+          {
+            "rank": 8,
+            "computationTime": 2360546,
+            "mpiTime": 2506,
+            "drawTime": 398,
+            "pixelCount": 8192,
+            "iterationCount": 3629051
+          },
+          {
+            "rank": 11,
+            "computationTime": 2563610,
+            "mpiTime": 9020,
+            "drawTime": 499,
+            "pixelCount": 4096,
+            "iterationCount": 4054234
+          },
+          {
+            "rank": 10,
+            "computationTime": 2651026,
+            "mpiTime": 13396,
+            "drawTime": 299,
+            "pixelCount": 4096,
+            "iterationCount": 4173824
+          },
+          {
+            "rank": 29,
+            "computationTime": 2681546,
+            "mpiTime": 2542,
+            "drawTime": 299,
+            "pixelCount": 4096,
+            "iterationCount": 4173824
+          },
+          {
+            "rank": 19,
+            "computationTime": 2712633,
+            "mpiTime": 9461,
+            "drawTime": 299,
+            "pixelCount": 4096,
+            "iterationCount": 4100523
+          },
+          {
+            "rank": 20,
+            "computationTime": 2760845,
+            "mpiTime": 9809,
+            "drawTime": 299,
+            "pixelCount": 4096,
+            "iterationCount": 4173824
+          },
+          {
+            "rank": 36,
+            "computationTime": 2984216,
+            "mpiTime": 9822,
+            "drawTime": 4289,
+            "pixelCount": 65536,
+            "iterationCount": 4618370
+          },
+          {
+            "rank": 30,
+            "computationTime": 3110802,
+            "mpiTime": 12070,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 4808730
+          },
+          {
+            "rank": 14,
+            "computationTime": 3223081,
+            "mpiTime": 11077,
+            "drawTime": 399,
+            "pixelCount": 8192,
+            "iterationCount": 5012377
+          },
+          {
+            "rank": 35,
+            "computationTime": 3236410,
+            "mpiTime": 5283,
+            "drawTime": 1096,
+            "pixelCount": 16384,
+            "iterationCount": 5011896
+          },
+          {
+            "rank": 5,
+            "computationTime": 3249997,
+            "mpiTime": 6657,
+            "drawTime": 2592,
+            "pixelCount": 36864,
+            "iterationCount": 4951348
+          },
+          {
+            "rank": 13,
+            "computationTime": 4570067,
+            "mpiTime": 14454,
+            "drawTime": 599,
+            "pixelCount": 8192,
+            "iterationCount": 7263338
+          },
+          {
+            "rank": 25,
+            "computationTime": 4778430,
+            "mpiTime": 26952,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 7385487
+          },
+          {
+            "rank": 24,
+            "computationTime": 5171502,
+            "mpiTime": 21405,
+            "drawTime": 398,
+            "pixelCount": 8192,
+            "iterationCount": 7997520
+          },
+          {
+            "rank": 12,
+            "computationTime": 5197367,
+            "mpiTime": 3778,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 8234536
+          },
+          {
+            "rank": 6,
+            "computationTime": 5300797,
+            "mpiTime": 8630,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 21,
+            "computationTime": 5332259,
+            "mpiTime": 18160,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 8276640
+          },
+          {
+            "rank": 34,
+            "computationTime": 5342871,
+            "mpiTime": 19436,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 7,
+            "computationTime": 5367325,
+            "mpiTime": 5894,
+            "drawTime": 399,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 31,
+            "computationTime": 5370062,
+            "mpiTime": 8207,
+            "drawTime": 398,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 26,
+            "computationTime": 5400286,
+            "mpiTime": 10971,
+            "drawTime": 399,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 32,
+            "computationTime": 5405212,
+            "mpiTime": 6969,
+            "drawTime": 399,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 22,
+            "computationTime": 5408254,
+            "mpiTime": 18829,
+            "drawTime": 399,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 23,
+            "computationTime": 5507632,
+            "mpiTime": 8855,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 27,
+            "computationTime": 5513741,
+            "mpiTime": 3347,
+            "drawTime": 398,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 33,
+            "computationTime": 7738845,
+            "mpiTime": 16565,
+            "drawTime": 1494,
+            "pixelCount": 24576,
+            "iterationCount": 12051233
+          },
+          {
+            "rank": 2,
+            "computationTime": 8018287,
+            "mpiTime": 14824,
+            "drawTime": 797,
+            "pixelCount": 12288,
+            "iterationCount": 12521472
+          },
+          {
+            "rank": 4,
+            "computationTime": 11018407,
+            "mpiTime": 6580,
+            "drawTime": 896,
+            "pixelCount": 16384,
+            "iterationCount": 16695296
+          },
+          {
+            "rank": 3,
+            "computationTime": 17759993,
+            "mpiTime": 52005,
+            "drawTime": 26814,
+            "pixelCount": 532480,
+            "iterationCount": 27702514
+          },
+          {
+            "rank": 1,
+            "computationTime": 33034995,
+            "mpiTime": 17816,
+            "drawTime": 0,
+            "pixelCount": 147456,
+            "iterationCount": 51811181
+          }
+        ]
+      }
+    },
+    {
+      "setting": {
+        "balancer": "predictionRecursive",
+        "implementation": "mandelbrot",
+        "maxIteration": 1019,
+        "predictionAccuracy": -3,
+        "nodeCount": 37,
+        "run": 1
+      },
+      "poi": {
+        "real": -0.7334021404385567,
+        "imag": 0.2165058705628719,
+        "zoom": 11
+      },
+      "data": {
+        "balancer": { "time": 5105, "regionCount": 36 },
+        "workers": [
+          {
+            "rank": 36,
+            "computationTime": 597546,
+            "mpiTime": 20817,
+            "drawTime": 199,
+            "pixelCount": 4096,
+            "iterationCount": 913637
+          },
+          {
+            "rank": 23,
+            "computationTime": 712385,
+            "mpiTime": 16458,
+            "drawTime": 300,
+            "pixelCount": 4096,
+            "iterationCount": 1089557
+          },
+          {
+            "rank": 31,
+            "computationTime": 794237,
+            "mpiTime": 15421,
+            "drawTime": 400,
+            "pixelCount": 4096,
+            "iterationCount": 1214676
+          },
+          {
+            "rank": 34,
+            "computationTime": 960045,
+            "mpiTime": 6511,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 1470748
+          },
+          {
+            "rank": 32,
+            "computationTime": 1013321,
+            "mpiTime": 13920,
+            "drawTime": 299,
+            "pixelCount": 4096,
+            "iterationCount": 1548439
+          },
+          {
+            "rank": 35,
+            "computationTime": 1033284,
+            "mpiTime": 21203,
+            "drawTime": 299,
+            "pixelCount": 4096,
+            "iterationCount": 1579565
+          },
+          {
+            "rank": 18,
+            "computationTime": 1159453,
+            "mpiTime": 16515,
+            "drawTime": 399,
+            "pixelCount": 8192,
+            "iterationCount": 1774498
+          },
+          {
+            "rank": 26,
+            "computationTime": 1257624,
+            "mpiTime": 18431,
+            "drawTime": 100,
+            "pixelCount": 4096,
+            "iterationCount": 1920843
+          },
+          {
+            "rank": 27,
+            "computationTime": 1697792,
+            "mpiTime": 20637,
+            "drawTime": 500,
+            "pixelCount": 4096,
+            "iterationCount": 2593949
+          },
+          {
+            "rank": 9,
+            "computationTime": 2075256,
+            "mpiTime": 12384,
+            "drawTime": 697,
+            "pixelCount": 16384,
+            "iterationCount": 3178965
+          },
+          {
+            "rank": 10,
+            "computationTime": 2413225,
+            "mpiTime": 14008,
+            "drawTime": 1197,
+            "pixelCount": 24576,
+            "iterationCount": 3697791
+          },
+          {
+            "rank": 29,
+            "computationTime": 2499429,
+            "mpiTime": 9988,
+            "drawTime": 199,
+            "pixelCount": 4096,
+            "iterationCount": 3818079
+          },
+          {
+            "rank": 28,
+            "computationTime": 2733458,
+            "mpiTime": 11958,
+            "drawTime": 299,
+            "pixelCount": 4096,
+            "iterationCount": 4173824
+          },
+          {
+            "rank": 33,
+            "computationTime": 3058642,
+            "mpiTime": 11878,
+            "drawTime": 399,
+            "pixelCount": 8192,
+            "iterationCount": 4674668
+          },
+          {
+            "rank": 17,
+            "computationTime": 3905917,
+            "mpiTime": 9008,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 5965681
+          },
+          {
+            "rank": 30,
+            "computationTime": 5159641,
+            "mpiTime": 9549,
+            "drawTime": 698,
+            "pixelCount": 8192,
+            "iterationCount": 7876466
+          },
+          {
+            "rank": 22,
+            "computationTime": 5230135,
+            "mpiTime": 6586,
+            "drawTime": 698,
+            "pixelCount": 8192,
+            "iterationCount": 7977255
+          },
+          {
+            "rank": 2,
+            "computationTime": 5317935,
+            "mpiTime": 10077,
+            "drawTime": 6084,
+            "pixelCount": 86016,
+            "iterationCount": 8172723
+          },
+          {
+            "rank": 11,
+            "computationTime": 5328515,
+            "mpiTime": 9333,
+            "drawTime": 1096,
+            "pixelCount": 16384,
+            "iterationCount": 8140544
+          },
+          {
+            "rank": 16,
+            "computationTime": 5467356,
+            "mpiTime": 10512,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 25,
+            "computationTime": 5474341,
+            "mpiTime": 4591,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 8347134
+          },
+          {
+            "rank": 15,
+            "computationTime": 5462004,
+            "mpiTime": 19536,
+            "drawTime": 898,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 14,
+            "computationTime": 5464735,
+            "mpiTime": 19247,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 13,
+            "computationTime": 5477198,
+            "mpiTime": 12942,
+            "drawTime": 600,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 24,
+            "computationTime": 5478417,
+            "mpiTime": 19062,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 8344218
+          },
+          {
+            "rank": 21,
+            "computationTime": 5540858,
+            "mpiTime": 16956,
+            "drawTime": 898,
+            "pixelCount": 12288,
+            "iterationCount": 8456680
+          },
+          {
+            "rank": 1,
+            "computationTime": 6422477,
+            "mpiTime": 26982,
+            "drawTime": 8077,
+            "pixelCount": 172032,
+            "iterationCount": 9882313
+          },
+          {
+            "rank": 8,
+            "computationTime": 7170861,
+            "mpiTime": 22045,
+            "drawTime": 996,
+            "pixelCount": 16384,
+            "iterationCount": 10963454
+          },
+          {
+            "rank": 20,
+            "computationTime": 7928440,
+            "mpiTime": 18758,
+            "drawTime": 1300,
+            "pixelCount": 12288,
+            "iterationCount": 11846655
+          },
+          {
+            "rank": 3,
+            "computationTime": 7963674,
+            "mpiTime": 25804,
+            "drawTime": 11060,
+            "pixelCount": 221184,
+            "iterationCount": 12253324
+          },
+          {
+            "rank": 7,
+            "computationTime": 10716916,
+            "mpiTime": 15604,
+            "drawTime": 898,
+            "pixelCount": 16384,
+            "iterationCount": 16355072
+          },
+          {
+            "rank": 12,
+            "computationTime": 10938017,
+            "mpiTime": 13342,
+            "drawTime": 897,
+            "pixelCount": 16384,
+            "iterationCount": 16695296
+          },
+          {
+            "rank": 5,
+            "computationTime": 11725008,
+            "mpiTime": 22518,
+            "drawTime": 5589,
+            "pixelCount": 122880,
+            "iterationCount": 17973500
+          },
+          {
+            "rank": 4,
+            "computationTime": 14514803,
+            "mpiTime": 16206,
+            "drawTime": 6881,
+            "pixelCount": 143360,
+            "iterationCount": 21749706
+          },
+          {
+            "rank": 19,
+            "computationTime": 15194547,
+            "mpiTime": 31476,
+            "drawTime": 2590,
+            "pixelCount": 49152,
+            "iterationCount": 23220768
+          },
+          {
+            "rank": 6,
+            "computationTime": 16415916,
+            "mpiTime": 12626,
+            "drawTime": 0,
+            "pixelCount": 57344,
+            "iterationCount": 25125162
+          }
+        ]
+      }
+    },
+    {
+      "setting": {
+        "balancer": "predictionRecursive",
+        "implementation": "mandelbrot",
+        "maxIteration": 1019,
+        "predictionAccuracy": -3,
+        "nodeCount": 37,
+        "run": 1
+      },
+      "poi": {
+        "real": -0.04665714770453633,
+        "imag": 0.9851097719948892,
+        "zoom": 25
+      },
+      "data": {
+        "balancer": { "time": 10015, "regionCount": 36 },
+        "workers": [
+          {
+            "rank": 20,
+            "computationTime": 1366785,
+            "mpiTime": 7774,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 2080493
+          },
+          {
+            "rank": 27,
+            "computationTime": 1539815,
+            "mpiTime": 21525,
+            "drawTime": 797,
+            "pixelCount": 12288,
+            "iterationCount": 2399834
+          },
+          {
+            "rank": 18,
+            "computationTime": 1627907,
+            "mpiTime": 6388,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 2537087
+          },
+          {
+            "rank": 25,
+            "computationTime": 1911680,
+            "mpiTime": 15425,
+            "drawTime": 797,
+            "pixelCount": 12288,
+            "iterationCount": 2978523
+          },
+          {
+            "rank": 23,
+            "computationTime": 2021096,
+            "mpiTime": 17423,
+            "drawTime": 697,
+            "pixelCount": 12288,
+            "iterationCount": 3151339
+          },
+          {
+            "rank": 26,
+            "computationTime": 3272630,
+            "mpiTime": 10480,
+            "drawTime": 1595,
+            "pixelCount": 24576,
+            "iterationCount": 5099419
+          },
+          {
+            "rank": 29,
+            "computationTime": 3485133,
+            "mpiTime": 25181,
+            "drawTime": 1793,
+            "pixelCount": 32768,
+            "iterationCount": 5430807
+          },
+          {
+            "rank": 22,
+            "computationTime": 3727160,
+            "mpiTime": 8543,
+            "drawTime": 1496,
+            "pixelCount": 24576,
+            "iterationCount": 5811005
+          },
+          {
+            "rank": 24,
+            "computationTime": 4544996,
+            "mpiTime": 21073,
+            "drawTime": 1195,
+            "pixelCount": 24576,
+            "iterationCount": 7085303
+          },
+          {
+            "rank": 17,
+            "computationTime": 4547617,
+            "mpiTime": 20227,
+            "drawTime": 897,
+            "pixelCount": 16384,
+            "iterationCount": 7086724
+          },
+          {
+            "rank": 16,
+            "computationTime": 4602363,
+            "mpiTime": 31409,
+            "drawTime": 898,
+            "pixelCount": 12288,
+            "iterationCount": 7171736
+          },
+          {
+            "rank": 2,
+            "computationTime": 5355792,
+            "mpiTime": 2437,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 21,
+            "computationTime": 5351851,
+            "mpiTime": 8149,
+            "drawTime": 1295,
+            "pixelCount": 24576,
+            "iterationCount": 8336306
+          },
+          {
+            "rank": 9,
+            "computationTime": 5673943,
+            "mpiTime": 21292,
+            "drawTime": 998,
+            "pixelCount": 12288,
+            "iterationCount": 8858330
+          },
+          {
+            "rank": 28,
+            "computationTime": 6043403,
+            "mpiTime": 6815,
+            "drawTime": 3491,
+            "pixelCount": 49152,
+            "iterationCount": 9415527
+          },
+          {
+            "rank": 34,
+            "computationTime": 6252478,
+            "mpiTime": 12602,
+            "drawTime": 3191,
+            "pixelCount": 61440,
+            "iterationCount": 9742685
+          },
+          {
+            "rank": 36,
+            "computationTime": 6388298,
+            "mpiTime": 17829,
+            "drawTime": 4183,
+            "pixelCount": 73728,
+            "iterationCount": 9950558
+          },
+          {
+            "rank": 33,
+            "computationTime": 6540610,
+            "mpiTime": 28804,
+            "drawTime": 3392,
+            "pixelCount": 61440,
+            "iterationCount": 10197045
+          },
+          {
+            "rank": 35,
+            "computationTime": 6560076,
+            "mpiTime": 20310,
+            "drawTime": 4486,
+            "pixelCount": 73728,
+            "iterationCount": 10230082
+          },
+          {
+            "rank": 30,
+            "computationTime": 6801418,
+            "mpiTime": 25360,
+            "drawTime": 3490,
+            "pixelCount": 61440,
+            "iterationCount": 10598211
+          },
+          {
+            "rank": 32,
+            "computationTime": 6904511,
+            "mpiTime": 21542,
+            "drawTime": 4188,
+            "pixelCount": 73728,
+            "iterationCount": 10754495
+          },
+          {
+            "rank": 14,
+            "computationTime": 7599538,
+            "mpiTime": 20329,
+            "drawTime": 799,
+            "pixelCount": 16384,
+            "iterationCount": 11853865
+          },
+          {
+            "rank": 19,
+            "computationTime": 7814736,
+            "mpiTime": 8555,
+            "drawTime": 996,
+            "pixelCount": 16384,
+            "iterationCount": 12176971
+          },
+          {
+            "rank": 7,
+            "computationTime": 7988680,
+            "mpiTime": 14346,
+            "drawTime": 1099,
+            "pixelCount": 12288,
+            "iterationCount": 12472605
+          },
+          {
+            "rank": 31,
+            "computationTime": 8887310,
+            "mpiTime": 25399,
+            "drawTime": 4586,
+            "pixelCount": 98304,
+            "iterationCount": 13848287
+          },
+          {
+            "rank": 13,
+            "computationTime": 9236366,
+            "mpiTime": 3773,
+            "drawTime": 996,
+            "pixelCount": 16384,
+            "iterationCount": 14417697
+          },
+          {
+            "rank": 15,
+            "computationTime": 9390224,
+            "mpiTime": 23934,
+            "drawTime": 3290,
+            "pixelCount": 49152,
+            "iterationCount": 14635053
+          },
+          {
+            "rank": 12,
+            "computationTime": 10698803,
+            "mpiTime": 3178,
+            "drawTime": 497,
+            "pixelCount": 16384,
+            "iterationCount": 16687782
+          },
+          {
+            "rank": 1,
+            "computationTime": 10709228,
+            "mpiTime": 6406,
+            "drawTime": 896,
+            "pixelCount": 16384,
+            "iterationCount": 16695296
+          },
+          {
+            "rank": 8,
+            "computationTime": 12195827,
+            "mpiTime": 12907,
+            "drawTime": 1494,
+            "pixelCount": 24576,
+            "iterationCount": 19030649
+          },
+          {
+            "rank": 4,
+            "computationTime": 15135999,
+            "mpiTime": 15120,
+            "drawTime": 1295,
+            "pixelCount": 24576,
+            "iterationCount": 23588522
+          },
+          {
+            "rank": 5,
+            "computationTime": 16023241,
+            "mpiTime": 12458,
+            "drawTime": 1497,
+            "pixelCount": 24576,
+            "iterationCount": 24986613
+          },
+          {
+            "rank": 3,
+            "computationTime": 16040942,
+            "mpiTime": 14088,
+            "drawTime": 1895,
+            "pixelCount": 24576,
+            "iterationCount": 25042944
+          },
+          {
+            "rank": 11,
+            "computationTime": 16299090,
+            "mpiTime": 10588,
+            "drawTime": 1794,
+            "pixelCount": 32768,
+            "iterationCount": 24834586
+          },
+          {
+            "rank": 6,
+            "computationTime": 16417541,
+            "mpiTime": 8379,
+            "drawTime": 1296,
+            "pixelCount": 24576,
+            "iterationCount": 25042944
+          },
+          {
+            "rank": 10,
+            "computationTime": 17005006,
+            "mpiTime": 5719,
+            "drawTime": 0,
+            "pixelCount": 32768,
+            "iterationCount": 26514427
+          }
+        ]
+      }
+    },
+    {
+      "setting": {
+        "balancer": "predictionRecursive",
+        "implementation": "mandelbrot",
+        "maxIteration": 1019,
+        "predictionAccuracy": -1,
+        "nodeCount": 37,
+        "run": 1
+      },
+      "poi": {
+        "real": -1.1352806091308594,
+        "imag": -0.3451214891342549,
+        "zoom": 2
+      },
+      "data": {
+        "balancer": { "time": 45466, "regionCount": 36 },
+        "workers": [
+          {
+            "rank": 2,
+            "computationTime": 161432,
+            "mpiTime": 10027,
+            "drawTime": 896,
+            "pixelCount": 16384,
+            "iterationCount": 292236
+          },
+          {
+            "rank": 9,
+            "computationTime": 258489,
+            "mpiTime": 21638,
+            "drawTime": 1897,
+            "pixelCount": 32768,
+            "iterationCount": 401374
+          },
+          {
+            "rank": 18,
+            "computationTime": 324513,
+            "mpiTime": 31806,
+            "drawTime": 4387,
+            "pixelCount": 86016,
+            "iterationCount": 515471
+          },
+          {
+            "rank": 1,
+            "computationTime": 581406,
+            "mpiTime": 4009,
+            "drawTime": 1395,
+            "pixelCount": 24576,
+            "iterationCount": 966924
+          },
+          {
+            "rank": 17,
+            "computationTime": 1062441,
+            "mpiTime": 16385,
+            "drawTime": 897,
+            "pixelCount": 12288,
+            "iterationCount": 1624040
+          },
+          {
+            "rank": 35,
+            "computationTime": 1325453,
+            "mpiTime": 19769,
+            "drawTime": 5286,
+            "pixelCount": 102400,
+            "iterationCount": 2003527
+          },
+          {
+            "rank": 14,
+            "computationTime": 2662663,
+            "mpiTime": 15064,
+            "drawTime": 399,
+            "pixelCount": 4096,
+            "iterationCount": 4173824
+          },
+          {
+            "rank": 31,
+            "computationTime": 2686451,
+            "mpiTime": 1837,
+            "drawTime": 299,
+            "pixelCount": 4096,
+            "iterationCount": 4173824
+          },
+          {
+            "rank": 32,
+            "computationTime": 2709795,
+            "mpiTime": 10453,
+            "drawTime": 299,
+            "pixelCount": 4096,
+            "iterationCount": 4173824
+          },
+          {
+            "rank": 28,
+            "computationTime": 2764963,
+            "mpiTime": 9879,
+            "drawTime": 1395,
+            "pixelCount": 24576,
+            "iterationCount": 4274182
+          },
+          {
+            "rank": 3,
+            "computationTime": 4506940,
+            "mpiTime": 20771,
+            "drawTime": 1296,
+            "pixelCount": 24576,
+            "iterationCount": 7057006
+          },
+          {
+            "rank": 16,
+            "computationTime": 4895710,
+            "mpiTime": 6971,
+            "drawTime": 899,
+            "pixelCount": 8192,
+            "iterationCount": 7532295
+          },
+          {
+            "rank": 6,
+            "computationTime": 5003940,
+            "mpiTime": 17850,
+            "drawTime": 1596,
+            "pixelCount": 45056,
+            "iterationCount": 7833154
+          },
+          {
+            "rank": 36,
+            "computationTime": 5057757,
+            "mpiTime": 18583,
+            "drawTime": 798,
+            "pixelCount": 20480,
+            "iterationCount": 7838667
+          },
+          {
+            "rank": 19,
+            "computationTime": 5216560,
+            "mpiTime": 14030,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 8228058
+          },
+          {
+            "rank": 29,
+            "computationTime": 5282494,
+            "mpiTime": 7665,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 8201859
+          },
+          {
+            "rank": 12,
+            "computationTime": 5303512,
+            "mpiTime": 19618,
+            "drawTime": 399,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 20,
+            "computationTime": 5311321,
+            "mpiTime": 14311,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 8234536
+          },
+          {
+            "rank": 5,
+            "computationTime": 5322892,
+            "mpiTime": 17873,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 11,
+            "computationTime": 5330447,
+            "mpiTime": 13970,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 34,
+            "computationTime": 5342882,
+            "mpiTime": 13056,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 10,
+            "computationTime": 5363866,
+            "mpiTime": 8445,
+            "drawTime": 398,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 30,
+            "computationTime": 5380361,
+            "mpiTime": 5977,
+            "drawTime": 600,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 27,
+            "computationTime": 5394605,
+            "mpiTime": 7275,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 26,
+            "computationTime": 5400970,
+            "mpiTime": 5156,
+            "drawTime": 698,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 25,
+            "computationTime": 5387425,
+            "mpiTime": 21105,
+            "drawTime": 398,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 13,
+            "computationTime": 5405968,
+            "mpiTime": 19347,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 24,
+            "computationTime": 5413170,
+            "mpiTime": 15493,
+            "drawTime": 999,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 7,
+            "computationTime": 6654919,
+            "mpiTime": 50696,
+            "drawTime": 23032,
+            "pixelCount": 450560,
+            "iterationCount": 10464076
+          },
+          {
+            "rank": 8,
+            "computationTime": 7532458,
+            "mpiTime": 18593,
+            "drawTime": 599,
+            "pixelCount": 12288,
+            "iterationCount": 11847061
+          },
+          {
+            "rank": 22,
+            "computationTime": 7789161,
+            "mpiTime": 4098,
+            "drawTime": 897,
+            "pixelCount": 16384,
+            "iterationCount": 12275715
+          },
+          {
+            "rank": 33,
+            "computationTime": 7818494,
+            "mpiTime": 13521,
+            "drawTime": 2192,
+            "pixelCount": 40960,
+            "iterationCount": 12179843
+          },
+          {
+            "rank": 23,
+            "computationTime": 9940840,
+            "mpiTime": 24240,
+            "drawTime": 1396,
+            "pixelCount": 16384,
+            "iterationCount": 15383007
+          },
+          {
+            "rank": 21,
+            "computationTime": 10687296,
+            "mpiTime": 13613,
+            "drawTime": 798,
+            "pixelCount": 16384,
+            "iterationCount": 16550987
+          },
+          {
+            "rank": 15,
+            "computationTime": 11016660,
+            "mpiTime": 6166,
+            "drawTime": 996,
+            "pixelCount": 16384,
+            "iterationCount": 16582186
+          },
+          {
+            "rank": 4,
+            "computationTime": 14765818,
+            "mpiTime": 12705,
+            "drawTime": 0,
+            "pixelCount": 24576,
+            "iterationCount": 23140389
+          }
+        ]
+      }
+    },
+    {
+      "setting": {
+        "balancer": "predictionRecursive",
+        "implementation": "mandelbrot",
+        "maxIteration": 1019,
+        "predictionAccuracy": -1,
+        "nodeCount": 37,
+        "run": 1
+      },
+      "poi": {
+        "real": -0.7334021404385567,
+        "imag": 0.2165058705628719,
+        "zoom": 11
+      },
+      "data": {
+        "balancer": { "time": 46207, "regionCount": 36 },
+        "workers": [
+          {
+            "rank": 36,
+            "computationTime": 597536,
+            "mpiTime": 4631,
+            "drawTime": 400,
+            "pixelCount": 4096,
+            "iterationCount": 913637
+          },
+          {
+            "rank": 35,
+            "computationTime": 1033572,
+            "mpiTime": 15094,
+            "drawTime": 499,
+            "pixelCount": 4096,
+            "iterationCount": 1579565
+          },
+          {
+            "rank": 18,
+            "computationTime": 1130111,
+            "mpiTime": 10244,
+            "drawTime": 398,
+            "pixelCount": 8192,
+            "iterationCount": 1730266
+          },
+          {
+            "rank": 34,
+            "computationTime": 2524437,
+            "mpiTime": 10412,
+            "drawTime": 900,
+            "pixelCount": 8192,
+            "iterationCount": 3857772
+          },
+          {
+            "rank": 23,
+            "computationTime": 2875367,
+            "mpiTime": 10440,
+            "drawTime": 599,
+            "pixelCount": 8192,
+            "iterationCount": 4295929
+          },
+          {
+            "rank": 17,
+            "computationTime": 3095387,
+            "mpiTime": 12833,
+            "drawTime": 299,
+            "pixelCount": 8192,
+            "iterationCount": 4728206
+          },
+          {
+            "rank": 26,
+            "computationTime": 3205142,
+            "mpiTime": 12451,
+            "drawTime": 600,
+            "pixelCount": 8192,
+            "iterationCount": 4892988
+          },
+          {
+            "rank": 32,
+            "computationTime": 3513069,
+            "mpiTime": 8817,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 5364474
+          },
+          {
+            "rank": 9,
+            "computationTime": 3594484,
+            "mpiTime": 9939,
+            "drawTime": 1892,
+            "pixelCount": 36864,
+            "iterationCount": 5510937
+          },
+          {
+            "rank": 33,
+            "computationTime": 3646572,
+            "mpiTime": 7093,
+            "drawTime": 998,
+            "pixelCount": 16384,
+            "iterationCount": 5572565
+          },
+          {
+            "rank": 27,
+            "computationTime": 3992296,
+            "mpiTime": 4494,
+            "drawTime": 599,
+            "pixelCount": 8192,
+            "iterationCount": 6091237
+          },
+          {
+            "rank": 1,
+            "computationTime": 4539145,
+            "mpiTime": 28406,
+            "drawTime": 7677,
+            "pixelCount": 143360,
+            "iterationCount": 6984710
+          },
+          {
+            "rank": 16,
+            "computationTime": 5312563,
+            "mpiTime": 4371,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8115774
+          },
+          {
+            "rank": 30,
+            "computationTime": 5401008,
+            "mpiTime": 3342,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8234255
+          },
+          {
+            "rank": 2,
+            "computationTime": 5434002,
+            "mpiTime": 15125,
+            "drawTime": 4883,
+            "pixelCount": 86016,
+            "iterationCount": 8357590
+          },
+          {
+            "rank": 15,
+            "computationTime": 5460484,
+            "mpiTime": 3424,
+            "drawTime": 398,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 12,
+            "computationTime": 5459729,
+            "mpiTime": 6952,
+            "drawTime": 399,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 13,
+            "computationTime": 5463418,
+            "mpiTime": 6436,
+            "drawTime": 399,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 29,
+            "computationTime": 5464673,
+            "mpiTime": 4906,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 24,
+            "computationTime": 5474819,
+            "mpiTime": 2952,
+            "drawTime": 398,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 22,
+            "computationTime": 5458498,
+            "mpiTime": 20466,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 8334575
+          },
+          {
+            "rank": 11,
+            "computationTime": 5458577,
+            "mpiTime": 21818,
+            "drawTime": 300,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 14,
+            "computationTime": 5468130,
+            "mpiTime": 12925,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 25,
+            "computationTime": 5473499,
+            "mpiTime": 8377,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 28,
+            "computationTime": 5468760,
+            "mpiTime": 15920,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 8,
+            "computationTime": 5635996,
+            "mpiTime": 6761,
+            "drawTime": 1200,
+            "pixelCount": 24576,
+            "iterationCount": 8604513
+          },
+          {
+            "rank": 5,
+            "computationTime": 6160702,
+            "mpiTime": 25161,
+            "drawTime": 4985,
+            "pixelCount": 98304,
+            "iterationCount": 9467333
+          },
+          {
+            "rank": 4,
+            "computationTime": 6887469,
+            "mpiTime": 23426,
+            "drawTime": 9873,
+            "pixelCount": 196608,
+            "iterationCount": 10594353
+          },
+          {
+            "rank": 10,
+            "computationTime": 7293338,
+            "mpiTime": 11684,
+            "drawTime": 2791,
+            "pixelCount": 40960,
+            "iterationCount": 11160003
+          },
+          {
+            "rank": 31,
+            "computationTime": 7728855,
+            "mpiTime": 20320,
+            "drawTime": 897,
+            "pixelCount": 16384,
+            "iterationCount": 11800014
+          },
+          {
+            "rank": 3,
+            "computationTime": 7813969,
+            "mpiTime": 25466,
+            "drawTime": 5782,
+            "pixelCount": 114688,
+            "iterationCount": 12005726
+          },
+          {
+            "rank": 20,
+            "computationTime": 8614787,
+            "mpiTime": 2836,
+            "drawTime": 898,
+            "pixelCount": 16384,
+            "iterationCount": 12874411
+          },
+          {
+            "rank": 19,
+            "computationTime": 8906407,
+            "mpiTime": 15504,
+            "drawTime": 1999,
+            "pixelCount": 49152,
+            "iterationCount": 13624339
+          },
+          {
+            "rank": 21,
+            "computationTime": 9591094,
+            "mpiTime": 10890,
+            "drawTime": 1196,
+            "pixelCount": 16384,
+            "iterationCount": 14648761
+          },
+          {
+            "rank": 7,
+            "computationTime": 10066598,
+            "mpiTime": 8551,
+            "drawTime": 1494,
+            "pixelCount": 24576,
+            "iterationCount": 15379192
+          },
+          {
+            "rank": 6,
+            "computationTime": 10805831,
+            "mpiTime": 17446,
+            "drawTime": 0,
+            "pixelCount": 73728,
+            "iterationCount": 16533825
+          }
+        ]
+      }
+    },
+    {
+      "setting": {
+        "balancer": "predictionRecursive",
+        "implementation": "mandelbrot",
+        "maxIteration": 1019,
+        "predictionAccuracy": -1,
+        "nodeCount": 37,
+        "run": 1
+      },
+      "poi": {
+        "real": -0.04665714770453633,
+        "imag": 0.9851097719948892,
+        "zoom": 25
+      },
+      "data": {
+        "balancer": { "time": 71932, "regionCount": 36 },
+        "workers": [
+          {
+            "rank": 23,
+            "computationTime": 2406809,
+            "mpiTime": 21370,
+            "drawTime": 896,
+            "pixelCount": 16384,
+            "iterationCount": 3750676
+          },
+          {
+            "rank": 29,
+            "computationTime": 3485518,
+            "mpiTime": 8584,
+            "drawTime": 1797,
+            "pixelCount": 32768,
+            "iterationCount": 5430807
+          },
+          {
+            "rank": 20,
+            "computationTime": 4137919,
+            "mpiTime": 11441,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 6313203
+          },
+          {
+            "rank": 18,
+            "computationTime": 4175721,
+            "mpiTime": 11169,
+            "drawTime": 897,
+            "pixelCount": 16384,
+            "iterationCount": 6509022
+          },
+          {
+            "rank": 25,
+            "computationTime": 4438136,
+            "mpiTime": 19243,
+            "drawTime": 597,
+            "pixelCount": 16384,
+            "iterationCount": 6923091
+          },
+          {
+            "rank": 27,
+            "computationTime": 4578320,
+            "mpiTime": 8169,
+            "drawTime": 1794,
+            "pixelCount": 32768,
+            "iterationCount": 6977537
+          },
+          {
+            "rank": 22,
+            "computationTime": 4626356,
+            "mpiTime": 11259,
+            "drawTime": 898,
+            "pixelCount": 16384,
+            "iterationCount": 7212238
+          },
+          {
+            "rank": 16,
+            "computationTime": 5215946,
+            "mpiTime": 8019,
+            "drawTime": 1996,
+            "pixelCount": 32768,
+            "iterationCount": 8130677
+          },
+          {
+            "rank": 14,
+            "computationTime": 5348477,
+            "mpiTime": 2990,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8340871
+          },
+          {
+            "rank": 2,
+            "computationTime": 5347058,
+            "mpiTime": 6311,
+            "drawTime": 600,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 26,
+            "computationTime": 5457352,
+            "mpiTime": 5031,
+            "drawTime": 2393,
+            "pixelCount": 32768,
+            "iterationCount": 8507221
+          },
+          {
+            "rank": 21,
+            "computationTime": 5771161,
+            "mpiTime": 21772,
+            "drawTime": 2096,
+            "pixelCount": 24576,
+            "iterationCount": 8997213
+          },
+          {
+            "rank": 11,
+            "computationTime": 5852941,
+            "mpiTime": 11981,
+            "drawTime": 898,
+            "pixelCount": 12288,
+            "iterationCount": 9126959
+          },
+          {
+            "rank": 28,
+            "computationTime": 6042558,
+            "mpiTime": 10598,
+            "drawTime": 2393,
+            "pixelCount": 49152,
+            "iterationCount": 9415527
+          },
+          {
+            "rank": 34,
+            "computationTime": 6252930,
+            "mpiTime": 26343,
+            "drawTime": 2889,
+            "pixelCount": 61440,
+            "iterationCount": 9742685
+          },
+          {
+            "rank": 36,
+            "computationTime": 6386161,
+            "mpiTime": 11655,
+            "drawTime": 4589,
+            "pixelCount": 73728,
+            "iterationCount": 9950558
+          },
+          {
+            "rank": 33,
+            "computationTime": 6541082,
+            "mpiTime": 11815,
+            "drawTime": 2492,
+            "pixelCount": 61440,
+            "iterationCount": 10197045
+          },
+          {
+            "rank": 35,
+            "computationTime": 6559092,
+            "mpiTime": 14125,
+            "drawTime": 3787,
+            "pixelCount": 73728,
+            "iterationCount": 10230082
+          },
+          {
+            "rank": 30,
+            "computationTime": 6798600,
+            "mpiTime": 9225,
+            "drawTime": 3593,
+            "pixelCount": 61440,
+            "iterationCount": 10598211
+          },
+          {
+            "rank": 32,
+            "computationTime": 6902356,
+            "mpiTime": 24885,
+            "drawTime": 4788,
+            "pixelCount": 73728,
+            "iterationCount": 10754495
+          },
+          {
+            "rank": 7,
+            "computationTime": 7218744,
+            "mpiTime": 7264,
+            "drawTime": 798,
+            "pixelCount": 12288,
+            "iterationCount": 11010719
+          },
+          {
+            "rank": 9,
+            "computationTime": 7331937,
+            "mpiTime": 4959,
+            "drawTime": 797,
+            "pixelCount": 12288,
+            "iterationCount": 11442821
+          },
+          {
+            "rank": 5,
+            "computationTime": 8018468,
+            "mpiTime": 5189,
+            "drawTime": 599,
+            "pixelCount": 12288,
+            "iterationCount": 12521472
+          },
+          {
+            "rank": 3,
+            "computationTime": 8030842,
+            "mpiTime": 6831,
+            "drawTime": 697,
+            "pixelCount": 12288,
+            "iterationCount": 12521472
+          },
+          {
+            "rank": 12,
+            "computationTime": 8031376,
+            "mpiTime": 6860,
+            "drawTime": 697,
+            "pixelCount": 12288,
+            "iterationCount": 12521472
+          },
+          {
+            "rank": 31,
+            "computationTime": 8885913,
+            "mpiTime": 18144,
+            "drawTime": 5282,
+            "pixelCount": 98304,
+            "iterationCount": 13848287
+          },
+          {
+            "rank": 17,
+            "computationTime": 9065780,
+            "mpiTime": 3667,
+            "drawTime": 796,
+            "pixelCount": 16384,
+            "iterationCount": 14133749
+          },
+          {
+            "rank": 19,
+            "computationTime": 10360722,
+            "mpiTime": 12293,
+            "drawTime": 1196,
+            "pixelCount": 16384,
+            "iterationCount": 16151242
+          },
+          {
+            "rank": 13,
+            "computationTime": 10700303,
+            "mpiTime": 7465,
+            "drawTime": 1697,
+            "pixelCount": 16384,
+            "iterationCount": 16694870
+          },
+          {
+            "rank": 1,
+            "computationTime": 10711867,
+            "mpiTime": 10194,
+            "drawTime": 996,
+            "pixelCount": 16384,
+            "iterationCount": 16695296
+          },
+          {
+            "rank": 24,
+            "computationTime": 10801604,
+            "mpiTime": 18592,
+            "drawTime": 3092,
+            "pixelCount": 49152,
+            "iterationCount": 16850761
+          },
+          {
+            "rank": 15,
+            "computationTime": 11569534,
+            "mpiTime": 5989,
+            "drawTime": 1995,
+            "pixelCount": 32768,
+            "iterationCount": 18038179
+          },
+          {
+            "rank": 10,
+            "computationTime": 11653315,
+            "mpiTime": 8431,
+            "drawTime": 1695,
+            "pixelCount": 24576,
+            "iterationCount": 18166779
+          },
+          {
+            "rank": 8,
+            "computationTime": 14711388,
+            "mpiTime": 16649,
+            "drawTime": 2095,
+            "pixelCount": 24576,
+            "iterationCount": 22952625
+          },
+          {
+            "rank": 4,
+            "computationTime": 16055792,
+            "mpiTime": 8980,
+            "drawTime": 1796,
+            "pixelCount": 24576,
+            "iterationCount": 25042944
+          },
+          {
+            "rank": 6,
+            "computationTime": 16066753,
+            "mpiTime": 11927,
+            "drawTime": 0,
+            "pixelCount": 24576,
+            "iterationCount": 25042944
+          }
+        ]
+      }
+    },
+    {
+      "setting": {
+        "balancer": "predictionRecursive",
+        "implementation": "mandelbrot",
+        "maxIteration": 1019,
+        "predictionAccuracy": 1,
+        "nodeCount": 37,
+        "run": 1
+      },
+      "poi": {
+        "real": -1.1352806091308594,
+        "imag": -0.3451214891342549,
+        "zoom": 2
+      },
+      "data": {
+        "balancer": { "time": 45482, "regionCount": 36 },
+        "workers": [
+          {
+            "rank": 2,
+            "computationTime": 161479,
+            "mpiTime": 19496,
+            "drawTime": 797,
+            "pixelCount": 16384,
+            "iterationCount": 292236
+          },
+          {
+            "rank": 9,
+            "computationTime": 258534,
+            "mpiTime": 11033,
+            "drawTime": 1797,
+            "pixelCount": 32768,
+            "iterationCount": 401374
+          },
+          {
+            "rank": 18,
+            "computationTime": 324510,
+            "mpiTime": 21469,
+            "drawTime": 5290,
+            "pixelCount": 86016,
+            "iterationCount": 515471
+          },
+          {
+            "rank": 1,
+            "computationTime": 581477,
+            "mpiTime": 13466,
+            "drawTime": 1198,
+            "pixelCount": 24576,
+            "iterationCount": 966924
+          },
+          {
+            "rank": 17,
+            "computationTime": 1062255,
+            "mpiTime": 15733,
+            "drawTime": 1697,
+            "pixelCount": 12288,
+            "iterationCount": 1624040
+          },
+          {
+            "rank": 35,
+            "computationTime": 1295794,
+            "mpiTime": 28901,
+            "drawTime": 5884,
+            "pixelCount": 102400,
+            "iterationCount": 2003527
+          },
+          {
+            "rank": 14,
+            "computationTime": 2663289,
+            "mpiTime": 14250,
+            "drawTime": 299,
+            "pixelCount": 4096,
+            "iterationCount": 4173824
+          },
+          {
+            "rank": 31,
+            "computationTime": 2686360,
+            "mpiTime": 21292,
+            "drawTime": 299,
+            "pixelCount": 4096,
+            "iterationCount": 4173824
+          },
+          {
+            "rank": 32,
+            "computationTime": 2711700,
+            "mpiTime": 9904,
+            "drawTime": 200,
+            "pixelCount": 4096,
+            "iterationCount": 4173824
+          },
+          {
+            "rank": 28,
+            "computationTime": 2764831,
+            "mpiTime": 9112,
+            "drawTime": 1394,
+            "pixelCount": 24576,
+            "iterationCount": 4274182
+          },
+          {
+            "rank": 3,
+            "computationTime": 4506777,
+            "mpiTime": 10076,
+            "drawTime": 1297,
+            "pixelCount": 24576,
+            "iterationCount": 7057006
+          },
+          {
+            "rank": 16,
+            "computationTime": 4895804,
+            "mpiTime": 6305,
+            "drawTime": 899,
+            "pixelCount": 8192,
+            "iterationCount": 7532295
+          },
+          {
+            "rank": 6,
+            "computationTime": 5004241,
+            "mpiTime": 17164,
+            "drawTime": 1895,
+            "pixelCount": 45056,
+            "iterationCount": 7833154
+          },
+          {
+            "rank": 36,
+            "computationTime": 5056321,
+            "mpiTime": 17947,
+            "drawTime": 1696,
+            "pixelCount": 20480,
+            "iterationCount": 7838667
+          },
+          {
+            "rank": 19,
+            "computationTime": 5217035,
+            "mpiTime": 14197,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8228058
+          },
+          {
+            "rank": 29,
+            "computationTime": 5282763,
+            "mpiTime": 6935,
+            "drawTime": 399,
+            "pixelCount": 8192,
+            "iterationCount": 8201859
+          },
+          {
+            "rank": 20,
+            "computationTime": 5309358,
+            "mpiTime": 3811,
+            "drawTime": 298,
+            "pixelCount": 8192,
+            "iterationCount": 8234536
+          },
+          {
+            "rank": 12,
+            "computationTime": 5305834,
+            "mpiTime": 8931,
+            "drawTime": 399,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 5,
+            "computationTime": 5319824,
+            "mpiTime": 7331,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 11,
+            "computationTime": 5333305,
+            "mpiTime": 4185,
+            "drawTime": 300,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 34,
+            "computationTime": 5341545,
+            "mpiTime": 12454,
+            "drawTime": 398,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 10,
+            "computationTime": 5362898,
+            "mpiTime": 18709,
+            "drawTime": 399,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 30,
+            "computationTime": 5381420,
+            "mpiTime": 5365,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 26,
+            "computationTime": 5401167,
+            "mpiTime": 4566,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 25,
+            "computationTime": 5386320,
+            "mpiTime": 20633,
+            "drawTime": 400,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 13,
+            "computationTime": 5410398,
+            "mpiTime": 8664,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 24,
+            "computationTime": 5413045,
+            "mpiTime": 14978,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 27,
+            "computationTime": 5515298,
+            "mpiTime": 6646,
+            "drawTime": 399,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 7,
+            "computationTime": 6790544,
+            "mpiTime": 40522,
+            "drawTime": 24431,
+            "pixelCount": 450560,
+            "iterationCount": 10464076
+          },
+          {
+            "rank": 8,
+            "computationTime": 7535251,
+            "mpiTime": 7938,
+            "drawTime": 697,
+            "pixelCount": 12288,
+            "iterationCount": 11847061
+          },
+          {
+            "rank": 22,
+            "computationTime": 7787611,
+            "mpiTime": 13426,
+            "drawTime": 1499,
+            "pixelCount": 16384,
+            "iterationCount": 12275715
+          },
+          {
+            "rank": 33,
+            "computationTime": 7818015,
+            "mpiTime": 22758,
+            "drawTime": 2992,
+            "pixelCount": 40960,
+            "iterationCount": 12179843
+          },
+          {
+            "rank": 23,
+            "computationTime": 9941491,
+            "mpiTime": 3676,
+            "drawTime": 1396,
+            "pixelCount": 16384,
+            "iterationCount": 15383007
+          },
+          {
+            "rank": 21,
+            "computationTime": 10683692,
+            "mpiTime": 12972,
+            "drawTime": 1097,
+            "pixelCount": 16384,
+            "iterationCount": 16550987
+          },
+          {
+            "rank": 15,
+            "computationTime": 10792764,
+            "mpiTime": 5577,
+            "drawTime": 996,
+            "pixelCount": 16384,
+            "iterationCount": 16582186
+          },
+          {
+            "rank": 4,
+            "computationTime": 15060091,
+            "mpiTime": 12192,
+            "drawTime": 0,
+            "pixelCount": 24576,
+            "iterationCount": 23140389
+          }
+        ]
+      }
+    },
+    {
+      "setting": {
+        "balancer": "predictionRecursive",
+        "implementation": "mandelbrot",
+        "maxIteration": 1019,
+        "predictionAccuracy": 1,
+        "nodeCount": 37,
+        "run": 1
+      },
+      "poi": {
+        "real": -0.7334021404385567,
+        "imag": 0.2165058705628719,
+        "zoom": 11
+      },
+      "data": {
+        "balancer": { "time": 46198, "regionCount": 36 },
+        "workers": [
+          {
+            "rank": 36,
+            "computationTime": 597650,
+            "mpiTime": 3566,
+            "drawTime": 499,
+            "pixelCount": 4096,
+            "iterationCount": 913637
+          },
+          {
+            "rank": 35,
+            "computationTime": 1034288,
+            "mpiTime": 14005,
+            "drawTime": 500,
+            "pixelCount": 4096,
+            "iterationCount": 1579565
+          },
+          {
+            "rank": 18,
+            "computationTime": 1129307,
+            "mpiTime": 19142,
+            "drawTime": 399,
+            "pixelCount": 8192,
+            "iterationCount": 1730266
+          },
+          {
+            "rank": 34,
+            "computationTime": 2526077,
+            "mpiTime": 9307,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 3857772
+          },
+          {
+            "rank": 23,
+            "computationTime": 2810921,
+            "mpiTime": 9443,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 4295929
+          },
+          {
+            "rank": 17,
+            "computationTime": 3094385,
+            "mpiTime": 1715,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 4728206
+          },
+          {
+            "rank": 26,
+            "computationTime": 3206389,
+            "mpiTime": 11288,
+            "drawTime": 898,
+            "pixelCount": 8192,
+            "iterationCount": 4892988
+          },
+          {
+            "rank": 32,
+            "computationTime": 3511784,
+            "mpiTime": 7845,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 5364474
+          },
+          {
+            "rank": 9,
+            "computationTime": 3593622,
+            "mpiTime": 18948,
+            "drawTime": 1695,
+            "pixelCount": 36864,
+            "iterationCount": 5510937
+          },
+          {
+            "rank": 33,
+            "computationTime": 3644723,
+            "mpiTime": 5948,
+            "drawTime": 899,
+            "pixelCount": 16384,
+            "iterationCount": 5572565
+          },
+          {
+            "rank": 27,
+            "computationTime": 4079257,
+            "mpiTime": 3451,
+            "drawTime": 600,
+            "pixelCount": 8192,
+            "iterationCount": 6091237
+          },
+          {
+            "rank": 1,
+            "computationTime": 4539592,
+            "mpiTime": 18311,
+            "drawTime": 7583,
+            "pixelCount": 143360,
+            "iterationCount": 6984710
+          },
+          {
+            "rank": 16,
+            "computationTime": 5313717,
+            "mpiTime": 3350,
+            "drawTime": 398,
+            "pixelCount": 8192,
+            "iterationCount": 8115774
+          },
+          {
+            "rank": 30,
+            "computationTime": 5394207,
+            "mpiTime": 12242,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8234255
+          },
+          {
+            "rank": 2,
+            "computationTime": 5435297,
+            "mpiTime": 24653,
+            "drawTime": 4082,
+            "pixelCount": 86016,
+            "iterationCount": 8357590
+          },
+          {
+            "rank": 12,
+            "computationTime": 5455326,
+            "mpiTime": 6245,
+            "drawTime": 398,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 22,
+            "computationTime": 5456360,
+            "mpiTime": 9500,
+            "drawTime": 699,
+            "pixelCount": 8192,
+            "iterationCount": 8334575
+          },
+          {
+            "rank": 13,
+            "computationTime": 5458463,
+            "mpiTime": 15671,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 29,
+            "computationTime": 5462839,
+            "mpiTime": 13414,
+            "drawTime": 899,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 15,
+            "computationTime": 5457059,
+            "mpiTime": 21093,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 14,
+            "computationTime": 5466894,
+            "mpiTime": 12190,
+            "drawTime": 398,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 24,
+            "computationTime": 5468522,
+            "mpiTime": 11477,
+            "drawTime": 399,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 11,
+            "computationTime": 5469980,
+            "mpiTime": 11195,
+            "drawTime": 398,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 25,
+            "computationTime": 5472633,
+            "mpiTime": 17350,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 28,
+            "computationTime": 5585893,
+            "mpiTime": 4779,
+            "drawTime": 398,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 8,
+            "computationTime": 5635962,
+            "mpiTime": 5739,
+            "drawTime": 1297,
+            "pixelCount": 24576,
+            "iterationCount": 8604513
+          },
+          {
+            "rank": 5,
+            "computationTime": 6159644,
+            "mpiTime": 24241,
+            "drawTime": 4786,
+            "pixelCount": 98304,
+            "iterationCount": 9467333
+          },
+          {
+            "rank": 4,
+            "computationTime": 7048856,
+            "mpiTime": 23899,
+            "drawTime": 10067,
+            "pixelCount": 196608,
+            "iterationCount": 10594353
+          },
+          {
+            "rank": 10,
+            "computationTime": 7298885,
+            "mpiTime": 10417,
+            "drawTime": 2693,
+            "pixelCount": 40960,
+            "iterationCount": 11160003
+          },
+          {
+            "rank": 31,
+            "computationTime": 7723576,
+            "mpiTime": 9382,
+            "drawTime": 998,
+            "pixelCount": 16384,
+            "iterationCount": 11800014
+          },
+          {
+            "rank": 3,
+            "computationTime": 7810188,
+            "mpiTime": 24542,
+            "drawTime": 6681,
+            "pixelCount": 114688,
+            "iterationCount": 12005726
+          },
+          {
+            "rank": 20,
+            "computationTime": 8613154,
+            "mpiTime": 11766,
+            "drawTime": 699,
+            "pixelCount": 16384,
+            "iterationCount": 12874411
+          },
+          {
+            "rank": 19,
+            "computationTime": 8908001,
+            "mpiTime": 24301,
+            "drawTime": 2390,
+            "pixelCount": 49152,
+            "iterationCount": 13624339
+          },
+          {
+            "rank": 21,
+            "computationTime": 9597257,
+            "mpiTime": 9915,
+            "drawTime": 1298,
+            "pixelCount": 16384,
+            "iterationCount": 14648761
+          },
+          {
+            "rank": 7,
+            "computationTime": 10072012,
+            "mpiTime": 7651,
+            "drawTime": 1396,
+            "pixelCount": 24576,
+            "iterationCount": 15379192
+          },
+          {
+            "rank": 6,
+            "computationTime": 10806239,
+            "mpiTime": 16455,
+            "drawTime": 0,
+            "pixelCount": 73728,
+            "iterationCount": 16533825
+          }
+        ]
+      }
+    },
+    {
+      "setting": {
+        "balancer": "predictionRecursive",
+        "implementation": "mandelbrot",
+        "maxIteration": 1019,
+        "predictionAccuracy": 1,
+        "nodeCount": 37,
+        "run": 1
+      },
+      "poi": {
+        "real": -0.04665714770453633,
+        "imag": 0.9851097719948892,
+        "zoom": 25
+      },
+      "data": {
+        "balancer": { "time": 71955, "regionCount": 36 },
+        "workers": [
+          {
+            "rank": 23,
+            "computationTime": 2406072,
+            "mpiTime": 7569,
+            "drawTime": 896,
+            "pixelCount": 16384,
+            "iterationCount": 3750676
+          },
+          {
+            "rank": 29,
+            "computationTime": 3485838,
+            "mpiTime": 24701,
+            "drawTime": 2193,
+            "pixelCount": 32768,
+            "iterationCount": 5430807
+          },
+          {
+            "rank": 20,
+            "computationTime": 4139255,
+            "mpiTime": 7594,
+            "drawTime": 699,
+            "pixelCount": 8192,
+            "iterationCount": 6313203
+          },
+          {
+            "rank": 18,
+            "computationTime": 4178030,
+            "mpiTime": 7202,
+            "drawTime": 796,
+            "pixelCount": 16384,
+            "iterationCount": 6509022
+          },
+          {
+            "rank": 25,
+            "computationTime": 4438591,
+            "mpiTime": 15218,
+            "drawTime": 1298,
+            "pixelCount": 16384,
+            "iterationCount": 6923091
+          },
+          {
+            "rank": 27,
+            "computationTime": 4477081,
+            "mpiTime": 14421,
+            "drawTime": 3196,
+            "pixelCount": 32768,
+            "iterationCount": 6977537
+          },
+          {
+            "rank": 22,
+            "computationTime": 4625184,
+            "mpiTime": 7437,
+            "drawTime": 1498,
+            "pixelCount": 16384,
+            "iterationCount": 7212238
+          },
+          {
+            "rank": 16,
+            "computationTime": 5216789,
+            "mpiTime": 14113,
+            "drawTime": 1394,
+            "pixelCount": 32768,
+            "iterationCount": 8130677
+          },
+          {
+            "rank": 14,
+            "computationTime": 5347088,
+            "mpiTime": 9217,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8340871
+          },
+          {
+            "rank": 2,
+            "computationTime": 5347106,
+            "mpiTime": 12341,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 26,
+            "computationTime": 5457653,
+            "mpiTime": 11198,
+            "drawTime": 1594,
+            "pixelCount": 32768,
+            "iterationCount": 8507221
+          },
+          {
+            "rank": 21,
+            "computationTime": 5776117,
+            "mpiTime": 7866,
+            "drawTime": 1795,
+            "pixelCount": 24576,
+            "iterationCount": 8997213
+          },
+          {
+            "rank": 11,
+            "computationTime": 5853814,
+            "mpiTime": 18093,
+            "drawTime": 698,
+            "pixelCount": 12288,
+            "iterationCount": 9126959
+          },
+          {
+            "rank": 28,
+            "computationTime": 6045376,
+            "mpiTime": 6978,
+            "drawTime": 3492,
+            "pixelCount": 49152,
+            "iterationCount": 9415527
+          },
+          {
+            "rank": 34,
+            "computationTime": 6255606,
+            "mpiTime": 12068,
+            "drawTime": 3093,
+            "pixelCount": 61440,
+            "iterationCount": 9742685
+          },
+          {
+            "rank": 36,
+            "computationTime": 6385054,
+            "mpiTime": 17489,
+            "drawTime": 4186,
+            "pixelCount": 73728,
+            "iterationCount": 9950558
+          },
+          {
+            "rank": 33,
+            "computationTime": 6540428,
+            "mpiTime": 19507,
+            "drawTime": 3686,
+            "pixelCount": 61440,
+            "iterationCount": 10197045
+          },
+          {
+            "rank": 35,
+            "computationTime": 6562771,
+            "mpiTime": 19374,
+            "drawTime": 4284,
+            "pixelCount": 73728,
+            "iterationCount": 10230082
+          },
+          {
+            "rank": 30,
+            "computationTime": 6797832,
+            "mpiTime": 15250,
+            "drawTime": 3192,
+            "pixelCount": 61440,
+            "iterationCount": 10598211
+          },
+          {
+            "rank": 32,
+            "computationTime": 6901088,
+            "mpiTime": 21965,
+            "drawTime": 5093,
+            "pixelCount": 73728,
+            "iterationCount": 10754495
+          },
+          {
+            "rank": 7,
+            "computationTime": 7056628,
+            "mpiTime": 13309,
+            "drawTime": 597,
+            "pixelCount": 12288,
+            "iterationCount": 11010719
+          },
+          {
+            "rank": 9,
+            "computationTime": 7332376,
+            "mpiTime": 11154,
+            "drawTime": 1097,
+            "pixelCount": 12288,
+            "iterationCount": 11442821
+          },
+          {
+            "rank": 3,
+            "computationTime": 8031574,
+            "mpiTime": 2818,
+            "drawTime": 898,
+            "pixelCount": 12288,
+            "iterationCount": 12521472
+          },
+          {
+            "rank": 5,
+            "computationTime": 8020847,
+            "mpiTime": 21197,
+            "drawTime": 498,
+            "pixelCount": 12288,
+            "iterationCount": 12521472
+          },
+          {
+            "rank": 12,
+            "computationTime": 8215744,
+            "mpiTime": 2942,
+            "drawTime": 498,
+            "pixelCount": 12288,
+            "iterationCount": 12521472
+          },
+          {
+            "rank": 17,
+            "computationTime": 9069765,
+            "mpiTime": 9780,
+            "drawTime": 998,
+            "pixelCount": 16384,
+            "iterationCount": 14133749
+          },
+          {
+            "rank": 31,
+            "computationTime": 9097134,
+            "mpiTime": 14476,
+            "drawTime": 5389,
+            "pixelCount": 98304,
+            "iterationCount": 13848287
+          },
+          {
+            "rank": 19,
+            "computationTime": 10359199,
+            "mpiTime": 8400,
+            "drawTime": 998,
+            "pixelCount": 16384,
+            "iterationCount": 16151242
+          },
+          {
+            "rank": 13,
+            "computationTime": 10692869,
+            "mpiTime": 13659,
+            "drawTime": 1097,
+            "pixelCount": 16384,
+            "iterationCount": 16694870
+          },
+          {
+            "rank": 1,
+            "computationTime": 10714474,
+            "mpiTime": 6262,
+            "drawTime": 1098,
+            "pixelCount": 16384,
+            "iterationCount": 16695296
+          },
+          {
+            "rank": 24,
+            "computationTime": 11050697,
+            "mpiTime": 14343,
+            "drawTime": 2492,
+            "pixelCount": 49152,
+            "iterationCount": 16850761
+          },
+          {
+            "rank": 10,
+            "computationTime": 11657471,
+            "mpiTime": 24702,
+            "drawTime": 1695,
+            "pixelCount": 24576,
+            "iterationCount": 18166779
+          },
+          {
+            "rank": 15,
+            "computationTime": 11844616,
+            "mpiTime": 13270,
+            "drawTime": 1693,
+            "pixelCount": 32768,
+            "iterationCount": 18038179
+          },
+          {
+            "rank": 8,
+            "computationTime": 14709813,
+            "mpiTime": 22746,
+            "drawTime": 1396,
+            "pixelCount": 24576,
+            "iterationCount": 22952625
+          },
+          {
+            "rank": 6,
+            "computationTime": 16064938,
+            "mpiTime": 8270,
+            "drawTime": 1397,
+            "pixelCount": 24576,
+            "iterationCount": 25042944
+          },
+          {
+            "rank": 4,
+            "computationTime": 16414938,
+            "mpiTime": 5095,
+            "drawTime": 0,
+            "pixelCount": 24576,
+            "iterationCount": 25042944
+          }
+        ]
+      }
+    },
+    {
+      "setting": {
+        "balancer": "predictionRecursive",
+        "implementation": "mandelbrot",
+        "maxIteration": 1019,
+        "predictionAccuracy": 3,
+        "nodeCount": 37,
+        "run": 1
+      },
+      "poi": {
+        "real": -1.1352806091308594,
+        "imag": -0.3451214891342549,
+        "zoom": 2
+      },
+      "data": {
+        "balancer": { "time": 406191, "regionCount": 36 },
+        "workers": [
+          {
+            "rank": 18,
+            "computationTime": 305777,
+            "mpiTime": 24688,
+            "drawTime": 4484,
+            "pixelCount": 86016,
+            "iterationCount": 488456
+          },
+          {
+            "rank": 35,
+            "computationTime": 349947,
+            "mpiTime": 19414,
+            "drawTime": 3791,
+            "pixelCount": 65536,
+            "iterationCount": 539456
+          },
+          {
+            "rank": 17,
+            "computationTime": 656625,
+            "mpiTime": 19946,
+            "drawTime": 698,
+            "pixelCount": 12288,
+            "iterationCount": 1004135
+          },
+          {
+            "rank": 1,
+            "computationTime": 866186,
+            "mpiTime": 10248,
+            "drawTime": 2192,
+            "pixelCount": 49152,
+            "iterationCount": 1472624
+          },
+          {
+            "rank": 29,
+            "computationTime": 1959161,
+            "mpiTime": 11311,
+            "drawTime": 1399,
+            "pixelCount": 12288,
+            "iterationCount": 3031067
+          },
+          {
+            "rank": 14,
+            "computationTime": 2629537,
+            "mpiTime": 8625,
+            "drawTime": 299,
+            "pixelCount": 4096,
+            "iterationCount": 4173824
+          },
+          {
+            "rank": 32,
+            "computationTime": 2668175,
+            "mpiTime": 24209,
+            "drawTime": 200,
+            "pixelCount": 4096,
+            "iterationCount": 4173824
+          },
+          {
+            "rank": 36,
+            "computationTime": 2694685,
+            "mpiTime": 12122,
+            "drawTime": 797,
+            "pixelCount": 16384,
+            "iterationCount": 4162121
+          },
+          {
+            "rank": 9,
+            "computationTime": 3248499,
+            "mpiTime": 36327,
+            "drawTime": 1892,
+            "pixelCount": 36864,
+            "iterationCount": 4990003
+          },
+          {
+            "rank": 16,
+            "computationTime": 3371552,
+            "mpiTime": 10461,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 5221966
+          },
+          {
+            "rank": 33,
+            "computationTime": 4053459,
+            "mpiTime": 26099,
+            "drawTime": 2194,
+            "pixelCount": 32768,
+            "iterationCount": 6275062
+          },
+          {
+            "rank": 2,
+            "computationTime": 4382924,
+            "mpiTime": 3774,
+            "drawTime": 998,
+            "pixelCount": 16384,
+            "iterationCount": 6843542
+          },
+          {
+            "rank": 34,
+            "computationTime": 5038219,
+            "mpiTime": 6726,
+            "drawTime": 699,
+            "pixelCount": 8192,
+            "iterationCount": 7850370
+          },
+          {
+            "rank": 19,
+            "computationTime": 5219315,
+            "mpiTime": 17533,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 8154757
+          },
+          {
+            "rank": 20,
+            "computationTime": 5308790,
+            "mpiTime": 7844,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 8163528
+          },
+          {
+            "rank": 11,
+            "computationTime": 5320562,
+            "mpiTime": 18397,
+            "drawTime": 300,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 10,
+            "computationTime": 5340347,
+            "mpiTime": 12978,
+            "drawTime": 698,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 5,
+            "computationTime": 5334972,
+            "mpiTime": 21624,
+            "drawTime": 699,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 8,
+            "computationTime": 5378887,
+            "mpiTime": 11080,
+            "drawTime": 899,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 13,
+            "computationTime": 5378160,
+            "mpiTime": 13053,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 26,
+            "computationTime": 5398412,
+            "mpiTime": 8698,
+            "drawTime": 999,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 21,
+            "computationTime": 5393233,
+            "mpiTime": 16186,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 23,
+            "computationTime": 5394515,
+            "mpiTime": 16670,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 12,
+            "computationTime": 5409027,
+            "mpiTime": 3237,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 27,
+            "computationTime": 5394797,
+            "mpiTime": 20737,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 25,
+            "computationTime": 5506090,
+            "mpiTime": 4625,
+            "drawTime": 399,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 31,
+            "computationTime": 5519337,
+            "mpiTime": 5705,
+            "drawTime": 300,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 24,
+            "computationTime": 5529352,
+            "mpiTime": 9238,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 22,
+            "computationTime": 7096356,
+            "mpiTime": 7678,
+            "drawTime": 1400,
+            "pixelCount": 16384,
+            "iterationCount": 11084304
+          },
+          {
+            "rank": 28,
+            "computationTime": 7256524,
+            "mpiTime": 13327,
+            "drawTime": 1198,
+            "pixelCount": 24576,
+            "iterationCount": 11257115
+          },
+          {
+            "rank": 7,
+            "computationTime": 7793569,
+            "mpiTime": 7717,
+            "drawTime": 1994,
+            "pixelCount": 45056,
+            "iterationCount": 12248435
+          },
+          {
+            "rank": 30,
+            "computationTime": 8041864,
+            "mpiTime": 10644,
+            "drawTime": 697,
+            "pixelCount": 12288,
+            "iterationCount": 12521472
+          },
+          {
+            "rank": 3,
+            "computationTime": 9460853,
+            "mpiTime": 4287,
+            "drawTime": 1298,
+            "pixelCount": 16384,
+            "iterationCount": 14792741
+          },
+          {
+            "rank": 15,
+            "computationTime": 10546524,
+            "mpiTime": 9749,
+            "drawTime": 898,
+            "pixelCount": 16384,
+            "iterationCount": 15811441
+          },
+          {
+            "rank": 4,
+            "computationTime": 10846689,
+            "mpiTime": 5179,
+            "drawTime": 799,
+            "pixelCount": 16384,
+            "iterationCount": 16695296
+          },
+          {
+            "rank": 6,
+            "computationTime": 11662649,
+            "mpiTime": 41178,
+            "drawTime": 0,
+            "pixelCount": 495616,
+            "iterationCount": 18297230
+          }
+        ]
+      }
+    },
+    {
+      "setting": {
+        "balancer": "predictionRecursive",
+        "implementation": "mandelbrot",
+        "maxIteration": 1019,
+        "predictionAccuracy": 3,
+        "nodeCount": 37,
+        "run": 1
+      },
+      "poi": {
+        "real": -0.7334021404385567,
+        "imag": 0.2165058705628719,
+        "zoom": 11
+      },
+      "data": {
+        "balancer": { "time": 424109, "regionCount": 36 },
+        "workers": [
+          {
+            "rank": 36,
+            "computationTime": 1094866,
+            "mpiTime": 3989,
+            "drawTime": 599,
+            "pixelCount": 8192,
+            "iterationCount": 1676994
+          },
+          {
+            "rank": 28,
+            "computationTime": 2732279,
+            "mpiTime": 4682,
+            "drawTime": 299,
+            "pixelCount": 4096,
+            "iterationCount": 4173824
+          },
+          {
+            "rank": 29,
+            "computationTime": 2734404,
+            "mpiTime": 2706,
+            "drawTime": 299,
+            "pixelCount": 4096,
+            "iterationCount": 4173824
+          },
+          {
+            "rank": 23,
+            "computationTime": 2875321,
+            "mpiTime": 8949,
+            "drawTime": 398,
+            "pixelCount": 8192,
+            "iterationCount": 4295929
+          },
+          {
+            "rank": 10,
+            "computationTime": 3120334,
+            "mpiTime": 8341,
+            "drawTime": 1994,
+            "pixelCount": 32768,
+            "iterationCount": 4780351
+          },
+          {
+            "rank": 26,
+            "computationTime": 3207009,
+            "mpiTime": 21027,
+            "drawTime": 398,
+            "pixelCount": 8192,
+            "iterationCount": 4892988
+          },
+          {
+            "rank": 32,
+            "computationTime": 3293744,
+            "mpiTime": 17785,
+            "drawTime": 398,
+            "pixelCount": 8192,
+            "iterationCount": 5032755
+          },
+          {
+            "rank": 2,
+            "computationTime": 3552589,
+            "mpiTime": 10085,
+            "drawTime": 3691,
+            "pixelCount": 57344,
+            "iterationCount": 5459987
+          },
+          {
+            "rank": 34,
+            "computationTime": 3643976,
+            "mpiTime": 10610,
+            "drawTime": 1096,
+            "pixelCount": 16384,
+            "iterationCount": 5572565
+          },
+          {
+            "rank": 27,
+            "computationTime": 3992236,
+            "mpiTime": 3194,
+            "drawTime": 1199,
+            "pixelCount": 8192,
+            "iterationCount": 6091237
+          },
+          {
+            "rank": 11,
+            "computationTime": 4178452,
+            "mpiTime": 10024,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 6379652
+          },
+          {
+            "rank": 18,
+            "computationTime": 4224553,
+            "mpiTime": 9580,
+            "drawTime": 897,
+            "pixelCount": 16384,
+            "iterationCount": 6458472
+          },
+          {
+            "rank": 31,
+            "computationTime": 4533350,
+            "mpiTime": 8300,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 6767259
+          },
+          {
+            "rank": 7,
+            "computationTime": 4775645,
+            "mpiTime": 5191,
+            "drawTime": 998,
+            "pixelCount": 12288,
+            "iterationCount": 7298649
+          },
+          {
+            "rank": 17,
+            "computationTime": 5312196,
+            "mpiTime": 11057,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 8115774
+          },
+          {
+            "rank": 9,
+            "computationTime": 5373478,
+            "mpiTime": 20021,
+            "drawTime": 2192,
+            "pixelCount": 49152,
+            "iterationCount": 8230936
+          },
+          {
+            "rank": 33,
+            "computationTime": 5393858,
+            "mpiTime": 5042,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 8234255
+          },
+          {
+            "rank": 16,
+            "computationTime": 5460568,
+            "mpiTime": 2599,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 22,
+            "computationTime": 5463599,
+            "mpiTime": 8759,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 8334575
+          },
+          {
+            "rank": 13,
+            "computationTime": 5461641,
+            "mpiTime": 14588,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 14,
+            "computationTime": 5466687,
+            "mpiTime": 11512,
+            "drawTime": 399,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 25,
+            "computationTime": 5477358,
+            "mpiTime": 6868,
+            "drawTime": 699,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 30,
+            "computationTime": 5467807,
+            "mpiTime": 22144,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 24,
+            "computationTime": 5480148,
+            "mpiTime": 11361,
+            "drawTime": 798,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 12,
+            "computationTime": 5581971,
+            "mpiTime": 4891,
+            "drawTime": 1299,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 15,
+            "computationTime": 5592681,
+            "mpiTime": 10558,
+            "drawTime": 898,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 5,
+            "computationTime": 6161768,
+            "mpiTime": 33257,
+            "drawTime": 5383,
+            "pixelCount": 98304,
+            "iterationCount": 9467333
+          },
+          {
+            "rank": 1,
+            "computationTime": 6421455,
+            "mpiTime": 18700,
+            "drawTime": 8373,
+            "pixelCount": 172032,
+            "iterationCount": 9882313
+          },
+          {
+            "rank": 35,
+            "computationTime": 6720013,
+            "mpiTime": 5415,
+            "drawTime": 698,
+            "pixelCount": 16384,
+            "iterationCount": 10038454
+          },
+          {
+            "rank": 4,
+            "computationTime": 7048477,
+            "mpiTime": 22435,
+            "drawTime": 9969,
+            "pixelCount": 196608,
+            "iterationCount": 10594353
+          },
+          {
+            "rank": 3,
+            "computationTime": 7814365,
+            "mpiTime": 32843,
+            "drawTime": 5882,
+            "pixelCount": 114688,
+            "iterationCount": 12005726
+          },
+          {
+            "rank": 20,
+            "computationTime": 8613115,
+            "mpiTime": 11823,
+            "drawTime": 1198,
+            "pixelCount": 16384,
+            "iterationCount": 12874411
+          },
+          {
+            "rank": 19,
+            "computationTime": 8907090,
+            "mpiTime": 23537,
+            "drawTime": 2788,
+            "pixelCount": 49152,
+            "iterationCount": 13624339
+          },
+          {
+            "rank": 8,
+            "computationTime": 9154499,
+            "mpiTime": 4648,
+            "drawTime": 1096,
+            "pixelCount": 24576,
+            "iterationCount": 13965057
+          },
+          {
+            "rank": 21,
+            "computationTime": 9595623,
+            "mpiTime": 9359,
+            "drawTime": 897,
+            "pixelCount": 16384,
+            "iterationCount": 14648761
+          },
+          {
+            "rank": 6,
+            "computationTime": 10804483,
+            "mpiTime": 24062,
+            "drawTime": 0,
+            "pixelCount": 73728,
+            "iterationCount": 16533825
+          }
+        ]
+      }
+    },
+    {
+      "setting": {
+        "balancer": "predictionRecursive",
+        "implementation": "mandelbrot",
+        "maxIteration": 1019,
+        "predictionAccuracy": 3,
+        "nodeCount": 37,
+        "run": 1
+      },
+      "poi": {
+        "real": -0.04665714770453633,
+        "imag": 0.9851097719948892,
+        "zoom": 25
+      },
+      "data": {
+        "balancer": { "time": 625270, "regionCount": 36 },
+        "workers": [
+          {
+            "rank": 29,
+            "computationTime": 3248294,
+            "mpiTime": 19415,
+            "drawTime": 1893,
+            "pixelCount": 32768,
+            "iterationCount": 5061291
+          },
+          {
+            "rank": 27,
+            "computationTime": 3804377,
+            "mpiTime": 19021,
+            "drawTime": 1696,
+            "pixelCount": 32768,
+            "iterationCount": 5929722
+          },
+          {
+            "rank": 18,
+            "computationTime": 4175781,
+            "mpiTime": 21508,
+            "drawTime": 996,
+            "pixelCount": 16384,
+            "iterationCount": 6509022
+          },
+          {
+            "rank": 19,
+            "computationTime": 5077480,
+            "mpiTime": 11643,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 7913038
+          },
+          {
+            "rank": 16,
+            "computationTime": 5215332,
+            "mpiTime": 18178,
+            "drawTime": 1495,
+            "pixelCount": 32768,
+            "iterationCount": 8130677
+          },
+          {
+            "rank": 36,
+            "computationTime": 5254656,
+            "mpiTime": 21964,
+            "drawTime": 4587,
+            "pixelCount": 61440,
+            "iterationCount": 8188310
+          },
+          {
+            "rank": 21,
+            "computationTime": 5263147,
+            "mpiTime": 22419,
+            "drawTime": 1394,
+            "pixelCount": 24576,
+            "iterationCount": 8203714
+          },
+          {
+            "rank": 2,
+            "computationTime": 5347809,
+            "mpiTime": 15808,
+            "drawTime": 400,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 14,
+            "computationTime": 5348899,
+            "mpiTime": 22746,
+            "drawTime": 398,
+            "pixelCount": 8192,
+            "iterationCount": 8340871
+          },
+          {
+            "rank": 20,
+            "computationTime": 5399589,
+            "mpiTime": 2782,
+            "drawTime": 698,
+            "pixelCount": 8192,
+            "iterationCount": 8238204
+          },
+          {
+            "rank": 35,
+            "computationTime": 5545754,
+            "mpiTime": 13782,
+            "drawTime": 3587,
+            "pixelCount": 61440,
+            "iterationCount": 8451572
+          },
+          {
+            "rank": 23,
+            "computationTime": 5619613,
+            "mpiTime": 23950,
+            "drawTime": 1592,
+            "pixelCount": 36864,
+            "iterationCount": 8757946
+          },
+          {
+            "rank": 28,
+            "computationTime": 5654004,
+            "mpiTime": 11487,
+            "drawTime": 2392,
+            "pixelCount": 49152,
+            "iterationCount": 8808830
+          },
+          {
+            "rank": 32,
+            "computationTime": 5737629,
+            "mpiTime": 37120,
+            "drawTime": 2794,
+            "pixelCount": 61440,
+            "iterationCount": 8938171
+          },
+          {
+            "rank": 11,
+            "computationTime": 5851802,
+            "mpiTime": 11960,
+            "drawTime": 798,
+            "pixelCount": 12288,
+            "iterationCount": 9126959
+          },
+          {
+            "rank": 34,
+            "computationTime": 6027587,
+            "mpiTime": 17389,
+            "drawTime": 2688,
+            "pixelCount": 61440,
+            "iterationCount": 9390731
+          },
+          {
+            "rank": 33,
+            "computationTime": 6235644,
+            "mpiTime": 23763,
+            "drawTime": 3989,
+            "pixelCount": 61440,
+            "iterationCount": 9723391
+          },
+          {
+            "rank": 30,
+            "computationTime": 6586522,
+            "mpiTime": 10260,
+            "drawTime": 2692,
+            "pixelCount": 61440,
+            "iterationCount": 10030920
+          },
+          {
+            "rank": 25,
+            "computationTime": 6771819,
+            "mpiTime": 23724,
+            "drawTime": 2988,
+            "pixelCount": 49152,
+            "iterationCount": 10558740
+          },
+          {
+            "rank": 7,
+            "computationTime": 7056714,
+            "mpiTime": 16971,
+            "drawTime": 998,
+            "pixelCount": 12288,
+            "iterationCount": 11010719
+          },
+          {
+            "rank": 9,
+            "computationTime": 7332090,
+            "mpiTime": 4890,
+            "drawTime": 897,
+            "pixelCount": 12288,
+            "iterationCount": 11442821
+          },
+          {
+            "rank": 31,
+            "computationTime": 7492478,
+            "mpiTime": 18416,
+            "drawTime": 3689,
+            "pixelCount": 81920,
+            "iterationCount": 11405305
+          },
+          {
+            "rank": 26,
+            "computationTime": 7954951,
+            "mpiTime": 7264,
+            "drawTime": 2096,
+            "pixelCount": 49152,
+            "iterationCount": 12398794
+          },
+          {
+            "rank": 5,
+            "computationTime": 8019489,
+            "mpiTime": 14802,
+            "drawTime": 699,
+            "pixelCount": 12288,
+            "iterationCount": 12521472
+          },
+          {
+            "rank": 3,
+            "computationTime": 8032079,
+            "mpiTime": 6426,
+            "drawTime": 698,
+            "pixelCount": 12288,
+            "iterationCount": 12521472
+          },
+          {
+            "rank": 12,
+            "computationTime": 8215425,
+            "mpiTime": 6787,
+            "drawTime": 498,
+            "pixelCount": 12288,
+            "iterationCount": 12521472
+          },
+          {
+            "rank": 22,
+            "computationTime": 8672712,
+            "mpiTime": 22786,
+            "drawTime": 1298,
+            "pixelCount": 24576,
+            "iterationCount": 13525441
+          },
+          {
+            "rank": 17,
+            "computationTime": 9066917,
+            "mpiTime": 3841,
+            "drawTime": 996,
+            "pixelCount": 16384,
+            "iterationCount": 14133749
+          },
+          {
+            "rank": 24,
+            "computationTime": 10465202,
+            "mpiTime": 17125,
+            "drawTime": 1794,
+            "pixelCount": 32768,
+            "iterationCount": 16326759
+          },
+          {
+            "rank": 1,
+            "computationTime": 10707767,
+            "mpiTime": 9816,
+            "drawTime": 1096,
+            "pixelCount": 16384,
+            "iterationCount": 16695296
+          },
+          {
+            "rank": 13,
+            "computationTime": 10700737,
+            "mpiTime": 17638,
+            "drawTime": 700,
+            "pixelCount": 16384,
+            "iterationCount": 16694870
+          },
+          {
+            "rank": 10,
+            "computationTime": 11652007,
+            "mpiTime": 8484,
+            "drawTime": 1298,
+            "pixelCount": 24576,
+            "iterationCount": 18166779
+          },
+          {
+            "rank": 15,
+            "computationTime": 11844121,
+            "mpiTime": 7215,
+            "drawTime": 1492,
+            "pixelCount": 32768,
+            "iterationCount": 18038179
+          },
+          {
+            "rank": 8,
+            "computationTime": 14709231,
+            "mpiTime": 7323,
+            "drawTime": 1299,
+            "pixelCount": 24576,
+            "iterationCount": 22952625
+          },
+          {
+            "rank": 4,
+            "computationTime": 16051439,
+            "mpiTime": 8598,
+            "drawTime": 1395,
+            "pixelCount": 24576,
+            "iterationCount": 25042944
+          },
+          {
+            "rank": 6,
+            "computationTime": 16064161,
+            "mpiTime": 21802,
+            "drawTime": 0,
+            "pixelCount": 24576,
+            "iterationCount": 25042944
+          }
+        ]
+      }
+    },
+    {
+      "setting": {
+        "balancer": "predictionRecursive",
+        "implementation": "mandelbrot",
+        "maxIteration": 1019,
+        "predictionAccuracy": 5,
+        "nodeCount": 37,
+        "run": 1
+      },
+      "poi": {
+        "real": -1.1352806091308594,
+        "imag": -0.3451214891342549,
+        "zoom": 2
+      },
+      "data": {
+        "balancer": { "time": 1147939, "regionCount": 36 },
+        "workers": [
+          {
+            "rank": 35,
+            "computationTime": 342035,
+            "mpiTime": 38703,
+            "drawTime": 4288,
+            "pixelCount": 65536,
+            "iterationCount": 539456
+          },
+          {
+            "rank": 18,
+            "computationTime": 962558,
+            "mpiTime": 25270,
+            "drawTime": 5883,
+            "pixelCount": 98304,
+            "iterationCount": 1492591
+          },
+          {
+            "rank": 29,
+            "computationTime": 1959124,
+            "mpiTime": 10122,
+            "drawTime": 698,
+            "pixelCount": 12288,
+            "iterationCount": 3031067
+          },
+          {
+            "rank": 16,
+            "computationTime": 2611742,
+            "mpiTime": 8715,
+            "drawTime": 299,
+            "pixelCount": 4096,
+            "iterationCount": 4052946
+          },
+          {
+            "rank": 14,
+            "computationTime": 2629443,
+            "mpiTime": 16613,
+            "drawTime": 199,
+            "pixelCount": 4096,
+            "iterationCount": 4173824
+          },
+          {
+            "rank": 32,
+            "computationTime": 2668995,
+            "mpiTime": 3246,
+            "drawTime": 299,
+            "pixelCount": 4096,
+            "iterationCount": 4173824
+          },
+          {
+            "rank": 36,
+            "computationTime": 2694324,
+            "mpiTime": 21380,
+            "drawTime": 997,
+            "pixelCount": 16384,
+            "iterationCount": 4162121
+          },
+          {
+            "rank": 9,
+            "computationTime": 3243072,
+            "mpiTime": 13931,
+            "drawTime": 2092,
+            "pixelCount": 36864,
+            "iterationCount": 4990003
+          },
+          {
+            "rank": 33,
+            "computationTime": 4053052,
+            "mpiTime": 25185,
+            "drawTime": 1892,
+            "pixelCount": 32768,
+            "iterationCount": 6275062
+          },
+          {
+            "rank": 2,
+            "computationTime": 4277160,
+            "mpiTime": 10216,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 6682478
+          },
+          {
+            "rank": 34,
+            "computationTime": 5036894,
+            "mpiTime": 5837,
+            "drawTime": 898,
+            "pixelCount": 8192,
+            "iterationCount": 7850370
+          },
+          {
+            "rank": 3,
+            "computationTime": 5175791,
+            "mpiTime": 20746,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 8110263
+          },
+          {
+            "rank": 20,
+            "computationTime": 5194426,
+            "mpiTime": 17245,
+            "drawTime": 798,
+            "pixelCount": 8192,
+            "iterationCount": 8163528
+          },
+          {
+            "rank": 19,
+            "computationTime": 5217437,
+            "mpiTime": 16033,
+            "drawTime": 799,
+            "pixelCount": 8192,
+            "iterationCount": 8154757
+          },
+          {
+            "rank": 1,
+            "computationTime": 5248444,
+            "mpiTime": 8230,
+            "drawTime": 2990,
+            "pixelCount": 65536,
+            "iterationCount": 8316166
+          },
+          {
+            "rank": 11,
+            "computationTime": 5317054,
+            "mpiTime": 6461,
+            "drawTime": 600,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 5,
+            "computationTime": 5332588,
+            "mpiTime": 9196,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 10,
+            "computationTime": 5342291,
+            "mpiTime": 10889,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 13,
+            "computationTime": 5377804,
+            "mpiTime": 10941,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 25,
+            "computationTime": 5386369,
+            "mpiTime": 3382,
+            "drawTime": 398,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 8,
+            "computationTime": 5383733,
+            "mpiTime": 8803,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 23,
+            "computationTime": 5394567,
+            "mpiTime": 5332,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 27,
+            "computationTime": 5394971,
+            "mpiTime": 9674,
+            "drawTime": 399,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 21,
+            "computationTime": 5392646,
+            "mpiTime": 14557,
+            "drawTime": 399,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 26,
+            "computationTime": 5400672,
+            "mpiTime": 17442,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 12,
+            "computationTime": 5410148,
+            "mpiTime": 11156,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 31,
+            "computationTime": 5520195,
+            "mpiTime": 4733,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 24,
+            "computationTime": 5530458,
+            "mpiTime": 7949,
+            "drawTime": 398,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 15,
+            "computationTime": 5549252,
+            "mpiTime": 6941,
+            "drawTime": 398,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 17,
+            "computationTime": 5643240,
+            "mpiTime": 8334,
+            "drawTime": 699,
+            "pixelCount": 12288,
+            "iterationCount": 8632813
+          },
+          {
+            "rank": 22,
+            "computationTime": 7096524,
+            "mpiTime": 6297,
+            "drawTime": 1197,
+            "pixelCount": 16384,
+            "iterationCount": 11084304
+          },
+          {
+            "rank": 28,
+            "computationTime": 7255535,
+            "mpiTime": 12334,
+            "drawTime": 1396,
+            "pixelCount": 24576,
+            "iterationCount": 11257115
+          },
+          {
+            "rank": 7,
+            "computationTime": 7787753,
+            "mpiTime": 24431,
+            "drawTime": 1994,
+            "pixelCount": 45056,
+            "iterationCount": 12248435
+          },
+          {
+            "rank": 30,
+            "computationTime": 8039854,
+            "mpiTime": 9631,
+            "drawTime": 798,
+            "pixelCount": 12288,
+            "iterationCount": 12521472
+          },
+          {
+            "rank": 4,
+            "computationTime": 10623996,
+            "mpiTime": 13000,
+            "drawTime": 998,
+            "pixelCount": 16384,
+            "iterationCount": 16695296
+          },
+          {
+            "rank": 6,
+            "computationTime": 11662265,
+            "mpiTime": 35066,
+            "drawTime": 0,
+            "pixelCount": 495616,
+            "iterationCount": 18297230
+          }
+        ]
+      }
+    },
+    {
+      "setting": {
+        "balancer": "predictionRecursive",
+        "implementation": "mandelbrot",
+        "maxIteration": 1019,
+        "predictionAccuracy": 5,
+        "nodeCount": 37,
+        "run": 1
+      },
+      "poi": {
+        "real": -0.7334021404385567,
+        "imag": 0.2165058705628719,
+        "zoom": 11
+      },
+      "data": {
+        "balancer": { "time": 1210956, "regionCount": 36 },
+        "workers": [
+          {
+            "rank": 36,
+            "computationTime": 1095504,
+            "mpiTime": 6352,
+            "drawTime": 799,
+            "pixelCount": 8192,
+            "iterationCount": 1676994
+          },
+          {
+            "rank": 29,
+            "computationTime": 2731549,
+            "mpiTime": 15171,
+            "drawTime": 499,
+            "pixelCount": 4096,
+            "iterationCount": 4173824
+          },
+          {
+            "rank": 28,
+            "computationTime": 2734234,
+            "mpiTime": 17082,
+            "drawTime": 299,
+            "pixelCount": 4096,
+            "iterationCount": 4173824
+          },
+          {
+            "rank": 23,
+            "computationTime": 2810980,
+            "mpiTime": 21342,
+            "drawTime": 398,
+            "pixelCount": 8192,
+            "iterationCount": 4295929
+          },
+          {
+            "rank": 10,
+            "computationTime": 3119203,
+            "mpiTime": 20735,
+            "drawTime": 2394,
+            "pixelCount": 32768,
+            "iterationCount": 4780351
+          },
+          {
+            "rank": 26,
+            "computationTime": 3206456,
+            "mpiTime": 13539,
+            "drawTime": 698,
+            "pixelCount": 8192,
+            "iterationCount": 4892988
+          },
+          {
+            "rank": 32,
+            "computationTime": 3292823,
+            "mpiTime": 10305,
+            "drawTime": 398,
+            "pixelCount": 8192,
+            "iterationCount": 5032755
+          },
+          {
+            "rank": 2,
+            "computationTime": 3552208,
+            "mpiTime": 22375,
+            "drawTime": 2991,
+            "pixelCount": 57344,
+            "iterationCount": 5459987
+          },
+          {
+            "rank": 34,
+            "computationTime": 3642341,
+            "mpiTime": 3005,
+            "drawTime": 597,
+            "pixelCount": 16384,
+            "iterationCount": 5572565
+          },
+          {
+            "rank": 27,
+            "computationTime": 3990448,
+            "mpiTime": 15723,
+            "drawTime": 600,
+            "pixelCount": 8192,
+            "iterationCount": 6091237
+          },
+          {
+            "rank": 11,
+            "computationTime": 4178129,
+            "mpiTime": 12366,
+            "drawTime": 399,
+            "pixelCount": 8192,
+            "iterationCount": 6379652
+          },
+          {
+            "rank": 18,
+            "computationTime": 4223584,
+            "mpiTime": 21984,
+            "drawTime": 1097,
+            "pixelCount": 16384,
+            "iterationCount": 6458472
+          },
+          {
+            "rank": 31,
+            "computationTime": 4533176,
+            "mpiTime": 10764,
+            "drawTime": 699,
+            "pixelCount": 8192,
+            "iterationCount": 6767259
+          },
+          {
+            "rank": 7,
+            "computationTime": 4776805,
+            "mpiTime": 7448,
+            "drawTime": 698,
+            "pixelCount": 12288,
+            "iterationCount": 7298649
+          },
+          {
+            "rank": 17,
+            "computationTime": 5313325,
+            "mpiTime": 3404,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 8115774
+          },
+          {
+            "rank": 9,
+            "computationTime": 5372999,
+            "mpiTime": 22806,
+            "drawTime": 2392,
+            "pixelCount": 49152,
+            "iterationCount": 8230936
+          },
+          {
+            "rank": 33,
+            "computationTime": 5392026,
+            "mpiTime": 7507,
+            "drawTime": 699,
+            "pixelCount": 8192,
+            "iterationCount": 8234255
+          },
+          {
+            "rank": 13,
+            "computationTime": 5457869,
+            "mpiTime": 7067,
+            "drawTime": 399,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 16,
+            "computationTime": 5461514,
+            "mpiTime": 15753,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 30,
+            "computationTime": 5473928,
+            "mpiTime": 4772,
+            "drawTime": 299,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 25,
+            "computationTime": 5475514,
+            "mpiTime": 9406,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 14,
+            "computationTime": 5472250,
+            "mpiTime": 13828,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 12,
+            "computationTime": 5581562,
+            "mpiTime": 7187,
+            "drawTime": 598,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 22,
+            "computationTime": 5580974,
+            "mpiTime": 11330,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8334575
+          },
+          {
+            "rank": 24,
+            "computationTime": 5592622,
+            "mpiTime": 3995,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 15,
+            "computationTime": 5593356,
+            "mpiTime": 3613,
+            "drawTime": 499,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 5,
+            "computationTime": 6161098,
+            "mpiTime": 25547,
+            "drawTime": 5682,
+            "pixelCount": 98304,
+            "iterationCount": 9467333
+          },
+          {
+            "rank": 1,
+            "computationTime": 6421860,
+            "mpiTime": 31143,
+            "drawTime": 8070,
+            "pixelCount": 172032,
+            "iterationCount": 9882313
+          },
+          {
+            "rank": 35,
+            "computationTime": 6571430,
+            "mpiTime": 27859,
+            "drawTime": 997,
+            "pixelCount": 16384,
+            "iterationCount": 10038454
+          },
+          {
+            "rank": 4,
+            "computationTime": 6888206,
+            "mpiTime": 24338,
+            "drawTime": 8570,
+            "pixelCount": 196608,
+            "iterationCount": 10594353
+          },
+          {
+            "rank": 3,
+            "computationTime": 7814281,
+            "mpiTime": 14106,
+            "drawTime": 5678,
+            "pixelCount": 114688,
+            "iterationCount": 12005726
+          },
+          {
+            "rank": 20,
+            "computationTime": 8425182,
+            "mpiTime": 13466,
+            "drawTime": 1196,
+            "pixelCount": 16384,
+            "iterationCount": 12874411
+          },
+          {
+            "rank": 19,
+            "computationTime": 8910455,
+            "mpiTime": 16264,
+            "drawTime": 2589,
+            "pixelCount": 49152,
+            "iterationCount": 13624339
+          },
+          {
+            "rank": 8,
+            "computationTime": 9154258,
+            "mpiTime": 17854,
+            "drawTime": 1695,
+            "pixelCount": 24576,
+            "iterationCount": 13965057
+          },
+          {
+            "rank": 21,
+            "computationTime": 9594746,
+            "mpiTime": 11787,
+            "drawTime": 997,
+            "pixelCount": 16384,
+            "iterationCount": 14648761
+          },
+          {
+            "rank": 6,
+            "computationTime": 10801923,
+            "mpiTime": 16787,
+            "drawTime": 0,
+            "pixelCount": 73728,
+            "iterationCount": 16533825
+          }
+        ]
+      }
+    },
+    {
+      "setting": {
+        "balancer": "predictionRecursive",
+        "implementation": "mandelbrot",
+        "maxIteration": 1019,
+        "predictionAccuracy": 5,
+        "nodeCount": 37,
+        "run": 1
+      },
+      "poi": {
+        "real": -0.04665714770453633,
+        "imag": 0.9851097719948892,
+        "zoom": 25
+      },
+      "data": {
+        "balancer": { "time": 1761933, "regionCount": 36 },
+        "workers": [
+          {
+            "rank": 29,
+            "computationTime": 3248646,
+            "mpiTime": 18452,
+            "drawTime": 1693,
+            "pixelCount": 32768,
+            "iterationCount": 5061291
+          },
+          {
+            "rank": 18,
+            "computationTime": 4176505,
+            "mpiTime": 10947,
+            "drawTime": 796,
+            "pixelCount": 16384,
+            "iterationCount": 6509022
+          },
+          {
+            "rank": 19,
+            "computationTime": 5077133,
+            "mpiTime": 20972,
+            "drawTime": 498,
+            "pixelCount": 8192,
+            "iterationCount": 7913038
+          },
+          {
+            "rank": 16,
+            "computationTime": 5216274,
+            "mpiTime": 19164,
+            "drawTime": 1595,
+            "pixelCount": 32768,
+            "iterationCount": 8130677
+          },
+          {
+            "rank": 36,
+            "computationTime": 5255443,
+            "mpiTime": 21321,
+            "drawTime": 2691,
+            "pixelCount": 61440,
+            "iterationCount": 8188310
+          },
+          {
+            "rank": 21,
+            "computationTime": 5263804,
+            "mpiTime": 21734,
+            "drawTime": 1395,
+            "pixelCount": 24576,
+            "iterationCount": 8203714
+          },
+          {
+            "rank": 20,
+            "computationTime": 5279037,
+            "mpiTime": 11357,
+            "drawTime": 398,
+            "pixelCount": 8192,
+            "iterationCount": 8238204
+          },
+          {
+            "rank": 2,
+            "computationTime": 5347123,
+            "mpiTime": 5045,
+            "drawTime": 699,
+            "pixelCount": 8192,
+            "iterationCount": 8347648
+          },
+          {
+            "rank": 14,
+            "computationTime": 5348890,
+            "mpiTime": 22078,
+            "drawTime": 298,
+            "pixelCount": 8192,
+            "iterationCount": 8340871
+          },
+          {
+            "rank": 35,
+            "computationTime": 5419529,
+            "mpiTime": 13375,
+            "drawTime": 3391,
+            "pixelCount": 61440,
+            "iterationCount": 8451572
+          },
+          {
+            "rank": 23,
+            "computationTime": 5618486,
+            "mpiTime": 24013,
+            "drawTime": 1794,
+            "pixelCount": 36864,
+            "iterationCount": 8757946
+          },
+          {
+            "rank": 28,
+            "computationTime": 5654837,
+            "mpiTime": 11215,
+            "drawTime": 3592,
+            "pixelCount": 49152,
+            "iterationCount": 8808830
+          },
+          {
+            "rank": 26,
+            "computationTime": 5734865,
+            "mpiTime": 5173,
+            "drawTime": 1495,
+            "pixelCount": 32768,
+            "iterationCount": 8937268
+          },
+          {
+            "rank": 32,
+            "computationTime": 5736062,
+            "mpiTime": 27078,
+            "drawTime": 3390,
+            "pixelCount": 61440,
+            "iterationCount": 8938171
+          },
+          {
+            "rank": 11,
+            "computationTime": 5852638,
+            "mpiTime": 11273,
+            "drawTime": 697,
+            "pixelCount": 12288,
+            "iterationCount": 9126959
+          },
+          {
+            "rank": 27,
+            "computationTime": 6025920,
+            "mpiTime": 9715,
+            "drawTime": 2492,
+            "pixelCount": 49152,
+            "iterationCount": 9391248
+          },
+          {
+            "rank": 34,
+            "computationTime": 6027215,
+            "mpiTime": 17084,
+            "drawTime": 2988,
+            "pixelCount": 61440,
+            "iterationCount": 9390731
+          },
+          {
+            "rank": 33,
+            "computationTime": 6236206,
+            "mpiTime": 13072,
+            "drawTime": 3486,
+            "pixelCount": 61440,
+            "iterationCount": 9723391
+          },
+          {
+            "rank": 30,
+            "computationTime": 6435295,
+            "mpiTime": 9314,
+            "drawTime": 2989,
+            "pixelCount": 61440,
+            "iterationCount": 10030920
+          },
+          {
+            "rank": 25,
+            "computationTime": 6771819,
+            "mpiTime": 13293,
+            "drawTime": 2592,
+            "pixelCount": 49152,
+            "iterationCount": 10558740
+          },
+          {
+            "rank": 7,
+            "computationTime": 7056689,
+            "mpiTime": 6334,
+            "drawTime": 1197,
+            "pixelCount": 12288,
+            "iterationCount": 11010719
+          },
+          {
+            "rank": 9,
+            "computationTime": 7330821,
+            "mpiTime": 5168,
+            "drawTime": 798,
+            "pixelCount": 12288,
+            "iterationCount": 11442821
+          },
+          {
+            "rank": 31,
+            "computationTime": 7319218,
+            "mpiTime": 27782,
+            "drawTime": 3489,
+            "pixelCount": 81920,
+            "iterationCount": 11405305
+          },
+          {
+            "rank": 5,
+            "computationTime": 8017972,
+            "mpiTime": 4175,
+            "drawTime": 798,
+            "pixelCount": 12288,
+            "iterationCount": 12521472
+          },
+          {
+            "rank": 12,
+            "computationTime": 8030161,
+            "mpiTime": 6060,
+            "drawTime": 599,
+            "pixelCount": 12288,
+            "iterationCount": 12521472
+          },
+          {
+            "rank": 3,
+            "computationTime": 8031502,
+            "mpiTime": 5849,
+            "drawTime": 597,
+            "pixelCount": 12288,
+            "iterationCount": 12521472
+          },
+          {
+            "rank": 22,
+            "computationTime": 8880944,
+            "mpiTime": 12190,
+            "drawTime": 1595,
+            "pixelCount": 24576,
+            "iterationCount": 13525441
+          },
+          {
+            "rank": 17,
+            "computationTime": 9068347,
+            "mpiTime": 13201,
+            "drawTime": 1097,
+            "pixelCount": 16384,
+            "iterationCount": 14133749
+          },
+          {
+            "rank": 13,
+            "computationTime": 10695434,
+            "mpiTime": 6901,
+            "drawTime": 798,
+            "pixelCount": 16384,
+            "iterationCount": 16694870
+          },
+          {
+            "rank": 24,
+            "computationTime": 10705207,
+            "mpiTime": 5951,
+            "drawTime": 1696,
+            "pixelCount": 32768,
+            "iterationCount": 16326759
+          },
+          {
+            "rank": 1,
+            "computationTime": 10716086,
+            "mpiTime": 9120,
+            "drawTime": 1097,
+            "pixelCount": 16384,
+            "iterationCount": 16695296
+          },
+          {
+            "rank": 10,
+            "computationTime": 11652167,
+            "mpiTime": 17850,
+            "drawTime": 1595,
+            "pixelCount": 24576,
+            "iterationCount": 18166779
+          },
+          {
+            "rank": 15,
+            "computationTime": 11842569,
+            "mpiTime": 7286,
+            "drawTime": 1592,
+            "pixelCount": 32768,
+            "iterationCount": 18038179
+          },
+          {
+            "rank": 8,
+            "computationTime": 14709867,
+            "mpiTime": 5784,
+            "drawTime": 1099,
+            "pixelCount": 24576,
+            "iterationCount": 22952625
+          },
+          {
+            "rank": 4,
+            "computationTime": 16052112,
+            "mpiTime": 17946,
+            "drawTime": 1596,
+            "pixelCount": 24576,
+            "iterationCount": 25042944
+          },
+          {
+            "rank": 6,
+            "computationTime": 16068169,
+            "mpiTime": 21227,
+            "drawTime": 0,
+            "pixelCount": 24576,
+            "iterationCount": 25042944
+          }
+        ]
+      }
+    }
+  ]
+}
