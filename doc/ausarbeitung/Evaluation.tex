@@ -109,6 +109,9 @@ wie sie maximal auslasten könnte (Fläche/Fläche minimaler Aufteilung)
 
 \subsubsection{Balancer}
 
+Zur Lastbalancierung gibt es zwei Strategien in jeweils zwei Varianten, zur Evaluierung wird allerdings nur die rekursive Variante der beiden Strategien betrachtet.
+Man stellt leicht fest, dass die nicht-rekursive Variante für Primzahlen als Worker-Anzahl schlecht ist, weil dabei nur eine Aufteilung in Zeilen oder Spalten möglich ist.
+Da die Aufteilungsmöglichkeiten zusätzlich durch die Betrachtung von Tiles als atomaren Einheiten beschränkt werden, erzeugt diese Variante bereits für eine geringe Anzahl an Workern verhältnismäßig viele Leerregionen (d.h. untätige Worker).
 % Florian
 % Wir haben zwei Klassen (naive, prediction) und wählen davon jeweils den besten 
 % (naive Recursive, prediction Recursive)
