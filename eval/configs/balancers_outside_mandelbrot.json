@@ -6,7 +6,7 @@
   "balancers": ["predictionRecursive", "naiveRecursive"],
   "implementations": ["mandelbrot"],
   "maxIteration": [1019],
-  "nodeCount": [37],
+  "nodeCount": [17],
   "predictionAccuracy": [4],
   "runs": 10,
   "cluster": "himmuc",

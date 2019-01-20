@@ -6,9 +6,9 @@
   "balancers": ["predictionRecursive", "naiveRecursive"],
   "implementations": ["mandelbrot"],
   "maxIteration": [1019],
-  "nodeCount": [20],
+  "nodeCount": [17],
   "predictionAccuracy": [4],
-  "runs": 2,
+  "runs": 10,
   "cluster": "himmuc",
   "description": "Testing predictionRecursive balancer at border of the mandelbrot set",
   "pois": [
