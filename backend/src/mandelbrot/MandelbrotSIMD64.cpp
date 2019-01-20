@@ -14,25 +14,26 @@
 
 // Probably more open to compiler optimization
 // vectorlength >= 1 !!
-void MandelbrotSIMD64::calculateFractal(precision_t* cRealArray, precision_t* cImaginaryArray, unsigned short int maxIteration, int vectorLength, unsigned short int* dest) {
+void MandelbrotSIMD64::calculateFractal(precision_t* cRealArray, precision_t* cImaginaryArray, unsigned short int maxIteration, unsigned int vectorLength, unsigned short int* dest) {
     #ifdef __ARM_NEON
-    if(vectorLength <= 0){
+    if(vectorLength == 0){
         throw std::invalid_argument("vectorLength may not be less than 1.");
     }
-    for(int j = 0; j < (vectorLength/2); j++){
+    for(unsigned int j = 0; j < (vectorLength/2); j++){
     // General form of vector commands
     // v<cmd>q_f<pr>
     // v -> vector command
     // q -> double amount of used registers (quad=>4)
     // f -> float
     // 64 bit vectorization
+    unsigned int offset = j*2;
     // Load values from array to simd vector
     float64x2_t cReal = vdupq_n_f64(0);// = vld4q_f64(cRealArray);
-    cReal = vsetq_lane_f64((float64_t) cRealArray[0], cReal, 0);
-    cReal = vsetq_lane_f64((float64_t) cRealArray[1], cReal, 1);
+    cReal = vsetq_lane_f64((float64_t) cRealArray[offset+0], cReal, 0);
+    cReal = vsetq_lane_f64((float64_t) cRealArray[offset+1], cReal, 1);
     float64x2_t cImaginary = vdupq_n_f64(0);// = vld4q_f64(cImaginaryArray);
-    cImaginary = vsetq_lane_f64((float64_t) cImaginaryArray[0], cImaginary, 0);
-    cImaginary = vsetq_lane_f64((float64_t) cImaginaryArray[1], cImaginary, 1);
+    cImaginary = vsetq_lane_f64((float64_t) cImaginaryArray[offset+0], cImaginary, 0);
+    cImaginary = vsetq_lane_f64((float64_t) cImaginaryArray[offset+1], cImaginary, 1);
     // The z values
     float64x2_t zReal = vdupq_n_f64(0);
     float64x2_t zImaginary = vdupq_n_f64(0);
@@ -41,11 +42,15 @@ void MandelbrotSIMD64::calculateFractal(precision_t* cRealArray, precision_t* cI
     float64x2_t four = vdupq_n_f64(4);
     // result iterations
     int64x2_t n = vdupq_n_s64(0);
-    int64x2_t absLesserThanTwo = vdupq_n_s64(1);
     int i = 0;
+    // Square of the absolute value -> determine when to stop
+    float64x2_t absSquare = vmlaq_f64(vmulq_f64(zReal, zReal), zImaginary, zImaginary);
+    // If square of the absolute is less than 4, abs<2 holds -> -1 else 0
+    int64x2_t absLesserThanTwo = vreinterpretq_s64_u64(vcltq_f64(absSquare, four));
     // if any value is 1 in the vector (abs<2) then dont break
     // addv => sum all elements of the vector
-    while(i < maxIteration && vaddvq_s64(absLesserThanTwo) != 0){
+    // if any worker is still working (his component is -1) in the vector (abs<2) then dont break
+    while(i < maxIteration && vaddvq_s64(absLesserThanTwo) < 0){
         // add a b -> a+b
         // mls a b c -> a - b*c
         // mul a b -> a*b
@@ -54,23 +59,19 @@ void MandelbrotSIMD64::calculateFractal(precision_t* cRealArray, precision_t* cI
         float64x2_t nextZImaginary = vmlaq_f64(cImaginary, two, vmulq_f64(zReal, zImaginary));
         zReal = nextZReal;
         zImaginary = nextZImaginary;
-        // Square of the absolute value -> determine when to stop
-        float64x2_t absSquare = vmlaq_f64(vmulq_f64(zReal, zReal), zImaginary, zImaginary);
-        // If square of the absolute is less than 4, abs<2 holds -> -1 else 0
-        absLesserThanTwo = vreinterpretq_s64_u64(vcltq_f64(absSquare, four));
+
         n = vsubq_s64(n, absLesserThanTwo);
         i++;
+        // To make this procedure equivalent, increase i first, then evaluate new abssquare
+        absSquare = vmlaq_f64(vmulq_f64(zReal, zReal), zImaginary, zImaginary);
+        absLesserThanTwo = vreinterpretq_s64_u64(vcltq_f64(absSquare, four));
     }
     // write n to dest
-    dest[0] = (unsigned short int) vgetq_lane_s64(n, 0);
-    dest[1] = (unsigned short int) vgetq_lane_s64(n, 1);
-
-    cRealArray += 2;
-    cImaginaryArray += 2;
-    dest += 2;
+    dest[offset+0] = (unsigned short int) vgetq_lane_s64(n, 0);
+    dest[offset+1] = (unsigned short int) vgetq_lane_s64(n, 1);
     }
     #else
-    for(int j = 0; j < vectorLength; j++){
+    for(unsigned int j = 0; j < vectorLength; j++){
         dest[j] = 0;
     }
     #endif
