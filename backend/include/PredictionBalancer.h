@@ -19,7 +19,8 @@ private:
      * predictionAccuracy < 0:
      *  predictionAccuracy^2 Blocks of size guaranteedDivisor^2 are combined in one pixel sample.
      *
-     * predictionAccuracy cannot be == 0
+     * predictionAccuracy == 0:
+	 *  No prediction is made.
      */
     int predictionAccuracy;
     Fractal *f;
