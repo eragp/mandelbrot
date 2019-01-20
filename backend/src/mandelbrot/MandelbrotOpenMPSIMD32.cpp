@@ -14,9 +14,9 @@
 
 // Probably more open to compiler optimization
 // vectorlength >= 1 !!
-void MandelbrotOpenMPSIMD32::calculateFractal(precision_t* cRealArray, precision_t* cImaginaryArray, unsigned short int maxIteration, int vectorLength, unsigned short int* dest) {
+void MandelbrotOpenMPSIMD32::calculateFractal(precision_t* cRealArray, precision_t* cImaginaryArray, unsigned short int maxIteration, unsigned int vectorLength, unsigned short int* dest) {
     #ifdef __ARM_NEON
-    if(vectorLength <= 0){
+    if(vectorLength == 0){
         throw std::invalid_argument("vectorLength may not be less than 1.");
     }
     #pragma omp parallel for default(none) shared(cRealArray, cImaginaryArray, maxIteration, vectorLength, dest) schedule(nonmonotonic:dynamic, 10)
@@ -76,7 +76,7 @@ void MandelbrotOpenMPSIMD32::calculateFractal(precision_t* cRealArray, precision
     }
     #else
     #pragma omp parallel for default(none) shared(vectorLength, dest) schedule(static)
-    for(int j = 0; j < vectorLength; j++){
+    for(unsigned int j = 0; j < vectorLength; j++){
         dest[j] = 0;
     }
     #endif
