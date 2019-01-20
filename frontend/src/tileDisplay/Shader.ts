@@ -1,24 +1,25 @@
+// const clamp = (x: number, min: number, max: number) => Math.min(Math.max(x, min), max);
+// const hermite = (edge0: number, edge1: number, x: number) => {
+//   const t = clamp((x - edge0) / (edge1 - edge0), 0, 1);
+//   return t * t * (3 - 2 * t);
+// };
+// const linear = (min: number, max: number, x: number) => min * (1 - x) + max * x;
+
 class Shader {
   public static simple(n: number, maxIteration: number): number[] {
     return [10, 20, 40].map(m => (n * m) % 256);
   }
   // Copied from https://giansass.com/blog/mandelbrot-set-part-2-opengl-program/
   public static logSmooth(n: number, maxIteration: number): number[] {
-    const clamp = (x: number, min: number, max: number) => Math.min(Math.max(x, min), max);
-    const hermite = (edge0: number, edge1: number, x: number) => {
-      const t = clamp((x - edge0) / (edge1 - edge0), 0, 1);
-      return t * t * (3 - 2 * t);
-    };
-    const linear = (min: number, max: number, x: number) => min * (1 - x) + max * x;
-
-    let l = n;
-    const sl = l - n / maxIteration + 4;
-    const al = hermite(-0.1, 0, Math.sin(0.5 * 6.2831 * 1));
-    l = linear(l, sl, al);
-    return [0, 0.6, 1]
-      .map(v => v + 0.15 * l + 3)
-      .map(v => 0.5 + 0.5 * Math.cos(v))
-      .map(v => Math.floor(v * 255));
+    const sl = n - n / maxIteration + 4;
+    // const al = hermite(-0.1, 0, Math.sin(0.5 * 6.2831 * 1));
+    // const l =linear(n, sl, al);
+    // const l = sl;
+    return [
+      Math.floor(127.5 + 127.5 * Math.cos(0 + 0.15 * sl + 3)),
+      Math.floor(127.5 + 127.5 * Math.cos(0.6 + 0.15 * sl + 3)),
+      Math.floor(127.5 + 127.5 * Math.cos(1 + 0.15 * sl + 3))
+    ];
   }
 
   // Copied from https://giansass.com/blog/mandelbrot-set-part-2-opengl-program/
