@@ -12,7 +12,7 @@ class Shader {
     const linear = (min: number, max: number, x: number) => min * (1 - x) + max * x;
 
     let l = n;
-    const sl = l -  5 * n / maxIteration + 4;
+    const sl = l - n / maxIteration + 4;
     const al = hermite(-0.1, 0, Math.sin(0.5 * 6.2831 * 1));
     l = linear(l, sl, al);
     return [0, 0.6, 1]
