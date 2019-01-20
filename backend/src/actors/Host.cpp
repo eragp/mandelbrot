@@ -11,8 +11,6 @@
 #include "MandelbrotSIMD64.h"
 
 #include "Region.h"
-#include "Tile.h"
-#include "TileData.h"
 #include "WorkerInfo.h"
 
 // MPI Libraries
