@@ -5,8 +5,8 @@
 
 // Probably more open to compiler optimization
 // vectorlength >= 1 !!
-void MandelbrotVect::calculateFractal(precision_t* cReal, precision_t* cImaginary, unsigned short int maxIteration, int vectorLength, unsigned short int* dest) {
-    if(vectorLength <= 0){
+void MandelbrotVect::calculateFractal(precision_t* cReal, precision_t* cImaginary, unsigned short int maxIteration, unsigned int vectorLength, unsigned short int* dest) {
+    if(vectorLength == 0){
         throw std::invalid_argument("vectorLength may not be less than 1.");
     }
     std::fill_n(dest, vectorLength, 0);
@@ -24,7 +24,7 @@ void MandelbrotVect::calculateFractal(precision_t* cReal, precision_t* cImaginar
     int i = 0;
     while (i < maxIteration && lessThanTwo > 0){
         lessThanTwo = 0;
-        for(int k = 0; k < vectorLength; k++){
+        for(unsigned int k = 0; k < vectorLength; k++){
             // Compute next step in iteration
             nextZReal[k] = (zReal[k] * zReal[k] - zImaginary[k] * zImaginary[k]) + cReal[k];
             nextZImaginary[k] = 2 * (zReal[k] * zImaginary[k]) + cImaginary[k];

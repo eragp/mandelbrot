@@ -18,48 +18,8 @@ arguments = [{
     'type': int,
     'default': 9,
 }]
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        'start_himmuc',
-        description='Connect to himmuc and run eragp-mandelbrot on nodes')
-    for arg in arguments:
-        parser.add_argument(**arg)
-    parser.add_argument(
-        '-b',
-        '--build',
-        action='store_const',
-        const=True,
-        dest='build',
-        help=
-        'issue a build process on the backend (i.e. if you changed the src)',
-        default=False)
-    parser.add_argument(
-        '-P',
-        '--port',
-        dest='port',
-        type=int,
-        help=
-        'set the port on the himmuc to be opened. May need to be configured if more than one user is running this on the himmuc. Default: 9002',
-        default=9002)
-    parser.add_argument(
-        '-p',
-        '--partition',
-        dest='partition',
-        type=str,
-        help=
-        'set the partition on which to run the executables. Options are: odr, rpi. Default: odr',
-        default='odr')
-    parser.add_argument(
-        '-r',
-        '--no-rsync',
-        action='store_const',
-        const=True,
-        dest='no_rsync',
-        help=
-        'sell the script not to use rsync. Note that for this, you need to copy the eragp-mandelbrot project folder into the vmschulz home directory manually BEFORE running this script!',
-        default=False)
-    args = parser.parse_args()
-    sshserver = "{}@himmuc.caps.in.tum.de".format(args.username)
+
+def main(args):
     backend_path = "eragp-mandelbrot/backend"
     # -> run python script on vmschulz
     if not args.no_rsync:
@@ -113,3 +73,52 @@ if __name__ == '__main__':
     ]
     with subprocess.Popen(argsssh) as schulz_ssh:
         schulz_ssh.wait()
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        'start_himmuc',
+        description='Connect to himmuc and run eragp-mandelbrot on nodes')
+    for arg in arguments:
+        parser.add_argument(**arg)
+    parser.add_argument(
+        '-b',
+        '--build',
+        action='store_const',
+        const=True,
+        dest='build',
+        help=
+        'issue a build process on the backend (i.e. if you changed the src)',
+        default=False)
+    parser.add_argument(
+        '-P',
+        '--port',
+        dest='port',
+        type=int,
+        help=
+        'set the port on the himmuc to be opened. May need to be configured if more than one user is running this on the himmuc. Default: 9002',
+        default=9002)
+    parser.add_argument(
+        '-p',
+        '--partition',
+        dest='partition',
+        type=str,
+        help=
+        'set the partition on which to run the executables. Options are: odr, rpi. Default: odr',
+        default='odr')
+    parser.add_argument(
+        '-r',
+        '--no-rsync',
+        action='store_const',
+        const=True,
+        dest='no_rsync',
+        help=
+        'sell the script not to use rsync. Note that for this, you need to copy the eragp-mandelbrot project folder into the vmschulz home directory manually BEFORE running this script!',
+        default=False)
+    args = parser.parse_args()
+    sshserver = "{}@himmuc.caps.in.tum.de".format(args.username)
+    try:
+        main(args)
+    except KeyboardInterrupt:
+        print("Interrupted, stopping srun manually... ", end=" ", flush=True)
+        subprocess.run(["ssh", sshserver, "scancel -u {}".format(args.username)],check=False, timeout=5)
+        print("done")
