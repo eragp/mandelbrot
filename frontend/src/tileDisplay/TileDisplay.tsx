@@ -10,7 +10,7 @@ import Shader from "./Shader";
 import { project, unproject, complexToLeaflet, leafletToComplex } from "./Project";
 import { request as requestRegion } from "../connection/RegionRequest";
 
-import { TileSize, LeafletBound } from "../Constants";
+import { TileSize, LeafletBound, MaxIteration } from "../Constants";
 import { Point3D } from "../misc/Point";
 import MatrixView from "./MatrixView";
 import WebSocketClient from "../connection/WSClient";
@@ -117,7 +117,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
       moveend: () => this.updateAllViews()
     });
 
-    function drawPixel(
+    const drawPixel = (
       imgData: ImageData,
       x: number,
       y: number,
@@ -125,14 +125,14 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
       g: number,
       b: number,
       alpha: number
-    ) {
+    ) => {
       const d = imgData.data;
       const i = (x << 2) + ((y * imgData.width) << 2);
       d[i] = r; // red
       d[i + 1] = g; // green
       d[i + 2] = b; // blue
       d[i + 3] = alpha || 255; // alpha
-    }
+    };
 
     L.GridLayer.MandelbrotLayer = L.GridLayer.extend({
       createTile(coords: Point3D, done: (e: Error | null, t: HTMLCanvasElement) => any) {
@@ -163,7 +163,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
           for (let y = 0; y < size.y; y++) {
             for (let x = 0; x < size.x; x++) {
               const n = tileData.get(x, y);
-              const [r, g, b] = Shader.default(n, 200);
+              const [r, g, b] = Shader.logSmooth(n, MaxIteration);
               drawPixel(imgData, x, y, r, g, b, 255);
             }
           }
