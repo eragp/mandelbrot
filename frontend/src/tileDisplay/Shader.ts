@@ -2,6 +2,24 @@ class Shader {
   public static simple(n: number, maxIteration: number): number[] {
     return [10, 20, 40].map(m => (n * m) % 256);
   }
+  // Copied from https://giansass.com/blog/mandelbrot-set-part-2-opengl-program/
+  public static logSmooth(n: number, maxIteration: number): number[] {
+    const clamp = (x: number, min: number, max: number) => Math.min(Math.max(x, min), max);
+    const hermite = (edge0: number, edge1: number, x: number) => {
+      const t = clamp((x - edge0) / (edge1 - edge0), 0, 1);
+      return t * t * (3 - 2 * t);
+    };
+    const linear = (min: number, max: number, x: number) => min * (1 - x) + max * x;
+
+    let l = n;
+    const sl = l -  5 * n / maxIteration + 4;
+    const al = hermite(-0.1, 0, Math.sin(0.5 * 6.2831 * 1));
+    l = linear(l, sl, al);
+    return [0, 0.6, 1]
+      .map(v => v + 0.15 * l + 3)
+      .map(v => 0.5 + 0.5 * Math.cos(v))
+      .map(v => Math.floor(v * 255));
+  }
 
   // Copied from https://giansass.com/blog/mandelbrot-set-part-2-opengl-program/
   public static exponentialSmooth(n: number, maxIteration: number): number[] {
