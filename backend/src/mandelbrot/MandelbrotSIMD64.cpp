@@ -41,11 +41,15 @@ void MandelbrotSIMD64::calculateFractal(precision_t* cRealArray, precision_t* cI
     float64x2_t four = vdupq_n_f64(4);
     // result iterations
     int64x2_t n = vdupq_n_s64(0);
-    int64x2_t absLesserThanTwo = vdupq_n_s64(1);
     int i = 0;
+    // Square of the absolute value -> determine when to stop
+    float64x2_t absSquare = vmlaq_f64(vmulq_f64(zReal, zReal), zImaginary, zImaginary);
+    // If square of the absolute is less than 4, abs<2 holds -> -1 else 0
+    int64x2_t absLesserThanTwo = vreinterpretq_s64_u64(vcltq_f64(absSquare, four));
     // if any value is 1 in the vector (abs<2) then dont break
     // addv => sum all elements of the vector
-    while(i < maxIteration && vaddvq_s64(absLesserThanTwo) != 0){
+    // if any worker is still working (his component is -1) in the vector (abs<2) then dont break
+    while(i < maxIteration && vaddvq_s64(absLesserThanTwo) < 0){
         // add a b -> a+b
         // mls a b c -> a - b*c
         // mul a b -> a*b
@@ -54,12 +58,12 @@ void MandelbrotSIMD64::calculateFractal(precision_t* cRealArray, precision_t* cI
         float64x2_t nextZImaginary = vmlaq_f64(cImaginary, two, vmulq_f64(zReal, zImaginary));
         zReal = nextZReal;
         zImaginary = nextZImaginary;
-        // Square of the absolute value -> determine when to stop
-        float64x2_t absSquare = vmlaq_f64(vmulq_f64(zReal, zReal), zImaginary, zImaginary);
-        // If square of the absolute is less than 4, abs<2 holds -> -1 else 0
-        absLesserThanTwo = vreinterpretq_s64_u64(vcltq_f64(absSquare, four));
+
         n = vsubq_s64(n, absLesserThanTwo);
         i++;
+        // To make this procedure equivalent, increase i first, then evaluate new abssquare
+        absSquare = vmlaq_f64(vmulq_f64(zReal, zReal), zImaginary, zImaginary);
+        absLesserThanTwo = vreinterpretq_s64_u64(vcltq_f64(absSquare, four));
     }
     // write n to dest
     dest[0] = (unsigned short int) vgetq_lane_s64(n, 0);
