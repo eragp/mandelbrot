@@ -12,7 +12,6 @@
 #include "MandelbrotOpenMPSIMD32.h"
 #include "MandelbrotOpenMPSIMD64.h"
 #include "Region.h"
-#include "Tile.h"
 #include "WorkerInfo.h"
 
 #include <mpi.h>
