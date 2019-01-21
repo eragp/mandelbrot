@@ -1,6 +1,6 @@
 # Mandelbrot
 
-![Screenshot of working interface](images/UI_Design.jpg)
+![Screenshot of working interface](images/ui.jpg)
 
 ## Overview
 
