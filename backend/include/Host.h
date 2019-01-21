@@ -63,6 +63,8 @@ private:
     static void deregister_client(websocketpp::connection_hdl conn);
     static void send();
     static void handle_region_request(websocketpp::connection_hdl hdl, server_endpoint_type::message_ptr msg);
+    // lock websocketpp send function
+    static std::mutex Host::websocket_send_lock;
 };
 #endif
 

@@ -68,6 +68,7 @@ std::condition_variable Host::mpi_to_websocket_result_available;
 // Websocket server
 server_endpoint_type Host::websocket_server;
 websocketpp::connection_hdl Host::client;
+std::mutex Host::websocket_send_lock;
 
 void Host::start_server() {
 
@@ -101,12 +102,11 @@ void Host::start_server() {
 void Host::handle_region_request(const websocketpp::connection_hdl hdl,
                                  websocketpp::server<websocketpp::config::asio>::message_ptr msg) {
     std::cout << "Handle Region Request" << std::endl;
+    register_client(hdl); // necessary?
     
-    client = hdl;
-
+    Document request;
     std::string request_string = msg->get_payload();
 
-    Document request;
     request.Parse(request_string.c_str());
     if(request.HasParseError()){
         auto error = request.GetParseError();
@@ -304,7 +304,10 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
     Writer<StringBuffer> writer(buffer);
     reply.Accept(writer);
     try {
-        websocket_server.send(hdl, buffer.GetString(), websocketpp::frame::opcode::text);
+        {
+            std::lock_guard<std::mutex> lock(websocket_send_lock);
+            websocket_server.send(hdl, buffer.GetString(), websocketpp::frame::opcode::text);
+        }
     } catch (websocketpp::exception &e) {
         std::cerr << "Bad connection to client, Refresh connection" << std::endl;
     }
@@ -327,7 +330,10 @@ void Host::register_client(const websocketpp::connection_hdl hdl) {
     // TODO frontend has to connect a second time during server
     // runtime for hdl not to be a BAD CONN
     // (this means to try the code one has to refresh fast or to set region fetching to manual)
-    client = hdl;
+    {
+        std::lock_guard<std::mutex> lock(websocket_send_lock);
+        client = hdl;
+    }
 }
 
 void Host::deregister_client(websocketpp::connection_hdl hdl) {
@@ -425,7 +431,10 @@ void Host::send() {
         answer.Accept(writer);
 
         try {
-            websocket_server.send(client, buffer.GetString(), websocketpp::frame::opcode::text);
+            {
+                std::lock_guard<std::mutex> lock(websocket_send_lock);
+                websocket_server.send(client, buffer.GetString(), websocketpp::frame::opcode::text);
+            }
         } catch (websocketpp::exception &e) {
             std::cerr << e.what() << "\n" << "Refresh websocket connection.\n";
         }
