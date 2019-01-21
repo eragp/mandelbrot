@@ -1,41 +1,38 @@
 import { getBottomRightPoint, getTopLeftPoint, project } from "../tileDisplay/Project";
 import { Request } from "../connection/ExchangeTypes";
-import { TileSize, MaxIteration } from "../Constants";
-import { Point3D } from "../misc/Point";
+import { TileSize } from "../Constants";
+// import { Point3D } from "../misc/Point";
 import { Map } from "leaflet";
+import { Point3D } from "../misc/Point";
 
-// making sure only new requests actually get sent
-let currentTopLeft: Point3D;
-let currentBottomRight: Point3D;
-let currentBalancer: string;
-let currentImplementation: string;
+let oldTopLeft: Point3D;
+let oldBottomRight: Point3D;
+let oldBalancer: string;
+let oldFractal: string;
+let oldNodes: number;
+let oldMaxIteration: number;
+let oldPredictionAccuracy: number;
+let oldRun: number;
+
 /**
  *  Sends a region request for the currently visible region
  *
- * If the region has not changed from the last request, null is returned.
- * Otherwise the corresponding request for the backend is returned.
  * @param {*} map current Leaflet map
  */
-export const request = (map: Map, balancer: string, implementation: string): Request | null => {
+export const request = (
+  map: Map,
+  balancer: string,
+  fractal: string,
+  nodes: number,
+  maxIteration: number,
+  predictionAccuracy: number,
+  run: number
+): Request | null => {
   const bounds = map.getPixelBounds();
   const zoom = map.getZoom();
 
   const topLeft = getTopLeftPoint(bounds, TileSize, zoom);
   const botRight = getBottomRightPoint(bounds, TileSize, zoom);
-
-  // has the visible region changed?
-  if (
-    topLeft.equals(currentTopLeft) &&
-    botRight.equals(currentBottomRight) &&
-    currentBalancer === balancer &&
-    currentImplementation === implementation
-  ) {
-    return null;
-  }
-  currentTopLeft = topLeft;
-  currentBottomRight = botRight;
-  currentBalancer = balancer;
-  currentImplementation = implementation;
 
   const tlComplex = project(topLeft.x, topLeft.y, topLeft.z, 0, 0, TileSize);
   const brComplex = project(botRight.x, botRight.y, botRight.z, 0, 0, TileSize);
@@ -43,6 +40,27 @@ export const request = (map: Map, balancer: string, implementation: string): Req
     Math.abs(botRight.x - topLeft.x) * TileSize,
     Math.abs(topLeft.y - botRight.y) * TileSize
   ];
+  if (
+    topLeft.equals(oldTopLeft) &&
+    botRight.equals(oldBottomRight) &&
+    balancer === oldBalancer &&
+    fractal === oldFractal &&
+    nodes === oldNodes &&
+    maxIteration === oldMaxIteration &&
+    predictionAccuracy === oldPredictionAccuracy &&
+    run === oldRun
+  ) {
+    return null;
+  }
+  oldTopLeft = topLeft;
+  oldBottomRight = botRight;
+  oldBalancer = balancer;
+  oldFractal = fractal;
+  oldNodes = nodes;
+  oldMaxIteration = maxIteration;
+  oldPredictionAccuracy = predictionAccuracy;
+  oldRun = run;
+
   const region = {
     type: "regionRequest",
     region: {
@@ -62,14 +80,14 @@ export const request = (map: Map, balancer: string, implementation: string): Req
       validation: zoom,
       // Divisor for width and height. Will be used to perform load balancing
       guaranteedDivisor: TileSize,
-      maxIteration: MaxIteration,
-      fractal: implementation,
+      maxIteration,
+      fractal,
       regionCount: 0
     },
+    predictionAccuracy,
     balancer,
-    fractal: implementation,
-    // TODO: exchange this for a real value
-    nodes: 0
+    fractal,
+    nodes
   };
   return region;
 };

@@ -123,12 +123,18 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
 
     int regionCount = 0;
     Region region{};
+
     const char* balancer;
+    int predictionAccuracy = 4; // Remove standard value, when implemented in frontend
+
     const char* fractal_str;
     Fractal* fractal_bal = nullptr;
     try {
-        enum fractal_type fractal_type;
         balancer = request["balancer"].GetString();
+        predictionAccuracy = request["predictionAccuracy"].GetInt();
+        std::cout << "Chose prediction Accuracy: " << predictionAccuracy << std::endl;
+
+        enum fractal_type fractal_type;
         fractal_str = request["fractal"].GetString();
         // Case insensitive compares (just convenience for frontend devs)
         if(boost::iequals(fractal_str, "mandelbrot32")){
@@ -174,6 +180,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
             std::cerr << "Inclompletely specified region requested: " << request_string;
             return;
         }
+        // Reproducible and equivalent balancing for all implementation choices
         std::cout << "Host: chose fractal " << fractal_str << std::endl;
 
         region.minReal = request["region"]["minReal"].GetDouble();
@@ -219,7 +226,7 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
         std::cout << "RegionCount is " << regionCount << std::endl;
     }
 
-    Balancer *b = BalancerPolicy::chooseBalancer(balancer, fractal_bal);
+    Balancer *b = BalancerPolicy::chooseBalancer(balancer, predictionAccuracy, fractal_bal);
     // Measure time needed for balancing - Start
     std::chrono::high_resolution_clock::time_point balancerTimeStart = std::chrono::high_resolution_clock::now();
     // Call balanceLoad
@@ -437,13 +444,6 @@ void Host::init(int world_rank, int world_size) {
     Host::world_size = world_size;
     std::cout << "Host init " << world_size << std::endl;
 
-    // Websockets
-    // Start a thread that hosts the server
-    std::thread websocket_server(start_server);
-
-    // Start Websocket-Result-Thread (sends RegionData filled with computed mandelbrot data to frontend)
-    std::thread websocket_result(send);
-
     // Init usable_nodes and set Host as not usable
     usable_nodes = new bool[world_size];
     usable_nodes[world_rank] = false;
@@ -542,6 +542,12 @@ void Host::init(int world_rank, int world_size) {
     }
     std::cout << "Host: There are " << usable_nodes_count << " usable Worker." << std::endl;
     // Test if all cores are available - end
+
+    // Start Websocket-Recv-Thread that hosts the server
+    std::thread websocket_server(start_server);
+
+    // Start Websocket-Result-Thread (sends RegionData filled with computed mandelbrot data to frontend)
+    std::thread websocket_result(send);
 
     // Approximately the time that MPI communication with one Worker has taken in microseconds
     std::chrono::high_resolution_clock::time_point *mpiCommunicationStart = new std::chrono::high_resolution_clock::time_point[world_size];

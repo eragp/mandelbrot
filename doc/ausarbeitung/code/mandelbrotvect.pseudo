@@ -1,0 +1,13 @@
+z := array(length){0}
+n := array(length){0}
+i := 0
+
+lessThanTwo := array(length)
+for k in [0, length]
+    lessThanTwo[k] = 1 if |z[k]| > 2 else 0
+    
+while(i < maxIteration && |lessThanTwo| > 0)
+    for k in [0, length]
+        n[k] += lessThanTwo[k]
+        z[k] = z[k]^2 + c
+        lessThanTwo[k] = 1 if |z[k]| > 2 else 0

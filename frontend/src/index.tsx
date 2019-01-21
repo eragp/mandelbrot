@@ -9,9 +9,14 @@ import {
   BalancerObservable,
   ImplementationObservable,
   GroupObservable,
-  ViewCenterObservable
+  ViewCenterObservable,
+  WorkerObservable,
+  IterationObservable,
+  PredAccObservable,
+  RunObservable
 } from "./misc/Observable";
 import { readViewCenterParams, readWSUrl } from "./misc/URLParams";
+import TourMonitor from "./eval/TourMonitor";
 
 // Custom Components
 import ComputationTime from "./components/ComputationTime";
@@ -19,19 +24,27 @@ import NetworkView from "./components/NetworkView";
 import IdleTime from "./components/IdleTime";
 import SelectBox from "./components/SelectBox";
 
+import ModalWrapper from "./eval/ModalWrapper";
+
 // CSS
 import "./index.css";
 // Bootstrap
 import registerServiceWorker from "./registerServiceWorker";
+import { StatsCollector } from "./eval/StatsCollector";
 
 class App extends React.Component<{}, {}> {
-  public render() {
+  render() {
     const ws = new WebSocketClient(readWSUrl());
+    const stats = new StatsCollector(ws);
 
     const balancer = new BalancerObservable();
     const group = new GroupObservable();
     const impl = new ImplementationObservable();
+    const iter = new IterationObservable();
     const viewCenter = new ViewCenterObservable();
+    const workerCount = new WorkerObservable();
+    const predAcc = new PredAccObservable();
+    const run = new RunObservable();
 
     viewCenter.set(readViewCenterParams());
 
@@ -43,8 +56,27 @@ class App extends React.Component<{}, {}> {
             wsclient={ws}
             balancer={balancer}
             implementation={impl}
+            iterationCount={iter}
             viewCenter={viewCenter}
+            workerCount={workerCount}
+            stats={stats}
+            predAcc={predAcc}
+            run={run}
           />
+        </div>
+        <div className="row">
+          <ModalWrapper buttonLabel="start Evaluation">
+            <TourMonitor
+              stats={stats}
+              viewCenter={viewCenter}
+              balancer={balancer}
+              impl={impl}
+              iter={iter}
+              workerCount={workerCount}
+              predAcc={predAcc}
+              run={run}
+            />
+          </ModalWrapper>
         </div>
         <div className="mainBottom row">
           <div className="col-3">

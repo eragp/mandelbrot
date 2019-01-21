@@ -1,0 +1,133 @@
+%%%%%%%%
+% Middle level
+% ca 2-3 Seiten
+% Skripte, libraries/packages, Setup
+% beispielbilder /output
+% getestete Systeme (ARM/Raspi, Debian stretch, x86)
+% mindeste was in README.md im master liegen sollte
+% viel bereits in READMEs der zugehörigen Ordner zusammengefasst
+% backend-deployment -> Niels
+% frontend-deployment -> Max
+\section{Installation der Anwendung}
+
+Um das System zu installieren, muss das Repository mit \verb|git|\footnote{\url{https://git-scm.com/}} lokal geklont werden. Dabei werden die Quelldateien für
+das Front- sowie Backend heruntergeladen.
+
+\begin{figure}[h!]
+	\begin{lstlisting}[language=bash, caption={Klonen des Repositorys}]
+git clone https://gitlab.lrz.de/lrr-tum/students/eragp-mandelbrot.git
+        \end{lstlisting}
+\end{figure}
+
+\subsection{Lokales Backend}
+Eine lokale Installation des Backends zu Entwicklungszwecken ist durch einen Docker\footnote{\url{https://www.docker.com/}} Container möglich.
+Dieser bietet eine ähnliche Umgebung zu der des Clusters und ermöglicht schnellere Feedbackzyklen.
+
+\begin{figure}[h!]
+	\begin{lstlisting}[language=bash, caption={Starten der Entwicklungsumbegung des Backends}]
+# Systemabhängige Installation der Docker Anwendung
+$ sudo apt install docker
+cd backend/ && ./run_docker.sh
+Starting the Build Process
+...
+Host: Core 37 ready!
+# ^C beendet das Backend und verbindet sich mit der shell des Containers
+^C[mpiexec@9cc2d5ac2cd1] Sending Ctrl-C to processes as requested
+[mpiexec@9cc2d5ac2cd1] Press Ctrl-C again to force abort
+# exit schliesst die shell des Containers
+root@9cc2d5ac2cd1:~/eragp-mandelbrot/backend# exit
+        \end{lstlisting}
+\end{figure}
+
+Das \verb|run_docker.sh| Skript lädt das benötigte Basis Image, welches alle benötigen Bibliotheken bereits enthält, herunter und erstellt basierend darauf
+den Entwicklungscontainer. In diesen werden dann die Aktuellen Quelldateien hinein kopiert und kompiliert, wonach das Backend mit Adresse
+\verb|ws://localhost:9002| gestartet wird.
+
+\subsection{Backend auf HimMUC Cluster}
+
+\begin{quotation}
+	[Der] HimMUC ist ein flexibler Cluster von ARM-Geräten, bestehend aus 40 Raspberry Pi 3 sowie 40 ODroid C2 Single-Board-Computers (SBC).\footnote{\url{http://www.caps.in.tum.de/himmuc/}}
+\end{quotation}
+
+\paragraph{Schnellstart}
+
+Um das Programm auf dem HimMUC Cluster zu starten, wurde ein
+Python Skript erstellt, das alle notwendigen Schritte übernimmt.
+Es führt die Befehle aus \autoref{par:detailed_himmuc} aus, es kann daher bei Problemen zur Fehlerbehebung herangezogen werden.
+
+Stellen sie zunächst sicher, dass sie ein Konto mit Zugangsberechtigungen auf dem HimMUC Cluster besitzen.
+Um den eigenen Quellcode auf dem Cluster zu kompilieren muss für die korrekte Funktionsweise des Skriptes zudem
+ihr SSH-Key auf dem Cluster abgelegt sein\footnote{siehe \href{https://www.ssh.com/ssh/copy-id}{\texttt{ssh-copy-id}}}.
+
+Außerdem sollten folgende Programme lokal installiert sein:
+\begin{itemize}
+	\item \verb|rsync|
+	\item \verb|ssh|
+	\item \verb|python3| (3.5 oder neuer)
+\end{itemize}
+
+Starten sie anschließend aus dem Ordner \verb|backend/| den Befehl aus \autoref{shell:start_himmuc}
+
+\begin{figure}[h!]
+	\begin{lstlisting}[language=bash, caption={Start der Entwicklungsumbegung auf dem HimMUC}, label={shell:start_himmuc}]
+python3 himmuc/start_himmuc.py <Rechnerkennung> <Anzahl Prozesse> <Anzahl Rechenknoten> 
+    \end{lstlisting}
+\end{figure}
+
+Das Ergebnis wird ähnlich zu \autoref{shell:start_himmuc_example} aussehen.
+Details zu weiteren Optionen des Skripts sind via \verb|--help| verfügbar.
+Für eine detailliertere Beschreibung der Installation auf dem \enquote{HimMUC} Cluster,
+siehe \autoref{par:detailed_himmuc}
+
+\begin{figure}
+	\begin{lstlisting}[language=bash, caption={Beispielausgabe bei Start der Entwicklungsumbegung auf dem HimMUC}, label={shell:start_himmuc_example}]
+$ eragp-mandelbrot/backend$ python3 himmuc/start_himmuc.py muendler 10 9
+Uploading backend...  sending incremental file list
+backend/himmuc/start_backend.py
+          3,897 100%    3.05MB/s    0:00:00 (xfr#1, to-chk=35/62)
+done
+Start mandelbrot with 1 host and 9 workers on 9 nodes... started mandelbrot
+Search host node... srun: error: Could not find executable worker
+odr00 found
+Establish port 9002 forwarding to host node odr00:9002 ... established
+System running. Websocket connection to backend is now available at
+        ws://himmuc.caps.in.tum.de:9002
+Press enter (in doubt, twice) to stop Warning: Permanently added the ED25519 host key for IP address '10.42.0.54' to the list of known hosts.
+# Enter
+
+Stopping port forwarding... stopped (-9)
+Stopping mandelbrot host and workers... stopped (-9)
+    \end{lstlisting}
+\end{figure}
+
+\subsection{Installation des Frontends}
+Das Frontend ist in TypeScript\footnote{\url{https://www.typescriptlang.org/}} (Erweiterung von JavaScript\footnote{\url{https://en.wikipedia.org/wiki/JavaScript}})
+geschrieben und kann somit auf einem beliebigen Endgerät mit einem modernen Webbrowser ausgeführt werden.
+Um eine Version lokal zu starten, muss die Paketverwaltung npm\footnote{\url{https://www.npmjs.com/}} installiert werden. Diese verwaltet alle
+für das Frontend benötigten Bibliotheken und installiert diese lokal.
+
+\begin{figure}[h!]
+	\begin{lstlisting}[language=bash, caption={Starten des Frontends mit beispielhafter Ausgabe}]
+# Systemabhängige Installation der npm Paketverwaltung
+sudo apt install npm
+# Installiert benötigte Bibliotheken und startet WebServer
+cd frontend/ && npm install ; npm start
+...
+Version: webpack 4.25.1
+Time: 7230ms
+Built at: 12/28/2018 10:48:32 PM
+        Asset      Size  Chunks             Chunk Names
+   index.html  1.65 KiB          [emitted]
+mandelbrot.js  11.7 MiB    main  [emitted]  main
+    style.css   519 KiB    main  [emitted]  main
+Entrypoint main = style.css mandelbrot.js
+...
+        \end{lstlisting}
+\end{figure}
+
+Das Kommando \verb|npm start| startet dabei einen lokalen WebServer, welcher eine kompilierte Version des Frontends
+unter der Adresse \verb|http://localhost:3000| anbietet. Danach wird der Standardwebbrowser des Systems verwendet, um diese
+URL zu öffnen.
+
+Das Frontend verbindet sich automatisch mit der lokalen Adresse \url{ws://localhost:9002}.
+Dies kann über den Get-Parameter \verb|ws| in der URL auf die Adresse des eigenen Backends gesetzt werden.

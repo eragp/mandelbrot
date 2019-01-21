@@ -10,7 +10,7 @@ import Shader from "./Shader";
 import { project, unproject, complexToLeaflet, leafletToComplex } from "./Project";
 import { request as requestRegion } from "../connection/RegionRequest";
 
-import { TileSize, LeafletBound } from "../Constants";
+import { TileSize, LeafletBound, MaxIteration } from "../Constants";
 import { Point3D } from "../misc/Point";
 import MatrixView from "./MatrixView";
 import WebSocketClient from "../connection/WSClient";
@@ -21,7 +21,11 @@ import {
   BalancerObservable,
   GroupObservable,
   ImplementationObservable,
-  ViewCenterObservable
+  ViewCenterObservable,
+  WorkerObservable,
+  IterationObservable,
+  PredAccObservable,
+  RunObservable
 } from "../misc/Observable";
 import { registerCallback } from "../misc/registerCallback";
 import { StatsCollector } from "../eval/StatsCollector";
@@ -34,7 +38,11 @@ interface TileDisplayProps {
   balancer: BalancerObservable;
   group: GroupObservable;
   implementation: ImplementationObservable;
+  iterationCount: IterationObservable;
   viewCenter: ViewCenterObservable;
+  workerCount: WorkerObservable;
+  predAcc: PredAccObservable;
+  run: RunObservable;
   stats?: StatsCollector;
 }
 export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
@@ -82,7 +90,15 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
 
     // Request a new region subdivision via websocket on view change
     this.registerNewView((curMap: Map) => {
-      const r = requestRegion(curMap, this.props.balancer.get(), this.props.implementation.get());
+      const r = requestRegion(
+        curMap,
+        this.props.balancer.get(),
+        this.props.implementation.get(),
+        this.props.workerCount.get(),
+        this.props.iterationCount.get(),
+        this.props.predAcc.get(),
+        this.props.run.get()
+      );
       if (r) {
         websocketClient.sendRequest(r);
       }
@@ -92,13 +108,16 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
     //  => update all view subscribers about a policy change as if the view had changed
     this.props.balancer.subscribe(() => this.updateAllViews());
     this.props.implementation.subscribe(() => this.updateAllViews());
+    this.props.workerCount.subscribe(() => this.updateAllViews());
+    this.props.iterationCount.subscribe(() => this.updateAllViews());
+    this.props.predAcc.subscribe(() => this.updateAllViews());
 
     // add event listeners to the map for region requests
     map.on({
       moveend: () => this.updateAllViews()
     });
 
-    function drawPixel(
+    const drawPixel = (
       imgData: ImageData,
       x: number,
       y: number,
@@ -106,14 +125,14 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
       g: number,
       b: number,
       alpha: number
-    ) {
+    ) => {
       const d = imgData.data;
       const i = (x << 2) + ((y * imgData.width) << 2);
       d[i] = r; // red
       d[i + 1] = g; // green
       d[i + 2] = b; // blue
       d[i + 3] = alpha || 255; // alpha
-    }
+    };
 
     L.GridLayer.MandelbrotLayer = L.GridLayer.extend({
       createTile(coords: Point3D, done: (e: Error | null, t: HTMLCanvasElement) => any) {
@@ -144,7 +163,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
           for (let y = 0; y < size.y; y++) {
             for (let x = 0; x < size.x; x++) {
               const n = tileData.get(x, y);
-              const [r, g, b] = Shader.default(n, 200);
+              const [r, g, b] = Shader.logSmooth(n, MaxIteration);
               drawPixel(imgData, x, y, r, g, b, 255);
             }
           }
@@ -153,7 +172,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
           // end timer
           const t1 = performance.now();
           if (stats) {
-            stats.setDrawTime(tileData.rank , (t1 - t0) * 1000);
+            stats.setDrawTime(tileData.rank, (t1 - t0) * 1000);
           }
 
           done(null, tile);
@@ -212,6 +231,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
 
     this.props.viewCenter.subscribe(pt => {
       if (!pt.equals(this.center)) {
+        console.log("updating view Center", pt);
         const p = complexToLeaflet(pt.x, pt.y, pt.z);
         map.setView([p.x, p.y], p.z);
         this.updateAllViews();
