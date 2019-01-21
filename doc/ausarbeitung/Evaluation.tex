@@ -1,11 +1,4 @@
 \section{Ergebnisse / Evaluation}
-\begin{itemize}
-	\item Skalierbarkeitsgraph
-	\item Wie gut ist SIMD / OpenMP / MPI / Mischformen?
-	\item Frontend Overhead messen
-\end{itemize}
-
-
 %%%%%%%
 % http://www.caps.in.tum.de/himmuc/
 % Datenerhebenung (+ auf himmuc!) -> Max
@@ -17,16 +10,47 @@
 
 % Nutzbarkeit/ HCI -> Max
 % vergleich x86 -> Max
-\subsection{Performanzerhöhung alternative Parallelisierungsmechanismen}
+% \subsection{Performanzerhöhung alternative Parallelisierungsmechanismen}
 
-\subsubsection{Datenerhebung}
+\subsection{Datenerhebung}
 % Max
 % Datenerhebung auf himmuc cluster
 % Messen der Timings im backend (Wie kommen die Daten im frontend zu stande?)
 % Auswahl der repräsentativen Punkte
 % Grobes Intro zu der folgenden Evaluation
+Die in den folgenden Abschnitten ausgewerteten Rechenzeiten für die Komponenten des Back- und
+Frontends wurden in den entsprechenden Teilanwendungen in \( \mu s \) unter Verwendung der jeweiligen
+Systembibliotheken (\verb|std::chrono|\footnote{\url{https://en.cppreference.com/w/cpp/chrono}} in \verb|C++| und \verb|Performance API|\footnote{\url{https://developer.mozilla.org/en-US/docs/Web/API/Performance}} in \verb|node.js|) gemessen.
+Dabei stellt das so modifizierte Backend eine Erweiterung dar,
+welche die gemessenen Zeiten zusätzlich in der Antwort der Regionsdaten an das Frontend
+versendet. Dort werden diese aggregiert, mit den Zeiten des Frontend verknüpft und ausgegeben.
 
-\subsubsection{Skalierung}
+Um die Performance der folgenden Algorithmen auf der Mandelbrotmenge zu evaluieren,
+müssen Regionen einzelne ausgewählt und die Performance auf diesen verglichen werden.
+Dafür haben wir die Mandelbrotmenge in drei Klassen unterteilt: Regionen in, am Rand und außerhalb
+der Menge. Diese Aufteilung ist dabei entsprechen gewählt, da sie der Anzahl an Iterationen entspricht, welche
+benötigt wird, um einen gegebenen Punkt zu berechnen.
+Dazu haben wir ebenfalls für jede der Klassen eine niedrige, mittlere und hohe Zoomstufe gewählt (siehe \autoref{fig:testRegions}).
+
+\begin{figure}
+	\centering
+	\begin{tabular}{c|ccc}
+		Zoom     & Außerhalb                                                           & Randregion                                                          & Innerhalb                                                           \\
+		\hline
+		\( 0 \)  & \includegraphics[width=0.2\textwidth]{img/Evaluation/impl_test.png} & \includegraphics[width=0.2\textwidth]{img/Evaluation/impl_test.png} & \includegraphics[width=0.2\textwidth]{img/Evaluation/impl_test.png} \\
+		         & \( (0,0,0) \)                                                       & \( (0,0,0) \)                                                       & \( (0,0,0) \)                                                       \\
+		\( 11 \) & \includegraphics[width=0.2\textwidth]{img/Evaluation/impl_test.png} & \includegraphics[width=0.2\textwidth]{img/Evaluation/impl_test.png} & \includegraphics[width=0.2\textwidth]{img/Evaluation/impl_test.png} \\
+		         & \( (0,0,0) \)                                                       & \( (0,0,0) \)                                                       & \( (0,0,0) \)                                                       \\
+		\( 25 \) & \includegraphics[width=0.2\textwidth]{img/Evaluation/impl_test.png} & \includegraphics[width=0.2\textwidth]{img/Evaluation/impl_test.png} & \includegraphics[width=0.2\textwidth]{img/Evaluation/impl_test.png} \\
+		         & \( (0,0,0) \)                                                       & \( (0,0,0) \)                                                       & \( (0,0,0) \)                                                       \\
+	\end{tabular}
+	\caption{Testregionen der Evaluierung, gerendert mit \( 1280 \times 720 \) px}
+	\label{fig:testRegions}
+\end{figure}
+
+
+
+\subsection{Skalierung}
 
 % Tobi
 % MPI Skalierung
@@ -41,7 +65,7 @@
 % 	Worker & Iteration Anzahl fest, optimal wählen, Randregion
 
 
-\subsubsection{SIMD (Implementierungen)}
+\subsection{SIMD (Implementierungen)}
 
 % Niels:
 % PLOTS: (mandelbrot 32, 64, simd 32,  64, 80 bit default)
@@ -107,7 +131,7 @@ Dies kann abgeschwächt werden, indem eine Region stets nur soviel Workerressour
 wie sie maximal auslasten könnte (Fläche/Fläche minimaler Aufteilung)
 
 
-\subsubsection{Balancer}
+\subsection{Balancer}
 
 Zur Lastbalancierung gibt es zwei Strategien in jeweils zwei Varianten, zur Evaluierung wird allerdings nur die rekursive Variante der beiden Strategien betrachtet.
 Man stellt leicht fest, dass die nicht-rekursive Variante für Primzahlen als Worker-Anzahl schlecht ist, weil dabei nur eine Aufteilung in Zeilen oder Spalten möglich ist.
@@ -122,18 +146,18 @@ Da die Aufteilungsmöglichkeiten zusätzlich durch die Betrachtung von Tiles als
 % 	3 Plots mit Regionen außerhalb, im Rand und innerhalb der Mandelbrotmenge
 
 % Genauigkeit der Vorhersage vs maximale Rechenzeit für Randregionen 
-	% Plot: y: max comp time, balancer time  x: prediction Accuracy (Randregion)
+% Plot: y: max comp time, balancer time  x: prediction Accuracy (Randregion)
 % 	Diese "optimale" Genauigkeit wird aber bereits in allen vorherigen Evaluierungen des  prediction Balancers verwendet
 
 % Florian: Predictionaccuracy im Backend dynamisch auswählbar machen
 
-\subsubsection{Didaktik}
+\subsection{Didaktik}
 % Max
 % Konstanter Overhead wurde getestet,
 % auf himmuc leider nicht so gut erkennbar, da Netzwerk overhead zu groß ist.
 % Lokal nicht so ein Problem. Somit würde das Programm auf superMUC seinen Zweck erfüllen.
 
-\subsubsection{Zusammenfassung}
+\subsection{Zusammenfassung}
 % Speedup
 % Kombinationen von Unterschiedlichen Verbesserungen. als Plot.
 % (Eine Klasse von Regionen)
