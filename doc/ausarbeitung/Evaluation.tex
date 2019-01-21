@@ -34,17 +34,17 @@ Dazu haben wir ebenfalls für jede der Klassen eine niedrige, mittlere und hohe 
 
 \begin{figure}
 	\centering
-	\begin{tabular}{c|ccc}
-		Zoom     & Außerhalb                                                           & Randregion                                                          & Innerhalb                                                           \\
+	\begin{tabular}{ccc}
+		Außerhalb                                                  & Randregion                                                    & Innerhalb                                                 \\
 		\hline
-		\( 0 \)  & \includegraphics[width=0.2\textwidth]{img/Evaluation/impl_test.png} & \includegraphics[width=0.2\textwidth]{img/Evaluation/impl_test.png} & \includegraphics[width=0.2\textwidth]{img/Evaluation/impl_test.png} \\
-		         & \( (0,0,0) \)                                                       & \( (0,0,0) \)                                                       & \( (0,0,0) \)                                                       \\
-		\( 11 \) & \includegraphics[width=0.2\textwidth]{img/Evaluation/impl_test.png} & \includegraphics[width=0.2\textwidth]{img/Evaluation/impl_test.png} & \includegraphics[width=0.2\textwidth]{img/Evaluation/impl_test.png} \\
-		         & \( (0,0,0) \)                                                       & \( (0,0,0) \)                                                       & \( (0,0,0) \)                                                       \\
-		\( 25 \) & \includegraphics[width=0.2\textwidth]{img/Evaluation/impl_test.png} & \includegraphics[width=0.2\textwidth]{img/Evaluation/impl_test.png} & \includegraphics[width=0.2\textwidth]{img/Evaluation/impl_test.png} \\
-		         & \( (0,0,0) \)                                                       & \( (0,0,0) \)                                                       & \( (0,0,0) \)                                                       \\
+		\includegraphics[width=0.2\textwidth]{img/Evaluation/out1} & \includegraphics[width=0.2\textwidth]{img/Evaluation/border1} & \includegraphics[width=0.2\textwidth]{img/Evaluation/in1} \\
+		\( (-1.38866,1.01930,2) \)                                 & \( (0,0,0) \)                                                 & \( (0,0,0) \)                                             \\
+		\includegraphics[width=0.2\textwidth]{img/Evaluation/out2} & \includegraphics[width=0.2\textwidth]{img/Evaluation/border2} & \includegraphics[width=0.2\textwidth]{img/Evaluation/in2} \\
+		\( (-0.86151,0.37891,11) \)                                & \( (0,0,0) \)                                                 & \( (0,0,0) \)                                             \\
+		\includegraphics[width=0.2\textwidth]{img/Evaluation/out3} & \includegraphics[width=0.2\textwidth]{img/Evaluation/border3} & \includegraphics[width=0.2\textwidth]{img/Evaluation/in3} \\
+		\( (-0.76671,-0.16323,25) \)                               & \( (0,0,0) \)                                                 & \( (0,0,0) \)                                             \\
 	\end{tabular}
-	\caption{Testregionen der Evaluierung, gerendert mit \( 1280 \times 720 \) px}
+	\caption{Testregionen der Evaluierung. Jeder der Punkte \( z \in \mathbb{C} \) entspricht dem Mittelpunkt der Region im Format \( (Re(z), Im(z), zoom) \) }
 	\label{fig:testRegions}
 \end{figure}
 
