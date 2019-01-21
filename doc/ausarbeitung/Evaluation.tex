@@ -84,12 +84,13 @@ auf eine durchschnittliche Beschleunigung um den Faktor 1,9 und 1,2.
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.9\linewidth]{img/Evaluation/impl_test}
-	\caption{Vergleich der Performanzen der Implementierungen mit und ohne SIMD}
+	\includegraphics[width=0.45\linewidth]{img/Evaluation/simd/itvscmp32.pdf}
+	\includegraphics[width=0.45\linewidth]{img/Evaluation/simd/itvscmp64.pdf}
+	\caption{Vergleich der Performanzen der Implementierungen mit und ohne SIMD bei bis zu 1019 Iterationen über 185 Regionen in 20 Wiederholungen.}
 	\label{fig:SIMD-speedup}
 \end{figure}
 
-Dass die Performanzerhöhung nicht genau 4 oder 2 ist, lässt sich mit dem Erhöhten Aufwand der Verwendung
+Dass die Performanzerhöhung nicht genau 4 oder 2 ist, lässt sich mit dem erhöhten Aufwand der Verwendung
 der SIMD Instruktionen erklären.
 Da hierzu die Werte aus den normalen Registern in spezielle SIMD-Register und zurück
 kopiert werden müssen, entsteht eine gewisse Verzögerung durch zusätzliche Transportoperationen.
@@ -101,6 +102,8 @@ Die tatsächliche Rechenzeit für eine Vektorisierung von \(n\) Punkten sollte a
 
 Je größer die benötigte Zahl an Operationen, desto weniger fällt dieser konstante Zusatzaufwand ins Gewicht.
 Dies kann zum Beispiel in \autoref{fig:SIMD-speedup-vs-comptime} beobachtet werden.
+Steigert man die maximale Iterationszahl von 1019 auf bis zu 10000 steigt dieser Speed-Up nicht weiter.
+Er erreicht sein Maximum bei $2.5$ und $1.2$.
 
 Zudem werden für eine Menge an Punkten stets die Zahl an Iterationen durchgeführt,
 die das Maximum aller Iterationszahlen der Punkte ist.
@@ -113,48 +116,63 @@ wo auch die Gesamtrechenzeit geringer ist, sollte bei der Betrachtung von \autor
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.9\linewidth]{img/Evaluation/speedupvscomptime}
-	\caption{Beschleunigungsfaktor durch SIMD in Abhängigkeit von der durchschnittlichen Rechenzeit}
+	\includegraphics[width=0.9\linewidth]{img/Evaluation/simd/speedup.pdf}
+	\caption{Beschleunigungsfaktor durch SIMD in Abhängigkeit von der durchschnittlichen Iterationszahl.}
 	\label{fig:SIMD-speedup-vs-comptime}
 \end{figure}
 
-\paragraph{Notiz, entdeckt durch das In-Betracht-Ziehen der Leerregionen}
 
-Probleme bei der Verwendung des Rekursiven Lastbalanierers:
-Da es stets im Diskreten eine Minimalgröße für die aufgeteilten Regionen gibt,
-kann es sein, dass eine Region für die eine hohe Last vorhergesagt wird viele Worker reserviert -
-diese jedoch nicht vollständig ausreizen kann, da die Maximalaufteilung schon erreicht wurde.
-Durch die dadurch entstehenden Leerregionen von nicht verwendbaren Workern
-kann eine suboptimale Aufteilung enstehen, schlechter noch als die des naiven rekursiven Balancierers.
-
-Dies kann abgeschwächt werden, indem eine Region stets nur soviel Workerressourcen erhält,
-wie sie maximal auslasten könnte (Fläche/Fläche minimaler Aufteilung)
-
-
-\subsection{Balancer}
-
-Zur Lastbalancierung gibt es zwei Strategien in jeweils zwei Varianten, zur Evaluierung wird allerdings nur die rekursive Variante der beiden Strategien betrachtet.
-Man stellt leicht fest, dass die nicht-rekursive Variante für Primzahlen als Worker-Anzahl schlecht ist, weil dabei nur eine Aufteilung in Zeilen oder Spalten möglich ist.
-Da die Aufteilungsmöglichkeiten zusätzlich durch die Betrachtung von Tiles als atomaren Einheiten beschränkt werden, erzeugt diese Variante bereits für eine geringe Anzahl an Workern verhältnismäßig viele Leerregionen (d.h. untätige Worker).
+\subsubsection{Lastbalancierung}
 % Florian
 % Wir haben zwei Klassen (naive, prediction) und wählen davon jeweils den besten 
 % (naive Recursive, prediction Recursive)
+Zur Lastbalancierung gibt es zwei Strategien in jeweils zwei Varianten, zur Evaluierung wird allerdings nur die rekursive Variante der beiden Strategien betrachtet.
+Man stellt leicht fest, dass die nicht-rekursive Variante für Primzahlen als Worker-Anzahl schlecht ist, weil dabei nur eine Aufteilung in Zeilen oder Spalten möglich ist.
+Da die Aufteilungsmöglichkeiten zusätzlich durch die Betrachtung von Tiles als atomaren Einheiten beschränkt werden, erzeugt diese Variante bereits für eine geringe Anzahl an Workern verhältnismäßig viele Leerregionen (d.h. untätige Worker).
 
 % Erst naiver Balancer, dann prediction dafür jeweils:
 % 	Plot der distribution function (Median, Max)
 % 	Maximale Rechenzeit & Wie gut sind die Werte um den Median verteilt
 % 	3 Plots mit Regionen außerhalb, im Rand und innerhalb der Mandelbrotmenge
+Um die naive Strategie und die Strategie mit Vorhersage zu vergleichen werden drei Klassen von Regionen betrachet (vgl. \autoref{fig:testRegions}), für die es unterschiedliche Erwartungen gibt:
+
+\begin{itemize}
+	\item Regionen innerhalb der Mandelbrotmenge: Die Rechenzeiten sind bei beiden Strategien gleichmäßig hoch
+	\item Regionen außerhalb der Mandelbrotmenge: Die Rechenzeiten sind bei beiden Strategien gleichmäßig niedrig
+	\item Regionen am Rand der Mandelbrotmenge: Für die naive Strategie wird hier eine große Streuung der Rechenzeiten erwartet. Die Strategie mit Vorhersage sollte für eine Ballung um den Mittelwert sorgen.
+\end{itemize}
+
+Weiterhin wird erwartet, dass der Mittelwert der Rechenzeit pro Regionsklasse für die beiden Strategien gleichbleibt, da die selbe Region mit der selben Anzahl an Workern berechnet wird.
+Für die folgenden Messungen wurden immer 17 Worker mit 1019 maximalen Iterationen verwendet.
+Die Berechnung lief auf 17 Knoten, ein Worker musste also seinen Knoten mit dem Hostprozess teilen.
+
+
+
+% Bilder und Stuff
+% Vorhersage nie perfekt, deshalb Ausreißer nach oben/unten
 
 % Genauigkeit der Vorhersage vs maximale Rechenzeit für Randregionen 
 % Plot: y: max comp time, balancer time  x: prediction Accuracy (Randregion)
-% 	Diese "optimale" Genauigkeit wird aber bereits in allen vorherigen Evaluierungen des  prediction Balancers verwendet
+% 	Diese "optimale" Genauigkeit wird aber bereits in allen vorherigen Evaluierungen des prediction Balancers verwendet
+Bei der Strategie mit Vorhersage lässt sich die Genauigkeit der Vorhersage einstellen.
+Deshalb wird hier eine Kosten-Nutzen Analyse durchgeführt.
+Dazu werden für verschiedene Genauigkeiten die Verteilung der Rechenzeiten und die Dauer der Vorhersage aufgetragen.
+Die Messungen fanden unter den selben Bedingungen wie die Obigen statt.
 
-% Florian: Predictionaccuracy im Backend dynamisch auswählbar machen
+%% TODO folgenden absatz einbauen
+% Probleme bei der Verwendung des Rekursiven Lastbalanierers:
+% Da es stets im Diskreten eine Minimalgröße für die aufgeteilten Regionen gibt,
+% kann es sein, dass eine Region für die eine hohe Last vorhergesagt wird viele Worker reserviert -
+% diese jedoch nicht vollständig ausreizen kann, da die Maximalaufteilung schon erreicht wurde.
+% Durch die dadurch entstehenden Leerregionen von nicht verwendbaren Workern
+% kann eine suboptimale Aufteilung enstehen, schlechter noch als die des naiven rekursiven Balancierers.
+%
+% Dies kann abgeschwächt werden, indem eine Region stets nur soviel Workerressourcen erhält,
+% wie sie maximal auslasten könnte (Fläche/Fläche minimaler Aufteilung)
 
 \subsection{Didaktik}
 % Max
 % Konstanter Overhead wurde getestet,
-% auf himmuc leider nicht so gut erkennbar, da Netzwerk overhead zu groß ist.
 % Lokal nicht so ein Problem. Somit würde das Programm auf superMUC seinen Zweck erfüllen.
 
 \subsection{Zusammenfassung}
