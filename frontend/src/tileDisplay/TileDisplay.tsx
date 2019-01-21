@@ -21,7 +21,11 @@ import {
   BalancerObservable,
   GroupObservable,
   ImplementationObservable,
-  ViewCenterObservable
+  ViewCenterObservable,
+  WorkerObservable,
+  IterationObservable,
+  PredAccObservable,
+  RunObservable
 } from "../misc/Observable";
 import { registerCallback } from "../misc/registerCallback";
 import { StatsCollector } from "../eval/StatsCollector";
@@ -34,7 +38,11 @@ interface TileDisplayProps {
   balancer: BalancerObservable;
   group: GroupObservable;
   implementation: ImplementationObservable;
+  iterationCount: IterationObservable;
   viewCenter: ViewCenterObservable;
+  workerCount: WorkerObservable;
+  predAcc: PredAccObservable;
+  run: RunObservable;
   stats?: StatsCollector;
 }
 export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
@@ -82,7 +90,15 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
 
     // Request a new region subdivision via websocket on view change
     this.registerNewView((curMap: Map) => {
-      const r = requestRegion(curMap, this.props.balancer.get(), this.props.implementation.get());
+      const r = requestRegion(
+        curMap,
+        this.props.balancer.get(),
+        this.props.implementation.get(),
+        this.props.workerCount.get(),
+        this.props.iterationCount.get(),
+        this.props.predAcc.get(),
+        this.props.run.get()
+      );
       if (r) {
         websocketClient.sendRequest(r);
       }
@@ -92,6 +108,9 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
     //  => update all view subscribers about a policy change as if the view had changed
     this.props.balancer.subscribe(() => this.updateAllViews());
     this.props.implementation.subscribe(() => this.updateAllViews());
+    this.props.workerCount.subscribe(() => this.updateAllViews());
+    this.props.iterationCount.subscribe(() => this.updateAllViews());
+    this.props.predAcc.subscribe(() => this.updateAllViews());
 
     // add event listeners to the map for region requests
     map.on({
@@ -212,6 +231,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
 
     this.props.viewCenter.subscribe(pt => {
       if (!pt.equals(this.center)) {
+        console.log("updating view Center", pt);
         const p = complexToLeaflet(pt.x, pt.y, pt.z);
         map.setView([p.x, p.y], p.z);
         this.updateAllViews();

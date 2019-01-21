@@ -7,5 +7,5 @@
 // For the sake of ordering methods
 class BalancerPolicy {
     public:
-        static Balancer* chooseBalancer(std::string balancerName, Fractal* fractal);
+        static Balancer* chooseBalancer(std::string balancerName, int predictionAccuracy, Fractal* fractal);
 };
