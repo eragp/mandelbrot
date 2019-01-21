@@ -143,7 +143,7 @@ Da die Aufteilungsmöglichkeiten zusätzlich durch die Betrachtung von Tiles als
 % 	Plot der distribution function (Median, Max)
 % 	Maximale Rechenzeit & Wie gut sind die Werte um den Median verteilt
 % 	3 Plots mit Regionen außerhalb, im Rand und innerhalb der Mandelbrotmenge
-Um die naive Strategie und die Strategie mit Vorhersage zu Vergleichen werden drei Klassen von Regionen betrachet, für die es unterschiedliche Erwartungen gibt:
+Um die naive Strategie und die Strategie mit Vorhersage zu vergleichen werden drei Klassen von Regionen betrachet, für die es unterschiedliche Erwartungen gibt:
 
 \begin{itemize}
 	\item Regionen innerhalb der Mandelbrotmenge: Die Rechenzeiten sind bei beiden Strategien gleichmäßig hoch
@@ -156,7 +156,11 @@ Für die folgenden Messungen wurden immer 17 Worker mit 1019 maximalen Iteration
 
 % Genauigkeit der Vorhersage vs maximale Rechenzeit für Randregionen 
 % Plot: y: max comp time, balancer time  x: prediction Accuracy (Randregion)
-% 	Diese "optimale" Genauigkeit wird aber bereits in allen vorherigen Evaluierungen des  prediction Balancers verwendet
+% 	Diese "optimale" Genauigkeit wird aber bereits in allen vorherigen Evaluierungen des prediction Balancers verwendet
+Bei der Strategie mit Vorhersage lässt sich die Genauigkeit der Vorhersage einstellen.
+Deshalb wird hier eine Kosten-Nutzen Analyse durchgeführt.
+Dazu werden für verschiedene Genauigkeiten die Verteilung der Rechenzeiten und die Dauer der Vorhersage aufgetragen.
+Die Messungen fanden unter den selben Bedingungen wie die Obigen statt.
 
 % Florian: Predictionaccuracy im Backend dynamisch auswählbar machen
 
