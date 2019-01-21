@@ -260,3 +260,30 @@ Sie werden in den nächsten Schleifendurchläufen von MPI\_Testsome ignoriert.
 Nachdem die Schleife abgebrochen wurde, muss noch überprüft werden, welche Sendeoperationen erfolgreich waren und welche nicht.
 War die Operation erfolgreich, wird der entsprechende Worker als nutzbar eingestuft.
 Falls nicht, wird die noch laufende Sendeoperation mit MPI\_Cancel abgebrochen und der Worker als nicht benutzbar eingestuft.
+
+\subsection{Entwicklung des Beschleunigungsfaktors von SIMD für höhere Iterationszahlen}
+\label{par:SIMD-speedup-entwicklung}
+
+Wie durch den konstanten Mehraufwand der SIMD-Verwendung zu erwarten, steigt der Beschleunigungsfaktor
+monoton und wächst ab circa 6000 Iterationen pro Pixel nicht mehr wesentlich.
+Dies kann \autoref{fig:SIMD-speedup-vs-comptime-10000} entnommen werden.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\linewidth]{img/Evaluation/simd/speedup10000.pdf}
+	\caption{Beschleunigungsfaktor durch SIMD in Abhängigkeit von der durchschnittlichen Iterationszahl. Auswertung von 360 Regionen mit zwei Durchläufen. Die Iterationszahl für einen Abbruch war 10000.}
+	\label{fig:SIMD-speedup-vs-comptime-10000}
+\end{figure}
+
+Dass hier auch nicht in der Homogeninät der Iterationszahlen in Bereichen hoher Rechenintensität liegt,
+zeigt \autoref{fig:SIMD-speedup-vs-comptime-150}.
+Sie hat jedoch einen deutlich erkennbaren Einfluss auf die Beschleunigung.
+Während in bei einem frühzeitigen Abbruch bei \hyperref[fig:SIMD-speedup-vs-comptime]{1019 Iterationen} eine Beschleunigung von über 2
+erst ab etwa 200 Iterationen gemessen wird, tritt sie bei \hyperref[fig:SIMD-speedup-vs-comptime-150]{maximal 150 Iterationen} bereits ab etwa 140 auf.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\linewidth]{img/Evaluation/simd/speedup150.pdf}
+	\caption{Beschleunigungsfaktor durch SIMD in Abhängigkeit von der durchschnittlichen Iterationszahl. Auswertung von 360 Regionen mit zwei Durchläufen. Die Iterationszahl für einen Abbruch war 150.}
+	\label{fig:SIMD-speedup-vs-comptime-150}
+\end{figure}
