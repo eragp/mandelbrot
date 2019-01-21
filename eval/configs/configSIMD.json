@@ -11,9 +11,9 @@
         "mandelbrotsimd32",
         "mandelbrotsimd64"
     ],
-    "runs": 2,
+    "runs": 10,
     "nodeCount": [37],
-    "maxIteration": [10000],
+    "maxIteration": [1019],
     "predictionAccuracy": [4],
     "cluster": "himmuc",
     "description": "Testing different balancer implementations",
