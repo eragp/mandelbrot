@@ -198,8 +198,9 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
               predictionAccuracy <= maxP;
               predictionAccuracy += stepP
             ) {
-              if (predictionAccuracy == 0)
-                continue
+              if (predictionAccuracy === 0) {
+                continue;
+              }
               for (let nodeCount = minN; nodeCount <= maxN; nodeCount += stepN) {
                 for (const poi of config.pois) {
                   this.configs.push({
@@ -256,9 +257,8 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
     this.props.predAcc.setNoNotify(c.predictionAccuracy);
     this.props.run.setNoNotify(c.run);
     const pt = new Point3D(c.poi.real, c.poi.imag, c.poi.zoom);
-    if (!this.props.viewCenter.set(pt)) {
-      this.props.balancer.notify();
-    }
+    this.props.viewCenter.setNoNotify(pt);
+    this.props.balancer.notify();
 
     // notify all view observers
 

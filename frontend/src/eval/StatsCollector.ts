@@ -2,7 +2,7 @@ import { registerCallback } from "../misc/registerCallback";
 import WSClient from "../connection/WSClient";
 import { Region, RegionData } from "../connection/ExchangeTypes";
 
-interface Worker {
+export interface Worker {
   rank: number;
   computationTime: number;
   mpiTime: number;

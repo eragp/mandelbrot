@@ -4,7 +4,7 @@
     "height": 720
   },
   "balancers": ["predictionRecursive"],
-  "implementations": ["mandelbrot"],
+  "implementations": ["mandelbrot32"],
   "maxIteration": [1019],
   "nodeCount": [1, 40, 1],
   "predictionAccuracy": [4],
