@@ -180,7 +180,7 @@ Die Genauigkeit der Vorhersage kann über das Attribut \verb|predictionAccuracy|
 \begin{itemize}
 	\item $predictionAccuracy > 0$: $(predictionAccuracy)^2$ Pixel werden pro Tile berechnet. Die Summe der Iterationen für die einzelnen Pixel ergibt die Vorhersage für die Tile.
 	\item $predictionAccuracy < 0$: Für $(predictionAccuracy)^2$ Tiles wird ein Pixel in der Vorhersage berechnet. Es erhalten also mehrere Tiles diesselbe Vorhersage.
-	\item $predictionAccuracy = 0$: Es wird keine Vorhersage angestellt.
+	\item $predictionAccuracy = 0$: Unzulässig, es wird ein Null-Pointer zurückgegeben.
 \end{itemize}
 Zusätzlich beinhaltet die Vorhersage die Summen der benötigten Iterationen pro Spalte und Zeile, sowie die Gesamtsumme.
 So wird vermieden, dass diese während des Balancierens immer neu berechnet werden müssen.
