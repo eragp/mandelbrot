@@ -145,10 +145,30 @@ Weiterhin wird erwartet, dass der Mittelwert der Rechenzeit pro Regionsklasse f�
 Für die folgenden Messungen wurden immer 17 Worker mit 1019 maximalen Iterationen verwendet.
 Die Berechnung lief auf 17 Knoten, ein Worker musste also seinen Knoten mit dem Hostprozess teilen.
 
-
-
 % Bilder und Stuff
 % Vorhersage nie perfekt, deshalb Ausreißer nach oben/unten
+% Teilweise größere/kleinere Teilregionen erstellt
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\linewidth]{img/Evaluation/balancers/balancers_border.png}
+	\caption{Verteilung der Rechenzeiten für Randregionen}
+	\label{fig:balancers_border}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\linewidth]{img/Evaluation/balancers/balancers_inside.png}
+	\caption{Verteilung der Rechenzeiten für innere Regionen}
+	\label{fig:balancers_inside}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\linewidth]{img/Evaluation/balancers/balancers_outside.png}
+	\caption{Verteilung der Rechenzeiten für äußere Regionen}
+	\label{fig:balancers_outside}
+\end{figure}
 
 % Genauigkeit der Vorhersage vs maximale Rechenzeit für Randregionen 
 % Plot: y: max comp time, balancer time  x: prediction Accuracy (Randregion)
