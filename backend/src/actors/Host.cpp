@@ -102,23 +102,8 @@ void Host::start_server() {
 void Host::handle_region_request(const websocketpp::connection_hdl hdl,
                                  websocketpp::server<websocketpp::config::asio>::message_ptr msg) {
     std::cout << "Handle Region Request" << std::endl;
-    register_client(hdl); // necessary?
     
     Document request;
-    std::string request_string = msg->get_payload();
-
-    request.Parse(request_string.c_str());
-    if(request.HasParseError()){
-        auto error = request.GetParseError();
-        std::cerr << "Error " << error << " on parsing request\n on "
-                << request_string << std::endl;
-        return;
-    }
-
-    if(std::strcmp(request["type"].GetString(), "regionRequest") != 0){
-        return;
-    }
-
     int regionCount = 0;
     Region region{};
 
@@ -127,82 +112,101 @@ void Host::handle_region_request(const websocketpp::connection_hdl hdl,
 
     const char* fractal_str;
     Fractal* fractal_bal = nullptr;
-    try {
-        balancer = request["balancer"].GetString();
-        predictionAccuracy = request["predictionAccuracy"].GetInt();
-        std::cout << "Chose prediction Accuracy: " << predictionAccuracy << std::endl;
+    {
+        std::lock_guard<std::mutex> lock(websocket_send_lock);
+        client = hdl;
 
-        enum fractal_type fractal_type;
-        fractal_str = request["fractal"].GetString();
-        // Case insensitive compares (just convenience for frontend devs)
-        if(boost::iequals(fractal_str, "mandelbrot32")){
-            fractal_type = mandelbrot32;
-            fractal_bal = new Mandelbrot32();
+        std::string request_string = msg->get_payload();
+        request.Parse(request_string.c_str());
+        if(request.HasParseError()){
+            auto error = request.GetParseError();
+            std::cerr << "Error " << error << " on parsing request\n on "
+                    << request_string << std::endl;
+            return;
         }
-        else if(boost::iequals(fractal_str, "mandelbrot64")){
-            fractal_type = mandelbrot64;
-            fractal_bal = new Mandelbrot64();
+
+
+        if(std::strcmp(request["type"].GetString(), "regionRequest") != 0){
+            return;
         }
-        else if(boost::iequals(fractal_str, "mandelbrotsimd32")){
-            fractal_type = mandelbrotSIMD32;
-            fractal_bal = new Mandelbrot32();
-        }
-        else if(boost::iequals(fractal_str, "mandelbrotsimd64")){
-            fractal_type = mandelbrotSIMD64;
-            fractal_bal = new Mandelbrot64();
-        }
-        else if(boost::iequals(fractal_str, "mandelbrot")){
-            fractal_type = mandelbrot;
-            fractal_bal = new Mandelbrot();
-        }
-        else if(boost::iequals(fractal_str, "mandelbrotopenmp32")){
-            fractal_type = mandelbrotOpenMP32;
-            fractal_bal = new Mandelbrot32();
-        }
-        else if(boost::iequals(fractal_str, "mandelbrotopenmp64")){
-            fractal_type = mandelbrotOpenMP64;
-            fractal_bal = new Mandelbrot64();
-        }
-        else if(boost::iequals(fractal_str, "mandelbrotopenmpsimd32")){
-            fractal_type = mandelbrotOpenMPSIMD32;
-            fractal_bal = new Mandelbrot32();
-        }
-        else if(boost::iequals(fractal_str, "mandelbrotopenmpsimd64")){
-            fractal_type = mandelbrotOpenMPSIMD64;
-            fractal_bal = new Mandelbrot64();
-        }
-        else if(boost::iequals(fractal_str, "mandelbrotopenmp")){
-            fractal_type = mandelbrotOpenMP;
-            fractal_bal = new Mandelbrot();
-        } else {
+
+        try {
+            balancer = request["balancer"].GetString();
+            predictionAccuracy = request["predictionAccuracy"].GetInt();
+            std::cout << "Chose prediction Accuracy: " << predictionAccuracy << std::endl;
+
+            enum fractal_type fractal_type;
+            fractal_str = request["fractal"].GetString();
+            // Case insensitive compares (just convenience for frontend devs)
+            if(boost::iequals(fractal_str, "mandelbrot32")){
+                fractal_type = mandelbrot32;
+                fractal_bal = new Mandelbrot32();
+            }
+            else if(boost::iequals(fractal_str, "mandelbrot64")){
+                fractal_type = mandelbrot64;
+                fractal_bal = new Mandelbrot64();
+            }
+            else if(boost::iequals(fractal_str, "mandelbrotsimd32")){
+                fractal_type = mandelbrotSIMD32;
+                fractal_bal = new Mandelbrot32();
+            }
+            else if(boost::iequals(fractal_str, "mandelbrotsimd64")){
+                fractal_type = mandelbrotSIMD64;
+                fractal_bal = new Mandelbrot64();
+            }
+            else if(boost::iequals(fractal_str, "mandelbrot")){
+                fractal_type = mandelbrot;
+                fractal_bal = new Mandelbrot();
+            }
+            else if(boost::iequals(fractal_str, "mandelbrotopenmp32")){
+                fractal_type = mandelbrotOpenMP32;
+                fractal_bal = new Mandelbrot32();
+            }
+            else if(boost::iequals(fractal_str, "mandelbrotopenmp64")){
+                fractal_type = mandelbrotOpenMP64;
+                fractal_bal = new Mandelbrot64();
+            }
+            else if(boost::iequals(fractal_str, "mandelbrotopenmpsimd32")){
+                fractal_type = mandelbrotOpenMPSIMD32;
+                fractal_bal = new Mandelbrot32();
+            }
+            else if(boost::iequals(fractal_str, "mandelbrotopenmpsimd64")){
+                fractal_type = mandelbrotOpenMPSIMD64;
+                fractal_bal = new Mandelbrot64();
+            }
+            else if(boost::iequals(fractal_str, "mandelbrotopenmp")){
+                fractal_type = mandelbrotOpenMP;
+                fractal_bal = new Mandelbrot();
+            } else {
+                std::cerr << "Inclompletely specified region requested: " << request_string;
+                return;
+            }
+            // Reproducible and equivalent balancing for all implementation choices
+            std::cout << "Host: chose fractal " << fractal_str << std::endl;
+
+            region.minReal = request["region"]["minReal"].GetDouble();
+            region.maxImaginary = request["region"]["maxImag"].GetDouble();
+
+            region.maxReal = request["region"]["maxReal"].GetDouble();
+            region.minImaginary = request["region"]["minImag"].GetDouble();
+
+            region.width = request["region"]["width"].GetUint();
+            region.height = request["region"]["height"].GetUint();
+
+            region.hOffset = 0;
+            region.vOffset = 0;
+
+            region.maxIteration = (unsigned short int) request["region"]["maxIteration"].GetUint();
+            region.validation = request["region"]["validation"].GetInt();
+            region.guaranteedDivisor = request["region"]["guaranteedDivisor"].GetUint();
+            region.fractal = fractal_type;
+
+            regionCount = request["nodes"].GetInt();
+
+        } catch (std::out_of_range &e) {
             std::cerr << "Inclompletely specified region requested: " << request_string;
             return;
         }
-        // Reproducible and equivalent balancing for all implementation choices
-        std::cout << "Host: chose fractal " << fractal_str << std::endl;
-
-        region.minReal = request["region"]["minReal"].GetDouble();
-        region.maxImaginary = request["region"]["maxImag"].GetDouble();
-
-        region.maxReal = request["region"]["maxReal"].GetDouble();
-        region.minImaginary = request["region"]["minImag"].GetDouble();
-
-        region.width = request["region"]["width"].GetUint();
-        region.height = request["region"]["height"].GetUint();
-
-        region.hOffset = 0;
-        region.vOffset = 0;
-
-        region.maxIteration = (unsigned short int) request["region"]["maxIteration"].GetUint();
-        region.validation = request["region"]["validation"].GetInt();
-        region.guaranteedDivisor = request["region"]["guaranteedDivisor"].GetUint();
-        region.fractal = fractal_type;
-
-        regionCount = request["nodes"].GetInt();
-
-    } catch (std::out_of_range &e) {
-        std::cerr << "Inclompletely specified region requested: " << request_string;
-        return;
     }
 
     // DEBUG
