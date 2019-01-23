@@ -149,6 +149,8 @@ Die Berechnung lief auf 17 Knoten, ein Worker musste also seinen Knoten mit dem 
 % Bilder und Stuff
 % Vorhersage nie perfekt, deshalb Ausreißer nach oben/unten
 % Teilweise größere/kleinere Teilregionen erstellt
+In den folgenden Diagrammen wurde pro Rechenzeit aufgetragen welcher Anteil an Teilregionen genau diese Zeit benötigt hat.
+Bei einer guten Lastbalancierung sollten sich die Rechenzeiten also um den Mittelwert ballen und die maximale Rechenzeit gering sein.
 
 \begin{figure}
 	\centering
@@ -156,6 +158,10 @@ Die Berechnung lief auf 17 Knoten, ein Worker musste also seinen Knoten mit dem 
 	\caption{Verteilung der Rechenzeiten für Randregionen}
 	\label{fig:balancers_border}
 \end{figure}
+
+Den Unterschied zwischen naiver Strategie (rot) und Strategie mit Vorhersage (blau) sieht man besonders gut in der Verteilung für Randregionen (\autoref{fig:balancers_border}).
+Die blauen Balken haben ihr Maximum in der Nähe des Mittelwerts, die roten Balken sind viel mehr über den Wertebereich verteilt.
+Dass die Strategie mit Vorhersage vom Mittelwert abweicht und auch einige Ausreißer nach oben und unten hat lässt sich auf Ungenauigkeiten in der Vorhersage zurückführen, welche am Rand der Mandelbrotmenge besonders ausgeprägt sind (vgl. \autoref{par:load_balancing_prediction}).
 
 \begin{figure}
 	\centering
