@@ -177,6 +177,12 @@ Dass die Strategie mit Vorhersage vom Mittelwert abweicht und auch einige Ausrei
 	\label{fig:balancers_outside}
 \end{figure}
 
+Auch bei den inneren und äußeren Regionen wurde das erwartete Ergebnis erzielt.
+Die Verteilung für naive Strategie und Strategie mit Vorhersage sind nahezu deckungsgleich.
+Die auffällige Abweichung von einigen Regionen nach oben oder unten ist durch die unterschiedliche Größe begründet.
+Theoretisch sollte die Größe aller Teilregionen gleich sein, allerdings ist dies im Diskreten nicht immer möglich, da Breite und Höhe nicht unbedingt glatt teilbar sind.
+Durch die Betrachtung von Tiles (in diesem Test 64x64 Pixel) als atomare Einheit wird dieser Effekt noch verstärkt.
+
 % Genauigkeit der Vorhersage vs maximale Rechenzeit für Randregionen 
 % Plot: y: max comp time, balancer time  x: prediction Accuracy (Randregion)
 % 	Diese "optimale" Genauigkeit wird aber bereits in allen vorherigen Evaluierungen des prediction Balancers verwendet
