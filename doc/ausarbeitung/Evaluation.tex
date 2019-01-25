@@ -58,7 +58,14 @@ Dazu haben wir ebenfalls für jede der Klassen eine niedrige, mittlere und hohe 
 % 	3 Plots Regionen außen, Randregionen und Regionen in der Mitte
 % 	Jeweils auf separater y-Achse Mpi time 
 % Wie gut ist die MPI Kommunikation. Ab wann macht es keinen Sinn mehr, mehr Worker einzusetzen
-
+\begin{figure}
+	\centering
+	\includegraphics[width=0.32\linewidth]{img/Evaluation/scaling/scale_graph_outside}
+	\includegraphics[width=0.32\linewidth]{img/Evaluation/scaling/scale_graph_border}
+	\includegraphics[width=0.32\linewidth]{img/Evaluation/scaling/scale_graph_inside}
+	\caption{Skalierungsgraph von 1-40 Rechenknoten mit rekursivem Prediction Lastbalancierer}
+	\label{fig:scaleGraph}
+\end{figure}
 
 % OpenMP & MPI skalierung
 % Bar graph (1 MPI Prozess pro worker, 1 MPI Prozess & 4 OpenMP pro Worker, 4 MPI Prozesse pro worker)
