@@ -4,9 +4,9 @@
     "height": 720
   },
   "balancers": ["predictionRecursive"],
-  "implementations": ["mandelbrot32"],
+  "implementations": ["mandelbrot64"],
   "maxIteration": [1019],
-  "nodeCount": [40],
+  "nodeCount": [17],
   "predictionAccuracy": [-32, 32, 2],
   "runs": 10,
   "cluster": "himmuc",
