@@ -4,7 +4,6 @@ import { TileSize } from "../Constants";
 // import { Point3D } from "../misc/Point";
 import { Map } from "leaflet";
 import { Point3D } from "../misc/Point";
-import { notDeepEqual } from "assert";
 
 let oldTopLeft: Point3D;
 let oldBottomRight: Point3D;

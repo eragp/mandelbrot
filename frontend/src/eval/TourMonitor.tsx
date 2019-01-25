@@ -257,8 +257,14 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
     this.props.predAcc.setNoNotify(c.predictionAccuracy);
     this.props.run.setNoNotify(c.run);
     const pt = new Point3D(c.poi.real, c.poi.imag, c.poi.zoom);
+<<<<<<< HEAD
     this.props.viewCenter.setNoNotify(pt);
     this.props.balancer.notify();
+=======
+    if (!this.props.viewCenter.set(pt)) {
+      this.props.balancer.notify();
+    }
+>>>>>>> dev
 
     // notify all view observers
 
