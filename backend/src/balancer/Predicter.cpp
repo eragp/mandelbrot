@@ -141,12 +141,10 @@ Prediction* Predicter::getPrediction(Region region, Fractal* fractal, int predic
         delete[] projImag;
         delete[] data;
     }
-	// predictionAccuracy == 0: No prediction
-    else {
-		deltaReal = Fractal::deltaReal(region.maxReal, region.minReal, region.width / region.guaranteedDivisor);
-		deltaImaginary = Fractal::deltaReal(region.maxImaginary, region.minImaginary, region.height / region.guaranteedDivisor);
-		nSum = 0;
-		// vectors are already initialized with 0
+	// predictionAccuracy == 0: invalid
+	else {
+        std::cerr << "predictionAccuracy cannot be 0." << std::endl;
+        return nullptr;
     }
 
     Prediction* prediction = new Prediction();
