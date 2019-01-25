@@ -78,7 +78,7 @@ Die optimale Rechenlast für einen Worker berechnet sich also durch:
 Wenn die Vorhersage hinreichend exakt ist, kann dieser Wert gut angenähert werden.
 Dadurch wird die Last gleichmäßiger auf die Worker verteilt als bei der naiven Strategie.
 
-\paragraph*{Bestimmung der Vorhersage}
+\paragraph*{Bestimmung der Vorhersage}\label{par:load_balancing_prediction}
 
 Die Zugehörigkeit eines Punktes zur Mandelbrotmenge wird nach \autoref{equ:mandelbrot} iterativ berechnet.
 Deshalb kann die Anzahl der benötigten Iterationen als Abschätzung der Rechenzeit für diesen Punkt verwendet werden.

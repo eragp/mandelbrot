@@ -26,12 +26,12 @@ welche die gemessenen Zeiten zusätzlich in der Antwort der Regionsdaten an das 
 versendet. Dort werden diese aggregiert, mit den Zeiten des Frontend verknüpft und ausgegeben.
 
 Um die Performance der folgenden Algorithmen auf der Mandelbrotmenge zu evaluieren,
-müssen Regionen einzelne ausgewählt und die Performance auf diesen verglichen werden.
+müssen Regionen einzeln ausgewählt und die Performanz ihrer Berechnung verglichen werden.
 Dafür haben wir die Mandelbrotmenge in drei Klassen unterteilt: Regionen in, am Rand und außerhalb
-der Menge. Diese Aufteilung ist dabei entsprechen gewählt, da sie der Anzahl an Iterationen entspricht, welche
-benötigt wird, um einen gegebenen Punkt zu berechnen.
+der Menge. Diese Aufteilung ist so gewählt, dass sich die Anzahl Iterationen pro Punkt innerhalb einer Klasse ähneln.
 Dazu haben wir ebenfalls für jede der Klassen eine niedrige, mittlere und hohe Zoomstufe gewählt (siehe \autoref{fig:testRegions}).
 
+% TODO: Hier scheinen noch die Koordinaten falsch zu sein
 \begin{figure}
 	\centering
 	\begin{tabular}{ccc}
@@ -87,17 +87,17 @@ Dazu haben wir ebenfalls für jede der Klassen eine niedrige, mittlere und hohe 
 
 SIMD unterstützt in den Präzisionen 32 und 64 bit Parallelisierung von einer Rechenoperationen auf
 4 beziehungsweise 2 unterschiedlichen Werten. Der Effekt beläuft sich dabei, wie in \autoref{fig:SIMD-speedup} zu sehen,
-auf eine durchschnittliche Beschleunigung um den Faktor 1,9 und 1,2.
+bei einer Beschränkung auf 1019 Iterationen auf eine durchschnittliche Beschleunigung um den Faktor $2,3$ und $1,2$.
 
 \begin{figure}
 	\centering
 	\includegraphics[width=0.45\linewidth]{img/Evaluation/simd/itvscmp32.pdf}
 	\includegraphics[width=0.45\linewidth]{img/Evaluation/simd/itvscmp64.pdf}
-	\caption{Vergleich der Performanzen der Implementierungen mit und ohne SIMD bei bis zu 1019 Iterationen über 185 Regionen in 20 Wiederholungen.}
+	\caption{Vergleich der Performanzen der Implementierungen mit und ohne SIMD bei bis zu 1019 Iterationen über 360 Regionen in 10 Wiederholungen.}
 	\label{fig:SIMD-speedup}
 \end{figure}
 
-Dass die Performanzerhöhung nicht genau 4 oder 2 ist, lässt sich mit dem erhöhten Aufwand der Verwendung
+Dass die Performanzerhöhung nicht genau $4$ oder $2$ ist, lässt sich mit dem erhöhten Aufwand der Verwendung
 der SIMD Instruktionen erklären.
 Da hierzu die Werte aus den normalen Registern in spezielle SIMD-Register und zurück
 kopiert werden müssen, entsteht eine gewisse Verzögerung durch zusätzliche Transportoperationen.
@@ -109,8 +109,15 @@ Die tatsächliche Rechenzeit für eine Vektorisierung von \(n\) Punkten sollte a
 
 Je größer die benötigte Zahl an Operationen, desto weniger fällt dieser konstante Zusatzaufwand ins Gewicht.
 Dies kann zum Beispiel in \autoref{fig:SIMD-speedup-vs-comptime} beobachtet werden.
-Steigert man die maximale Iterationszahl von 1019 auf bis zu 10000 steigt dieser Speed-Up nicht weiter.
-Er erreicht sein Maximum bei $2.5$ und $1.2$.
+Steigert man die maximale Iterationszahl von 1019 auf bis zu 10000 steigt dieser Speed-Up nicht wesentlich weiter.
+Er erreicht sein vorläufiges Maximum bei $2.5$ und $1.25$. Details zu dieser Entwicklung sind in \autoref{par:SIMD-speedup-entwicklung} zu finden.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\linewidth]{img/Evaluation/simd/speedup.pdf}
+	\caption{Beschleunigungsfaktor durch SIMD in Abhängigkeit von der durchschnittlichen Iterationszahl.}
+	\label{fig:SIMD-speedup-vs-comptime}
+\end{figure}
 
 Zudem werden für eine Menge an Punkten stets die Zahl an Iterationen durchgeführt,
 die das Maximum aller Iterationszahlen der Punkte ist.
@@ -121,15 +128,8 @@ Damit wird die Beschleunigung durch SIMD kleiner, je inhomogener die Iterationsz
 Dass die Iterationszahlen im Allgemeinen am Rand der Mandelbrotmenge inhomogener sind,
 wo auch die Gesamtrechenzeit geringer ist, sollte bei der Betrachtung von \autoref{fig:SIMD-speedup-vs-comptime} berücksichtigt werden.
 
-\begin{figure}
-	\centering
-	\includegraphics[width=0.9\linewidth]{img/Evaluation/simd/speedup.pdf}
-	\caption{Beschleunigungsfaktor durch SIMD in Abhängigkeit von der durchschnittlichen Iterationszahl.}
-	\label{fig:SIMD-speedup-vs-comptime}
-\end{figure}
 
-
-\subsubsection{Lastbalancierung}
+\subsection{Lastbalancierung}
 % Florian
 % Wir haben zwei Klassen (naive, prediction) und wählen davon jeweils den besten 
 % (naive Recursive, prediction Recursive)
@@ -153,10 +153,42 @@ Weiterhin wird erwartet, dass der Mittelwert der Rechenzeit pro Regionsklasse f�
 Für die folgenden Messungen wurden immer 17 Worker mit 1019 maximalen Iterationen verwendet.
 Die Berechnung lief auf 17 Knoten, ein Worker musste also seinen Knoten mit dem Hostprozess teilen.
 
-
-
 % Bilder und Stuff
 % Vorhersage nie perfekt, deshalb Ausreißer nach oben/unten
+% Teilweise größere/kleinere Teilregionen erstellt
+In den folgenden Diagrammen wurde pro Rechenzeit aufgetragen welcher Anteil an Teilregionen genau diese Zeit benötigt hat.
+Bei einer guten Lastbalancierung sollten sich die Rechenzeiten also um den Mittelwert ballen und die maximale Rechenzeit gering sein.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\linewidth]{img/Evaluation/balancers/balancers_border.png}
+	\caption{Verteilung der Rechenzeiten für Randregionen}
+	\label{fig:balancers_border}
+\end{figure}
+
+Den Unterschied zwischen naiver Strategie (rot) und Strategie mit Vorhersage (blau) sieht man besonders gut in der Verteilung für Randregionen (\autoref{fig:balancers_border}).
+Die blauen Balken haben ihr Maximum in der Nähe des Mittelwerts, die roten Balken sind viel mehr über den Wertebereich verteilt.
+Dass die Strategie mit Vorhersage vom Mittelwert abweicht und auch einige Ausreißer nach oben und unten hat lässt sich auf Ungenauigkeiten in der Vorhersage zurückführen, welche am Rand der Mandelbrotmenge besonders ausgeprägt sind (vgl. \autoref{par:load_balancing_prediction}).
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\linewidth]{img/Evaluation/balancers/balancers_inside.png}
+	\caption{Verteilung der Rechenzeiten für innere Regionen}
+	\label{fig:balancers_inside}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\linewidth]{img/Evaluation/balancers/balancers_outside.png}
+	\caption{Verteilung der Rechenzeiten für äußere Regionen}
+	\label{fig:balancers_outside}
+\end{figure}
+
+Auch bei den inneren und äußeren Regionen wurde das erwartete Ergebnis erzielt.
+Die Verteilung für naive Strategie und Strategie mit Vorhersage sind nahezu deckungsgleich.
+Die auffällige Abweichung von einigen Regionen nach oben oder unten ist durch die unterschiedliche Größe begründet.
+Theoretisch sollte die Größe aller Teilregionen gleich sein, allerdings ist dies im Diskreten nicht immer möglich, da Breite und Höhe nicht unbedingt glatt teilbar sind.
+Durch die Betrachtung von Tiles (in diesem Test 64x64 Pixel) als atomare Einheit wird dieser Effekt noch verstärkt.
 
 % Genauigkeit der Vorhersage vs maximale Rechenzeit für Randregionen 
 % Plot: y: max comp time, balancer time  x: prediction Accuracy (Randregion)
