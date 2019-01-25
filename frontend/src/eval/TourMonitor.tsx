@@ -188,7 +188,7 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
             }
             let minP = config.predictionAccuracy[0];
             let maxP = config.predictionAccuracy[0];
-            let stepP = config.predictionAccuracy[0];
+            let stepP = 1;
             if (config.predictionAccuracy.length === 3) {
               maxP = config.predictionAccuracy[1];
               stepP = config.predictionAccuracy[2];
