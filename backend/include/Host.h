@@ -14,17 +14,9 @@
 #include "Region.h"
 #include "RegionData.h" 
 
-struct deflate_server_config : public websocketpp::config::asio {
-	// ... additional custom config if you need it for other things
 
-	/// permessage_compress extension
-    struct permessage_deflate_config {};
 
-    typedef websocketpp::extensions::permessage_deflate::enabled
-        <permessage_deflate_config> permessage_deflate_type;
-};
-
-typedef websocketpp::server<deflate_server_config> server_endpoint_type;
+typedef websocketpp::server<websocketpp::config::asio> server_endpoint_type;
 
 class Host {
 public:
