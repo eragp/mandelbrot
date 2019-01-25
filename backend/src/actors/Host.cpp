@@ -99,7 +99,7 @@ void Host::start_server() {
 }
 
 void Host::handle_region_request(const websocketpp::connection_hdl hdl,
-                                 websocketpp::server<websocketpp::config::asio>::message_ptr msg) {
+                                 server_endpoint_type::message_ptr msg) {
     std::cout << "Handle Region Request" << std::endl;
     
     client = hdl;
