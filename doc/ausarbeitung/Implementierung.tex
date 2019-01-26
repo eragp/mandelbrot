@@ -346,19 +346,7 @@ Im folgenden wird das Kommunikationsverhalten des MPI-Host-Thread genauer beschr
 Die Kommunikation zwischen Host (MPI-Host-Thread) und Workern (MPI-Worker-Thread) ist im MPI-Host-Thread als Endlosschleife (busy waiting) implementiert. Die dabei stattfindenden Operationen inklusive ausführlicher Kommentare sind in \autoref{src:mpi_host_pseudo} einzusehen.
 
 \begin{figure}[!h]
-	\begin{lstlisting}[language=python, caption={MPI Kommunikation im Host in Pseudocode}, label={src:mpi_host_pseudo}]
-	while true
-	# Check for new computation tasks (subregions) in shared datastructure of websocket_recv_thread
-	if websocket_request_to_mpi not empty
-	# Send subregions to worker using non-blocking persistent communication request
-	MPI_Pcr_start(subregions)
-	# Check non-blocking for incoming computation results from worker
-	if MPI_Iprobe() is true
-	# Receive computation result using blocking receive operation
-	MPI_Recv(result)
-	# Store result in shared datastructure of websocket_result_thread
-	mpi_to_websocket_result.add(result)
-	\end{lstlisting}
+	\lstinputlisting[language=python, caption={MPI Kommunikation im Host in Pseudocode}, label={src:mpi_host_pseudo}]{code/MPIHost.py}
 \end{figure}
 
 \paragraph{Ablauf der MPI-Kommunikation im Worker}\label{para:impl_mpi_worker}
@@ -368,25 +356,7 @@ Im folgenden wird das Kommunikationsverhalten des MPI-Worker-Threads genauer bes
 Analog zum Host ist auch der Worker (MPI-Worker-Thread) als Endlosschleife mit busy waiting implementiert. Die Berechnung einer Subregion erfolgt dabei zeilenweise durch einen compute() Aufruf. Der entsprechende Pseudocode inklusive ausführlicher Kommentare ist in \autoref{src:mpi_worker_pseudo} zu finden.
 
 \begin{figure}[!h]
-	\begin{lstlisting}[language=python, caption={MPI Kommunikation im Worker in Pseudocode}, label={src:mpi_worker_pseudo}]
-	while true
-	# Check non-blocking if receive operation of computation task (subregion) is complete
-	if MPI_Test() is true
-	# Start non-blocking persistent receive for possible new computation task
-	MPI_Pcr_Start()
-	for every column of subregion
-	# Compute current row
-	compute(row)
-	# Check non-blocking if receive operation of new computation task (subregion) is complete
-	if MPI_Test() is true
-	# Abort running computation and start with new one
-	goto while loop
-	# Send results using blocking send operation
-	MPI_Send(result)
-	else
-	# Sleep for 1 ms to reduce CPU workload
-	thread.sleep(1)
-	\end{lstlisting}
+	\lstinputlisting[language=python, caption={MPI Kommunikation im Worker in Pseudocode}, label={src:mpi_worker_pseudo}]{code/MPIWorker.py}
 \end{figure}
 
 
