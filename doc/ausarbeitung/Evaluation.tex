@@ -31,18 +31,17 @@ Dafür haben wir die Mandelbrotmenge in drei Klassen unterteilt: Regionen in, am
 der Menge. Diese Aufteilung ist so gewählt, dass sich die Anzahl Iterationen pro Punkt innerhalb einer Klasse ähneln.
 Dazu haben wir ebenfalls für jede der Klassen eine niedrige, mittlere und hohe Zoomstufe gewählt (siehe \autoref{fig:testRegions}).
 
-% TODO: Hier scheinen noch die Koordinaten falsch zu sein
 \begin{figure}
 	\centering
 	\begin{tabular}{ccc}
 		Außerhalb                                                  & Randregion                                                    & Innerhalb                                                 \\
 		\hline
 		\includegraphics[width=0.2\textwidth]{img/Evaluation/out1} & \includegraphics[width=0.2\textwidth]{img/Evaluation/border1} & \includegraphics[width=0.2\textwidth]{img/Evaluation/in1} \\
-		\( (-1.38866,1.01930,2) \)                                 & \( (0,0,0) \)                                                 & \( (0,0,0) \)                                             \\
+		\( (-1.38866,1.01930,2) \)                                 & \( (-1.13528, -0.34512, 2) \)                                 & \( (-0.21118, 0.07617, 3) \)                              \\
 		\includegraphics[width=0.2\textwidth]{img/Evaluation/out2} & \includegraphics[width=0.2\textwidth]{img/Evaluation/border2} & \includegraphics[width=0.2\textwidth]{img/Evaluation/in2} \\
-		\( (-0.86151,0.37891,11) \)                                & \( (0,0,0) \)                                                 & \( (0,0,0) \)                                             \\
+		\( (-0.86151,0.37891,11) \)                                & \( (-0.73341, 0.21651, 11) \)                                 & \( (-1.75620, 0.00049, 10) \)                             \\
 		\includegraphics[width=0.2\textwidth]{img/Evaluation/out3} & \includegraphics[width=0.2\textwidth]{img/Evaluation/border3} & \includegraphics[width=0.2\textwidth]{img/Evaluation/in3} \\
-		\( (-0.76671,-0.16323,25) \)                               & \( (0,0,0) \)                                                 & \( (0,0,0) \)                                             \\
+		\( (-0.76671,-0.16323,25) \)                               & \( (-0.04666,0.98511, 25) \)                                  & \( (-0.11136, -0.04529, 25) \)                            \\
 	\end{tabular}
 	\caption{Testregionen der Evaluierung. Jeder der Punkte \( z \in \mathbb{C} \) entspricht dem Mittelpunkt der Region im Format \( (Re(z), Im(z), zoom) \) }
 	\label{fig:testRegions}
@@ -51,19 +50,25 @@ Dazu haben wir ebenfalls für jede der Klassen eine niedrige, mittlere und hohe 
 
 
 \subsection{Skalierung}
+Eine wichtige Performanzmetrik, welche durch das Projekt evaluiert werden solle, ist wie gut sich eine
+unabhängige Berechnung, wie die der Mandelbrotfunktion parallelisieren lässt. 
+Dabei ist vor allem von Interesse, wie sich die Rechenzeit der einzelnen Teilreigonen des Balancers im Vergleich
+zur Anzahl der an der Berechnung beteiligten Worker verhält. Dies ist in \autoref{fig:scaleGraph} aufgetragen.
 
-% Tobi
-% MPI Skalierung
-% Skalierungsgraph (Naiver Balancer, Maxcomputation time per Region vs Node count)
-% 	3 Plots Regionen außen, Randregionen und Regionen in der Mitte
-% 	Jeweils auf separater y-Achse Mpi time 
-% Wie gut ist die MPI Kommunikation. Ab wann macht es keinen Sinn mehr, mehr Worker einzusetzen
+Dabei ist jeweils ein Skalierungsgraph für jede der drei Regionstypen (innerhalb, am Rand und außerhalb) angegeben, 
+was nötig wird, da Regionen abhängig von der Anzahl der Pixel, welche innerhalb der Mandelbrotmenge liegen, sehr unterscheidliche
+Rechenzeiten haben.
+Erwartet ist dabei, dass sich die Rechenzeit \( t \) ungefähr nach \( t \approx {c_1} / {n} + c_2 \) verhält,
+wobei \( n \) die Anzahl der Rechenknoten und \( c_1, c_2 \) geeignet gewählte Konstanten zur Abschätzung des Overheads sind.
+Diese Relation lässt sich dabei auch in den gemessenen Daten in \autoref{fig:scaleGraph} wieder finden.
+
+Es ist jedoch zu beachten, dass somit der 
 \begin{figure}
 	\centering
 	\includegraphics[width=0.32\linewidth]{img/Evaluation/scaling/scale_graph_outside}
 	\includegraphics[width=0.32\linewidth]{img/Evaluation/scaling/scale_graph_border}
 	\includegraphics[width=0.32\linewidth]{img/Evaluation/scaling/scale_graph_inside}
-	\caption{Skalierungsgraph von 1-40 Rechenknoten mit rekursivem Prediction Lastbalancierer}
+	\caption{Skalierungsgraph von \( 1-40 \) Rechenknoten mit rekursivem Prediction Lastbalancierer}
 	\label{fig:scaleGraph}
 \end{figure}
 

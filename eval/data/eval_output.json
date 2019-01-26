@@ -1,0 +1,2494 @@
+{
+  "config": {
+    "screen": { "width": 1280, "height": 720 },
+    "balancers": ["naive", "predictionRecursive"],
+    "implementations": ["mandelbrot"],
+    "nodeCount": 37,
+    "description": "Testing the naive and prediction recursive balancer on a default set of PoIs",
+    "pois": [
+      { "real": 0, "imag": 0, "zoom": 0 },
+      { "real": -0.04926860332489014, "imag": 0.9887520653946033, "zoom": 1 },
+      { "real": -1.4102668762207031, "imag": 0.06935050509118243, "zoom": 3 },
+      { "real": -0.7428462728857994, "imag": 0.2057771115182378, "zoom": 12 },
+      { "real": -0.10538328811526299, "imag": 0.9246602339954608, "zoom": 12 },
+      { "real": -0.11273874342441559, "imag": 0.9306590888545648, "zoom": 11 },
+      { "real": -1.7914929389953613, "imag": 0.007840128847674543, "zoom": 5 },
+      { "real": -1.7767410716041923, "imag": 0.008209272087905154, "zoom": 15 }
+    ]
+  },
+  "datapoints": [
+    {
+      "balancer": "predictionRecursive",
+      "implementation": "mandelbrot",
+      "data": {
+        "poi": {
+          "real": -1.7767410716041923,
+          "imag": 0.008209272087905154,
+          "zoom": 15
+        },
+        "balancer": { "time": 11356, "regionCount": 35 },
+        "workers": [
+          {
+            "rank": 21,
+            "computationTime": 49807,
+            "mpiTime": 0,
+            "drawTime": 500
+          },
+          {
+            "rank": 28,
+            "computationTime": 123574,
+            "mpiTime": 0,
+            "drawTime": 2398
+          },
+          {
+            "rank": 33,
+            "computationTime": 62127,
+            "mpiTime": 0,
+            "drawTime": 2598
+          },
+          {
+            "rank": 31,
+            "computationTime": 20490,
+            "mpiTime": 0,
+            "drawTime": 799
+          },
+          {
+            "rank": 34,
+            "computationTime": 107660,
+            "mpiTime": 0,
+            "drawTime": 1198
+          },
+          {
+            "rank": 6,
+            "computationTime": 237811,
+            "mpiTime": 0,
+            "drawTime": 300
+          },
+          {
+            "rank": 9,
+            "computationTime": 126857,
+            "mpiTime": 0,
+            "drawTime": 899
+          },
+          {
+            "rank": 13,
+            "computationTime": 247632,
+            "mpiTime": 0,
+            "drawTime": 200
+          },
+          {
+            "rank": 20,
+            "computationTime": 261659,
+            "mpiTime": 0,
+            "drawTime": 499
+          },
+          {
+            "rank": 32,
+            "computationTime": 314370,
+            "mpiTime": 0,
+            "drawTime": 400
+          },
+          {
+            "rank": 35,
+            "computationTime": 414633,
+            "mpiTime": 0,
+            "drawTime": 9192
+          },
+          {
+            "rank": 30,
+            "computationTime": 469226,
+            "mpiTime": 0,
+            "drawTime": 399
+          },
+          {
+            "rank": 27,
+            "computationTime": 524256,
+            "mpiTime": 0,
+            "drawTime": 300
+          },
+          {
+            "rank": 16,
+            "computationTime": 543154,
+            "mpiTime": 0,
+            "drawTime": 7793
+          },
+          {
+            "rank": 17,
+            "computationTime": 565384,
+            "mpiTime": 0,
+            "drawTime": 899
+          },
+          {
+            "rank": 26,
+            "computationTime": 623973,
+            "mpiTime": 0,
+            "drawTime": 14290
+          },
+          {
+            "rank": 5,
+            "computationTime": 724339,
+            "mpiTime": 0,
+            "drawTime": 2198
+          },
+          {
+            "rank": 14,
+            "computationTime": 741265,
+            "mpiTime": 0,
+            "drawTime": 2797
+          },
+          {
+            "rank": 15,
+            "computationTime": 743788,
+            "mpiTime": 0,
+            "drawTime": 400
+          },
+          {
+            "rank": 18,
+            "computationTime": 756536,
+            "mpiTime": 0,
+            "drawTime": 300
+          },
+          {
+            "rank": 23,
+            "computationTime": 769933,
+            "mpiTime": 0,
+            "drawTime": 199
+          },
+          {
+            "rank": 19,
+            "computationTime": 778289,
+            "mpiTime": 0,
+            "drawTime": 200
+          },
+          {
+            "rank": 25,
+            "computationTime": 819216,
+            "mpiTime": 0,
+            "drawTime": 1200
+          },
+          {
+            "rank": 8,
+            "computationTime": 835941,
+            "mpiTime": 0,
+            "drawTime": 300
+          },
+          {
+            "rank": 10,
+            "computationTime": 803721,
+            "mpiTime": 0,
+            "drawTime": 300
+          },
+          {
+            "rank": 12,
+            "computationTime": 865973,
+            "mpiTime": 0,
+            "drawTime": 300
+          },
+          {
+            "rank": 7,
+            "computationTime": 815947,
+            "mpiTime": 0,
+            "drawTime": 99
+          },
+          {
+            "rank": 24,
+            "computationTime": 829379,
+            "mpiTime": 0,
+            "drawTime": 199
+          },
+          {
+            "rank": 29,
+            "computationTime": 847070,
+            "mpiTime": 0,
+            "drawTime": 200
+          },
+          {
+            "rank": 11,
+            "computationTime": 943892,
+            "mpiTime": 0,
+            "drawTime": 100
+          },
+          {
+            "rank": 4,
+            "computationTime": 947756,
+            "mpiTime": 0,
+            "drawTime": 200
+          },
+          {
+            "rank": 22,
+            "computationTime": 936676,
+            "mpiTime": 0,
+            "drawTime": 1000
+          },
+          {
+            "rank": 1,
+            "computationTime": 1001243,
+            "mpiTime": 0,
+            "drawTime": 11990
+          },
+          {
+            "rank": 3,
+            "computationTime": 1049890,
+            "mpiTime": 0,
+            "drawTime": 1799
+          },
+          {
+            "rank": 2,
+            "computationTime": 1234092,
+            "mpiTime": 0,
+            "drawTime": 2398
+          }
+        ]
+      }
+    },
+    {
+      "balancer": "predictionRecursive",
+      "implementation": "mandelbrot",
+      "data": {
+        "poi": {
+          "real": -1.7914929389953613,
+          "imag": 0.007840128847674543,
+          "zoom": 5
+        },
+        "balancer": { "time": 12902, "regionCount": 34 },
+        "workers": [
+          {
+            "rank": 19,
+            "computationTime": 11209,
+            "mpiTime": 0,
+            "drawTime": 699
+          },
+          {
+            "rank": 20,
+            "computationTime": 11865,
+            "mpiTime": 0,
+            "drawTime": 499
+          },
+          {
+            "rank": 31,
+            "computationTime": 46844,
+            "mpiTime": 0,
+            "drawTime": 299
+          },
+          {
+            "rank": 30,
+            "computationTime": 68042,
+            "mpiTime": 0,
+            "drawTime": 799
+          },
+          {
+            "rank": 6,
+            "computationTime": 60877,
+            "mpiTime": 0,
+            "drawTime": 1399
+          },
+          {
+            "rank": 29,
+            "computationTime": 57302,
+            "mpiTime": 0,
+            "drawTime": 299
+          },
+          {
+            "rank": 32,
+            "computationTime": 100898,
+            "mpiTime": 0,
+            "drawTime": 1298
+          },
+          {
+            "rank": 34,
+            "computationTime": 121268,
+            "mpiTime": 0,
+            "drawTime": 2099
+          },
+          {
+            "rank": 5,
+            "computationTime": 56463,
+            "mpiTime": 0,
+            "drawTime": 1000
+          },
+          {
+            "rank": 7,
+            "computationTime": 29281,
+            "mpiTime": 0,
+            "drawTime": 1498
+          },
+          {
+            "rank": 9,
+            "computationTime": 85764,
+            "mpiTime": 0,
+            "drawTime": 2299
+          },
+          {
+            "rank": 27,
+            "computationTime": 145455,
+            "mpiTime": 0,
+            "drawTime": 899
+          },
+          {
+            "rank": 12,
+            "computationTime": 269885,
+            "mpiTime": 0,
+            "drawTime": 400
+          },
+          {
+            "rank": 16,
+            "computationTime": 266990,
+            "mpiTime": 0,
+            "drawTime": 4897
+          },
+          {
+            "rank": 17,
+            "computationTime": 277272,
+            "mpiTime": 0,
+            "drawTime": 3098
+          },
+          {
+            "rank": 14,
+            "computationTime": 266721,
+            "mpiTime": 0,
+            "drawTime": 5797
+          },
+          {
+            "rank": 26,
+            "computationTime": 345857,
+            "mpiTime": 0,
+            "drawTime": 700
+          },
+          {
+            "rank": 33,
+            "computationTime": 316210,
+            "mpiTime": 0,
+            "drawTime": 3498
+          },
+          {
+            "rank": 15,
+            "computationTime": 362023,
+            "mpiTime": 0,
+            "drawTime": 3696
+          },
+          {
+            "rank": 8,
+            "computationTime": 422811,
+            "mpiTime": 0,
+            "drawTime": 699
+          },
+          {
+            "rank": 22,
+            "computationTime": 497989,
+            "mpiTime": 0,
+            "drawTime": 300
+          },
+          {
+            "rank": 3,
+            "computationTime": 505721,
+            "mpiTime": 0,
+            "drawTime": 8893
+          },
+          {
+            "rank": 4,
+            "computationTime": 492916,
+            "mpiTime": 0,
+            "drawTime": 1498
+          },
+          {
+            "rank": 2,
+            "computationTime": 543566,
+            "mpiTime": 0,
+            "drawTime": 5896
+          },
+          {
+            "rank": 24,
+            "computationTime": 570386,
+            "mpiTime": 0,
+            "drawTime": 4998
+          },
+          {
+            "rank": 10,
+            "computationTime": 591274,
+            "mpiTime": 0,
+            "drawTime": 300
+          },
+          {
+            "rank": 18,
+            "computationTime": 546763,
+            "mpiTime": 0,
+            "drawTime": 300
+          },
+          {
+            "rank": 28,
+            "computationTime": 559769,
+            "mpiTime": 0,
+            "drawTime": 500
+          },
+          {
+            "rank": 25,
+            "computationTime": 613145,
+            "mpiTime": 0,
+            "drawTime": 8992
+          },
+          {
+            "rank": 21,
+            "computationTime": 648055,
+            "mpiTime": 0,
+            "drawTime": 1200
+          },
+          {
+            "rank": 1,
+            "computationTime": 661423,
+            "mpiTime": 0,
+            "drawTime": 13788
+          },
+          {
+            "rank": 23,
+            "computationTime": 628830,
+            "mpiTime": 0,
+            "drawTime": 200
+          },
+          {
+            "rank": 13,
+            "computationTime": 746396,
+            "mpiTime": 0,
+            "drawTime": 200
+          },
+          {
+            "rank": 11,
+            "computationTime": 879164,
+            "mpiTime": 0,
+            "drawTime": 2198
+          }
+        ]
+      }
+    },
+    {
+      "balancer": "predictionRecursive",
+      "implementation": "mandelbrot",
+      "data": {
+        "poi": {
+          "real": -0.11273874342441559,
+          "imag": 0.9306590888545648,
+          "zoom": 11
+        },
+        "balancer": { "time": 11729, "regionCount": 37 },
+        "workers": [
+          {
+            "rank": 8,
+            "computationTime": 8984,
+            "mpiTime": 0,
+            "drawTime": 1199
+          },
+          {
+            "rank": 9,
+            "computationTime": 131866,
+            "mpiTime": 0,
+            "drawTime": 3098
+          },
+          {
+            "rank": 26,
+            "computationTime": 133259,
+            "mpiTime": 0,
+            "drawTime": 3898
+          },
+          {
+            "rank": 10,
+            "computationTime": 8141,
+            "mpiTime": 0,
+            "drawTime": 900
+          },
+          {
+            "rank": 13,
+            "computationTime": 169406,
+            "mpiTime": 0,
+            "drawTime": 2000
+          },
+          {
+            "rank": 19,
+            "computationTime": 50465,
+            "mpiTime": 0,
+            "drawTime": 1897
+          },
+          {
+            "rank": 25,
+            "computationTime": 97369,
+            "mpiTime": 0,
+            "drawTime": 1798
+          },
+          {
+            "rank": 32,
+            "computationTime": 154580,
+            "mpiTime": 0,
+            "drawTime": 2099
+          },
+          { "rank": 4, "computationTime": 9270, "mpiTime": 0, "drawTime": 999 },
+          {
+            "rank": 6,
+            "computationTime": 66678,
+            "mpiTime": 0,
+            "drawTime": 999
+          },
+          {
+            "rank": 37,
+            "computationTime": 74013,
+            "mpiTime": 0,
+            "drawTime": 1999
+          },
+          {
+            "rank": 1,
+            "computationTime": 220325,
+            "mpiTime": 0,
+            "drawTime": 1698
+          },
+          {
+            "rank": 5,
+            "computationTime": 182407,
+            "mpiTime": 0,
+            "drawTime": 1900
+          },
+          {
+            "rank": 7,
+            "computationTime": 205979,
+            "mpiTime": 0,
+            "drawTime": 2298
+          },
+          {
+            "rank": 17,
+            "computationTime": 205332,
+            "mpiTime": 0,
+            "drawTime": 2398
+          },
+          {
+            "rank": 20,
+            "computationTime": 219007,
+            "mpiTime": 0,
+            "drawTime": 1798
+          },
+          {
+            "rank": 21,
+            "computationTime": 120323,
+            "mpiTime": 0,
+            "drawTime": 1899
+          },
+          {
+            "rank": 29,
+            "computationTime": 141161,
+            "mpiTime": 0,
+            "drawTime": 2297
+          },
+          {
+            "rank": 33,
+            "computationTime": 199992,
+            "mpiTime": 0,
+            "drawTime": 1098
+          },
+          {
+            "rank": 23,
+            "computationTime": 221760,
+            "mpiTime": 0,
+            "drawTime": 2699
+          },
+          {
+            "rank": 2,
+            "computationTime": 168542,
+            "mpiTime": 0,
+            "drawTime": 1998
+          },
+          {
+            "rank": 27,
+            "computationTime": 214680,
+            "mpiTime": 0,
+            "drawTime": 2997
+          },
+          {
+            "rank": 35,
+            "computationTime": 224951,
+            "mpiTime": 0,
+            "drawTime": 2099
+          },
+          {
+            "rank": 31,
+            "computationTime": 140112,
+            "mpiTime": 0,
+            "drawTime": 2397
+          },
+          {
+            "rank": 16,
+            "computationTime": 252538,
+            "mpiTime": 0,
+            "drawTime": 1898
+          },
+          {
+            "rank": 36,
+            "computationTime": 267787,
+            "mpiTime": 0,
+            "drawTime": 2099
+          },
+          {
+            "rank": 11,
+            "computationTime": 236648,
+            "mpiTime": 0,
+            "drawTime": 2697
+          },
+          {
+            "rank": 34,
+            "computationTime": 219214,
+            "mpiTime": 0,
+            "drawTime": 2798
+          },
+          {
+            "rank": 12,
+            "computationTime": 283530,
+            "mpiTime": 0,
+            "drawTime": 2199
+          },
+          {
+            "rank": 15,
+            "computationTime": 202068,
+            "mpiTime": 0,
+            "drawTime": 2399
+          },
+          {
+            "rank": 24,
+            "computationTime": 214095,
+            "mpiTime": 0,
+            "drawTime": 2297
+          },
+          {
+            "rank": 14,
+            "computationTime": 252490,
+            "mpiTime": 0,
+            "drawTime": 3099
+          },
+          {
+            "rank": 3,
+            "computationTime": 313414,
+            "mpiTime": 0,
+            "drawTime": 3197
+          },
+          {
+            "rank": 30,
+            "computationTime": 279267,
+            "mpiTime": 0,
+            "drawTime": 2197
+          },
+          {
+            "rank": 18,
+            "computationTime": 220287,
+            "mpiTime": 0,
+            "drawTime": 2398
+          },
+          {
+            "rank": 28,
+            "computationTime": 228169,
+            "mpiTime": 0,
+            "drawTime": 2299
+          },
+          {
+            "rank": 22,
+            "computationTime": 291672,
+            "mpiTime": 0,
+            "drawTime": 3198
+          }
+        ]
+      }
+    },
+    {
+      "balancer": "predictionRecursive",
+      "implementation": "mandelbrot",
+      "data": {
+        "poi": {
+          "real": -0.10538328811526299,
+          "imag": 0.9246602339954608,
+          "zoom": 12
+        },
+        "balancer": { "time": 129867, "regionCount": 37 },
+        "workers": [
+          {
+            "rank": 4,
+            "computationTime": 1521444,
+            "mpiTime": 0,
+            "drawTime": 1099
+          },
+          {
+            "rank": 10,
+            "computationTime": 2184007,
+            "mpiTime": 0,
+            "drawTime": 1099
+          },
+          {
+            "rank": 2,
+            "computationTime": 2317095,
+            "mpiTime": 0,
+            "drawTime": 800
+          },
+          {
+            "rank": 6,
+            "computationTime": 2353479,
+            "mpiTime": 0,
+            "drawTime": 899
+          },
+          {
+            "rank": 8,
+            "computationTime": 2291448,
+            "mpiTime": 0,
+            "drawTime": 1099
+          },
+          {
+            "rank": 31,
+            "computationTime": 3595535,
+            "mpiTime": 0,
+            "drawTime": 2597
+          },
+          {
+            "rank": 25,
+            "computationTime": 3774961,
+            "mpiTime": 0,
+            "drawTime": 2297
+          },
+          {
+            "rank": 29,
+            "computationTime": 3774666,
+            "mpiTime": 0,
+            "drawTime": 1400
+          },
+          {
+            "rank": 37,
+            "computationTime": 4003218,
+            "mpiTime": 0,
+            "drawTime": 1399
+          },
+          {
+            "rank": 1,
+            "computationTime": 4145534,
+            "mpiTime": 0,
+            "drawTime": 1599
+          },
+          {
+            "rank": 33,
+            "computationTime": 4057755,
+            "mpiTime": 0,
+            "drawTime": 1998
+          },
+          {
+            "rank": 19,
+            "computationTime": 4203239,
+            "mpiTime": 0,
+            "drawTime": 1799
+          },
+          {
+            "rank": 13,
+            "computationTime": 4152409,
+            "mpiTime": 0,
+            "drawTime": 1099
+          },
+          {
+            "rank": 23,
+            "computationTime": 4205538,
+            "mpiTime": 0,
+            "drawTime": 2298
+          },
+          {
+            "rank": 5,
+            "computationTime": 4293035,
+            "mpiTime": 0,
+            "drawTime": 2299
+          },
+          {
+            "rank": 21,
+            "computationTime": 4236466,
+            "mpiTime": 0,
+            "drawTime": 1398
+          },
+          {
+            "rank": 11,
+            "computationTime": 4303781,
+            "mpiTime": 0,
+            "drawTime": 1899
+          },
+          {
+            "rank": 35,
+            "computationTime": 4250269,
+            "mpiTime": 0,
+            "drawTime": 1897
+          },
+          {
+            "rank": 7,
+            "computationTime": 4387910,
+            "mpiTime": 0,
+            "drawTime": 1898
+          },
+          {
+            "rank": 9,
+            "computationTime": 4349961,
+            "mpiTime": 0,
+            "drawTime": 2098
+          },
+          {
+            "rank": 3,
+            "computationTime": 4438412,
+            "mpiTime": 0,
+            "drawTime": 1298
+          },
+          {
+            "rank": 27,
+            "computationTime": 4406638,
+            "mpiTime": 0,
+            "drawTime": 2198
+          },
+          {
+            "rank": 24,
+            "computationTime": 5100197,
+            "mpiTime": 0,
+            "drawTime": 2997
+          },
+          {
+            "rank": 22,
+            "computationTime": 5221276,
+            "mpiTime": 0,
+            "drawTime": 2799
+          },
+          {
+            "rank": 32,
+            "computationTime": 5224739,
+            "mpiTime": 0,
+            "drawTime": 2999
+          },
+          {
+            "rank": 36,
+            "computationTime": 5312533,
+            "mpiTime": 0,
+            "drawTime": 1999
+          },
+          {
+            "rank": 26,
+            "computationTime": 5334201,
+            "mpiTime": 0,
+            "drawTime": 3097
+          },
+          {
+            "rank": 12,
+            "computationTime": 5520616,
+            "mpiTime": 0,
+            "drawTime": 2997
+          },
+          {
+            "rank": 30,
+            "computationTime": 5471104,
+            "mpiTime": 0,
+            "drawTime": 4396
+          },
+          {
+            "rank": 28,
+            "computationTime": 5548036,
+            "mpiTime": 0,
+            "drawTime": 3098
+          },
+          {
+            "rank": 15,
+            "computationTime": 5645100,
+            "mpiTime": 0,
+            "drawTime": 3496
+          },
+          {
+            "rank": 18,
+            "computationTime": 5693546,
+            "mpiTime": 0,
+            "drawTime": 3199
+          },
+          {
+            "rank": 17,
+            "computationTime": 5712962,
+            "mpiTime": 0,
+            "drawTime": 3798
+          },
+          {
+            "rank": 14,
+            "computationTime": 5777594,
+            "mpiTime": 0,
+            "drawTime": 3899
+          },
+          {
+            "rank": 20,
+            "computationTime": 5781656,
+            "mpiTime": 0,
+            "drawTime": 2099
+          },
+          {
+            "rank": 34,
+            "computationTime": 5767179,
+            "mpiTime": 0,
+            "drawTime": 2798
+          },
+          {
+            "rank": 16,
+            "computationTime": 5849534,
+            "mpiTime": 0,
+            "drawTime": 2897
+          }
+        ]
+      }
+    },
+    {
+      "balancer": "predictionRecursive",
+      "implementation": "mandelbrot",
+      "data": {
+        "poi": {
+          "real": -0.7428462728857994,
+          "imag": 0.2057771115182378,
+          "zoom": 12
+        },
+        "balancer": { "time": 25596, "regionCount": 37 },
+        "workers": [
+          {
+            "rank": 8,
+            "computationTime": 245075,
+            "mpiTime": 0,
+            "drawTime": 1299
+          },
+          {
+            "rank": 21,
+            "computationTime": 268875,
+            "mpiTime": 0,
+            "drawTime": 1599
+          },
+          {
+            "rank": 35,
+            "computationTime": 212944,
+            "mpiTime": 0,
+            "drawTime": 1298
+          },
+          {
+            "rank": 6,
+            "computationTime": 330112,
+            "mpiTime": 0,
+            "drawTime": 1398
+          },
+          {
+            "rank": 7,
+            "computationTime": 419189,
+            "mpiTime": 0,
+            "drawTime": 1399
+          },
+          {
+            "rank": 10,
+            "computationTime": 406548,
+            "mpiTime": 0,
+            "drawTime": 1898
+          },
+          {
+            "rank": 17,
+            "computationTime": 385629,
+            "mpiTime": 0,
+            "drawTime": 1798
+          },
+          {
+            "rank": 19,
+            "computationTime": 264980,
+            "mpiTime": 0,
+            "drawTime": 1398
+          },
+          {
+            "rank": 33,
+            "computationTime": 381729,
+            "mpiTime": 0,
+            "drawTime": 1698
+          },
+          {
+            "rank": 3,
+            "computationTime": 490831,
+            "mpiTime": 0,
+            "drawTime": 2897
+          },
+          {
+            "rank": 2,
+            "computationTime": 543560,
+            "mpiTime": 0,
+            "drawTime": 2698
+          },
+          {
+            "rank": 37,
+            "computationTime": 477326,
+            "mpiTime": 0,
+            "drawTime": 2799
+          },
+          {
+            "rank": 36,
+            "computationTime": 517794,
+            "mpiTime": 0,
+            "drawTime": 3498
+          },
+          {
+            "rank": 4,
+            "computationTime": 599064,
+            "mpiTime": 0,
+            "drawTime": 1799
+          },
+          {
+            "rank": 9,
+            "computationTime": 615374,
+            "mpiTime": 0,
+            "drawTime": 2399
+          },
+          {
+            "rank": 29,
+            "computationTime": 570585,
+            "mpiTime": 0,
+            "drawTime": 2399
+          },
+          {
+            "rank": 1,
+            "computationTime": 649372,
+            "mpiTime": 0,
+            "drawTime": 4197
+          },
+          {
+            "rank": 27,
+            "computationTime": 521954,
+            "mpiTime": 0,
+            "drawTime": 1998
+          },
+          {
+            "rank": 13,
+            "computationTime": 630415,
+            "mpiTime": 0,
+            "drawTime": 2397
+          },
+          {
+            "rank": 18,
+            "computationTime": 600339,
+            "mpiTime": 0,
+            "drawTime": 2198
+          },
+          {
+            "rank": 28,
+            "computationTime": 582577,
+            "mpiTime": 0,
+            "drawTime": 400
+          },
+          {
+            "rank": 11,
+            "computationTime": 703592,
+            "mpiTime": 0,
+            "drawTime": 3097
+          },
+          {
+            "rank": 26,
+            "computationTime": 596585,
+            "mpiTime": 0,
+            "drawTime": 800
+          },
+          {
+            "rank": 5,
+            "computationTime": 713714,
+            "mpiTime": 0,
+            "drawTime": 3598
+          },
+          {
+            "rank": 20,
+            "computationTime": 622035,
+            "mpiTime": 0,
+            "drawTime": 2898
+          },
+          {
+            "rank": 22,
+            "computationTime": 766229,
+            "mpiTime": 0,
+            "drawTime": 2498
+          },
+          {
+            "rank": 31,
+            "computationTime": 776099,
+            "mpiTime": 0,
+            "drawTime": 2997
+          },
+          {
+            "rank": 15,
+            "computationTime": 847531,
+            "mpiTime": 0,
+            "drawTime": 2997
+          },
+          {
+            "rank": 16,
+            "computationTime": 822867,
+            "mpiTime": 0,
+            "drawTime": 3197
+          },
+          {
+            "rank": 25,
+            "computationTime": 833000,
+            "mpiTime": 0,
+            "drawTime": 599
+          },
+          {
+            "rank": 32,
+            "computationTime": 833639,
+            "mpiTime": 0,
+            "drawTime": 3495
+          },
+          {
+            "rank": 24,
+            "computationTime": 788144,
+            "mpiTime": 0,
+            "drawTime": 1997
+          },
+          {
+            "rank": 14,
+            "computationTime": 883565,
+            "mpiTime": 0,
+            "drawTime": 3699
+          },
+          {
+            "rank": 12,
+            "computationTime": 867819,
+            "mpiTime": 0,
+            "drawTime": 2998
+          },
+          {
+            "rank": 30,
+            "computationTime": 795753,
+            "mpiTime": 0,
+            "drawTime": 2598
+          },
+          {
+            "rank": 34,
+            "computationTime": 790738,
+            "mpiTime": 0,
+            "drawTime": 3099
+          },
+          {
+            "rank": 23,
+            "computationTime": 954704,
+            "mpiTime": 0,
+            "drawTime": 500
+          }
+        ]
+      }
+    },
+    {
+      "balancer": "predictionRecursive",
+      "implementation": "mandelbrot",
+      "data": {
+        "poi": {
+          "real": -1.4102668762207031,
+          "imag": 0.06935050509118243,
+          "zoom": 3
+        },
+        "balancer": { "time": 43416, "regionCount": 36 },
+        "workers": [
+          {
+            "rank": 5,
+            "computationTime": 161962,
+            "mpiTime": 0,
+            "drawTime": 2999
+          },
+          {
+            "rank": 18,
+            "computationTime": 718704,
+            "mpiTime": 0,
+            "drawTime": 299
+          },
+          {
+            "rank": 20,
+            "computationTime": 701186,
+            "mpiTime": 0,
+            "drawTime": 500
+          },
+          {
+            "rank": 32,
+            "computationTime": 660378,
+            "mpiTime": 0,
+            "drawTime": 499
+          },
+          {
+            "rank": 31,
+            "computationTime": 731908,
+            "mpiTime": 0,
+            "drawTime": 399
+          },
+          {
+            "rank": 36,
+            "computationTime": 763857,
+            "mpiTime": 0,
+            "drawTime": 399
+          },
+          {
+            "rank": 6,
+            "computationTime": 780104,
+            "mpiTime": 0,
+            "drawTime": 1898
+          },
+          {
+            "rank": 19,
+            "computationTime": 782892,
+            "mpiTime": 0,
+            "drawTime": 300
+          },
+          {
+            "rank": 24,
+            "computationTime": 782923,
+            "mpiTime": 0,
+            "drawTime": 400
+          },
+          {
+            "rank": 34,
+            "computationTime": 787820,
+            "mpiTime": 0,
+            "drawTime": 400
+          },
+          {
+            "rank": 35,
+            "computationTime": 782488,
+            "mpiTime": 0,
+            "drawTime": 400
+          },
+          {
+            "rank": 10,
+            "computationTime": 819508,
+            "mpiTime": 0,
+            "drawTime": 400
+          },
+          {
+            "rank": 30,
+            "computationTime": 830151,
+            "mpiTime": 0,
+            "drawTime": 400
+          },
+          {
+            "rank": 26,
+            "computationTime": 847600,
+            "mpiTime": 0,
+            "drawTime": 499
+          },
+          {
+            "rank": 22,
+            "computationTime": 943173,
+            "mpiTime": 0,
+            "drawTime": 400
+          },
+          {
+            "rank": 28,
+            "computationTime": 944813,
+            "mpiTime": 0,
+            "drawTime": 400
+          },
+          {
+            "rank": 33,
+            "computationTime": 1228367,
+            "mpiTime": 0,
+            "drawTime": 799
+          },
+          {
+            "rank": 15,
+            "computationTime": 1290630,
+            "mpiTime": 0,
+            "drawTime": 799
+          },
+          {
+            "rank": 4,
+            "computationTime": 1360441,
+            "mpiTime": 0,
+            "drawTime": 600
+          },
+          {
+            "rank": 17,
+            "computationTime": 1357052,
+            "mpiTime": 0,
+            "drawTime": 799
+          },
+          {
+            "rank": 16,
+            "computationTime": 1399941,
+            "mpiTime": 0,
+            "drawTime": 10890
+          },
+          {
+            "rank": 7,
+            "computationTime": 1436120,
+            "mpiTime": 0,
+            "drawTime": 500
+          },
+          {
+            "rank": 8,
+            "computationTime": 1419381,
+            "mpiTime": 0,
+            "drawTime": 500
+          },
+          {
+            "rank": 27,
+            "computationTime": 1444286,
+            "mpiTime": 0,
+            "drawTime": 800
+          },
+          {
+            "rank": 21,
+            "computationTime": 1515385,
+            "mpiTime": 0,
+            "drawTime": 899
+          },
+          {
+            "rank": 9,
+            "computationTime": 1517477,
+            "mpiTime": 0,
+            "drawTime": 1798
+          },
+          {
+            "rank": 29,
+            "computationTime": 1478313,
+            "mpiTime": 0,
+            "drawTime": 1599
+          },
+          {
+            "rank": 23,
+            "computationTime": 1521972,
+            "mpiTime": 0,
+            "drawTime": 799
+          },
+          {
+            "rank": 3,
+            "computationTime": 1644324,
+            "mpiTime": 0,
+            "drawTime": 4696
+          },
+          {
+            "rank": 25,
+            "computationTime": 1599736,
+            "mpiTime": 0,
+            "drawTime": 999
+          },
+          {
+            "rank": 14,
+            "computationTime": 1642618,
+            "mpiTime": 0,
+            "drawTime": 5694
+          },
+          {
+            "rank": 13,
+            "computationTime": 1760073,
+            "mpiTime": 0,
+            "drawTime": 899
+          },
+          {
+            "rank": 12,
+            "computationTime": 1839379,
+            "mpiTime": 0,
+            "drawTime": 1199
+          },
+          {
+            "rank": 2,
+            "computationTime": 1900827,
+            "mpiTime": 0,
+            "drawTime": 4497
+          },
+          {
+            "rank": 1,
+            "computationTime": 1966471,
+            "mpiTime": 0,
+            "drawTime": 25578
+          },
+          {
+            "rank": 11,
+            "computationTime": 1966058,
+            "mpiTime": 0,
+            "drawTime": 1998
+          }
+        ]
+      }
+    },
+    {
+      "balancer": "predictionRecursive",
+      "implementation": "mandelbrot",
+      "data": {
+        "poi": {
+          "real": -0.04926860332489014,
+          "imag": 0.9887520653946033,
+          "zoom": 1
+        },
+        "balancer": { "time": 10278, "regionCount": 29 },
+        "workers": [
+          {
+            "rank": 24,
+            "computationTime": 101033,
+            "mpiTime": 0,
+            "drawTime": 2398
+          },
+          {
+            "rank": 29,
+            "computationTime": 121280,
+            "mpiTime": 0,
+            "drawTime": 2498
+          },
+          {
+            "rank": 28,
+            "computationTime": 140407,
+            "mpiTime": 0,
+            "drawTime": 300
+          },
+          {
+            "rank": 21,
+            "computationTime": 331247,
+            "mpiTime": 0,
+            "drawTime": 3597
+          },
+          {
+            "rank": 23,
+            "computationTime": 374809,
+            "mpiTime": 0,
+            "drawTime": 400
+          },
+          {
+            "rank": 18,
+            "computationTime": 489843,
+            "mpiTime": 0,
+            "drawTime": 3497
+          },
+          {
+            "rank": 8,
+            "computationTime": 538198,
+            "mpiTime": 0,
+            "drawTime": 3196
+          },
+          {
+            "rank": 22,
+            "computationTime": 522490,
+            "mpiTime": 0,
+            "drawTime": 20982
+          },
+          {
+            "rank": 3,
+            "computationTime": 671588,
+            "mpiTime": 0,
+            "drawTime": 3197
+          },
+          {
+            "rank": 9,
+            "computationTime": 569001,
+            "mpiTime": 0,
+            "drawTime": 400
+          },
+          {
+            "rank": 11,
+            "computationTime": 700407,
+            "mpiTime": 0,
+            "drawTime": 400
+          },
+          {
+            "rank": 15,
+            "computationTime": 543117,
+            "mpiTime": 0,
+            "drawTime": 500
+          },
+          {
+            "rank": 16,
+            "computationTime": 612505,
+            "mpiTime": 0,
+            "drawTime": 300
+          },
+          {
+            "rank": 19,
+            "computationTime": 656473,
+            "mpiTime": 0,
+            "drawTime": 499
+          },
+          {
+            "rank": 27,
+            "computationTime": 681641,
+            "mpiTime": 0,
+            "drawTime": 400
+          },
+          {
+            "rank": 25,
+            "computationTime": 708701,
+            "mpiTime": 0,
+            "drawTime": 300
+          },
+          {
+            "rank": 26,
+            "computationTime": 719968,
+            "mpiTime": 0,
+            "drawTime": 300
+          },
+          {
+            "rank": 13,
+            "computationTime": 729466,
+            "mpiTime": 0,
+            "drawTime": 300
+          },
+          {
+            "rank": 7,
+            "computationTime": 734650,
+            "mpiTime": 0,
+            "drawTime": 399
+          },
+          {
+            "rank": 20,
+            "computationTime": 747931,
+            "mpiTime": 0,
+            "drawTime": 300
+          },
+          {
+            "rank": 10,
+            "computationTime": 751772,
+            "mpiTime": 0,
+            "drawTime": 400
+          },
+          {
+            "rank": 14,
+            "computationTime": 751491,
+            "mpiTime": 0,
+            "drawTime": 399
+          },
+          {
+            "rank": 17,
+            "computationTime": 758602,
+            "mpiTime": 0,
+            "drawTime": 2598
+          },
+          {
+            "rank": 6,
+            "computationTime": 726596,
+            "mpiTime": 0,
+            "drawTime": 200
+          },
+          {
+            "rank": 4,
+            "computationTime": 767914,
+            "mpiTime": 0,
+            "drawTime": 299
+          },
+          {
+            "rank": 1,
+            "computationTime": 821505,
+            "mpiTime": 0,
+            "drawTime": 22379
+          },
+          {
+            "rank": 2,
+            "computationTime": 902607,
+            "mpiTime": 0,
+            "drawTime": 3199
+          },
+          {
+            "rank": 12,
+            "computationTime": 922097,
+            "mpiTime": 0,
+            "drawTime": 1897
+          },
+          {
+            "rank": 5,
+            "computationTime": 1013842,
+            "mpiTime": 0,
+            "drawTime": 2398
+          }
+        ]
+      }
+    },
+    {
+      "balancer": "predictionRecursive",
+      "implementation": "mandelbrot",
+      "data": {
+        "poi": { "real": 0, "imag": 0, "zoom": 0 },
+        "balancer": { "time": 13477, "regionCount": 35 },
+        "workers": [
+          {
+            "rank": 21,
+            "computationTime": 9040,
+            "mpiTime": 0,
+            "drawTime": 799
+          },
+          {
+            "rank": 33,
+            "computationTime": 22794,
+            "mpiTime": 0,
+            "drawTime": 2498
+          },
+          {
+            "rank": 28,
+            "computationTime": 89929,
+            "mpiTime": 0,
+            "drawTime": 2498
+          },
+          {
+            "rank": 30,
+            "computationTime": 112049,
+            "mpiTime": 0,
+            "drawTime": 399
+          },
+          {
+            "rank": 34,
+            "computationTime": 135036,
+            "mpiTime": 0,
+            "drawTime": 1799
+          },
+          {
+            "rank": 20,
+            "computationTime": 210002,
+            "mpiTime": 0,
+            "drawTime": 700
+          },
+          {
+            "rank": 14,
+            "computationTime": 231247,
+            "mpiTime": 0,
+            "drawTime": 3297
+          },
+          {
+            "rank": 31,
+            "computationTime": 98252,
+            "mpiTime": 0,
+            "drawTime": 1199
+          },
+          {
+            "rank": 32,
+            "computationTime": 251733,
+            "mpiTime": 0,
+            "drawTime": 500
+          },
+          {
+            "rank": 9,
+            "computationTime": 427890,
+            "mpiTime": 0,
+            "drawTime": 1300
+          },
+          {
+            "rank": 12,
+            "computationTime": 427097,
+            "mpiTime": 0,
+            "drawTime": 300
+          },
+          {
+            "rank": 27,
+            "computationTime": 508961,
+            "mpiTime": 0,
+            "drawTime": 400
+          },
+          {
+            "rank": 16,
+            "computationTime": 581541,
+            "mpiTime": 0,
+            "drawTime": 8891
+          },
+          {
+            "rank": 35,
+            "computationTime": 594161,
+            "mpiTime": 0,
+            "drawTime": 9393
+          },
+          {
+            "rank": 26,
+            "computationTime": 627589,
+            "mpiTime": 0,
+            "drawTime": 16087
+          },
+          {
+            "rank": 17,
+            "computationTime": 675168,
+            "mpiTime": 0,
+            "drawTime": 900
+          },
+          {
+            "rank": 10,
+            "computationTime": 799417,
+            "mpiTime": 0,
+            "drawTime": 500
+          },
+          {
+            "rank": 8,
+            "computationTime": 811492,
+            "mpiTime": 0,
+            "drawTime": 200
+          },
+          {
+            "rank": 15,
+            "computationTime": 859873,
+            "mpiTime": 0,
+            "drawTime": 400
+          },
+          {
+            "rank": 23,
+            "computationTime": 854690,
+            "mpiTime": 0,
+            "drawTime": 500
+          },
+          {
+            "rank": 19,
+            "computationTime": 853941,
+            "mpiTime": 0,
+            "drawTime": 399
+          },
+          {
+            "rank": 6,
+            "computationTime": 754334,
+            "mpiTime": 0,
+            "drawTime": 300
+          },
+          {
+            "rank": 25,
+            "computationTime": 914520,
+            "mpiTime": 0,
+            "drawTime": 2399
+          },
+          {
+            "rank": 13,
+            "computationTime": 901555,
+            "mpiTime": 0,
+            "drawTime": 399
+          },
+          {
+            "rank": 11,
+            "computationTime": 930135,
+            "mpiTime": 0,
+            "drawTime": 400
+          },
+          {
+            "rank": 7,
+            "computationTime": 920322,
+            "mpiTime": 0,
+            "drawTime": 300
+          },
+          {
+            "rank": 24,
+            "computationTime": 942382,
+            "mpiTime": 0,
+            "drawTime": 300
+          },
+          {
+            "rank": 1,
+            "computationTime": 967469,
+            "mpiTime": 0,
+            "drawTime": 10890
+          },
+          {
+            "rank": 18,
+            "computationTime": 950282,
+            "mpiTime": 0,
+            "drawTime": 299
+          },
+          {
+            "rank": 29,
+            "computationTime": 974334,
+            "mpiTime": 0,
+            "drawTime": 200
+          },
+          {
+            "rank": 4,
+            "computationTime": 1009103,
+            "mpiTime": 0,
+            "drawTime": 300
+          },
+          {
+            "rank": 5,
+            "computationTime": 847375,
+            "mpiTime": 0,
+            "drawTime": 1599
+          },
+          {
+            "rank": 22,
+            "computationTime": 1023800,
+            "mpiTime": 0,
+            "drawTime": 1099
+          },
+          {
+            "rank": 3,
+            "computationTime": 1045065,
+            "mpiTime": 0,
+            "drawTime": 1298
+          },
+          {
+            "rank": 2,
+            "computationTime": 1132022,
+            "mpiTime": 0,
+            "drawTime": 1999
+          }
+        ]
+      }
+    },
+    {
+      "balancer": "naive",
+      "implementation": "mandelbrot",
+      "data": {
+        "poi": {
+          "real": -1.7767410716041923,
+          "imag": 0.008209272087905154,
+          "zoom": 15
+        },
+        "balancer": { "time": 8, "regionCount": 12 },
+        "workers": [
+          {
+            "rank": 2,
+            "computationTime": 138421,
+            "mpiTime": 0,
+            "drawTime": 6490
+          },
+          {
+            "rank": 1,
+            "computationTime": 154557,
+            "mpiTime": 0,
+            "drawTime": 6895
+          },
+          {
+            "rank": 11,
+            "computationTime": 175368,
+            "mpiTime": 0,
+            "drawTime": 5896
+          },
+          {
+            "rank": 12,
+            "computationTime": 182477,
+            "mpiTime": 0,
+            "drawTime": 5796
+          },
+          {
+            "rank": 3,
+            "computationTime": 280991,
+            "mpiTime": 0,
+            "drawTime": 5297
+          },
+          {
+            "rank": 10,
+            "computationTime": 276269,
+            "mpiTime": 0,
+            "drawTime": 6593
+          },
+          {
+            "rank": 9,
+            "computationTime": 541741,
+            "mpiTime": 0,
+            "drawTime": 5395
+          },
+          {
+            "rank": 4,
+            "computationTime": 863382,
+            "mpiTime": 0,
+            "drawTime": 6298
+          },
+          {
+            "rank": 5,
+            "computationTime": 1161158,
+            "mpiTime": 0,
+            "drawTime": 7093
+          },
+          {
+            "rank": 8,
+            "computationTime": 1422977,
+            "mpiTime": 0,
+            "drawTime": 5995
+          },
+          {
+            "rank": 7,
+            "computationTime": 1654853,
+            "mpiTime": 0,
+            "drawTime": 5097
+          },
+          {
+            "rank": 6,
+            "computationTime": 1705594,
+            "mpiTime": 0,
+            "drawTime": 5594
+          }
+        ]
+      }
+    },
+    {
+      "balancer": "naive",
+      "implementation": "mandelbrot",
+      "data": {
+        "poi": {
+          "real": -1.7914929389953613,
+          "imag": 0.007840128847674543,
+          "zoom": 5
+        },
+        "balancer": { "time": 15, "regionCount": 12 },
+        "workers": [
+          {
+            "rank": 1,
+            "computationTime": 59319,
+            "mpiTime": 0,
+            "drawTime": 7095
+          },
+          {
+            "rank": 10,
+            "computationTime": 154606,
+            "mpiTime": 0,
+            "drawTime": 8794
+          },
+          {
+            "rank": 3,
+            "computationTime": 165939,
+            "mpiTime": 0,
+            "drawTime": 37892
+          },
+          {
+            "rank": 4,
+            "computationTime": 198502,
+            "mpiTime": 0,
+            "drawTime": 8492
+          },
+          {
+            "rank": 2,
+            "computationTime": 255623,
+            "mpiTime": 0,
+            "drawTime": 7393
+          },
+          {
+            "rank": 12,
+            "computationTime": 250959,
+            "mpiTime": 0,
+            "drawTime": 7893
+          },
+          {
+            "rank": 11,
+            "computationTime": 297369,
+            "mpiTime": 0,
+            "drawTime": 8593
+          },
+          {
+            "rank": 5,
+            "computationTime": 314996,
+            "mpiTime": 0,
+            "drawTime": 9494
+          },
+          {
+            "rank": 9,
+            "computationTime": 871610,
+            "mpiTime": 0,
+            "drawTime": 5994
+          },
+          {
+            "rank": 6,
+            "computationTime": 896990,
+            "mpiTime": 0,
+            "drawTime": 8294
+          },
+          {
+            "rank": 7,
+            "computationTime": 1184053,
+            "mpiTime": 0,
+            "drawTime": 6195
+          },
+          {
+            "rank": 8,
+            "computationTime": 1226039,
+            "mpiTime": 0,
+            "drawTime": 5196
+          }
+        ]
+      }
+    },
+    {
+      "balancer": "naive",
+      "implementation": "mandelbrot",
+      "data": {
+        "poi": {
+          "real": -0.11273874342441559,
+          "imag": 0.9306590888545648,
+          "zoom": 11
+        },
+        "balancer": { "time": 1067, "regionCount": 12 },
+        "workers": [
+          {
+            "rank": 9,
+            "computationTime": 194602,
+            "mpiTime": 0,
+            "drawTime": 6394
+          },
+          {
+            "rank": 7,
+            "computationTime": 240721,
+            "mpiTime": 0,
+            "drawTime": 7396
+          },
+          {
+            "rank": 2,
+            "computationTime": 228490,
+            "mpiTime": 0,
+            "drawTime": 7393
+          },
+          {
+            "rank": 5,
+            "computationTime": 252582,
+            "mpiTime": 0,
+            "drawTime": 7095
+          },
+          {
+            "rank": 10,
+            "computationTime": 274198,
+            "mpiTime": 0,
+            "drawTime": 7694
+          },
+          {
+            "rank": 8,
+            "computationTime": 285455,
+            "mpiTime": 0,
+            "drawTime": 7194
+          },
+          {
+            "rank": 1,
+            "computationTime": 307621,
+            "mpiTime": 0,
+            "drawTime": 7893
+          },
+          {
+            "rank": 12,
+            "computationTime": 313827,
+            "mpiTime": 0,
+            "drawTime": 7595
+          },
+          {
+            "rank": 6,
+            "computationTime": 344267,
+            "mpiTime": 0,
+            "drawTime": 9393
+          },
+          {
+            "rank": 4,
+            "computationTime": 366990,
+            "mpiTime": 0,
+            "drawTime": 7494
+          },
+          {
+            "rank": 11,
+            "computationTime": 405825,
+            "mpiTime": 0,
+            "drawTime": 13195
+          },
+          {
+            "rank": 3,
+            "computationTime": 446426,
+            "mpiTime": 0,
+            "drawTime": 8992
+          }
+        ]
+      }
+    },
+    {
+      "balancer": "naive",
+      "implementation": "mandelbrot",
+      "data": {
+        "poi": {
+          "real": -0.10538328811526299,
+          "imag": 0.9246602339954608,
+          "zoom": 12
+        },
+        "balancer": { "time": 30, "regionCount": 12 },
+        "workers": [
+          {
+            "rank": 5,
+            "computationTime": 5967955,
+            "mpiTime": 0,
+            "drawTime": 5297
+          },
+          {
+            "rank": 12,
+            "computationTime": 6229434,
+            "mpiTime": 0,
+            "drawTime": 4898
+          },
+          {
+            "rank": 9,
+            "computationTime": 6274767,
+            "mpiTime": 0,
+            "drawTime": 6495
+          },
+          {
+            "rank": 6,
+            "computationTime": 6405131,
+            "mpiTime": 0,
+            "drawTime": 7594
+          },
+          {
+            "rank": 10,
+            "computationTime": 6486184,
+            "mpiTime": 0,
+            "drawTime": 7895
+          },
+          {
+            "rank": 4,
+            "computationTime": 6532873,
+            "mpiTime": 0,
+            "drawTime": 7593
+          },
+          {
+            "rank": 2,
+            "computationTime": 6549649,
+            "mpiTime": 0,
+            "drawTime": 7893
+          },
+          {
+            "rank": 7,
+            "computationTime": 6623521,
+            "mpiTime": 0,
+            "drawTime": 4897
+          },
+          {
+            "rank": 1,
+            "computationTime": 6624564,
+            "mpiTime": 0,
+            "drawTime": 6593
+          },
+          {
+            "rank": 8,
+            "computationTime": 6681676,
+            "mpiTime": 0,
+            "drawTime": 6894
+          },
+          {
+            "rank": 3,
+            "computationTime": 6675516,
+            "mpiTime": 0,
+            "drawTime": 7594
+          },
+          {
+            "rank": 11,
+            "computationTime": 6880081,
+            "mpiTime": 0,
+            "drawTime": 5196
+          }
+        ]
+      }
+    },
+    {
+      "balancer": "naive",
+      "implementation": "mandelbrot",
+      "data": {
+        "poi": {
+          "real": -0.7428462728857994,
+          "imag": 0.2057771115182378,
+          "zoom": 12
+        },
+        "balancer": { "time": 13, "regionCount": 13 },
+        "workers": [
+          {
+            "rank": 9,
+            "computationTime": 240058,
+            "mpiTime": 0,
+            "drawTime": 6095
+          },
+          {
+            "rank": 13,
+            "computationTime": 633247,
+            "mpiTime": 0,
+            "drawTime": 6594
+          },
+          {
+            "rank": 12,
+            "computationTime": 737280,
+            "mpiTime": 0,
+            "drawTime": 7496
+          },
+          {
+            "rank": 10,
+            "computationTime": 779048,
+            "mpiTime": 0,
+            "drawTime": 7295
+          },
+          {
+            "rank": 11,
+            "computationTime": 819503,
+            "mpiTime": 0,
+            "drawTime": 10693
+          },
+          {
+            "rank": 1,
+            "computationTime": 835483,
+            "mpiTime": 0,
+            "drawTime": 6794
+          },
+          {
+            "rank": 5,
+            "computationTime": 841305,
+            "mpiTime": 0,
+            "drawTime": 8894
+          },
+          {
+            "rank": 8,
+            "computationTime": 817941,
+            "mpiTime": 0,
+            "drawTime": 6193
+          },
+          {
+            "rank": 7,
+            "computationTime": 851065,
+            "mpiTime": 0,
+            "drawTime": 7492
+          },
+          {
+            "rank": 6,
+            "computationTime": 900015,
+            "mpiTime": 0,
+            "drawTime": 4896
+          },
+          {
+            "rank": 3,
+            "computationTime": 1037472,
+            "mpiTime": 0,
+            "drawTime": 6995
+          },
+          {
+            "rank": 4,
+            "computationTime": 1115567,
+            "mpiTime": 0,
+            "drawTime": 9093
+          },
+          {
+            "rank": 2,
+            "computationTime": 1318695,
+            "mpiTime": 0,
+            "drawTime": 7093
+          }
+        ]
+      }
+    },
+    {
+      "balancer": "naive",
+      "implementation": "mandelbrot",
+      "data": {
+        "poi": {
+          "real": -1.4102668762207031,
+          "imag": 0.06935050509118243,
+          "zoom": 3
+        },
+        "balancer": { "time": 11, "regionCount": 12 },
+        "workers": [
+          {
+            "rank": 3,
+            "computationTime": 800700,
+            "mpiTime": 0,
+            "drawTime": 5996
+          },
+          {
+            "rank": 1,
+            "computationTime": 867767,
+            "mpiTime": 0,
+            "drawTime": 5893
+          },
+          {
+            "rank": 2,
+            "computationTime": 992940,
+            "mpiTime": 0,
+            "drawTime": 7196
+          },
+          {
+            "rank": 12,
+            "computationTime": 1213052,
+            "mpiTime": 0,
+            "drawTime": 5397
+          },
+          {
+            "rank": 6,
+            "computationTime": 1643334,
+            "mpiTime": 0,
+            "drawTime": 6794
+          },
+          {
+            "rank": 4,
+            "computationTime": 1593043,
+            "mpiTime": 0,
+            "drawTime": 8093
+          },
+          {
+            "rank": 5,
+            "computationTime": 1663701,
+            "mpiTime": 0,
+            "drawTime": 6196
+          },
+          {
+            "rank": 11,
+            "computationTime": 1770858,
+            "mpiTime": 0,
+            "drawTime": 5395
+          },
+          {
+            "rank": 10,
+            "computationTime": 2242004,
+            "mpiTime": 0,
+            "drawTime": 5195
+          },
+          {
+            "rank": 7,
+            "computationTime": 2267241,
+            "mpiTime": 0,
+            "drawTime": 5494
+          },
+          {
+            "rank": 9,
+            "computationTime": 2298836,
+            "mpiTime": 0,
+            "drawTime": 7794
+          },
+          {
+            "rank": 8,
+            "computationTime": 2290689,
+            "mpiTime": 0,
+            "drawTime": 5394
+          }
+        ]
+      }
+    },
+    {
+      "balancer": "naive",
+      "implementation": "mandelbrot",
+      "data": {
+        "poi": {
+          "real": -0.04926860332489014,
+          "imag": 0.9887520653946033,
+          "zoom": 1
+        },
+        "balancer": { "time": 45, "regionCount": 12 },
+        "workers": [
+          {
+            "rank": 3,
+            "computationTime": 102498,
+            "mpiTime": 0,
+            "drawTime": 7197
+          },
+          {
+            "rank": 1,
+            "computationTime": 134548,
+            "mpiTime": 0,
+            "drawTime": 9692
+          },
+          {
+            "rank": 4,
+            "computationTime": 134483,
+            "mpiTime": 0,
+            "drawTime": 7793
+          },
+          {
+            "rank": 2,
+            "computationTime": 168645,
+            "mpiTime": 0,
+            "drawTime": 7094
+          },
+          {
+            "rank": 6,
+            "computationTime": 137840,
+            "mpiTime": 0,
+            "drawTime": 7594
+          },
+          {
+            "rank": 5,
+            "computationTime": 218010,
+            "mpiTime": 0,
+            "drawTime": 8194
+          },
+          {
+            "rank": 7,
+            "computationTime": 286361,
+            "mpiTime": 0,
+            "drawTime": 6195
+          },
+          {
+            "rank": 8,
+            "computationTime": 503862,
+            "mpiTime": 0,
+            "drawTime": 7994
+          },
+          {
+            "rank": 9,
+            "computationTime": 784551,
+            "mpiTime": 0,
+            "drawTime": 8095
+          },
+          {
+            "rank": 11,
+            "computationTime": 1455706,
+            "mpiTime": 0,
+            "drawTime": 6594
+          },
+          {
+            "rank": 12,
+            "computationTime": 1476692,
+            "mpiTime": 0,
+            "drawTime": 7295
+          },
+          {
+            "rank": 10,
+            "computationTime": 1506441,
+            "mpiTime": 0,
+            "drawTime": 5296
+          }
+        ]
+      }
+    },
+    {
+      "balancer": "naive",
+      "implementation": "mandelbrot",
+      "data": {
+        "poi": { "real": 0, "imag": 0, "zoom": 0 },
+        "balancer": { "time": 15, "regionCount": 12 },
+        "workers": [
+          {
+            "rank": 2,
+            "computationTime": 47454,
+            "mpiTime": 0,
+            "drawTime": 6095
+          },
+          {
+            "rank": 1,
+            "computationTime": 166529,
+            "mpiTime": 0,
+            "drawTime": 7793
+          },
+          {
+            "rank": 11,
+            "computationTime": 111169,
+            "mpiTime": 0,
+            "drawTime": 6295
+          },
+          {
+            "rank": 12,
+            "computationTime": 126755,
+            "mpiTime": 0,
+            "drawTime": 7695
+          },
+          {
+            "rank": 3,
+            "computationTime": 346797,
+            "mpiTime": 0,
+            "drawTime": 4897
+          },
+          {
+            "rank": 10,
+            "computationTime": 359264,
+            "mpiTime": 0,
+            "drawTime": 7396
+          },
+          {
+            "rank": 9,
+            "computationTime": 626611,
+            "mpiTime": 0,
+            "drawTime": 6592
+          },
+          {
+            "rank": 4,
+            "computationTime": 737821,
+            "mpiTime": 0,
+            "drawTime": 6694
+          },
+          {
+            "rank": 5,
+            "computationTime": 1097132,
+            "mpiTime": 0,
+            "drawTime": 4795
+          },
+          {
+            "rank": 8,
+            "computationTime": 1240146,
+            "mpiTime": 0,
+            "drawTime": 6994
+          },
+          {
+            "rank": 7,
+            "computationTime": 1414966,
+            "mpiTime": 0,
+            "drawTime": 6795
+          },
+          {
+            "rank": 6,
+            "computationTime": 1505154,
+            "mpiTime": 0,
+            "drawTime": 5196
+          }
+        ]
+      }
+    }
+  ]
+}
