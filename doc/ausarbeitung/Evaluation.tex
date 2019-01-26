@@ -206,8 +206,9 @@ Die Messungen fanden unter den selben Bedingungen wie die Obigen statt, allerdin
 	\label{fig:balancers_prediction_accuracy}
 \end{figure}
 
-In \autoref{fig:balancers_prediction_accuracy} sieht man, dass sich die maximale Rechenzeit schon ab einer Vorhersagegenauigkeit von 2 nicht mehr signifikant verbessert, davor ist die Beschleunigung aber deutlich sichtbar.
-Wie sich am rechten Ende des Diagramms andeutet steigt die für die Lastbalancierung benötigte Zeit exponentiell an, was bei der Definition der Genauigkeit nicht verwunderlich ist.
+In \autoref{fig:balancers_prediction_accuracy} sieht man, dass sich die maximale Rechenzeit schon ab einer Vorhersagegenauigkeit von 4 nicht mehr signifikant verbessert, davor ist die Beschleunigung aber deutlich sichtbar.
+Die für die Lastbalancierung benötigte Zeit steigt exponentiell an, was bei der Definition der Genauigkeit zu erwarten war.
+Ab Genauigkeit 22 übersteigt die Zeit für die Vorhersage sogar die maximale Berechnungsdauer einer Region, was dem Sinn einer Lastbalancierung widerspricht.
 
 %% TODO folgenden absatz einbauen --> ist bereits in Implementierung, haben wir ja auch währenddessen festgestellt
 % Probleme bei der Verwendung des Rekursiven Lastbalanierers:
