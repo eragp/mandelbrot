@@ -2,27 +2,25 @@
 
 % Was ist die Mandelbrotmenge
 \subsection{Die Mandelbrotmenge}
-
 Die Mandelbrotmenge ist eine Teilmenge der komplexen Zahlen.
-Um sie zu berechnen wendet man folgende Formel wiederholt auf jede komplexe Zahl $c$ an:
+Um sie zu berechnen wendet man folgende Formel wiederholt auf eine komplexe Zahl $c \in \mathbb{C}$ an:
 \begin{equation}\label{equ:mandelbrot}
 	z_{n+1} = z_{n}^2 + c, \quad z_0 = 0
 \end{equation}
-In der Mandelbrotmenge befinden sich alle $c$, für die der Betrag von $z_n$ für beliebig große $n$ endlich bleibt.
-Wenn der Betrag von $z$ nach einer Iteration größer als 2 ist, so strebt $z$ gegen unendlich, das zugehörige $c$ liegt also nicht in der Menge.
-Sobald $|z_n| > 2$ kann die Berechnung daher abgebrochen werden \cite{424331}.
+In der Mandelbrotmenge befinden sich alle solche $c$, für die \( \lim_{n \rightarrow \infty} |z_n| < \infty \).
+Wenn nach der \( n \)ten Iteration \( |z_n| > 2 \) ist, so strebt $z$ gegen unendlich, das zugehörige $c$ liegt also nicht in der Menge.
+Somit sobald $|z_n| > 2$ die Berechnung daher abgebrochen werden\cite{424331}.
 
 Um nun für eine beliebige Zahl zu bestimmen, ob diese in der Mandelbrotmenge liegt, müssen
 theoretisch unendlich viele Rechenschritte durchgeführt werden. Zur computergestützten Bestimmung
 werden die Rechenschritte nach einer bestimmten Iteration abgebrochen die Zahl als in der Menge liegend betrachtet.
 
 \subsection{Darstellung der Mandelbrotmenge}
-
-Eine Komplex Zahl \( c \in \mathbb{C} \) lässt sich auch grafisch darstellen, indem man sie in ein zweidimensionales Koordinatensystem einträgt.
+Eine Komplexe Zahl \( c \in \mathbb{C} \) lässt sich grafisch darstellen, indem man sie in ein zweidimensionales Koordinatensystem einträgt.
 Dabei entspricht die x-Koordinate dem Realteil \( Re(c) \) und die y-Koordinate dem Imaginärteil \( Im(c) \).
 Für das Projekt wird ein Ausschnitt des Bildschirmes als zweidimensionale Darstellung des komplexen Raumes
 betrachtet und für jeden darin liegenden Punkt die Zugehörigkeit zur Mandelbrotmenge bestimmt.
-Dabei wird der Raum jedoch diskretisiert, indem jedem Pixel des Bildschirmes die komplexen Koordinaten $c$
+Dabei wird die komplexe Ebene \( \mathbb{C} \) jedoch diskretisiert, indem jedem Pixel des Bildschirmes die komplexen Koordinaten $c$
 der linken oberen Ecke zugeordnet werden.
 
 Die grafische Darstellung der Mandelbrotmenge wird durch Einfärbung des zu $c$ gehörigen Pixels erhalten.
@@ -30,7 +28,7 @@ Die Zahl der benötigten Iterationen bis zum Abbruch der Berechnung bestimmt dab
 innerhalb der Menge und alle Pixel außerhalb jeweils gleichfarbig sind.
 
 Das entstehende Fraktal ist aufgrund seiner Form auch als “Apfelmännchen” bekannt (siehe \autoref{fig:mandelbrot_visualisierung_beispiel}).
-Die Menge ist zusammenhängend, jedoch bilden sich an ihren Rändern viele kleine und sehr komplexe Formen, die visuell ansprechend sind.
+Am Rand der Menge bilden sich viele kleine und sehr komplexe Formen, die visuell ansprechend sind.
 
 \begin{figure}
 	\centering
