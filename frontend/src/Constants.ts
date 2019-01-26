@@ -91,5 +91,26 @@ export const Implementations: Implementation[] = [
     key: "mandelbrotsimd64",
     title: "SIMD 64 bit",
     description: "TODO: add doc"
-  }
+  },
+  {
+    key: "mmandelbrotopenmp32",
+    title: "OpenMP 32 bit",
+    description: "TODO: add doc"
+  },
+  {
+    key: "mandelbrotopenmpsimd32",
+    title: "OpenMP SIMD 32 bit",
+    description: "TODO: add doc"
+  },
+  {
+    key: "mandelbrotopenmpsimd64",
+    title: "OpenMP SIMD 64 bit",
+    description: "TODO: add doc"
+  },
+  {
+    key: "mandelbrotopenmp",
+    title: "OpenMP 80 bit",
+    description: "TODO: add doc"
+  },
+
 ];

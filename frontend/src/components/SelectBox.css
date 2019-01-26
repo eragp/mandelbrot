@@ -1,6 +1,8 @@
 .select-box {
     margin: 5px;
     padding: 0;
+    max-height: 22vh;
+    overflow: scroll;
 }
 
 .item, item-heading {
@@ -28,7 +30,7 @@
 .item h4 {
     display: inline-block;
     width: 70%;
-    overflow: hidden;
+    overflow: scroll;
     margin: auto;
 }
 
