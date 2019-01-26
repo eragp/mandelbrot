@@ -50,7 +50,7 @@ TODO: einarbeiten
 % Fußnote 
 Als Cluster unabhängiger Rechenknoten wurde freundlicherweise vom Lehrstuhl für Rechnerarchitektur und Verteilte System der TU München
 das HimMUC Cluster\footnote{\url{http://www.caps.in.tum.de/himmuc/}} bereitgestellt.
-Es besteht aus jeweils 40 Raspberry Pi B+\footnote{Für ein Beispiel, siehe \url{https://www.raspberrypi.org/products/raspberry-pi-3-model-b/}} und ODroids.
+Es besteht aus jeweils 40 Raspberry Pi B+\footnote{Für ein Beispiel, siehe \url{https://www.raspberrypi.org/products/raspberry-pi-3-model-b/}} und ODroids C2\footnote{\url{https://www.hardkernel.com/shop/odroid-c2/}}.
 
 
 \subsection{Skalierung}
@@ -111,11 +111,7 @@ Dass die Performanzerhöhung nicht genau $4$ oder $2$ ist, lässt sich mit dem e
 der SIMD Instruktionen erklären.
 Da hierzu die Werte aus den normalen Registern in spezielle SIMD-Register und zurück
 kopiert werden müssen, entsteht eine gewisse Verzögerung durch zusätzliche Transportoperationen.
-Die tatsächliche Rechenzeit für eine Vektorisierung von \(n\) Punkten sollte also \autoref{equ:simd-time} entsprechen.
-
-\begin{equation}\label{equ:simd-time}
-	t_{SIMD} \approx \frac{t_{normal}}{n}+ const
-\end{equation}
+Die tatsächliche Rechenzeit für eine Vektorisierung von \(n\) Punkten sollte also \(t_{SIMD} \approx \frac{t_{normal}}{n}+ const\) entsprechen.
 
 Je größer die benötigte Zahl an Operationen, desto weniger fällt dieser konstante Zusatzaufwand ins Gewicht.
 Dies kann zum Beispiel in \autoref{fig:SIMD-speedup-vs-comptime} beobachtet werden.

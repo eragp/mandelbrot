@@ -152,28 +152,6 @@ In zurückkehrenden \verb|RegionData|-Nachrichten sind Arrays der berechneten It
 Dabei wird der Punkt (x, y) in der gesendeten Region (Punkt (x+hOffset, y+vOffset) in der angefragten Region)
 im Datenarray an Index $i = x + y * width$ gespeichert.
 
-% Wie wurde die Parallelisierung mit SIMD angegangen?
-\subsection{Parallelisierung mithilfe von SIMD}
-
-Um das Parallelisierungskonzept mithilfe von SIMD zu erklären,
-ist es hilfreich zunächst vor Augen zu führen, wie ein Vektor komplexer Koordinaten ohne SIMD verarbeitet würde.
-Dies ist in \autoref{src:MandelbrotVect} zu sehen.
-Die Berechnung der einzelnen Kooridnaten bleibt gleich, nur die Abbruchbedingung wird auf alle bearbeiteten Koordinaten erweitert.
-
-Es muss dabei solange weiter iteriert werden, bis für alle Komponenten die Berechnung abgebrochen werden darf.
-Hierbei ist es kein Problem mit den abgebrochenen Punkten weiter zu rechnen, sofern die
-Iterationszahl nur hochgezählt wird wenn das $z_n$ der Koordinate Betragsmäßig kleiner gleich $2$ ist.
-Dies gilt, da alle $|z_{n+i}| > 2$ sofern $|z_n| > 2$ \cite{424331}.
-
-Außerdem ist zu beachten, dass die Iterationszahl vor der Berechnung der nächsten Iteration erhöht werden muss.
-Dies liegt darin begründet die Iterationszahl die Anzahl der Rechenschritte repräsentieren soll und
-der nächste Schritt sicher ausgeführt wird. Auch dann, wenn in auf Basis der neuen Berechnung bereits abgebrochen wäre.
-
-\begin{figure}[h!]
-	\lstinputlisting[caption={Bearbeitung eines Vektors komplexer Koordinaten in Pseudocode}, label={src:MandelbrotVect}]{code/mandelbrotvect.pseudo}
-\end{figure}
-
-Damit kann die Berechnung relativ simpel via Arm NEON Compiler Intrinsics\footnote{Details im Abschnitt 'Compiler Intrinsics' unter \url{https://developer.arm.com/technologies/neon}} implementiert werden (siehe dazu \autoref{src:MandelbrotSIMD32.cpp}).
 % 1 Seite
 
 % Wie wurde die Parallelisierung mit OpenMP angegangen?

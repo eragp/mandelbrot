@@ -447,8 +447,26 @@ Die benötigte Anzahl an Iterationen wird in ein übergebenes Array geschrieben.
 
 \subsubsection{Berechnung mithilfe von SIMD}\label{subsec:simd}
 
-Bei der in \autoref{par:introduction_simd} beschriebenen Implementierung einer Hardware-beschleunigten Variante mit SIMD,
-wurde stets das Postfix \verb|q| eingebunden.
+Um das Parallelisierungskonzept mithilfe von SIMD zu erklären,
+ist es hilfreich zunächst vor Augen zu führen, wie ein Vektor komplexer Koordinaten ohne SIMD verarbeitet würde.
+Dies ist in \autoref{src:MandelbrotVect} zu sehen.
+Die Berechnung der einzelnen Kooridnaten bleibt gleich, nur die Abbruchbedingung wird auf alle bearbeiteten Koordinaten erweitert.
+
+Es muss dabei solange weiter iteriert werden, bis für alle Komponenten die Berechnung abgebrochen werden darf.
+Hierbei ist es kein Problem mit den abgebrochenen Punkten weiter zu rechnen, sofern die
+Iterationszahl nur hochgezählt wird wenn das $z_n$ der Koordinate Betragsmäßig kleiner gleich $2$ ist.
+Dies gilt, da alle $|z_{n+i}| > 2$ sofern $|z_n| > 2$ \cite{424331}.
+
+Außerdem ist zu beachten, dass die Iterationszahl vor der Berechnung der nächsten Iteration erhöht werden muss.
+Dies liegt darin begründet die Iterationszahl die Anzahl der Rechenschritte repräsentieren soll und
+der nächste Schritt sicher ausgeführt wird. Auch dann, wenn in auf Basis der neuen Berechnung bereits abgebrochen wäre.
+
+\begin{figure}[h!]
+	\lstinputlisting[caption={Bearbeitung eines Vektors komplexer Koordinaten in Pseudocode}, label={src:MandelbrotVect}]{code/mandelbrotvect.pseudo}
+\end{figure}
+
+Mithilfe der in \autoref{par:introduction_simd} beschriebenen SIMD-Intrinsics ist die Umsetzung dieses Codes gut möglich.
+Bei der Hardware-beschleunigten Variante mit SIMD, wurde stets das Postfix \verb|q| eingebunden.
 Damit werden alle verfügbaren SIMD-Register des ARMv8-A Prozessors des ODroids und Raspberry Pi 3 B+ herangezogen.
 
 Zusätzlich wurden Optimierungen mithilfe der NEON-nativen multiply-add (\textit{mla}) und multiply-subtract (\textit{mls}) Befehle vorgenommen.
@@ -457,11 +475,6 @@ sondern alle Bits der Ergebnisvektorkomponente auf 1 gesetzt werden sofern die B
 Um im weiteren Verlauf effizient die Vektorkomponenten aufzuaddieren (\textit{addv}) wird die ursprünglich vorzeichenlose Zahl als vorzeichenbehaftet interpretiert.
 Jede Komponente für die die Bedingung zu wahr evaluiert hat, kann nun als $-1$ interpretiert werden.
 Die Summe über die Komponenten entspricht damit der negierten Anzahl an noch nicht abgeschlossenen Punkten.  
-
-% TODO: entfernen
-\begin{figure}
-	\lstinputlisting[caption={Parallelisierte Bearbeitung eines Vektors komplexer Koordinaten in 32 bit Gleitkommapräzision in C++ mit Arm NEON Compiler Intrinsics für SIMD}, label={src:MandelbrotSIMD32.cpp}, firstline=29, lastline=72, firstnumber=29]{../../backend/src/mandelbrot/MandelbrotSIMD32.cpp}
-\end{figure}
 
 \subsection{Leistungssteigerung durch Parallelisierung auf Thread Level mithilfe von OpenMP}
 
