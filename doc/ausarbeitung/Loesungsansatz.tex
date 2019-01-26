@@ -138,11 +138,11 @@ um zu vermeiden dass Regionsdaten von zuvor berechneten Regionen falsch verwende
 		\draw (3,6) -- node[above, red] {width$=m*gD$} (8,6);
 		\draw (3,6) -- node[left, red] {height$=n*gD$} (3,2);
 		% vOffset/hOffset
-		\draw[blue, ->] (3,8) -- (3,6) node[midway, anchor=west] {vOffset};
-		\draw[blue, ->] (0,6) -- (3,6) node[midway, anchor=north] {hOffset};
+		\draw[blue, ->, line width=0.7pt] (3,8) -- (3,6) node[midway, anchor=west] {vOffset};
+		\draw[blue, ->, line width=0.7pt] (0,6) -- (3,6) node[midway, anchor=north] {hOffset};
 		% x/y
-		\draw[green, ->] (3,6) -- (5,5) node[below] {(x+hOffset, y+vOffset)};
-		\draw (0, 0) node[below right] {$gd$ = guaranteedDivisor, $n,m \in \mathbb{N}^{+}$, $x < width$, $y < height$};
+		\draw[green, ->, line width=0.7pt] (3,6) -- (5,5) node[below] {(x+hOffset, y+vOffset)};
+		\draw (0, 0) node[below right] {$gD$ = guaranteedDivisor, $n,m \in \mathbb{N}^{+}$, $x < width$, $y < height$};
 	\end{tikzpicture}
 	\caption{Konzept der Kooridinaten in den Regionsobjekten. Alle Koordinaten beziehen sich auf die Darstellungsebene und sind daher in Pixeln.}
 	\label{fig:concept_coordinates}
