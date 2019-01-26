@@ -156,12 +156,12 @@ Für die Messungen hier wurden immer 17 Worker verwendet.
 % Bilder und Stuff
 % Vorhersage nie perfekt, deshalb Ausreißer nach oben/unten
 % Teilweise größere/kleinere Teilregionen erstellt
-In den folgenden Diagrammen wurde pro Rechenzeit aufgetragen welcher Anteil an Teilregionen genau diese Zeit benötigt hat.
+In den folgenden Diagrammen wird die statistische Dichte der Rechenzeiten für die naive Strategie und die Strategie mit Vorhersage dargestellt.
 Bei einer guten Lastbalancierung sollten sich die Rechenzeiten also um den Mittelwert ballen und die maximale Rechenzeit gering sein.
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.9\linewidth]{img/Evaluation/balancers/balancers_border_2.pdf}
+	\includegraphics[width=0.9\linewidth]{img/Evaluation/balancers/balancers_border.png}
 	\caption{Verteilung der Rechenzeiten für Randregionen}
 	\label{fig:balancers_border}
 \end{figure}
@@ -173,8 +173,8 @@ Dass die Strategie mit Vorhersage vom Mittelwert abweicht und auch einige Ausrei
 % TODO: Bilder in Breite und Höhe anpassen
 \begin{figure}
 	\centering
-	\includegraphics[width=0.45\linewidth]{img/Evaluation/balancers/balancers_outside_2.png}
-	\includegraphics[width=0.45\linewidth]{img/Evaluation/balancers/balancers_inside_2.png}
+	\includegraphics[width=0.45\linewidth]{img/Evaluation/balancers/balancers_outside_slim.png}
+	\includegraphics[width=0.45\linewidth]{img/Evaluation/balancers/balancers_inside_slim.png}
 	\caption{Verteilung der Rechenzeiten für innere und äußere Regionen}
 	\label{fig:balancers_inside_outside}
 \end{figure}
