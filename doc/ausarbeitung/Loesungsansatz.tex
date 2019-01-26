@@ -2,6 +2,14 @@
 % Highlevel
 % ca 1-2 Seiten
 % Buzzwords, grober Überriss
+\begin{figure}[h!]
+	% Bindet das als PDF exportierte pptx ein -> vektorgrafik
+	% -> pptx bearbeiten statt pdf
+	\centering
+	\includegraphics[width=0.98\linewidth]{img/Implementierung/Kommunikation.pdf}
+	\caption{Architekturübersicht}
+	\label{fig:architekturuebersicht}
+\end{figure}
 
 % Hier wird erklärt, mit welchem Ansatz an das Projekt herangegangen wurde
 \section{Lösungsansatz}
@@ -28,10 +36,6 @@ Als Projekt, das an nicht technisch versierten Anwendern spricht auch der ästet
 Faktor des Mandelbrotfraktals für eine Verwendung.
 Er kann ein erstes Interesse für die Anwendung wecken.
 
-\subsection{HimMUC als Rechencluster}
-Als Cluster unabhängiger Rechenknoten wurde freundlicherweise vom Lehrstuhl für Rechnerarchitektur und Verteilte System der TU München
-das HimMUC Cluster\footnote{\url{http://www.caps.in.tum.de/himmuc/}} bereitgestellt.
-Es besteht aus jeweils 40 Raspberry Pi B+\footnote{Für ein Beispiel, siehe \url{https://www.raspberrypi.org/products/raspberry-pi-3-model-b/}} und ODroids.
 
 % Wie ist die (grobe) Architektur des Programmes (parallelisiertes Backend, Oberfläche)
 \subsection{Architekturübersicht}
@@ -42,14 +46,6 @@ Ein Backend-Host übernimmt dazu die Kommunikationsfunktion, verwaltet die einge
 Das Ergebnis dieser Berechnung sendet der Host dann an das Frontend zurück.
 Die Backend-Worker nehmen die zugewiesenen Rechenaufträge entgegen und führen die eigentlichen Berechnungen verteilt aus.
 
-\begin{figure}
-	% Bindet das als PDF exportierte pptx ein -> vektorgrafik
-	% -> pptx bearbeiten statt pdf
-	\centering
-	\includegraphics[width=0.98\linewidth]{img/Implementierung/Kommunikation.pdf}
-	\caption{Architekturübersicht}
-	\label{fig:architekturuebersicht}
-\end{figure}
 
 % Welche Lastbalancierungsmechanismen wurden umgesetzt?
 \subsection{Lastbalancierung}\label{sec:load_balancing_concepts}
@@ -78,8 +74,7 @@ Die optimale Rechenlast für einen Worker berechnet sich also durch:
 Wenn die Vorhersage hinreichend exakt ist, kann dieser Wert gut angenähert werden.
 Dadurch wird die Last gleichmäßiger auf die Worker verteilt als bei der naiven Strategie.
 
-\paragraph*{Bestimmung der Vorhersage}\label{par:load_balancing_prediction}
-
+\paragraph*{}\label{par:load_balancing_prediction}
 Die Zugehörigkeit eines Punktes zur Mandelbrotmenge wird nach \autoref{equ:mandelbrot} iterativ berechnet.
 Deshalb kann die Anzahl der benötigten Iterationen als Abschätzung der Rechenzeit für diesen Punkt verwendet werden.
 Zur Anstellung der Vorhersage wird also die angeforderte Region in deutlich geringerer Auflösung berechnet.
@@ -128,9 +123,11 @@ gewinnen in den Regionsaufteilungen an Bedeutung).
 Der Wert \verb|validation| ist technisch gesehen nicht mehr notwendig, wird aber mit dem Zoom-wert der Leafletkarte gefüllt
 um zu vermeiden dass Regionsdaten von zuvor berechneten Regionen falsch verwendet werden.
 
+% TODO: entfernen
 \begin{figure}
 	\lstinputlisting[caption={Eine gültige Anfrage einer Region in JSON}, label={src:regionRequest.json}, language=json]{./code/regionRequest.json}
 \end{figure}
+% austauschen durch tobis
 \begin{figure}
 	\begin{tikzpicture}
 		% Superregion
@@ -169,7 +166,7 @@ Iterationszahl nur hochgezählt wird wenn das $z_n$ der Koordinate Betragsmäßi
 Dies gilt, da alle $|z_{n+i}| > 2$ sofern $|z_n| > 2$ \cite{424331}.
 
 Außerdem ist zu beachten, dass die Iterationszahl vor der Berechnung der nächsten Iteration erhöht werden muss.
-Dies liegt darin begründet die Iterationszahl die Anzahl der Rechenschritte repräsentieren soll und 
+Dies liegt darin begründet die Iterationszahl die Anzahl der Rechenschritte repräsentieren soll und
 der nächste Schritt sicher ausgeführt wird. Auch dann, wenn in auf Basis der neuen Berechnung bereits abgebrochen wäre.
 
 \begin{figure}[h!]

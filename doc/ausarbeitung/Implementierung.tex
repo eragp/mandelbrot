@@ -71,70 +71,6 @@ die erst zurückkehrt, wenn das Programm abgeschlossen ist und MPI beendet werde
 Die Funktion muss als Parameter den Rang bzw. die Id des aktuellen MPI-Prozesses und die Anzahl der initialisierten
 Prozesse entgegen nehmen.
 
-\subsection{Host Funktionalitäten}\label{cls:Host}
-
-\subsubsection{Websocketverbindung}
-
-Direkt nach der Initialisierung des Host-Programms wird ein separater Thread gestartet, der über Websocket
-Anfragen zur Berechnung einer Region entgegennimmt sowie ein Thread, der berechnete Regionen an den verbundenen Client übergibt.
-%Die Methode \verb|Host::start_server| initialisiert dabei lediglich den Websocketserver.
-Über den Typ des Servers wird eine Kompression versendeter Nachrichten über die im Standart akzeptierte Extension \enquote{perMessageDeflate} aktiviert.
-Zudem wird der Websocketserver mit \verb|server.init_asio()| mit der Transport Policy "transport::asio"
-konfiguriert, sodass Multithreadzugriff auf Sende- und Empfangsmethoden problemlos möglich ist \cite{websocketppManual}.
-
-Der Server behandelt zu jedem Zeitpunkt maximal eine Verbindung und speichert lediglich die zuletzt geöffnete Verbindung.
-
-Empfangene Nachrichten werden mit der Methode \hyperref[cls:Host::handle_region_request]{\texttt{Host::handle\_region\_request}} behandelt.
-
-Der zweite bei der Initialisierung gestartete Thread führt die Methode \hyperref[cls:Host::send]{\texttt{Host::send}} aus.
-
-\paragraph{Host::handle\_region\_request}\label{cls:Host::handle_region_request}
-
-Die Methode dekodiert einen empfangene Nachricht als JSON Regionsanfrage und behandelt sie nach folgendem Schema:
-
-\begin{enumerate}
-	\item Parse das empfangene RegionRequest-Objekt. Bei Fehlern wird die Funktion abgebrochen.
-	\item Involviere den spezifizierten Lastbalancierer um eine Aufteilung der Region zu erhalten
-	\item Bestimme den Rang des Workers, der eine Region bearbeiten wird. Hierzu wird der Algorithmus aus \autoref{src:Host.cpp.handle_region_request} verwendet.
-	\item Sende die Aufteilung inklusive der Ränge aller beteiligten Worker als Regions-Objekt an das Frontend
-	\item Übergebe die aufgeteilten Regionen an den Thread, der diese per MPI an die Worker sendet.
-\end{enumerate}
-
-In dem JSON wird unter dem Schlüssel \texttt{"balancer"} ein String erwartet, der den zu wählenden Lastbalancierer bestimmt.
-Mögliche Zeichenketten hierfür sind in den Klassen der Balancierer unter \verb|backend/src/balancer| in der globalen Variable
-\verb|Klassenname::NAME| gespeichert.
-
-Es ist hierbei wichtig, dass das senden an die Worker erst nach der Antwort an das Frontend geschieht und wird daher garantiert.
-Dadurch kann im Frontend sichergestellt sein, dass alle eintreffenden RegionData-Objekte zu einer Regionsaufteilung gehören,
-die bereits empfangen wurde.
-
-\paragraph{Host::send}\label{cls:Host::send}
-
-Während ein Thread das Empfangen von Nachrichten übernimmt, behandelt diese Methode von den Workern fertig berechnete Regionen.
-Die Methode setzt dabei eine Dauerschleife nach folgendem Schema um:
-
-\begin{enumerate}
-    \item Überprüfe auf das Vorhandensein fertig berechneter Regionen \label{enum:Host::send.step1}
-    \item Ist keine Region verfügbar
-    \begin{enumerate}
-        \item Warte blockierend auf eine Änderung
-        \item Springe zu Schritt \ref{enum:Host::send.step1}
-    \end{enumerate}
-    \item Ist eine Region verfügbar
-    \begin{enumerate}
-        \item Locke die geteilte Datenstruktur
-        \item Entnimm eine Region daraus
-        \item Löse das Lock
-    \end{enumerate}
-    \item Codiere die Regionsdaten in JSON und versende sie über Websocket an den aktuell verbundenen Client
-    \item Springe anschließend zu Schritt \ref{enum:Host::send.step1}
-\end{enumerate}
-
-Ein Beispiel für versendete Regionsdaten kann \autoref{src:regionData.json} entnommen werden.
-
-Mithilfe einer \texttt{condition\_variable}\footnote{\url{https://en.cppreference.com/w/cpp/thread/condition_variable}}
-nutzt sie die C++11 nativen mutex-Mechanismen um über das Vorhandensein neuer Regionen informiert zu werden.
-
 \subsection{Implementierung der Lastbalancierung}\label{sec:load_balancing}
 Der Implementierung der Lastbalancierung liegen die in \autoref{sec:load_balancing_concepts} beschriebenen Konzepte zugrunde.
 Wichtig bei der Umsetzung dieser ist, dass der garantierte Teiler (\verb|guaranteedDivisor|) von Höhe und Breite der Teilregionen dem der angeforderten Region entspricht (vgl. \autoref{fig:concept_coordinates}).
@@ -453,7 +389,6 @@ Analog zum Host ist auch der Worker (MPI-Worker-Thread) als Endlosschleife mit b
 	\end{lstlisting}
 \end{figure}
 
-\subsection {Leistungssteigerung durch Parallelisierung auf Thread Level mithilfe von OpenMP}
 
 \verb|OpenMP|\footnote{\url{https://www.openmp.org/wp-content/uploads/openmp-4.5.pdf}} (Open Multi-Processing) ist ein API, das auf die Parallelisierung von Schleifen und Programmabschnitten auf Shared Memory Systemen spezialisiert ist. Parallel ausführbare Programmteile werden durch eine spezielle Präprozessor Anweisung für die parallele Ausführung in mehreren Threads gekennzeichnet.
 \\ \\
@@ -523,10 +458,74 @@ Um im weiteren Verlauf effizient die Vektorkomponenten aufzuaddieren (\textit{ad
 Jede Komponente für die die Bedingung zu wahr evaluiert hat, kann nun als $-1$ interpretiert werden.
 Die Summe über die Komponenten entspricht damit der negierten Anzahl an noch nicht abgeschlossenen Punkten.  
 
+% TODO: entfernen
 \begin{figure}
 	\lstinputlisting[caption={Parallelisierte Bearbeitung eines Vektors komplexer Koordinaten in 32 bit Gleitkommapräzision in C++ mit Arm NEON Compiler Intrinsics für SIMD}, label={src:MandelbrotSIMD32.cpp}, firstline=29, lastline=72, firstnumber=29]{../../backend/src/mandelbrot/MandelbrotSIMD32.cpp}
 \end{figure}
 
+\subsection{Leistungssteigerung durch Parallelisierung auf Thread Level mithilfe von OpenMP}
+
+\subsection{Websocketverbindung}\label{cls:Host}
+
+Direkt nach der Initialisierung des Host-Programms wird ein separater Thread gestartet, der über Websocket
+Anfragen zur Berechnung einer Region entgegennimmt sowie ein Thread, der berechnete Regionen an den verbundenen Client übergibt.
+%Die Methode \verb|Host::start_server| initialisiert dabei lediglich den Websocketserver.
+Über den Typ des Servers wird eine Kompression versendeter Nachrichten über die im Standart akzeptierte Extension \enquote{perMessageDeflate} aktiviert.
+Zudem wird der Websocketserver mit \verb|server.init_asio()| mit der Transport Policy "transport::asio"
+konfiguriert, sodass Multithreadzugriff auf Sende- und Empfangsmethoden problemlos möglich ist \cite{websocketppManual}.
+
+Der Server behandelt zu jedem Zeitpunkt maximal eine Verbindung und speichert lediglich die zuletzt geöffnete Verbindung.
+
+Empfangene Nachrichten werden mit der Methode \hyperref[cls:Host::handle_region_request]{\texttt{Host::handle\_region\_request}} behandelt.
+
+Der zweite bei der Initialisierung gestartete Thread führt die Methode \hyperref[cls:Host::send]{\texttt{Host::send}} aus.
+
+\paragraph{Host::handle\_region\_request}\label{cls:Host::handle_region_request}
+
+Die Methode dekodiert einen empfangene Nachricht als JSON Regionsanfrage und behandelt sie nach folgendem Schema:
+
+\begin{enumerate}
+	\item Parse das empfangene RegionRequest-Objekt. Bei Fehlern wird die Funktion abgebrochen.
+	\item Involviere den spezifizierten Lastbalancierer um eine Aufteilung der Region zu erhalten
+	\item Bestimme den Rang des Workers, der eine Region bearbeiten wird. Hierzu wird der Algorithmus aus \autoref{src:Host.cpp.handle_region_request} verwendet.
+	\item Sende die Aufteilung inklusive der Ränge aller beteiligten Worker als Regions-Objekt an das Frontend
+	\item Übergebe die aufgeteilten Regionen an den Thread, der diese per MPI an die Worker sendet.
+\end{enumerate}
+
+In dem JSON wird unter dem Schlüssel \texttt{"balancer"} ein String erwartet, der den zu wählenden Lastbalancierer bestimmt.
+Mögliche Zeichenketten hierfür sind in den Klassen der Balancierer unter \verb|backend/src/balancer| in der globalen Variable
+\verb|Klassenname::NAME| gespeichert.
+
+Es ist hierbei wichtig, dass das senden an die Worker erst nach der Antwort an das Frontend geschieht und wird daher garantiert.
+Dadurch kann im Frontend sichergestellt sein, dass alle eintreffenden RegionData-Objekte zu einer Regionsaufteilung gehören,
+die bereits empfangen wurde.
+
+\paragraph{Host::send}\label{cls:Host::send}
+
+Während ein Thread das Empfangen von Nachrichten übernimmt, behandelt diese Methode von den Workern fertig berechnete Regionen.
+Die Methode setzt dabei eine Dauerschleife nach folgendem Schema um:
+
+\begin{enumerate}
+    \item Überprüfe auf das Vorhandensein fertig berechneter Regionen \label{enum:Host::send.step1}
+    \item Ist keine Region verfügbar
+    \begin{enumerate}
+        \item Warte blockierend auf eine Änderung
+        \item Springe zu Schritt \ref{enum:Host::send.step1}
+    \end{enumerate}
+    \item Ist eine Region verfügbar
+    \begin{enumerate}
+        \item Locke die geteilte Datenstruktur
+        \item Entnimm eine Region daraus
+        \item Löse das Lock
+    \end{enumerate}
+    \item Codiere die Regionsdaten in JSON und versende sie über Websocket an den aktuell verbundenen Client
+    \item Springe anschließend zu Schritt \ref{enum:Host::send.step1}
+\end{enumerate}
+
+Ein Beispiel für versendete Regionsdaten kann \autoref{src:regionData.json} entnommen werden.
+
+Mithilfe einer \texttt{condition\_variable}\footnote{\url{https://en.cppreference.com/w/cpp/thread/condition_variable}}
+nutzt sie die C++11 nativen mutex-Mechanismen um über das Vorhandensein neuer Regionen informiert zu werden.
 
 \subsection{Implementierung des Frontends}
 
@@ -635,7 +634,7 @@ Dieses Verhältnis wird in \autoref{fig:leafletTiles} dargestellt.
 \begin{figure}
 	\centering
 	\includegraphics[width=0.5\linewidth]{img/Implementierung/leafletTiles}
-	\caption{Relation von Backend Regionen zu leaflet Tiles.
+	\caption{Relation von Backend Regionen zu leaflet Tiles (Kachel).
 		Dabei ist beispielhaft eine Region des Backends
 		weiß eingezeichnet, alle leaflet Tiles sind rot umrandet angegeben.
 	}\label{fig:leafletTiles}
@@ -681,7 +680,7 @@ leaflet Bibliothek realisiert:
 	      leaflet Koordinaten zu komplexen Koordinaten.
 \end{itemize}
 
-
+% TODO: verschiedene Shader implementiert
 \paragraph{Shader.ts}\label{par:shader}
 Berechnet für einen Iterationswert der Mandelbrotmenge ein Tripel \( (r,g,b) \) von Farbwerten.
 Implementiert ist eine simple Funktion, welche den Iterationswert für jeden Farbkanal mit einer Konstante multipliziert
@@ -691,6 +690,7 @@ und auf den zulässigen ganzzahligen Wertebereich \( [0,255] \) abbildet (siehe 
 	\lstinputlisting[caption={Berechnung der \( (r,g,b) \) Farbwerte}, label={src:Shader.ts}, language=TypeScript, firstline=2, lastline=7, firstnumber=2]{../../frontend/src/tileDisplay/Shader.ts}
 \end{figure}
 
+% TODO: kürzen
 \paragraph{Project.ts}
 Da die leaflet Bibliothek Tiles verwendet, um die Regionen des Backends anzuzeigen, liegen diese in
 einem neuen Koordinatensystem, welches jeder Tile auf für eine Zoomstufe ein Triple \( (tileX, tileY, zoom) \) zuordnet.
@@ -699,10 +699,10 @@ welches jeden Punkt auf der Karte durch das Paar \( (latitude, longitude) \) ide
 \verb|Projekt.ts| enthält Funktionen, um zwischen diesen 3 Koordinatensystemen
 (Tile-Koordinaten, leaflet-Koordinaten und Koordinaten der komplexen Ebene) zu konvertieren.
 
-% TODO:
+% TODO: Ausführung
 \paragraph{Regionsgruppierung (RegionGroup.ts)}\label{par:regionGroup}
 
-\subsubsection{Visualisierung der Architektur des Backends}
+\subsubsection{Visualisierung}
 
 Die Struktur der Parallelisierung wird in einem Netzwerkgraphen unter dem Fraktal dargestellt.
 Mithilfe der Bibliothek \verb|visjs|\footnote{\url{http://visjs.org/}} wird hierzu ein
@@ -749,8 +749,9 @@ der Bibliothek \verb|chartjs|\footnote{\url{http://www.chartjs.org/}} dargestell
 	\end{minipage}
 \end{figure}
 
-\paragraph{Idle Time}
 
+% TODO: deutsch
+\paragraph{Idle Time}
 Für die kritische Information der verschwendeten Zeit wird ein Balkengraph verwendet.
 Dieser besitzt einen Balken, der die Differenz zwischen der Rechenzeit aller Knoten und dem am längsten rechnenden Knoten
 aufsummiert und nach Gruppe sortiert darstellt (siehe \autoref{fig:idleTime}).
@@ -767,11 +768,8 @@ Bei Empfang von Regionsdaten (hierzu wird die erwähnte Methode \verb|registerRe
 wird die tatsächlich gemessene Rechenzeit eingetragen und der Rechenknoten als inaktiv gekennzeichnet.
 Der Intervall wird gestoppt, sobald alle Arbeiterknoten die Berechnung abgeschlossen haben.
 
+% TODO: deutsch
 \paragraph{ComputationTime}
 
 Zur Darstellung des relativen Verhältnisses der Rechenzeiten wird in einem Kuchengraph
 die absolute Rechenzeit der Gruppen dargestellt (siehe \autoref{fig:computationTime}).
-
-\subsubsection{MISC} % misc/
-
-\paragraph{Observable.ts}\label{par:observables}

@@ -46,7 +46,11 @@ Dazu haben wir ebenfalls für jede der Klassen eine niedrige, mittlere und hohe 
 	\caption{Testregionen der Evaluierung. Jeder der Punkte \( z \in \mathbb{C} \) entspricht dem Mittelpunkt der Region im Format \( (Re(z), Im(z), zoom) \) }
 	\label{fig:testRegions}
 \end{figure}
-
+TODO: einarbeiten
+% Fußnote 
+Als Cluster unabhängiger Rechenknoten wurde freundlicherweise vom Lehrstuhl für Rechnerarchitektur und Verteilte System der TU München
+das HimMUC Cluster\footnote{\url{http://www.caps.in.tum.de/himmuc/}} bereitgestellt.
+Es besteht aus jeweils 40 Raspberry Pi B+\footnote{Für ein Beispiel, siehe \url{https://www.raspberrypi.org/products/raspberry-pi-3-model-b/}} und ODroids.
 
 
 \subsection{Skalierung}
@@ -68,16 +72,17 @@ Es ist jedoch zu beachten, dass somit der
 	\includegraphics[width=0.32\linewidth]{img/Evaluation/scaling/scale_graph_outside}
 	\includegraphics[width=0.32\linewidth]{img/Evaluation/scaling/scale_graph_border}
 	\includegraphics[width=0.32\linewidth]{img/Evaluation/scaling/scale_graph_inside}
-	\caption{Skalierungsgraph von \( 1-40 \) Rechenknoten mit rekursivem Prediction Lastbalancierer}
+	\caption{Skalierungsgraph von \( 1-40 \) Rechenknoten, Strategie mit Vorhersage (rekursiv)}
 	\label{fig:scaleGraph}
 \end{figure}
 
 % OpenMP & MPI skalierung
 % Bar graph (1 MPI Prozess pro worker, 1 MPI Prozess & 4 OpenMP pro Worker, 4 MPI Prozesse pro worker)
 % 	Worker & Iteration Anzahl fest, optimal wählen, Randregion
+\subsection{OpenMP}
 
 
-\subsection{SIMD (Implementierungen)}
+\subsection{Vergliech der Implementierungen}
 
 % Niels:
 % PLOTS: (mandelbrot 32, 64, simd 32,  64, 80 bit default)
@@ -223,11 +228,6 @@ Wie sich am rechten Ende des Diagramms andeutet steigt die für die Lastbalancie
 %
 % Dies kann abgeschwächt werden, indem eine Region stets nur soviel Workerressourcen erhält,
 % wie sie maximal auslasten könnte (Fläche/Fläche minimaler Aufteilung)
-
-\subsection{Didaktik}
-% Max
-% Konstanter Overhead wurde getestet,
-% Lokal nicht so ein Problem. Somit würde das Programm auf superMUC seinen Zweck erfüllen.
 
 \subsection{Zusammenfassung}
 % Speedup
