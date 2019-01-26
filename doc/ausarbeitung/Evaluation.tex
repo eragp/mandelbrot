@@ -155,7 +155,7 @@ Um die naive Strategie und die Strategie mit Vorhersage zu vergleichen werden dr
 \end{itemize}
 
 Weiterhin wird erwartet, dass der Mittelwert der Rechenzeit pro Regionsklasse für die beiden Strategien gleichbleibt, da die selbe Region mit der selben Anzahl an Workern berechnet wird.
-Für die folgenden Messungen wurden immer 17 Worker mit 1019 maximalen Iterationen verwendet.
+Für die folgenden Messungen wurden immer 17 Worker mit 1019 maximalen Iterationen verwendet, in der Mandelbrotimplementierung wurden 80-bit floats verwendet.
 Die Berechnung lief auf 17 Knoten, ein Worker musste also seinen Knoten mit dem Hostprozess teilen.
 
 % Bilder und Stuff
@@ -193,17 +193,27 @@ Auch bei den inneren und äußeren Regionen wurde das erwartete Ergebnis erzielt
 Die Verteilung für naive Strategie und Strategie mit Vorhersage sind nahezu deckungsgleich.
 Die auffällige Abweichung von einigen Regionen nach oben oder unten ist durch die unterschiedliche Größe begründet.
 Theoretisch sollte die Größe aller Teilregionen gleich sein, allerdings ist dies im Diskreten nicht immer möglich, da Breite und Höhe nicht unbedingt glatt teilbar sind.
-Durch die Betrachtung von Tiles (in diesem Test 64x64 Pixel) als atomare Einheit wird dieser Effekt noch verstärkt.
+Durch die Betrachtung von Tiles (in diesem Test $64\times64$ Pixel) als atomare Einheit wird dieser Effekt noch verstärkt.
 
 % Genauigkeit der Vorhersage vs maximale Rechenzeit für Randregionen 
 % Plot: y: max comp time, balancer time  x: prediction Accuracy (Randregion)
 % 	Diese "optimale" Genauigkeit wird aber bereits in allen vorherigen Evaluierungen des prediction Balancers verwendet
-Bei der Strategie mit Vorhersage lässt sich die Genauigkeit der Vorhersage einstellen.
+Bei der Strategie mit Vorhersage lässt sich die Genauigkeit der Vorhersage einstellen (vgl. \autoref{par:predicter}).
 Deshalb wird hier eine Kosten-Nutzen Analyse durchgeführt.
 Dazu werden für verschiedene Genauigkeiten die Verteilung der Rechenzeiten und die Dauer der Vorhersage aufgetragen.
-Die Messungen fanden unter den selben Bedingungen wie die Obigen statt.
+Die Messungen fanden unter den selben Bedingungen wie die Obigen statt, allerdings wurden für die Implementierung hier 64-bit floats verwendet, was die absoluten Rechenzeiten durch die geringere Genauigkeit verkürzt.
 
-%% TODO folgenden absatz einbauen
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\linewidth]{img/Evaluation/balancers/balancers_prediction_accuracy.png}
+	\caption{Maximale Rechenzeit pro Region und für die Lastbalancierung benötigte Zeit für verschiedene Vorhersagegenauigkeiten}
+	\label{fig:balancers_prediction_accuracy}
+\end{figure}
+
+In \autoref{fig:balancers_prediction_accuracy} sieht man, dass sich die maximale Rechenzeit schon ab einer Vorhersagegenauigkeit von 2 nicht mehr signifikant verbessert, davor ist die Beschleunigung aber deutlich sichtbar.
+Wie sich am rechten Ende des Diagramms andeutet steigt die für die Lastbalancierung benötigte Zeit exponentiell an, was bei der Definition der Genauigkeit nicht verwunderlich ist.
+
+%% TODO folgenden absatz einbauen --> ist bereits in Implementierung, haben wir ja auch währenddessen festgestellt
 % Probleme bei der Verwendung des Rekursiven Lastbalanierers:
 % Da es stets im Diskreten eine Minimalgröße für die aufgeteilten Regionen gibt,
 % kann es sein, dass eine Region für die eine hohe Last vorhergesagt wird viele Worker reserviert -
