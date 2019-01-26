@@ -93,8 +93,13 @@ export const Implementations: Implementation[] = [
     description: "TODO: add doc"
   },
   {
-    key: "mmandelbrotopenmp32",
+    key: "mandelbrotopenmp32",
     title: "OpenMP 32 bit",
+    description: "TODO: add doc"
+  },
+  {
+    key: "mandelbrotopenmp64",
+    title: "OpenMP 64 bit",
     description: "TODO: add doc"
   },
   {
