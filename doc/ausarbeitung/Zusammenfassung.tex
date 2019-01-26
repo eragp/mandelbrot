@@ -1,8 +1,4 @@
-\section{Zusammenfassung}
-\begin{itemize}
-	\item Zusammenfassung
-	\item Ausblick
-\end{itemize}
+\section{Zusammenfassung und Ausblick}
 
 %%%%%%
 % Zusammenfassung Evaluation
@@ -11,6 +7,32 @@
 %	was haben wir gemacht?
 %	was haben wir erreicht?
 %	was kann man noch machen? --> Ausblick
+
+Ziel des Projektes war es, ein Programm zur parallelen Berechnung der Mandelbrotmenge auf einem Rechnercluster zu erstellen.
+Dazu wurden drei unterschiedliche Ansätze der Parallelisierung genutzt:
+\begin{itemize}
+	\item \textbf{MPI:} Verteilung der Rechenlast auf die Hardwareknoten des Clusters, Kommunikation über Nachrichten zwischen den Knoten
+	\item \textbf{OpenMP:} Verteilung der Rechenlast auf die CPU-Kerne eines Knotens, Kommunikation über geteilten Speicher
+	\item \textbf{SIMD:} Verteilung der Rechenlast innerhalb eines CPU-Kernes durch Nutzung von Vektorregistern
+\end{itemize}
+
+Die Verteilung auf verschiedene Rechenknoten erfordert eine Lastbalancierung, damit die Knoten gleichmäßig ausgelastet werden.
+Hier wurden dafür zwei verschiedene Strategien realisiert:
+\begin{itemize}
+	\item \textbf{Naive Strategie:} Aufteilung in gleich große Bereiche
+	\item \textbf{Strategie mit Vorhersage:} Aufteilung in Bereiche mit gleichem Rechenaufwand mithilfe einer Heuristik
+\end{itemize}
+
+Weiterhin sollte der Effekt der Parallelisierung für den Nutzer deutlich werden.
+Dazu gibt es eine Web-Schnittstelle in der die Mandelbrotmenge optisch ansprechend dargestellt wird und von der Nutzerin erkundet werden kann.
+Der Benutzer hat die Möglichkeit die Parallelisierung mittels OpenMP und SIMD an- oder abzuschalten, sowie die Strategien zur Lastbalancierung ändern.
+Außerdem werden Rechenzeit und die Zeit in der Knoten untätig waren in Diagrammen angezeigt.
+Die Aufteilung der Lastbalancierung kann als Overlay über die Darstellung Mandelbrotmenge gelegt werden.
+
+%%%% Hier evtl. noch was zur Evaluation
+% Im Evaluationsteil des Projekts wurde der Effekt der verschiedenen Parallelisierungsarten auf die Berechnungsdauer ausgewertet.
+
+%%%%%%
 % Ausblick
 %   automatische bestimmung der optimalen knotenmenge
 %   erweiterung der fraktale/balancer zwecks didaktik allg. stärkerer HDI/Didaktik interaktion fokus
