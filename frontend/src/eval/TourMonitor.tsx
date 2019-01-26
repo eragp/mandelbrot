@@ -250,6 +250,14 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
     const c = configs[0] as Config;
     console.log("Tour: Changing config to: ", c);
 
+    const oldBl = this.props.balancer.get();
+    const oldImpl = this.props.impl.get();
+    const oldIter = this.props.iter.get();
+    const oldWorkerCount = this.props.workerCount.get();
+    const oldPreAcc = this.props.predAcc.get();
+    const oldRun = this.props.run.get();
+    const oldPt = this.props.viewCenter.get();
+
     this.props.balancer.setNoNotify(c.balancer);
     this.props.impl.setNoNotify(c.implementation);
     this.props.iter.setNoNotify(c.maxIteration);
@@ -258,8 +266,30 @@ export default class TourMonitor extends React.Component<TourMonitorProps, TourM
     this.props.run.setNoNotify(c.run);
     const pt = new Point3D(c.poi.real, c.poi.imag, c.poi.zoom);
     this.props.viewCenter.setNoNotify(pt);
-    this.props.balancer.notify();
 
+    // always notify only once
+    if (!oldPt.equals(pt)) {
+      console.log("Notify viewCenter");
+      this.props.viewCenter.notify();
+    } else if (oldBl !== c.balancer) {
+      console.log("Notify balancer");
+      this.props.balancer.notify();
+    } else if (oldImpl !== c.implementation) {
+      console.log("Notify implementation");
+      this.props.impl.notify();
+    } else if (oldIter !== c.maxIteration) {
+      console.log("Notify maxIteration");
+      this.props.iter.notify();
+    } else if (oldWorkerCount !== c.nodeCount) {
+      console.log("Notify nodeCount");
+      this.props.workerCount.notify();
+    } else if (oldPreAcc !== c.predictionAccuracy) {
+      console.log("Notify prediction Accuracy");
+      this.props.predAcc.notify();
+    } else if (oldRun !== c.run) {
+      console.log("Notify run");
+      this.props.run.notify();
+    }
     // notify all view observers
 
     this.props.stats.onDone(stats => {
@@ -319,7 +349,7 @@ const RenderConfig = (props: Config) => {
           <td>
             <pre className="config">
               real: {props.poi.real.toFixed(2)}, imag: {props.poi.imag.toFixed(2)}, zoom:{" "}
-              {props.poi.imag.toFixed(2)}
+              {props.poi.zoom.toFixed(2)}
             </pre>
           </td>
         </tr>
