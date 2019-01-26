@@ -50,7 +50,7 @@ TODO: einarbeiten
 % Fußnote 
 Als Cluster unabhängiger Rechenknoten wurde freundlicherweise vom Lehrstuhl für Rechnerarchitektur und Verteilte System der TU München
 das HimMUC Cluster\footnote{\url{http://www.caps.in.tum.de/himmuc/}} bereitgestellt.
-Es besteht aus jeweils 40 Raspberry Pi B+\footnote{Für ein Beispiel, siehe \url{https://www.raspberrypi.org/products/raspberry-pi-3-model-b/}} und ODroids.
+Es besteht aus jeweils 40 Raspberry Pi B+\footnote{Für ein Beispiel, siehe \url{https://www.raspberrypi.org/products/raspberry-pi-3-model-b/}} und ODroids C2\footnote{\url{https://www.hardkernel.com/shop/odroid-c2/}}.
 
 
 \subsection{Skalierung}
@@ -103,31 +103,22 @@ bei einer Beschränkung auf 1019 Iterationen auf eine durchschnittliche Beschleu
 	\centering
 	\includegraphics[width=0.45\linewidth]{img/Evaluation/simd/itvscmp32.pdf}
 	\includegraphics[width=0.45\linewidth]{img/Evaluation/simd/itvscmp64.pdf}
+	\includegraphics[width=\linewidth]{img/Evaluation/simd/speedup.pdf}
 	\caption{Vergleich der Performanzen der Implementierungen mit und ohne SIMD bei bis zu 1019 Iterationen über 360 Regionen in 10 Wiederholungen.}
 	\label{fig:SIMD-speedup}
+	\label{fig:SIMD-speedup-vs-comptime}
 \end{figure}
 
 Dass die Performanzerhöhung nicht genau $4$ oder $2$ ist, lässt sich mit dem erhöhten Aufwand der Verwendung
 der SIMD Instruktionen erklären.
 Da hierzu die Werte aus den normalen Registern in spezielle SIMD-Register und zurück
 kopiert werden müssen, entsteht eine gewisse Verzögerung durch zusätzliche Transportoperationen.
-Die tatsächliche Rechenzeit für eine Vektorisierung von \(n\) Punkten sollte also \autoref{equ:simd-time} entsprechen.
-
-\begin{equation}\label{equ:simd-time}
-	t_{SIMD} \approx \frac{t_{normal}}{n}+ const
-\end{equation}
+Die tatsächliche Rechenzeit für eine Vektorisierung von \(n\) Punkten sollte also \(t_{SIMD} \approx \frac{t_{normal}}{n}+ const\) entsprechen.
 
 Je größer die benötigte Zahl an Operationen, desto weniger fällt dieser konstante Zusatzaufwand ins Gewicht.
 Dies kann zum Beispiel in \autoref{fig:SIMD-speedup-vs-comptime} beobachtet werden.
 Steigert man die maximale Iterationszahl von 1019 auf bis zu 10000 steigt dieser Speed-Up nicht wesentlich weiter.
 Er erreicht sein vorläufiges Maximum bei $2.5$ und $1.25$. Details zu dieser Entwicklung sind in \autoref{par:SIMD-speedup-entwicklung} zu finden.
-
-\begin{figure}
-	\centering
-	\includegraphics[width=0.9\linewidth]{img/Evaluation/simd/speedup.pdf}
-	\caption{Beschleunigungsfaktor durch SIMD in Abhängigkeit von der durchschnittlichen Iterationszahl.}
-	\label{fig:SIMD-speedup-vs-comptime}
-\end{figure}
 
 Zudem werden für eine Menge an Punkten stets die Zahl an Iterationen durchgeführt,
 die das Maximum aller Iterationszahlen der Punkte ist.
