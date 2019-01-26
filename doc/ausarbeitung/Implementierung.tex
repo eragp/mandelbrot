@@ -483,9 +483,9 @@ Die Summe über die Komponenten entspricht damit der negierten Anzahl an noch ni
 Direkt nach der Initialisierung des Host-Programms wird ein separater Thread gestartet, der über Websocket
 Anfragen zur Berechnung einer Region entgegennimmt sowie ein Thread, der berechnete Regionen an den verbundenen Client übergibt.
 %Die Methode \verb|Host::start_server| initialisiert dabei lediglich den Websocketserver.
-Über den Typ des Servers wird eine Kompression versendeter Nachrichten über die im Standart akzeptierte Extension \enquote{perMessageDeflate} aktiviert.
-Zudem wird der Websocketserver mit \verb|server.init_asio()| mit der Transport Policy "transport::asio"
-konfiguriert, sodass Multithreadzugriff auf Sende- und Empfangsmethoden problemlos möglich ist \cite{websocketppManual}.
+%Über den Typ des Servers wird eine Kompression versendeter Nachrichten über die im Standart akzeptierte Extension \enquote{perMessageDeflate} aktiviert.
+Der Websocketserver wird mit \verb|server.init_asio()| mit der Transport Policy "transport::asio"
+konfiguriert, sodass Multithreadzugriffe auf Sende- und Empfangsmethoden problemlos möglich sind \cite{websocketppManual}.
 
 Der Server behandelt zu jedem Zeitpunkt maximal eine Verbindung und speichert lediglich die zuletzt geöffnete Verbindung.
 
