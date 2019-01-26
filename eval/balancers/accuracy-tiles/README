@@ -1,0 +1,6 @@
+attempt at checking prediction-gain trade off for smaller tiles. tile-size 2 was a good run 
+
+
+For running these yourself, change RegionRequest.ts to always pass a guaranteedDivisor of 1/2/8.
+This will break the visualization.
+To reduce console logs (they might be too many to also save the result) comment mismatch logging in MatrixView.ts
