@@ -103,8 +103,10 @@ bei einer Beschränkung auf 1019 Iterationen auf eine durchschnittliche Beschleu
 	\centering
 	\includegraphics[width=0.45\linewidth]{img/Evaluation/simd/itvscmp32.pdf}
 	\includegraphics[width=0.45\linewidth]{img/Evaluation/simd/itvscmp64.pdf}
+	\includegraphics[width=\linewidth]{img/Evaluation/simd/speedup.pdf}
 	\caption{Vergleich der Performanzen der Implementierungen mit und ohne SIMD bei bis zu 1019 Iterationen über 360 Regionen in 10 Wiederholungen.}
 	\label{fig:SIMD-speedup}
+	\label{fig:SIMD-speedup-vs-comptime}
 \end{figure}
 
 Dass die Performanzerhöhung nicht genau $4$ oder $2$ ist, lässt sich mit dem erhöhten Aufwand der Verwendung
@@ -117,13 +119,6 @@ Je größer die benötigte Zahl an Operationen, desto weniger fällt dieser kons
 Dies kann zum Beispiel in \autoref{fig:SIMD-speedup-vs-comptime} beobachtet werden.
 Steigert man die maximale Iterationszahl von 1019 auf bis zu 10000 steigt dieser Speed-Up nicht wesentlich weiter.
 Er erreicht sein vorläufiges Maximum bei $2.5$ und $1.25$. Details zu dieser Entwicklung sind in \autoref{par:SIMD-speedup-entwicklung} zu finden.
-
-\begin{figure}
-	\centering
-	\includegraphics[width=0.9\linewidth]{img/Evaluation/simd/speedup.pdf}
-	\caption{Beschleunigungsfaktor durch SIMD in Abhängigkeit von der durchschnittlichen Iterationszahl.}
-	\label{fig:SIMD-speedup-vs-comptime}
-\end{figure}
 
 Zudem werden für eine Menge an Punkten stets die Zahl an Iterationen durchgeführt,
 die das Maximum aller Iterationszahlen der Punkte ist.
