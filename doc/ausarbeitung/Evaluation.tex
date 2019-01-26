@@ -69,11 +69,18 @@ Diese Relation lässt sich dabei auch in den gemessenen Daten in \autoref{fig:sc
 Es ist jedoch zu beachten, dass somit der 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.32\linewidth]{img/Evaluation/scaling/scale_graph_outside}
-	\includegraphics[width=0.32\linewidth]{img/Evaluation/scaling/scale_graph_border}
-	\includegraphics[width=0.32\linewidth]{img/Evaluation/scaling/scale_graph_inside}
+	\includegraphics[width=0.32\linewidth]{img/Evaluation/scale_graph_outside}
+	\includegraphics[width=0.32\linewidth]{img/Evaluation/scale_graph_border}
+	\includegraphics[width=0.32\linewidth]{img/Evaluation/scale_graph_inside}
 	\caption{Skalierungsgraph von \( 1-40 \) Rechenknoten, Strategie mit Vorhersage (rekursiv)}
 	\label{fig:scaleGraph}
+\end{figure}
+\begin{figure}
+	\centering
+	\includegraphics[width=\linewidth]{img/Evaluation/parallelism}
+	\caption{Parallelisierungsstrategien:
+	ein MPI Prozess pro Node, 4 MPI Prozesse pro Node \& 4 OpenMP threads pro Node}
+	\label{fig:parallelism}
 \end{figure}
 
 % OpenMP & MPI skalierung
@@ -193,10 +200,9 @@ Deshalb wird hier eine Kosten-Nutzen Analyse durchgeführt.
 Dazu werden für verschiedene Genauigkeiten die Verteilung der Rechenzeiten und die Dauer der Vorhersage aufgetragen.
 Die Messungen fanden unter den selben Bedingungen wie die Obigen statt, allerdings wurden für die Implementierung hier 64-bit floats verwendet, was die absoluten Rechenzeiten durch die geringere Genauigkeit verkürzt.
 
-% TODO: durch Maxs Bild ersetzen
 \begin{figure}
 	\centering
-	\includegraphics[width=0.9\linewidth]{img/Evaluation/balancers/balancers_prediction_accuracy.png}
+	\includegraphics[width=0.9\linewidth]{img/Evaluation/prediction_accuracy}
 	\caption{Maximale Rechenzeit pro Region und für die Lastbalancierung benötigte Zeit für verschiedene Vorhersagegenauigkeiten}
 	\label{fig:balancers_prediction_accuracy}
 \end{figure}
