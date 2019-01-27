@@ -89,7 +89,7 @@ Es ist jedoch zu beachten, dass somit der
 \subsection{OpenMP}
 
 
-\subsection{Vergliech der Implementierungen}
+\subsection{SIMD}
 
 % Niels:
 % PLOTS: (mandelbrot 32, 64, simd 32,  64, 80 bit default)
@@ -136,6 +136,19 @@ Damit wird die Beschleunigung durch SIMD kleiner, je inhomogener die Iterationsz
 Dass die Iterationszahlen im Allgemeinen am Rand der Mandelbrotmenge inhomogener sind,
 wo auch die Gesamtrechenzeit geringer ist, sollte bei der Betrachtung von \autoref{fig:SIMD-speedup-vs-comptime} berücksichtigt werden.
 
+\begin{figure}
+	\centering
+    \includegraphics[width=0.45\linewidth]{img/Evaluation/simd/parallelismNaiveBalancing.pdf}
+    \includegraphics[width=0.45\linewidth]{img/Evaluation/simd/parallelismNaiveBalancing64.pdf}
+    \caption{Vergleich zwischen der Performanz mit mehr MPI-Prozessen und SIMD bei naiver Lastbalancierung.
+    Eine Erhöhung der Anzahl an Rechenknoten führt zu einer deutlich größeren Beschleunigung.}
+    \label{fig:SIMDvs4timeMore}
+\end{figure}
+
+Insgesamt kann mit SIMD eine deutliche Beschleunigung des Systems bewirkt werden.
+Stehen jedoch mehr Rechenkerne zur Verfügung, schneidet wie in \autoref{fig:SIMDvs4timeMore} zu sehen eine Erhöhung der MPI-Prozesse besser ab.
+Da die Parallelisierungsmethoden jedoch unabhängig voneinander sind, führt die Anwendung von SIMD generell
+zu einer Erhöhung der Performanz und empfiehlt sich bei einfacher Umsetzbarkeit.
 
 \subsection{Lastbalancierung}
 % Florian
