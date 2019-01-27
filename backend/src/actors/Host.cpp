@@ -638,7 +638,7 @@ void Host::init(int world_rank, int world_size) {
             std::memcpy(&workerInfo, recv, sizeof(WorkerInfo));
 
             // Compute time approximately used for MPI communication
-            unsigned long mpiCommunicationTime = std::chrono::duration_cast<std::chrono::microseconds>(mpiCommunicationEnd - mpiCommunicationStart[workerInfo.rank]).count() - workerInfo.computationTime;
+            unsigned long mpiCommunicationTime = std::chrono::duration_cast<std::chrono::microseconds>(mpiCommunicationEnd - mpiCommunicationStart[workerInfo.rank]).count() - workerInfo.mpiOverheadTime;
             std::cout << "Host: MPI communication with Worker " << workerInfo.rank << " took approximately " << mpiCommunicationTime << " microseconds." << std::endl;
         
             // Extract "worker_data" from the received message
