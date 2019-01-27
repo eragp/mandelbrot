@@ -101,7 +101,7 @@ Der Rekursionskontext (\verb|struct BalancingContext|) wurde extern definiert, d
 
 \subsubsection{Strategie mit Vorhersage}
 
-Auch diese Strategie (\verb|PredictionBalancer| und \verb|RecursivePredictionBalancer|) folgt den oben beschriebenen Konzept. 
+Auch diese Strategie (\verb|PredictionBalancer| und \verb|RecursivePredictionBalancer|) folgt den oben beschriebenen Konzept.
 Allerdings wurde die Berechnung der Vorhersage in eine eigene Klasse ausgelagert, da die Berechnung der Vorhersage für die rekursive und die nicht-rekursive Variante gleich ist.
 Die Struktur der Vorhersage sorgt auch dafür, dass der garantierte Teiler erhalten bleibt.
 Für die Berechnung der Vorhersage ist es notwendig, dass bei der Erststellung eine Referenz auf ein \verb|Fractal|-Objekt (siehe \ref{sec:mandelbrot_calculation}) erhalten.
@@ -227,48 +227,48 @@ In der Implementierung kommen folgende MPI-Funktionen zum Einsatz:
 
 \begin{itemize}
 	\item Initialisierung der MPI-Umgebung mit dem passenden Thread-Level
-	
-	Die MPI-Umgebung wird mit einem Aufruf von MPI\_Init\_thread() initialisiert, wobei das als Parameter übergebene Thread-Level mit dem Thread-Modell des eigenen Programms zusammen passen muss. In Abhängigkeit vom verwendeten Thread-Level kann die MPI-Implementierung verschiedene Performanceoptimierungen durchführen.
-	
+
+	      Die MPI-Umgebung wird mit einem Aufruf von MPI\_Init\_thread() initialisiert, wobei das als Parameter übergebene Thread-Level mit dem Thread-Modell des eigenen Programms zusammen passen muss. In Abhängigkeit vom verwendeten Thread-Level kann die MPI-Implementierung verschiedene Performanceoptimierungen durchführen.
+
 	\item MPI Sendeoperationen
-	
-	\begin{itemize}
-		\item Blockierende Sendeoperation
-		
-		Mithilfe der blockierenden Sendeoperation (MPI\_Send()) lassen sich Nachrichten variabler Länge übertragen wobei die Funktion erst zurückkehrt, wenn die Daten komplett an MPI übergeben sind, d.h. der Sendepuffer vollständig ausgelesen wurde.
-		
-		\item Nicht-blockierende Sendeoperation als Persistent Communication Request
-		
-		Der Persistent Communication Request (MPI\_Send\_init() und MPI\_Start()) ist nur für die Übertragung von Nachrichten mit exakt gleicher Konfiguration geeignet. Insbesondere sind dies Länge der Nachricht, verwendeter Datenpuffer, Übertragungstyp, Nachrichtentag und Empfänger. Dadurch wird der Overhead für die Kommunikation mit dem MPI-Kommunikationscontroller reduziert und damit eine Performanceoptimierung erreicht. Der Übertragungsmodus ist bei dem Persistent Communication Request immer nicht-blockierend.
-	\end{itemize}
-	
+
+	      \begin{itemize}
+		      \item Blockierende Sendeoperation
+
+		            Mithilfe der blockierenden Sendeoperation (MPI\_Send()) lassen sich Nachrichten variabler Länge übertragen wobei die Funktion erst zurückkehrt, wenn die Daten komplett an MPI übergeben sind, d.h. der Sendepuffer vollständig ausgelesen wurde.
+
+		      \item Nicht-blockierende Sendeoperation als Persistent Communication Request
+
+		            Der Persistent Communication Request (MPI\_Send\_init() und MPI\_Start()) ist nur für die Übertragung von Nachrichten mit exakt gleicher Konfiguration geeignet. Insbesondere sind dies Länge der Nachricht, verwendeter Datenpuffer, Übertragungstyp, Nachrichtentag und Empfänger. Dadurch wird der Overhead für die Kommunikation mit dem MPI-Kommunikationscontroller reduziert und damit eine Performanceoptimierung erreicht. Der Übertragungsmodus ist bei dem Persistent Communication Request immer nicht-blockierend.
+	      \end{itemize}
+
 	\item MPI Empfangsoperationen
-	
-	\begin{itemize}
-		\item Test, ob Daten Empfangen werden können
-		
-		Die Funktion MPI\_Probe() prüft, ob Daten zum Empfangen bereit sind und stellt Statusinformationen (z.B. Länge der Nachricht) über die Nachricht bereit. Diese Informationen sind für die eigentlichen Empfangsoperationen wichtig. Diese Funktion gibt es in einer blockierenden (MPI\_Probe()) und nicht-blockierenden (MPI\_Iprobe()) Ausprägung.
-		
-		\item Blockierende Empfangsoperation
-		
-		Die blockierenden Empfangsoperation (MPI\_Recv()) verhält sich analog zur blockierenden Sendeoperation.
-		
-		\item Nicht-blockierende Empfangsoperation als Persistent Communication Request
-		
-		Analog der Sendeoperation Persistent Communication Request gibt es eine nicht-blockierende Empfangsoperation (MPI\_Recv\_init() und MPI\_Start()) für den Empfang von Nachrichten fester Größe mit identischer Konfiguration. Der Übertragungsmodus ist immer nicht-blockierend. Die Verwendung ist unabhängig von der Sendeoperation mit der die Daten übertragen werden.
-		
-	\end{itemize}
-	
+
+	      \begin{itemize}
+		      \item Test, ob Daten Empfangen werden können
+
+		            Die Funktion MPI\_Probe() prüft, ob Daten zum Empfangen bereit sind und stellt Statusinformationen (z.B. Länge der Nachricht) über die Nachricht bereit. Diese Informationen sind für die eigentlichen Empfangsoperationen wichtig. Diese Funktion gibt es in einer blockierenden (MPI\_Probe()) und nicht-blockierenden (MPI\_Iprobe()) Ausprägung.
+
+		      \item Blockierende Empfangsoperation
+
+		            Die blockierenden Empfangsoperation (MPI\_Recv()) verhält sich analog zur blockierenden Sendeoperation.
+
+		      \item Nicht-blockierende Empfangsoperation als Persistent Communication Request
+
+		            Analog der Sendeoperation Persistent Communication Request gibt es eine nicht-blockierende Empfangsoperation (MPI\_Recv\_init() und MPI\_Start()) für den Empfang von Nachrichten fester Größe mit identischer Konfiguration. Der Übertragungsmodus ist immer nicht-blockierend. Die Verwendung ist unabhängig von der Sendeoperation mit der die Daten übertragen werden.
+
+	      \end{itemize}
+
 	\item Abschluss nicht-blockierender Kommunikation
-	
-	Nicht-blockierende MPI-Kommunikationsoperationen müssen immer mit einem Aufruf von MPI\_Wait() oder MPI\_Test() bzw. deren abgeleiteten Funktionen (z.B. MPI\_Waitall()) abgeschlossen werden.
-	
-	\begin{itemize}
-		\item MPI\_Test() prüft nicht-blockierend ob eine Sende- oder Empfangsoperation abgeschlossen ist.
-		
-		\item MPI\_Wait() wartet blockierend auf den Abschluss einer Sende- oder Empfangsoperation.
-	\end{itemize}
-	
+
+	      Nicht-blockierende MPI-Kommunikationsoperationen müssen immer mit einem Aufruf von MPI\_Wait() oder MPI\_Test() bzw. deren abgeleiteten Funktionen (z.B. MPI\_Waitall()) abgeschlossen werden.
+
+	      \begin{itemize}
+		      \item MPI\_Test() prüft nicht-blockierend ob eine Sende- oder Empfangsoperation abgeschlossen ist.
+
+		      \item MPI\_Wait() wartet blockierend auf den Abschluss einer Sende- oder Empfangsoperation.
+	      \end{itemize}
+
 \end{itemize}
 
 \subsubsection{MPI-Designentscheidungen}
@@ -286,51 +286,51 @@ Die Kommunikation soll performanceoptimiert und parallelisiert erfolgen.
 Für die Implementierung der MPI-Kommunikation wurden daher folgende Designentscheidungen getroffen:
 
 \begin{itemize}
-	
+
 	\item \label{item:mpi_init} Initialisierung der MPI-Umgebung mit MPI\_THREAD\_FUNNELED
-	
-	In der gewählten Architektur arbeiten sowohl Host als auch Worker mit mehreren Threads, wobei nur der Hauptthread MPI-Aufrufe tätigt. Für die MPI-Konfiguration bedeutet dies, dass sie mit MPI\_THREAD\_FUNNELED initialisiert werden muss. Durch die Einschränkung auf einen MPI-Thread ist MPI in der Lage Optimierungen durchzuführen, was der Performance der Kommunikation zu Gute kommt. Es wurde sich bewusst gegen den Einsatz von MPI in mehreren Threads (MPI\_THREAD\_MULTIPLE) entschieden, da OpenMPI hierfür zwar eine korrekte aber nicht performanceoptimierte Implementierung anbietet \footnote{siehe Abschnitt 'MPI\_THREAD\_MULTIPLE Support' unter \url{https://www.open-mpi.org/doc/v3.1/man3/MPI_Init_thread.3.php}}.
-	
+
+	      In der gewählten Architektur arbeiten sowohl Host als auch Worker mit mehreren Threads, wobei nur der Hauptthread MPI-Aufrufe tätigt. Für die MPI-Konfiguration bedeutet dies, dass sie mit MPI\_THREAD\_FUNNELED initialisiert werden muss. Durch die Einschränkung auf einen MPI-Thread ist MPI in der Lage Optimierungen durchzuführen, was der Performance der Kommunikation zu Gute kommt. Es wurde sich bewusst gegen den Einsatz von MPI in mehreren Threads (MPI\_THREAD\_MULTIPLE) entschieden, da OpenMPI hierfür zwar eine korrekte aber nicht performanceoptimierte Implementierung anbietet \footnote{siehe Abschnitt 'MPI\_THREAD\_MULTIPLE Support' unter \url{https://www.open-mpi.org/doc/v3.1/man3/MPI_Init_thread.3.php}}.
+
 	\item Datenübertragung als uninterpretierte Byte-Datenströme
-	
-	Alle per MPI übertragenen Daten werden uninterpretiert als Byte-Datenströme geschickt. Das bedeutet, dass eine erfolgreiche Interpretation der Daten nur auf einem Cluster völlig gleichartiger Rechner garantiert werden kann. Allerdings macht dies die Übertragung denkbar einfach und performant, da im gesamten Backend mit den selben Structs ohne eine Umformatierung gearbeitet werden kann.
-	
+
+	      Alle per MPI übertragenen Daten werden uninterpretiert als Byte-Datenströme geschickt. Das bedeutet, dass eine erfolgreiche Interpretation der Daten nur auf einem Cluster völlig gleichartiger Rechner garantiert werden kann. Allerdings macht dies die Übertragung denkbar einfach und performant, da im gesamten Backend mit den selben Structs ohne eine Umformatierung gearbeitet werden kann.
+
 	\item Nicht-blockierendes Senden der Subregionen vom Host an die Worker
-	
-	Der MPI-Host-Thread verwendet Persistent Communication Requests für das performante Senden der Arbeitsaufträge zu den Workern, da hier die Nachrichtengröße konstant ist und die Sendeparameter identisch sind. Der gewählte Übertragungsmodus ist \verb|nicht-blockierend|, da dieser Modus es erlaubt, alle Sendeoperationen an alle Worker zu starten und erst danach auf deren Abschluss mit einem MPI\_Waitall() zu warten. Dies gewährleistet, dass die Subregionen möglichst schnell an die Worker verteilt werden und diese somit mit minimaler Verzögerung die Berechnung beginnen können. Dieser Aufruf ist in der Grafik mit "MPI\_PCR\_Start()" bezeichnet.
-	
+
+	      Der MPI-Host-Thread verwendet Persistent Communication Requests für das performante Senden der Arbeitsaufträge zu den Workern, da hier die Nachrichtengröße konstant ist und die Sendeparameter identisch sind. Der gewählte Übertragungsmodus ist \verb|nicht-blockierend|, da dieser Modus es erlaubt, alle Sendeoperationen an alle Worker zu starten und erst danach auf deren Abschluss mit einem MPI\_Waitall() zu warten. Dies gewährleistet, dass die Subregionen möglichst schnell an die Worker verteilt werden und diese somit mit minimaler Verzögerung die Berechnung beginnen können. Dieser Aufruf ist in der Grafik mit "MPI\_PCR\_Start()" bezeichnet.
+
 	\item Nicht-blockierendes Empfangen der vom Host gesendeten Subregionen in den Workern
-	
-	Analog zum MPI-Host-Thread nutzt auch der MPI-Worker-Thread Persistent Communication Requests um eine Subregion möglichst performant, d.h. mit möglichst wenig Overhead, zu empfangen. Es wurde der nicht-blockierende Übertragungsmodus gewählt, um laufende Berechnungen abbrechen zu können, falls ein neuer Rechenauftrag empfangen wurde (siehe \hyperref[para:impl_mpi_worker]{Implementierung der MPI-Kommunikation im Worker}).
-	
+
+	      Analog zum MPI-Host-Thread nutzt auch der MPI-Worker-Thread Persistent Communication Requests um eine Subregion möglichst performant, d.h. mit möglichst wenig Overhead, zu empfangen. Es wurde der nicht-blockierende Übertragungsmodus gewählt, um laufende Berechnungen abbrechen zu können, falls ein neuer Rechenauftrag empfangen wurde (siehe \hyperref[para:impl_mpi_worker]{Implementierung der MPI-Kommunikation im Worker}).
+
 	\item Struktur der von den Workern an den Host gesendeten Daten
-	
-	Es müssen generelle Informationen in Form eines WorkerInfo-Structs (allgemeine Daten zur Subregion, Nummer des Workers, Berechnungsdauer) und ein Array der berechneten Daten von den Workern an den Host gesendet werden. Da die Anzahl der berechneten Daten und damit die Länge des Datenarrays variiert, kann das Array nicht ohne weiteres Teil des WorkerInfo-Structs sein. Um alle Daten mit einer Übertragungsoperation abzuarbeiten, wird das Datenarray direkt hinter das WorkerInfo-Struct kopiert.
-	
+
+	      Es müssen generelle Informationen in Form eines WorkerInfo-Structs (allgemeine Daten zur Subregion, Nummer des Workers, Berechnungsdauer) und ein Array der berechneten Daten von den Workern an den Host gesendet werden. Da die Anzahl der berechneten Daten und damit die Länge des Datenarrays variiert, kann das Array nicht ohne weiteres Teil des WorkerInfo-Structs sein. Um alle Daten mit einer Übertragungsoperation abzuarbeiten, wird das Datenarray direkt hinter das WorkerInfo-Struct kopiert.
+
 	\item Blockierendes Senden der berechneten Subregion von den Workern an den Host
-	
-	Diese flexible Operation wird für das Versenden der Rechenergebnisse vom Worker zum Host verwendet, da die zu übertragende Datenmenge von der Größe der berechneten Region abhängt. Nicht-blockierendes Senden ist hier nicht notwendig, da das Ergebnis nach der abgeschlossenen Berechnung in jeden Fall an den Host gesendet werden soll, bevor eine neue Berechnung startet. Im Sequenzdiagramm ist dieser Aufruf mit "MPI\_Send()" bezeichnet.
-	
+
+	      Diese flexible Operation wird für das Versenden der Rechenergebnisse vom Worker zum Host verwendet, da die zu übertragende Datenmenge von der Größe der berechneten Region abhängt. Nicht-blockierendes Senden ist hier nicht notwendig, da das Ergebnis nach der abgeschlossenen Berechnung in jeden Fall an den Host gesendet werden soll, bevor eine neue Berechnung startet. Im Sequenzdiagramm ist dieser Aufruf mit "MPI\_Send()" bezeichnet.
+
 	\item Blockierendes Empfangen der von den Workern berechneten Subregionen im Host
-	
-	Wenn Daten von den Workern zu empfangen sind (dies wird nicht-blockierend mit MPI\_Iprobe() getestet), werden die Daten blockierend Empfangen und sofort im richtigen Format in die MPI\_To\_Websocket\_Result Datenstruktur abgelegt. Eine nicht-blockierende Empfangsoperation bietet in diesem Anwendungsfall keine Vorteile.
-	% TODO Evtl. doch noch nicht blockierend machen.
-	
+
+	      Wenn Daten von den Workern zu empfangen sind (dies wird nicht-blockierend mit MPI\_Iprobe() getestet), werden die Daten blockierend Empfangen und sofort im richtigen Format in die MPI\_To\_Websocket\_Result Datenstruktur abgelegt. Eine nicht-blockierende Empfangsoperation bietet in diesem Anwendungsfall keine Vorteile.
+	      % TODO Evtl. doch noch nicht blockierend machen.
+
 	\item Busy Waiting
-	
-	\begin{itemize}
-		\item Busy waiting im MPI-Host-Thread
-		
-		Im Host ist busy waiting unumgänglich, da einerseits auf neue Arbeitsaufträge und andererseits auf Rechenergebnisse reagiert werden muss. Um busy waiting zu umgehen, wäre eine Lösung, einen Sendethread und einen Empfangsthread zu implementieren, was aber die MPI-Kommunikation insgesamt verlangsamen würde, da ein höherer Isolation-Level gesetzt werden muss (siehe \hyperref[item:mpi_init]{Initialisierung der MPI-Umgebung mit MPI\_THREAD\_FUNNELED}). Um die CPU zu entlasten, wird der MPI-Host-Thread für 100 Mikrosekunden schlafen gelegt, falls im aktuellen Schleifendurchlauf weder eine Sendeoperation noch eine Empfangsoperation durchgeführt wurde. Diese Pause hat keine signifikante Auswirkung auf die Gesamtperformance aufgrund der im Vergleich deutlich längeren Berechnungsdauer einer Subregion.
-		%TODO Evtl. nicht-blockierend mit Sendeoperation daweil starten
-		
-		\item Busy waiting im MPI-Worker-Thread
-		
-		Solange keine Berechnungen durchzuführen sind, wäre es ausreichend blockierend auf das Eintreffen neuer Berechnungsaufträge zu warten, um die CPU nicht unnötig zu belasten. Da die blockierende Empfangsoperation MPI\_Recv() aber selbst mit busy waiting implementiert ist, wird auf deren Nutzung verzichtet. Stattdessen wird der MPI-Worker-Thread im Schleifendurchlauf für 1 Millisekunde schlafen gelegt wenn keine Nachrichten zu empfangen sind. Im Vergleich zur Berechnungsdauer einer Subregion (vgl. Evaluationstimer ... TODO) fällt diese 1 Millisekunde nicht ins Gewicht, entlastet aber spürbar die CPU.
-		%TODO Quellen für den Busy Waiting Dreck.
-		
-	\end{itemize} 
-	
+
+	      \begin{itemize}
+		      \item Busy waiting im MPI-Host-Thread
+
+		            Im Host ist busy waiting unumgänglich, da einerseits auf neue Arbeitsaufträge und andererseits auf Rechenergebnisse reagiert werden muss. Um busy waiting zu umgehen, wäre eine Lösung, einen Sendethread und einen Empfangsthread zu implementieren, was aber die MPI-Kommunikation insgesamt verlangsamen würde, da ein höherer Isolation-Level gesetzt werden muss (siehe \hyperref[item:mpi_init]{Initialisierung der MPI-Umgebung mit MPI\_THREAD\_FUNNELED}). Um die CPU zu entlasten, wird der MPI-Host-Thread für 100 Mikrosekunden schlafen gelegt, falls im aktuellen Schleifendurchlauf weder eine Sendeoperation noch eine Empfangsoperation durchgeführt wurde. Diese Pause hat keine signifikante Auswirkung auf die Gesamtperformance aufgrund der im Vergleich deutlich längeren Berechnungsdauer einer Subregion.
+		            %TODO Evtl. nicht-blockierend mit Sendeoperation daweil starten
+
+		      \item Busy waiting im MPI-Worker-Thread
+
+		            Solange keine Berechnungen durchzuführen sind, wäre es ausreichend blockierend auf das Eintreffen neuer Berechnungsaufträge zu warten, um die CPU nicht unnötig zu belasten. Da die blockierende Empfangsoperation MPI\_Recv() aber selbst mit busy waiting implementiert ist, wird auf deren Nutzung verzichtet. Stattdessen wird der MPI-Worker-Thread im Schleifendurchlauf für 1 Millisekunde schlafen gelegt wenn keine Nachrichten zu empfangen sind. Im Vergleich zur Berechnungsdauer einer Subregion (vgl. Evaluationstimer ... TODO) fällt diese 1 Millisekunde nicht ins Gewicht, entlastet aber spürbar die CPU.
+		            %TODO Quellen für den Busy Waiting Dreck.
+
+	      \end{itemize}
+
 \end{itemize}
 
 \subsubsection{Beschreibung der implementierten MPI-Hauptroutinen}
@@ -351,7 +351,7 @@ Die Kommunikation zwischen Host (MPI-Host-Thread) und Workern (MPI-Worker-Thread
 
 \paragraph{Ablauf der MPI-Kommunikation im Worker}\label{para:impl_mpi_worker}
 
-Im folgenden wird das Kommunikationsverhalten des MPI-Worker-Threads genauer beschrieben. 
+Im folgenden wird das Kommunikationsverhalten des MPI-Worker-Threads genauer beschrieben.
 
 Analog zum Host ist auch der Worker (MPI-Worker-Thread) als Endlosschleife mit busy waiting implementiert. Die Berechnung einer Subregion erfolgt dabei zeilenweise durch einen compute() Aufruf. Der entsprechende Pseudocode inklusive ausführlicher Kommentare ist in \autoref{src:mpi_worker_pseudo} zu finden.
 
@@ -422,7 +422,7 @@ Zudem kann der parallele Vergleich zweier Vektoren (\textit{clt}) ausgenutzt wer
 sondern alle Bits der Ergebnisvektorkomponente auf 1 gesetzt werden sofern die Bedingung erfüllt ist und sonst auf 0.
 Um im weiteren Verlauf effizient die Vektorkomponenten aufzuaddieren (\textit{addv}) wird die ursprünglich vorzeichenlose Zahl als vorzeichenbehaftet interpretiert.
 Jede Komponente für die die Bedingung zu wahr evaluiert hat, kann nun als $-1$ interpretiert werden.
-Die Summe über die Komponenten entspricht damit der negierten Anzahl an noch nicht abgeschlossenen Punkten.  
+Die Summe über die Komponenten entspricht damit der negierten Anzahl an noch nicht abgeschlossenen Punkten.
 
 \subsection{Leistungssteigerung durch Parallelisierung auf Thread Level mithilfe von OpenMP}
 
@@ -438,14 +438,14 @@ Folgende Parameter werden dabei noch gesetzt:
 
 \begin{itemize}
 	\item \verb|shared(<Datenstrukturen>)| kennzeichnet diejenigen Datenstrukturen die parallel beschreibbar sind.
-	
+
 	\item \verb|schedule(<Parameter>)| setzt die gewählte Schedulingstrategie fest. Als Parameter wurde genutzt:
-	
-	\begin{itemize}
-		\item \verb|nonmonotonic| besagt, dass die Schleifeniterationen in beliebiger Reihenfolge ausgeführt werden können.
-		
-		\item \verb|dynamic, 10| bedeutet, dass jeder Thread zunächst 10 Schleifeniterationen zur Berechnung zugewiesen bekommt. Hat ein Thread diese Aufgabe abgeschlossen, bekommt er weitere 10 Iterationen falls noch welche verfügbar sind. Diese Strategie wurde gewählt, um die Rechenlast möglichst gleichmäßig auf alle Threads zu verteilen und so die Gesamtrechenzeit der Schleife zu minimieren ohne ein erneutes Balancing vornehmen zu müssen.
-	\end{itemize}
+
+	      \begin{itemize}
+		      \item \verb|nonmonotonic| besagt, dass die Schleifeniterationen in beliebiger Reihenfolge ausgeführt werden können.
+
+		      \item \verb|dynamic, 10| bedeutet, dass jeder Thread zunächst 10 Schleifeniterationen zur Berechnung zugewiesen bekommt. Hat ein Thread diese Aufgabe abgeschlossen, bekommt er weitere 10 Iterationen falls noch welche verfügbar sind. Diese Strategie wurde gewählt, um die Rechenlast möglichst gleichmäßig auf alle Threads zu verteilen und so die Gesamtrechenzeit der Schleife zu minimieren ohne ein erneutes Balancing vornehmen zu müssen.
+	      \end{itemize}
 \end{itemize}
 
 
@@ -490,20 +490,20 @@ Während ein Thread das Empfangen von Nachrichten übernimmt, behandelt diese Me
 Die Methode setzt dabei eine Dauerschleife nach folgendem Schema um:
 
 \begin{enumerate}
-    \item Überprüfe auf das Vorhandensein fertig berechneter Regionen \label{enum:Host::send.step1}
-    \item Ist keine Region verfügbar
-    \begin{enumerate}
-        \item Warte blockierend auf eine Änderung
-        \item Springe zu Schritt \ref{enum:Host::send.step1}
-    \end{enumerate}
-    \item Ist eine Region verfügbar
-    \begin{enumerate}
-        \item Locke die geteilte Datenstruktur
-        \item Entnimm eine Region daraus
-        \item Löse das Lock
-    \end{enumerate}
-    \item Codiere die Regionsdaten in JSON und versende sie über Websocket an den aktuell verbundenen Client
-    \item Springe anschließend zu Schritt \ref{enum:Host::send.step1}
+	\item Überprüfe auf das Vorhandensein fertig berechneter Regionen \label{enum:Host::send.step1}
+	\item Ist keine Region verfügbar
+	      \begin{enumerate}
+		      \item Warte blockierend auf eine Änderung
+		      \item Springe zu Schritt \ref{enum:Host::send.step1}
+	      \end{enumerate}
+	\item Ist eine Region verfügbar
+	      \begin{enumerate}
+		      \item Locke die geteilte Datenstruktur
+		      \item Entnimm eine Region daraus
+		      \item Löse das Lock
+	      \end{enumerate}
+	\item Codiere die Regionsdaten in JSON und versende sie über Websocket an den aktuell verbundenen Client
+	\item Springe anschließend zu Schritt \ref{enum:Host::send.step1}
 \end{enumerate}
 
 Ein Beispiel für versendete Regionsdaten kann \autoref{src:regionData.json} entnommen werden.
@@ -666,11 +666,10 @@ leaflet Bibliothek realisiert:
 
 \paragraph{Shader.ts}\label{par:shader}
 Berechnet für einen Iterationswert der Mandelbrotmenge ein Tripel \( (r,g,b) \) von Farbwerten.
-Implementiert ist sind diverse Shader, wie \verb|logSmooth|, \verb|| welcher standardmäßig verwendet wird.
-Überauß wichtig ist es außerdem, dass der der implementierten Shader effizient berechnet werden kann, da diese 
+Implementiert ist sind diverse Shader, wie \verb|logSmooth| welcher standardmäßig verwendet wird.
+Überauß wichtig ist es außerdem, dass der der implementierten Shader effizient berechnet werden kann, da diese
 für jeden Pixel in dem dargestellten Bereich einmal aufgerufen werden.
 
-% TODO: kürzen
 \paragraph{Project.ts}
 Da die leaflet Bibliothek Tiles verwendet, um die Regionen des Backends anzuzeigen, liegen diese in
 einem neuen Koordinatensystem, welches jeder Tile auf für eine Zoomstufe ein Triple \( (tileX, tileY, zoom) \) zuordnet.
@@ -679,9 +678,26 @@ welches jeden Punkt auf der Karte durch das Paar \( (latitude, longitude) \) ide
 \verb|Projekt.ts| enthält Funktionen, um zwischen diesen 3 Koordinatensystemen
 (Tile-Koordinaten, leaflet-Koordinaten und Koordinaten der komplexen Ebene) zu konvertieren.
 
-% TODO: Ausführung
 \paragraph{Regionsgruppierung (RegionGroup.ts)}\label{par:regionGroup}
+Bei der Verwendung vieler Worker \( > 10 \) kommt es zu einer unübersichtlichen Darstellung
+dieser, da die Aufteilung jedes Workers, sowie dessen Warte- und Rechenzeit separat dargestellt werden.
+Deshalb ist eine Gruppierung der einzelnen Worker implementiert, welche alle vom Backend erzeugeten Worker
+nach der näher der von ihnen berechneten Regionen auf der Komplexen Ebene hierarchisch zusammenfasst. Dabei kann eine maximale
+Anzahl darzustellender Gruppen spezifiziert werden, welche als Grundlage zur Berechnung der Gruppengröße dient (Standardmäßig \( = 4 \)).
+Diese erzeugen Gruppen werden dann äquivalent zu einer einzelnen Region im Rest des Frontends behandelt.
 
+Da der \verb|WorkerLayer| für jede Gruppe die von dieser berechnete Fläche auf der komplexen Ebene anzeigt,
+muss für eine Gruppe, die aus mehr als einer Region besteht der Rand aller in ihr enthaltenen Flächen berechnet werden.
+Dies wurde mit dem \textit{Graham Search}\cite{Cormen} Algorithmus für das Berechnen einer konvexen Hülle implementiert.
+Da die gruppierten Regionen jedoch nicht immer konvex sein müssen, muss dieser Algorithmus für ie Berechnung einer konkaven Hülle erweitert
+werden, was sich als sehr aufwendig herausgestellt hat und deshalb nur durch eine Vereinfachung implementiert wurde.
+Dadurch kann es bei der Darstellung der Gruppierungen im Frontend zu überlappenden Regionsdarstellungen im \verb|WorkerLayer| kommen (siehe \autoref{fig:regionGroupError}).
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=.45\linewidth]{img/Implementierung/region_group_error}
+	\caption{Überlappende Ränder von gruppierten Teilregionen, durch inkorrekte Berechnung des Randes der türkisen Region
+	}\label{fig:regionGroupError}
+\end{figure}
 \subsubsection{Visualisierung}
 
 Die Struktur der Parallelisierung wird in einem Netzwerkgraphen unter dem Fraktal dargestellt.
@@ -702,32 +718,33 @@ auf Ebenen verteilt.
 Diese Aufteilung wird nach Erhalt jeder Regionsaufteilung vorgenommen und der Graph neu aufgebaut,
 sowie die Größe der Leinwand an die Anzahl an Knoten angepasst.
 
-\begin{figure}
-	\centering
-	\includegraphics[width=0.5\linewidth]{img/Implementierung/NetworkView}
-	\caption{Darstellung der Architektur der Anwendung als Graph
-	}\label{fig:networkView}
-\end{figure}
 
 \subsubsection{Visualisierung der Rechenzeiten} % components/
 
 Die zeitbezüglichen Komponenten der Visualisierung werden mithilfe der Charts
 der Bibliothek \verb|chartjs|\footnote{\url{http://www.chartjs.org/}} dargestellt.
-\begin{figure}
+\begin{figure*}[t!]
 	\centering
-	\begin{minipage}{.5\textwidth}
+	\begin{subfigure}[t]{0.3\textwidth}
 		\centering
 		\includegraphics[height=.5\linewidth]{img/Implementierung/IdleTime}
-		\caption{Idle Time für 5 Gruppen}
+		\caption{Wartezeiten für 5 Gruppen}
 		\label{fig:idleTime}
-	\end{minipage}%
-	\begin{minipage}{.5\textwidth}
+	\end{subfigure}%
+	\begin{subfigure}[t]{0.3\textwidth}
 		\centering
 		\includegraphics[height=.5\linewidth]{img/Implementierung/ComputationTime}
-		\caption{Computation time für 4 Gruppen}
+		\caption{Rechenzeiten für 4 Gruppen}
 		\label{fig:computationTime}
-	\end{minipage}
-\end{figure}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.3\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{img/Implementierung/NetworkView}
+		\caption{Architektur der Anwendung als Graph
+		}\label{fig:networkView}
+	\end{subfigure}
+	\caption{Komponenten zur Visualisierung der Rechenzeiten im Frontend}
+\end{figure*}
 
 
 % TODO: deutsch
