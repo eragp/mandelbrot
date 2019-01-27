@@ -52,6 +52,32 @@ Frontend zuständig ist und Workerprozessen, welche die tatsächliche Berechnung
 Der Hostprozess nimmt damit Rechenaufträge vom Nutzerfrontend entgegen und führt die Lastbalancierung durch.
 Die kleineren Regionen der unterteilten Anfrage werden dann an die jeweiligen Workerprozesse gesendet, welche sie berechnen sollen.
 Damit erhalten wir eine Unterteilung in drei wesentliche Bausteine, wie sie in \autoref{fig:architekturuebersicht} zu sehen sind.
+\\ \\
+ALTERNATIVE VERSION VOM TOBI KOMMT JETZT. HAB LEIDER NICHT GESEHEN, DAS DARAN SCHON WAS GEÄNDERT WURDE. WAS FINDET IHR BESSER?
+\\ \\
+\subsection{Architekturübersicht}
+Die Architektur besteht aus drei wesentlichen Bausteinen, die in \autoref{fig:architekturuebersicht_detail} zu sehen sind:
+\begin{itemize}
+	\item Eine Benutzeroberfläche in einem Web-Browser (“Frontend”), die die Benutzerinteraktionen entgegennimmt und mit dem Backend kommuniziert.
+	\item Ein Backend-Host, der eingehende Rechenaufträge vom Frontend an die Worker verteilt und deren Ergebnisse an das Frontend weiterleitet.
+	\item Mehrere Backend-Worker, die die eigentliche Berechnung parallelisiert durchführen.
+\end{itemize}
+\begin{figure}[h!]
+	% Bindet das als PDF exportierte pptx ein -> vektorgrafik
+	% -> pptx bearbeiten statt pdf
+	\centering
+	\includegraphics[width=0.98\linewidth]{img/Implementierung/ArchitekturAusfuehrlich.pdf}
+	\caption{Detaillierte Architekturübersicht}
+	\label{fig:architekturuebersicht_detail}
+\end{figure}
+Erfolgt eine Nutzereingabe so sendet das Frontend einen entsprechenden Rechenauftrag via Websocket an den Host.
+Der Websocket-Recv-Thread des Hosts nimmt den eingehenden Rechenauftrag an, führt das Balancing durch, übermittelt dem Frontend die getätigte Aufteilung und legt diese in der gemeinsamen Datenstruktur Websocket-Request-To-MPI ab.
+Der MPI-Host-Thread leitet die in dieser Datenstruktur liegenden Rechenaufträge per MPI an die Worker weiter.
+Diese nehmen die zugewiesenen Rechenaufträge entgegen und führen diese ggf. mithilfe von SIMD und / oder OpenMP parallelisiert aus.
+Anschließend werden die Rechenergebnisse wieder via MPI an den MPI-Host-Thread übermittelt, welcher diese in der gemeinsamen Datenstruktur MPI-To-Websocket-Result ablegt.
+Der Websocket-Result-Thread überträgt die Rechenergebnisse aus der gemeinsamen Datenstruktur per Websocket an das Frontend, wo die Daten verarbeitet und dargestellt werden.
+
+
 
 % Welche Lastbalancierungsmechanismen wurden umgesetzt?
 \subsection{Lastbalancierung}\label{sec:load_balancing_concepts}
