@@ -12,7 +12,7 @@ import WebSocketClient from "../connection/WSClient";
 import { GroupObservable } from "../misc/Observable";
 
 import "./IdleTime.css";
-import { RegionGroup, groupRegions } from "../connection/RegionGroup";
+import { RegionGroup, groupRegions } from "../misc/RegionGroup";
 import { WorkerInfo } from "../connection/ExchangeTypes";
 import { usToString } from "../misc/Conversion";
 
@@ -227,18 +227,13 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
 
   private updateChart(animationDuration?: number) {
     const datasets: ChartDataSets[] = [];
-    const groupCompTime = (group: RegionGroup) => {
-      let compTime = 0;
-      for (const region of group.getLeafs()) {
-        compTime += this.chartState.progress.get(region.id) as number;
-      }
-      return compTime;
-    };
     let maxComputationTime = 0;
     for (const g of this.chartState.nodes) {
-      const compTime = groupCompTime(g);
-      if (compTime > maxComputationTime) {
-        maxComputationTime = compTime;
+      for (const region of g.getLeafs()) {
+        const compTime = this.chartState.progress.get(region.id) as number;
+        if (compTime > maxComputationTime) {
+          maxComputationTime = compTime;
+        }
       }
     }
     // Ensure that the order from the nodes array is kept for the datasets
@@ -246,10 +241,14 @@ export default class IdleTime extends React.Component<IdleTimeProps, {}> {
       const rank = group.id;
       const groupSize = group.getLeafs().length;
       // IdleTime is displayed in seconds, averaged over the size of the group
-      const idleTime = (maxComputationTime - groupCompTime(group)) / (groupSize * factor);
+      let idleTime = 0;
+      for (const region of group.getLeafs()) {
+        idleTime += maxComputationTime - (this.chartState.progress.get(region.id) as number);
+      }
+      const idleTimeAvg = idleTime / (groupSize * factor);
       datasets.push({
         label: "Group " + rank,
-        data: [idleTime],
+        data: [idleTimeAvg],
         backgroundColor: this.props.group.getColor(rank),
         stack: "idle-time"
       });

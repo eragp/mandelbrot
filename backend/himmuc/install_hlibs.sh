@@ -32,6 +32,3 @@ fi
 # MPI
 echo "MPI already installed"
 # module load mpi
-
-# ZLIB
-echo "libz already installed"

@@ -12,7 +12,6 @@
 #include "MandelbrotOpenMPSIMD32.h"
 #include "MandelbrotOpenMPSIMD64.h"
 #include "Region.h"
-#include "Tile.h"
 #include "WorkerInfo.h"
 
 #include <mpi.h>
@@ -74,6 +73,8 @@ void Worker::init(int world_rank, int world_size) {
     while (true) {
         MPI_Test(&request, &flag, &status);
         if (flag != 0) {
+            // Start measuring for MPI-Overhead
+            auto startMPIOverhead = std::chrono::high_resolution_clock::now();
             // Set current region to newRegion, copy value explicitly (solve more beautiful if you want to)
             std::memcpy(&region, &newRegion, sizeof(Region));
             // Debug Output
@@ -184,6 +185,10 @@ void Worker::init(int world_rank, int world_size) {
                 const unsigned int ret_len = sizeof(unsigned short int) * data_len + sizeof(WorkerInfo);
                 uint8_t* ret = new uint8_t[ret_len];
                 std::memcpy(ret, &workerInfo, sizeof(WorkerInfo));
+                // This is the last possible point to stop the MPI-Overhead measuring
+                auto endMPIOverhead = std::chrono::high_resolution_clock::now();
+                unsigned long elapsedMPIOverhead = std::chrono::duration_cast<std::chrono::microseconds>(endMPIOverhead - startMPIOverhead).count();
+                workerInfo.mpiOverheadTime = elapsedMPIOverhead;
                 std::memcpy(ret + sizeof(WorkerInfo), data, data_len * sizeof(unsigned short int));
                 
                 // Send "ret" to the Host using one MPI_Send operation

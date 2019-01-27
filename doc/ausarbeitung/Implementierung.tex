@@ -664,15 +664,11 @@ leaflet Bibliothek realisiert:
 	      leaflet Koordinaten zu komplexen Koordinaten.
 \end{itemize}
 
-% TODO: verschiedene Shader implementiert
 \paragraph{Shader.ts}\label{par:shader}
 Berechnet für einen Iterationswert der Mandelbrotmenge ein Tripel \( (r,g,b) \) von Farbwerten.
-Implementiert ist eine simple Funktion, welche den Iterationswert für jeden Farbkanal mit einer Konstante multipliziert
-und auf den zulässigen ganzzahligen Wertebereich \( [0,255] \) abbildet (siehe \autoref{src:Shader.ts}).
-
-\begin{figure}[h!]
-	\lstinputlisting[caption={Berechnung der \( (r,g,b) \) Farbwerte}, label={src:Shader.ts}, language=TypeScript, firstline=2, lastline=7, firstnumber=2]{../../frontend/src/tileDisplay/Shader.ts}
-\end{figure}
+Implementiert ist sind diverse Shader, wie \verb|logSmooth|, \verb|| welcher standardmäßig verwendet wird.
+Überauß wichtig ist es außerdem, dass der der implementierten Shader effizient berechnet werden kann, da diese 
+für jeden Pixel in dem dargestellten Bereich einmal aufgerufen werden.
 
 % TODO: kürzen
 \paragraph{Project.ts}

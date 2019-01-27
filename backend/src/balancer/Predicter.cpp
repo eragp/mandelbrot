@@ -141,7 +141,8 @@ Prediction* Predicter::getPrediction(Region region, Fractal* fractal, int predic
         delete[] projImag;
         delete[] data;
     }
-    else {
+    // predictionAccuracy == 0: invalid
+	else {
         std::cerr << "predictionAccuracy cannot be 0." << std::endl;
         return nullptr;
     }

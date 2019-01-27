@@ -11,7 +11,7 @@ import WebSocketClient from "../connection/WSClient";
 
 import "./ComputationTime.css";
 import { GroupObservable } from "../misc/Observable";
-import { RegionGroup, groupRegions} from "../connection/RegionGroup";
+import { RegionGroup, groupRegions } from "../misc/RegionGroup";
 import { WorkerInfo } from "../connection/ExchangeTypes";
 import { usToString } from "../misc/Conversion";
 

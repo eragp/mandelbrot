@@ -1,5 +1,5 @@
-import { RegionData, Regions, WorkerInfo, workerInfoEquals, RegionRequest } from "./ExchangeTypes";
-import { groupRegions, RegionGroup } from "./RegionGroup";
+import { Request, RegionData, Regions, WorkerInfo, workerInfoEquals } from "./ExchangeTypes";
+import { groupRegions, RegionGroup } from "../misc/RegionGroup";
 import { registerCallback } from "../misc/registerCallback";
 import { WsUrl } from "../Constants";
 import { setWSUrl } from "../misc/URLParams";
@@ -94,7 +94,8 @@ export default class WebSocketClient implements WS {
     this.socket.close();
   }
 
-  public sendRequest(request: RegionRequest) {
+  public sendRequest(request: Request) {
+    console.log("sending Region Request: ", request);
     const message = JSON.stringify(request);
     if (this.socket.readyState === this.socket.OPEN) {
       this.socket.send(message);

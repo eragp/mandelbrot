@@ -10,7 +10,7 @@ If you just want to get this running up and delivering, make sure you have insta
 and run (from the backend folder, one directory above this README)
 
 ```bash
-python3 himmuc/start_himmuc.py --help
+python3 himmuc/start_himmuc.py -h
 ```
 
 Also make sure to have copied your ssh-key to the vm-schulz when using `-b` (build).
@@ -49,7 +49,7 @@ mkdir ~/.eragp-mandelbrot
 
     (https://www.boost.org/doc/libs/1_68_0/more/getting_started/unix-variants.html)
 
-    Only `boost_system` has to be built.
+    Only `boost_system` has to be built. The following also builds `boost_thread` and `boost_random` as they might be useful for building websocketpp.
 
     ```bash
     cd ~/.eragp-mandelbrot
@@ -58,7 +58,7 @@ mkdir ~/.eragp-mandelbrot
     wget https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.bz2
     tar --bzip2 -xf boost_1_67_0.tar.bz2
     cd boost_1_67_0
-    ./bootstrap.sh --prefix="$HOME/.eragp-mandelbrot/local/" --with-libraries=system
+    ./bootstrap.sh --prefix="$HOME/.eragp-mandelbrot/local/" --with-libraries=system,thread,random
     ./b2 install
     ```
 
@@ -125,7 +125,7 @@ Prerequisites:
 > This is essentially what the script `start_himmuc.py` does.
 > Also note that the script is not working directory sensitive, yet it is important that the git repository is cloned into the home directory
 
-**Set up on local device**
+**Set up on your device**
 
 Clone the repository.
 
@@ -135,7 +135,7 @@ Any time you want to run the backend on the himmuc, execute
 `start_himmuc.py`, which is located in this directory from the backend folder (one directory up).
 
 ```bash
-python3 himmuc/start_himmuc.py --help
+python3 himmuc/start_himmuc.py -h
 ```
 
 ### Running manually
@@ -149,13 +149,21 @@ python3 himmuc/start_himmuc.py --help
 
 7. Run the executables
 
-   Make sure to run the following in the folder `eragp-mandelbrot/backend/build` (or where you placed your executables) on the vmschulz (see example output), *not* on any of the raspberry pis.
+   ```bash
+   git clone https://gitlab.lrz.de/lrr-tum/students/eragp-mandelbrot # if not already done
+   cd eragp-mandelbrot
+   
+   git checkout raspberry_pi_die_erste # if not already done
+   cd backend/build
+   ```
+   
+   Make sure to run the following in the folder `eragp-mandelbrot/backend/build` on the vmschulz (see example output), *not* on any of the raspberry pis.
    
    If you want to enforce that the host process shares a node with any worker process,
    do set the number of nodes (`-N`) one less than the number of processes (`-n`).
    
    ```bash
-   srun -p <odr|rpi> -n <number of workers+1> -N <number of nodes/raspis> -l --multi-prog |<path to eragp-mandelbrot/backend>himmuc/run.conf
+   srun -p <odr|rpi> -n <number of workers+1> -N <number of nodes/raspis> -l --multi-prog run.conf
    ssh -L 0.0.0.0:9002:localhost:9002 -fN -M -S .tunnel.ssh <odr|rpi><host number>
    ```
    

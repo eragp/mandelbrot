@@ -2,6 +2,7 @@ export const WsUrl = "ws://localhost:9002";
 export const TileSize = 64;
 export const LeafletBound = 1024;
 export const MaxIteration = 1019; // Prime so that %256 never gets black
+export const PredictionAccuracy = 4;
 
 // Maximum number of regions to display to the user.
 // If more are delivered by the backend, grouping will occur.
@@ -9,6 +10,8 @@ export const MAX_DISPLAY_REGIONS = 4;
 // (real, imaginary) bounds of the complex plane
 // x/-x and y/-y have to be the same (symmetric)
 export const bounds = [4, 4];
+
+export const NodeCount = 0;
 
 // Color set for Groups
 export const ColorSet = [
