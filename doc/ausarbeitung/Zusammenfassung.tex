@@ -29,8 +29,11 @@ Der Benutzer hat die Möglichkeit die Parallelisierung mittels OpenMP und SIMD a
 Außerdem werden Rechenzeit und die Zeit in der Knoten untätig waren in Diagrammen angezeigt.
 Die Aufteilung der Lastbalancierung kann als Overlay über die Darstellung Mandelbrotmenge gelegt werden.
 
-%%%% Hier evtl. noch was zur Evaluation
-% Im Evaluationsteil des Projekts wurde der Effekt der verschiedenen Parallelisierungsarten auf die Berechnungsdauer ausgewertet.
+%%%% Hier evtl. noch was zur Evaluation --> Wie sehr überschneidet sich das mit Zusammnefassung im Evaluationsteil?
+Im Evaluationsteil des Projekts wurde der Effekt der verschiedenen Parallelisierungsarten auf die Berechnungsdauer ausgewertet.
+Es stellt sich heraus, dass es auf jeden Fall sinnvoll ist mehrere Worker zur Berechnung einzusetzen, auch wenn der durch einen neuen Worker erzielte Effekt immer geringer wird.
+Auch der Einsatz von SIMD ist lohnenswert. % Und OpenMP auch? --> noch nicht klar
+Die Lastbalancierung mit Vorhersage ist deutlich besser, als die naive Strategie, trotzdem gibt es Potential für eine noch bessere Lastverteilung.
 
 %%%%%%
 % Ausblick
