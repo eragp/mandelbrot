@@ -13,31 +13,26 @@ die benötigte Zeit durch Erhöhen der Iterationszahl beliebig erhöht werden ka
 Zusätzlich ist die Berechnung für jede einzelne komplexe Zahl unabhängig von
 jeder anderen Zahl.
 
-Diese Eigenschaften ermöglichen es zweierlei Dinge vollständig frei zu kontrollieren:
+Diese Eigenschaften ermöglichen es zweierlei Dinge zu kontrollieren:
 \begin{itemize}
 	\item Die Dauer der Berechnung
 	\item Die Aufteilung der Berechnung auf unterschiedliche Rechenkerne
 \end{itemize}
 
-Somit kann gesichert werden, dass eine wahrnehmbare Zeit (100-200 ms) zur Berechnung benötigt wird.
+Somit kann gesichert werden, dass eine wahrnehmbare Zeit (100-200 ms) zur Berechnung der Punkte innerhalb
+der Mandelbrotmenge benötigt wird.
+Aus didaktischer Sicht ist dies wichtig, um Differenzen zwischen den Balancierungsstrategien spürbar zu machen.
 Zudem kann die Unterteilung des zu berechnden Raumes frei gewählt werden, sodass
-für verschiedenste Aufteilungen die Gesamtrechenzeit visualisiert werden kann.
+verschiedenste Aufteilungen möglich sind und insbesondere bei der Lastbalancierung frei eingeteilt werden kann.
 
 Als Projekt, das an nicht technisch versierten Anwendern spricht auch der ästethische
 Faktor des Mandelbrotfraktals für eine Verwendung.
 Er kann ein erstes Interesse für die Anwendung wecken.
 
-
 % Wie ist die (grobe) Architektur des Programmes (parallelisiertes Backend, Oberfläche)
 \subsection{Architekturübersicht}
-% TODO Ein bisschen mehr details
-Das Problem fordert eine Unterteilung in drei wesentliche Bausteine, wie sie in \autoref{fig:architekturuebersicht} zu sehen sind.
-Eine Benutzeroberfläche in einem Web Browser des Benutzers (“Frontend”), welches die Benutzerinteraktionen entgegennimmt und mit dem Backend kommuniziert.
-Ein Backend-Host übernimmt dazu die Kommunikationsfunktion, verwaltet die eingehenden Rechenaufträge und verteilt sie an die Backend-Worker.
-Das Ergebnis dieser Berechnung sendet der Host dann an das Frontend zurück.
-Die Backend-Worker nehmen die zugewiesenen Rechenaufträge entgegen und führen die eigentlichen Berechnungen verteilt aus.
 
-\begin{figure}[h]
+\begin{figure}[t]
 	% Bindet das als PDF exportierte pptx ein -> vektorgrafik
 	% -> pptx bearbeiten statt pdf
 	\centering
@@ -46,11 +41,22 @@ Die Backend-Worker nehmen die zugewiesenen Rechenaufträge entgegen und führen 
 	\label{fig:architekturuebersicht}
 \end{figure}
 
+Die hohe Rechenintesivität sorgt dafür, dass der Berechnungsteil des Projektes möglichst in einer
+hardwarenahen Sprache umgesetzt wird.
+Andererseits sollte die Benutzeroberfläche einfach zu bedienen und auf möglichst vielen verschiedenen Geräten lauffähig sein.
+Daher wurde sich für eine Unterteiltung in ein Frontend, im Browser aufrufbar, und ein Backend, auf einem Cluster
+laufend und hardwarenah programmiert.
+
+Zudem soll unterschieden werden, zwischen einem Host-Prozess im Backend, welcher für die Kommunikation mit dem
+Frontend zuständig ist und Workerprozessen, welche die tatsächliche Berechnung der Mandelbrotmenge durchführen.
+Der Hostprozess nimmt damit Rechenaufträge vom Nutzerfrontend entgegen und führt die Lastbalancierung durch.
+Die kleineren Regionen der unterteilten Anfrage werden dann an die jeweiligen Workerprozesse gesendet, welche sie berechnen sollen.
+Damit erhalten wir eine Unterteilung in drei wesentliche Bausteine, wie sie in \autoref{fig:architekturuebersicht} zu sehen sind.
 
 % Welche Lastbalancierungsmechanismen wurden umgesetzt?
 \subsection{Lastbalancierung}\label{sec:load_balancing_concepts}
 
-Um die Mandelbrotmenge effizient parallel zu berechnen, sollte die Rechenlast möglichst gleichmäßig auf die Worker verteilt werden.
+Um die effizienz der parallelen Berechnung der Mandelbrotmenge zu erhöhen, sollte die Rechenlast möglichst gleichmäßig auf die Worker verteilt werden.
 Die Aufgabe der Lastbalancierung besteht darin zu einer gegebenen Region und einer Anzahl von Workern eine solche Unterteilung in sogenannte Teilregionen zu finden.
 Damit die Unterschiede zwischen guter und schlechter Lastverteilung deutlich werden, stehen in diesem Projekt verschiedene Strategien der Lastbalancierung zur Wahl.
 Die Strategien lassen sich zur Laufzeit austauschen, um einen direkten Vergleich zu ermöglichen.
@@ -130,7 +136,7 @@ um zu vermeiden dass Regionsdaten von zuvor berechneten Regionen falsch verwende
 \end{figure}
 
 \begin{figure}
-	\begin{tikzpicture}[scale=0.75]
+	\begin{tikzpicture}[scale=1]
 		% Superregion
 		\draw (0,0) rectangle (14,8) node[below left] {Regionrequest/ Angefragte Region};
 		% subregion
