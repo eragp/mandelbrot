@@ -2,15 +2,6 @@
 % Highlevel
 % ca 1-2 Seiten
 % Buzzwords, grober Überriss
-\begin{figure}[h!]
-	% Bindet das als PDF exportierte pptx ein -> vektorgrafik
-	% -> pptx bearbeiten statt pdf
-	\centering
-	\includegraphics[width=0.98\linewidth]{img/Implementierung/Kommunikation.pdf}
-	\caption{Architekturübersicht}
-	\label{fig:architekturuebersicht}
-\end{figure}
-
 % Hier wird erklärt, mit welchem Ansatz an das Projekt herangegangen wurde
 \section{Lösungsansatz}
 
@@ -45,6 +36,15 @@ Eine Benutzeroberfläche in einem Web Browser des Benutzers (“Frontend”), we
 Ein Backend-Host übernimmt dazu die Kommunikationsfunktion, verwaltet die eingehenden Rechenaufträge und verteilt sie an die Backend-Worker.
 Das Ergebnis dieser Berechnung sendet der Host dann an das Frontend zurück.
 Die Backend-Worker nehmen die zugewiesenen Rechenaufträge entgegen und führen die eigentlichen Berechnungen verteilt aus.
+
+\begin{figure}[h]
+	% Bindet das als PDF exportierte pptx ein -> vektorgrafik
+	% -> pptx bearbeiten statt pdf
+	\centering
+	\includegraphics[width=0.98\linewidth]{img/Implementierung/Kommunikation.pdf}
+	\caption{Architekturübersicht}
+	\label{fig:architekturuebersicht}
+\end{figure}
 
 
 % Welche Lastbalancierungsmechanismen wurden umgesetzt?
@@ -104,6 +104,7 @@ wurde ein Protokoll spezifiziert um Flächen in der komplexen Ebene und ihre Auf
 Der grobe Inhalt und die Richtung der Nachrichten ist \autoref{fig:concept_messages} zu entnehmen,
 die exakte Spezifikation in der jeweiligen Sprache ist den angegebenen Dateien zu entnehmen.
 
+% austauschen durch tobis
 \begin{figure}
 	\includegraphics[width=0.9\linewidth]{img/Implementierung/Nachrichtenuebersicht.pdf}
 	\caption{Konzept der versendeten Nachrichten. Die genauen Definitionen der Nachrichten sind in den angegeben Dateien nachzusehen.}
@@ -127,9 +128,9 @@ um zu vermeiden dass Regionsdaten von zuvor berechneten Regionen falsch verwende
 \begin{figure}
 	\lstinputlisting[caption={Eine gültige Anfrage einer Region in JSON}, label={src:regionRequest.json}, language=json]{./code/regionRequest.json}
 \end{figure}
-% austauschen durch tobis
+
 \begin{figure}
-	\begin{tikzpicture}
+	\begin{tikzpicture}[scale=0.75]
 		% Superregion
 		\draw (0,0) rectangle (14,8) node[below left] {Regionrequest/ Angefragte Region};
 		% subregion
