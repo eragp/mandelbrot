@@ -197,12 +197,12 @@ Durch die Betrachtung von Tiles (in diesem Test $64\times64$ Pixel) als atomare 
 % 	Diese "optimale" Genauigkeit wird aber bereits in allen vorherigen Evaluierungen des prediction Balancers verwendet
 Bei der Strategie mit Vorhersage lässt sich die Genauigkeit der Vorhersage einstellen (vgl. \autoref{par:predicter}).
 Deshalb wird hier eine Kosten-Nutzen Analyse durchgeführt.
-Dazu werden für verschiedene Genauigkeiten die Verteilung der Rechenzeiten und die Dauer der Vorhersage aufgetragen.
+Dazu werden für verschiedene Genauigkeiten die maximale Rechenzeit eines Workers und die Dauer der Vorhersage aufgetragen.
 Die Messungen fanden unter den selben Bedingungen wie die Obigen statt, allerdings wurden für die Implementierung hier 64-bit floats verwendet, was die absoluten Rechenzeiten durch die geringere Genauigkeit verkürzt.
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.9\linewidth]{img/Evaluation/prediction_accuracy}
+	\includegraphics[width=0.9\linewidth]{img/Evaluation/balancers/prediction_accuracy_32.png}
 	\caption{Maximale Rechenzeit pro Region und für die Lastbalancierung benötigte Zeit für verschiedene Vorhersagegenauigkeiten}
 	\label{fig:balancers_prediction_accuracy}
 \end{figure}
