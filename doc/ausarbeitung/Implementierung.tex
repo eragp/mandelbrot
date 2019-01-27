@@ -271,12 +271,19 @@ In der Implementierung kommen folgende MPI-Funktionen zum Einsatz:
 
 \end{itemize}
 
+\begin{figure}[p]
+	% Bindet das als PDF exportierte vsdx ein -> vektorgrafik
+	% -> vsdx bearbeiten statt pdf
+	\hspace{20mm}
+	\includegraphics[angle = 90, origin = c, trim = 0mm 0mm 0mm 0mm, clip, width=0.98\linewidth]{img/Implementierung/MPISequenzdiagrammFarben.pdf}
+	\caption{Sequenzdiagramm zur Kommunikation im Backend}
+	\label{fig:mpi_sequenzdiagramm}
+\end{figure}
+
 \subsubsection{MPI-Designentscheidungen}
 %TODO Namen der Threads überall (auch Grafiken) konsistent halten! Sollte aktuell passen. Vor der Abgabe nochmal überprüfen.
-Im Folgenden wird die Kommunikation zwischen dem MPI-Host-Thread und den MPI-Worker-Threads beschrieben. Zur Veranschaulichung dient folgendes Sequenzdiagramm:
+Im Folgenden wird die Kommunikation zwischen dem MPI-Host-Thread und den MPI-Worker-Threads beschrieben. Zur Veranschaulichung dient das Sequenzdiagramm in \autoref{fig:mpi_sequenzdiagramm}.
 \\ \\
-%TODO MPI Kommunikationsdiagramm einbinden.
-
 Wie oben (TODO Link) beschrieben, werden über die Websocketverbindung und den Websocket-Recv-Thread die zu berechnenden Subregionen in der gemeinsamen Datenstruktur Websocket\_Request\_To\_MPI abgelegt. Aufgabe des MPI-Host-Threads ist es, die einzelnen Subregionen an die verfügbaren MPI-Worker-Threads zu übertragen, die Berechnungsergebnisse von den MPI-Worker-Threads entgegen zu nehmen und in der gemeinsamen Datenstruktur MPI\_To\_Websocket\_Result abzulegen, sodass der Websocket-Result-Thread die Daten an das Frontend übertragen kann.
 \\ \\
 Wird während einer laufenden Berechnung eine neue Berechnung angefordert, so werden die auf den Workern noch laufenden Berechnungen abgebrochen und mit der neuen Berechnung begonnen. Ein entsprechendes Sequenzdiagramm ist im Anhang (TODO Link) zu finden.
@@ -512,16 +519,14 @@ Mithilfe einer \texttt{condition\_variable}\footnote{\url{https://en.cppreferenc
 nutzt sie die C++11 nativen mutex-Mechanismen um über das Vorhandensein neuer Regionen informiert zu werden.
 
 \subsection{Implementierung des Frontends}
-
-\begin{figure}[h!]
+\begin{figure}
 	\centering
-	\includegraphics[width=\linewidth]{img/Implementierung/UI-Screenshot}
+	\includegraphics[width=\linewidth]{img/Implementierung/ui}
 	\caption{Benutzeroberfläche der Mandelbrot Anwendung}
 	\label{fig:ui-screenshot}
 \end{figure}
 
 \subsubsection{Kommunikation mit dem Backend}\label{sec:fontend_communication}
-
 Zur Kommunikation mit dem Backend wird im Frontend ein Objekt der Klasse \verb|WebSocketClient| erzeugt.
 Alle zur Verbindung mit dem Backend verwendeten Codestücke liegen dabei in dem Ordner \verb|src/connection/|.
 
@@ -547,7 +552,6 @@ Die Klasse \verb|WebSocketClient| bietet dabei folgende Methoden:
 
 	      Die übergebenen Callbacks erhalten als Parameter respektive die vorgruppierte Aufteilung als ein Array von Workergruppen (\texttt{RegionGroup})
 	      oder das \verb|JSON|-dekodierte \verb|RegionData|-Objekt.
-
 \end{itemize}
 Zudem wird hierbei bereits eine Filterung der eingehenden Regionsdaten vorgenommen.
 Bei Empfang einer Regionsaufteilung, wird diese zwischengespeichert.
@@ -561,7 +565,6 @@ Die Definitionen der zugehörigen Objekt-Interfaces finden sich in den Dateien \
 Anfragen an das Backend werden dabei mit der folgenden Funktion in \verb|RegionRequest.ts| erstellt:
 \begin{itemize}
 	\item \verb|request(map, balancer, implementation)|:
-
 	      Diese extrahiert aus der übergebenen Sicht auf die Mandelbrotmenge, die in der Leaflet-Karte gespeichert ist,
 	      die Parameter zum Anfragen einer Region.
 	      Dazu werden mithilfe des aktuellen Zooms der linke obere und rechte untere Punkt des Sichtbereiches
@@ -679,6 +682,12 @@ welches jeden Punkt auf der Karte durch das Paar \( (latitude, longitude) \) ide
 (Tile-Koordinaten, leaflet-Koordinaten und Koordinaten der komplexen Ebene) zu konvertieren.
 
 \paragraph{Regionsgruppierung (RegionGroup.ts)}\label{par:regionGroup}
+\begin{figure}
+	\centering
+	\includegraphics[width=\linewidth]{img/Implementierung/region_group_error}
+	\caption{Überlappende Ränder von gruppierten Teilregionen, durch inkorrekte Berechnung des Randes der türkisen Region
+	}\label{fig:regionGroupError}
+\end{figure}
 Bei der Verwendung vieler Worker \( > 10 \) kommt es zu einer unübersichtlichen Darstellung
 dieser, da die Aufteilung jedes Workers, sowie dessen Warte- und Rechenzeit separat dargestellt werden.
 Deshalb ist eine Gruppierung der einzelnen Worker implementiert, welche alle vom Backend erzeugeten Worker
@@ -692,39 +701,30 @@ Dies wurde mit dem \textit{Graham Search}\cite{Cormen} Algorithmus für das Bere
 Da die gruppierten Regionen jedoch nicht immer konvex sein müssen, muss dieser Algorithmus für ie Berechnung einer konkaven Hülle erweitert
 werden, was sich als sehr aufwendig herausgestellt hat und deshalb nur durch eine Vereinfachung implementiert wurde.
 Dadurch kann es bei der Darstellung der Gruppierungen im Frontend zu überlappenden Regionsdarstellungen im \verb|WorkerLayer| kommen (siehe \autoref{fig:regionGroupError}).
-\begin{figure}[h!]
-	\centering
-	\includegraphics[width=.45\linewidth]{img/Implementierung/region_group_error}
-	\caption{Überlappende Ränder von gruppierten Teilregionen, durch inkorrekte Berechnung des Randes der türkisen Region
-	}\label{fig:regionGroupError}
-\end{figure}
-\subsubsection{Visualisierung}
 
+\subsubsection{Visualisierung}
 Die Struktur der Parallelisierung wird in einem Netzwerkgraphen unter dem Fraktal dargestellt.
 Mithilfe der Bibliothek \verb|visjs|\footnote{\url{http://visjs.org/}} wird hierzu ein
 Graph (siehe \autoref{fig:networkView}) mit 3 Ebenen erzeugt:
 
 Auf der linken Seite befindet sich ein Knoten in Form eines Programmfensters, der das Browserfrontend darstellt.
-In der Mitte wird ein Knoten für den Backend-Host mit Serverrack als Symbol dargestellt, der mit dem Frontendknoten verbunden ist.
+In der Mitte wird ein Knoten für den Backend-Host mit \enquote{Serverrack} als Symbol dargestellt, der mit dem Frontendknoten verbunden ist.
 Auf der rechten Seite befindet sich schließlich zwischen 2 und 4 Knoten, die jeweils eine Gruppe an Arbeitern
-darstellen. Das Symbol hierfür ist ein Oberkörper mit Arbeitshelm.
-Sie sind wiederum direkt mit dem Host verbunden.
+darstellen, welche wiederum direkt mit dem Host verbunden sind.
 
-Der Code für diese Darstellung findet sich in \verb|components/NetworkView.tsx|.
-Dort wird ein Baumgraph von links nach rechts mit manueller Ebenenverteilung als Grundstruktur für die Darstellung des Graphen definiert.
-Daher wird das Frontend auf der höchsten Ebene und der Backend-Host auf der Ebene darunter spezifiziert.
-Die Arbeiter werden auf Basis der erhaltenen Regionsaufteilung erzeugt und jeweils zu zweit nacheinander
-auf Ebenen verteilt.
-Diese Aufteilung wird nach Erhalt jeder Regionsaufteilung vorgenommen und der Graph neu aufgebaut,
-sowie die Größe der Leinwand an die Anzahl an Knoten angepasst.
-
+Das Darstellen diesen Graphen wird nach Erhalt jeder Regionsaufteilung des Backends vorgenommen,
+sowie die Größe der Leinwand dynamisch an die Anzahl an Knoten angepasst.
 
 \subsubsection{Visualisierung der Rechenzeiten} % components/
-
-Die zeitbezüglichen Komponenten der Visualisierung werden mithilfe der Charts
-der Bibliothek \verb|chartjs|\footnote{\url{http://www.chartjs.org/}} dargestellt.
+Die zeitbezüglichen Komponenten der Visualisierung werden mithilfe der Diagrammfunktionen
+der Bibliothek \verb|chartjs|\footnote{\url{http://www.chartjs.org/}} dargestellt
 \begin{figure*}[t!]
-	\centering
+	\begin{subfigure}[t]{0.3\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{img/Implementierung/NetworkView}
+		\caption{Architektur der Anwendung als Graph
+		}\label{fig:networkView}
+	\end{subfigure}
 	\begin{subfigure}[t]{0.3\textwidth}
 		\centering
 		\includegraphics[height=.5\linewidth]{img/Implementierung/IdleTime}
@@ -737,20 +737,14 @@ der Bibliothek \verb|chartjs|\footnote{\url{http://www.chartjs.org/}} dargestell
 		\caption{Rechenzeiten für 4 Gruppen}
 		\label{fig:computationTime}
 	\end{subfigure}
-	\begin{subfigure}[t]{0.3\textwidth}
-		\centering
-		\includegraphics[width=\linewidth]{img/Implementierung/NetworkView}
-		\caption{Architektur der Anwendung als Graph
-		}\label{fig:networkView}
-	\end{subfigure}
 	\caption{Komponenten zur Visualisierung der Rechenzeiten im Frontend}
 \end{figure*}
 
 
-% TODO: deutsch
-\paragraph{Idle Time}
-Für die kritische Information der verschwendeten Zeit wird ein Balkengraph verwendet.
-Dieser besitzt einen Balken, der die Differenz zwischen der Rechenzeit aller Knoten und dem am längsten rechnenden Knoten
+\paragraph{Wartezeit}
+Falls einer der Worker vor den anderen mit der Berechnung fertig wird, wartet dieser,
+bis er einen neuen Auftrag erhält. Dies ist somit verwschwendete Zeit, welche in einem Balkendiagramm dargestellt wird.
+Dabei wird die Differenz zwischen der Rechenzeit aller Knoten und dem am längsten rechnenden Knoten
 aufsummiert und nach Gruppe sortiert darstellt (siehe \autoref{fig:idleTime}).
 
 Die Darstellung wird bei Empfang einer Regionsaufteilung (mithilfe \verb|registerRegion| in \verb|WebSocketClient|)
@@ -760,13 +754,11 @@ Da die tatsächliche Rechenzeit erst am Ende der Berechnung mit den Regionsdaten
 wird mithilfe eines Intervalls die Rechenzeit live abgeschätzt, indem sie alle \( 50ms \) um
 \( 50ms \) hochgezählt wird, falls die Regionsdaten des Knotens noch nicht empfangen wurden.
 
-Da die Charts nicht zur Animation von Übergängen fähig sind, wird das Objekt mit jedem Update neu gerendert.
-Bei Empfang von Regionsdaten (hierzu wird die erwähnte Methode \verb|registerRegionData| verwendet)
-wird die tatsächlich gemessene Rechenzeit eingetragen und der Rechenknoten als inaktiv gekennzeichnet.
-Der Intervall wird gestoppt, sobald alle Arbeiterknoten die Berechnung abgeschlossen haben.
-
-% TODO: deutsch
 \paragraph{ComputationTime}
-
-Zur Darstellung des relativen Verhältnisses der Rechenzeiten wird in einem Kuchengraph
+Zur Darstellung des relativen Verhältnisses der Rechenzeiten wird in einem Kuchendiagramm
 die absolute Rechenzeit der Gruppen dargestellt (siehe \autoref{fig:computationTime}).
+Dies setzt die benötigte Rechenzeit einer Region in ein Verhältnis zu allen anderen Regionen,
+wobei möglichst gleichverteilte Stückgrößen eine gute Aufteilung durch die Lastbalancierung darstellen.
+
+Falls eine Gruppierung der Regionen stattgefunden hat, wird die Summe der Rechenzeiten der einzelnen Regionen 
+in einer Gruppe verwendet.

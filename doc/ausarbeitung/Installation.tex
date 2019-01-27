@@ -23,21 +23,6 @@ git clone https://gitlab.lrz.de/lrr-tum/students/eragp-mandelbrot.git
 Eine lokale Installation des Backends zu Entwicklungszwecken ist durch einen Docker\footnote{\url{https://www.docker.com/}} Container möglich.
 Dieser bietet eine ähnliche Umgebung zu der des Clusters und ermöglicht schnellere Feedbackzyklen.
 
-\begin{figure}[h!]
-	\begin{lstlisting}[language=bash, caption={Starten der Entwicklungsumbegung des Backends}]
-# Systemabhängige Installation der Docker Anwendung
-$ sudo apt install docker
-cd backend/ && ./run_docker.sh
-Starting the Build Process
-...
-Host: Core 37 ready!
-# ^C beendet das Backend und verbindet sich mit der shell des Containers
-^C[mpiexec@9cc2d5ac2cd1] Sending Ctrl-C to processes as requested
-[mpiexec@9cc2d5ac2cd1] Press Ctrl-C again to force abort
-# exit schliesst die shell des Containers
-root@9cc2d5ac2cd1:~/eragp-mandelbrot/backend# exit
-        \end{lstlisting}
-\end{figure}
 
 Das \verb|run_docker.sh| Skript lädt das benötigte Basis Image, welches alle benötigen Bibliotheken bereits enthält, herunter und erstellt basierend darauf
 den Entwicklungscontainer. In diesen werden dann die Aktuellen Quelldateien hinein kopiert und kompiliert, wonach das Backend mit Adresse
@@ -79,7 +64,6 @@ Details zu weiteren Optionen des Skripts sind via \verb|--help| verfügbar.
 Für eine detailliertere Beschreibung der Installation auf dem \enquote{HimMUC} Cluster,
 siehe \autoref{par:detailed_himmuc}
 
-% TODO: in Anhang
 \begin{figure}
 	\begin{lstlisting}[language=bash, caption={Beispielausgabe bei Start der Entwicklungsumbegung auf dem HimMUC}, label={shell:start_himmuc_example}]
 $ eragp-mandelbrot/backend$ python3 himmuc/start_himmuc.py muendler 10 9
@@ -106,26 +90,6 @@ Das Frontend ist in TypeScript\footnote{\url{https://www.typescriptlang.org/}} (
 geschrieben und kann somit auf einem beliebigen Endgerät mit einem modernen Webbrowser ausgeführt werden.
 Um eine Version lokal zu starten, muss die Paketverwaltung npm\footnote{\url{https://www.npmjs.com/}} installiert werden. Diese verwaltet alle
 für das Frontend benötigten Bibliotheken und installiert diese lokal.
-
-% TODO: in Anhang
-\begin{figure}[h!]
-	\begin{lstlisting}[language=bash, caption={Starten des Frontends mit beispielhafter Ausgabe}]
-# Systemabhängige Installation der npm Paketverwaltung
-sudo apt install npm
-# Installiert benötigte Bibliotheken und startet WebServer
-cd frontend/ && npm install ; npm start
-...
-Version: webpack 4.25.1
-Time: 7230ms
-Built at: 12/28/2018 10:48:32 PM
-        Asset      Size  Chunks             Chunk Names
-   index.html  1.65 KiB          [emitted]
-mandelbrot.js  11.7 MiB    main  [emitted]  main
-    style.css   519 KiB    main  [emitted]  main
-Entrypoint main = style.css mandelbrot.js
-...
-        \end{lstlisting}
-\end{figure}
 
 Das Kommando \verb|npm start| startet dabei einen lokalen WebServer, welcher eine kompilierte Version des Frontends
 unter der Adresse \verb|http://localhost:3000| anbietet. Danach wird der Standardwebbrowser des Systems verwendet, um diese

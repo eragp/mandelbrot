@@ -18,19 +18,6 @@
 % Messen der Timings im backend (Wie kommen die Daten im frontend zu stande?)
 % Auswahl der repräsentativen Punkte
 % Grobes Intro zu der folgenden Evaluation
-Die in den folgenden Abschnitten ausgewerteten Rechenzeiten für die Komponenten des Back- und
-Frontends wurden in den entsprechenden Teilanwendungen in \( \mu s \) unter Verwendung der jeweiligen
-Systembibliotheken (\verb|std::chrono|\footnote{\url{https://en.cppreference.com/w/cpp/chrono}} in \verb|C++| und \verb|Performance API|\footnote{\url{https://developer.mozilla.org/en-US/docs/Web/API/Performance}} in \verb|node.js|) gemessen.
-Dabei stellt das so modifizierte Backend eine Erweiterung dar,
-welche die gemessenen Zeiten zusätzlich in der Antwort der Regionsdaten an das Frontend
-versendet. Dort werden diese aggregiert, mit den Zeiten des Frontend verknüpft und ausgegeben.
-
-Um die Performance der folgenden Algorithmen auf der Mandelbrotmenge zu evaluieren,
-müssen Regionen einzeln ausgewählt und die Performanz ihrer Berechnung verglichen werden.
-Dafür haben wir die Mandelbrotmenge in drei Klassen unterteilt: Regionen in, am Rand und außerhalb
-der Menge. Diese Aufteilung ist so gewählt, dass sich die Anzahl Iterationen pro Punkt innerhalb einer Klasse ähneln.
-Dazu haben wir ebenfalls für jede der Klassen eine niedrige, mittlere und hohe Zoomstufe gewählt (siehe \autoref{fig:testRegions}).
-
 \begin{figure}
 	\centering
 	\begin{tabular}{ccc}
@@ -46,27 +33,26 @@ Dazu haben wir ebenfalls für jede der Klassen eine niedrige, mittlere und hohe 
 	\caption{Testregionen der Evaluierung. Jeder der Punkte \( z \in \mathbb{C} \) entspricht dem Mittelpunkt der Region im Format \( (Re(z), Im(z), zoom) \) }
 	\label{fig:testRegions}
 \end{figure}
-TODO: einarbeiten
-% Fußnote 
-Als Cluster unabhängiger Rechenknoten wurde freundlicherweise vom Lehrstuhl für Rechnerarchitektur und Verteilte System der TU München
-das HimMUC Cluster\footnote{\url{http://www.caps.in.tum.de/himmuc/}} bereitgestellt.
-Es besteht aus jeweils 40 Raspberry Pi B+\footnote{Für ein Beispiel, siehe \url{https://www.raspberrypi.org/products/raspberry-pi-3-model-b/}} und ODroids C2\footnote{\url{https://www.hardkernel.com/shop/odroid-c2/}}.
 
+Die in den folgenden Abschnitten ausgewerteten Rechenzeiten für die Komponenten des Back- und
+Frontends wurden in den entsprechenden Teilanwendungen in \( \mu s \) unter Verwendung der jeweiligen
+Systembibliotheken (\verb|std::chrono|\footnote{\url{https://en.cppreference.com/w/cpp/chrono}} in \verb|C++| und \verb|Performance API|\footnote{\url{https://developer.mozilla.org/en-US/docs/Web/API/Performance}} in \verb|node.js|) gemessen.
+Dabei stellt das so modifizierte Backend eine Erweiterung dar,
+welche die gemessenen Zeiten zusätzlich in der Antwort der Regionsdaten an das Frontend
+versendet. Dort werden diese aggregiert, mit den Zeiten des Frontend verknüpft und ausgegeben.
+
+Um die Performance der folgenden Algorithmen auf der Mandelbrotmenge zu evaluieren,
+müssen Regionen einzeln ausgewählt und die Performanz ihrer Berechnung verglichen werden.
+Dafür haben wir die Mandelbrotmenge in drei Klassen unterteilt: Regionen in, am Rand und außerhalb
+der Menge. Diese Aufteilung ist so gewählt, dass sich die Anzahl Iterationen pro Punkt innerhalb einer Klasse ähneln.
+Dazu haben wir ebenfalls für jede der Klassen eine niedrige, mittlere und hohe Zoomstufe gewählt (siehe \autoref{fig:testRegions}).
+
+Gemessen wurden alle folgenden Daten auf dem \verb|HimMUC|\footnote{\url{http://www.caps.in.tum.de/himmuc/}}
+Cluster unabhängiger Rechenknoten des Lehrstuhls für Rechnerarchitektur und Verteilte Systeme\footnote{\url{https://www.caps.in.tum.de/startseite/}} der TUM.
+Dieses besteht aus jeweils 40 Raspberry Pi B+\footnote{Für ein Beispiel, siehe \url{https://www.raspberrypi.org/products/raspberry-pi-3-model-b/}} und
+ODroids C2\footnote{\url{https://www.hardkernel.com/shop/odroid-c2/}}. Wobei ausschließlich die ODroid C2 Rechner verwendet wurden.
 
 \subsection{Skalierung}
-Eine wichtige Performanzmetrik, welche durch das Projekt evaluiert werden solle, ist wie gut sich eine
-unabhängige Berechnung, wie die der Mandelbrotfunktion parallelisieren lässt. 
-Dabei ist vor allem von Interesse, wie sich die Rechenzeit der einzelnen Teilreigonen des Balancers im Vergleich
-zur Anzahl der an der Berechnung beteiligten Worker verhält. Dies ist in \autoref{fig:scaleGraph} aufgetragen.
-
-Dabei ist jeweils ein Skalierungsgraph für jede der drei Regionstypen (innerhalb, am Rand und außerhalb) angegeben, 
-was nötig wird, da Regionen abhängig von der Anzahl der Pixel, welche innerhalb der Mandelbrotmenge liegen, sehr unterscheidliche
-Rechenzeiten haben.
-Erwartet ist dabei, dass sich die Rechenzeit \( t \) ungefähr nach \( t \approx {c_1} / {n} + c_2 \) verhält,
-wobei \( n \) die Anzahl der Rechenknoten und \( c_1, c_2 \) geeignet gewählte Konstanten zur Abschätzung des Overheads sind.
-Diese Relation lässt sich dabei auch in den gemessenen Daten in \autoref{fig:scaleGraph} wieder finden.
-
-Es ist jedoch zu beachten, dass somit der 
 \begin{figure}
 	\centering
 	\includegraphics[width=0.32\linewidth]{img/Evaluation/scale_graph_outside}
@@ -75,11 +61,26 @@ Es ist jedoch zu beachten, dass somit der
 	\caption{Skalierungsgraph von \( 1-40 \) Rechenknoten, Strategie mit Vorhersage (rekursiv)}
 	\label{fig:scaleGraph}
 \end{figure}
+Eine wichtige Performanzmetrik, welche durch das Projekt evaluiert werden solle, ist wie gut sich eine
+unabhängige Berechnung, wie die der Mandelbrotfunktion parallelisieren lässt.
+Dabei ist vor allem von Interesse, wie sich die Rechenzeit der einzelnen Teilreigonen des Balancers im Vergleich
+zur Anzahl der an der Berechnung beteiligten Worker verhält. Dies ist in \autoref{fig:scaleGraph} aufgetragen.
+
+Dabei ist jeweils ein Skalierungsgraph für jede der drei Regionstypen (innerhalb, am Rand und außerhalb) angegeben,
+was nötig wird, da Regionen abhängig von der Anzahl der Pixel, welche innerhalb der Mandelbrotmenge liegen, sehr unterscheidliche
+Rechenzeiten haben.
+Erwartet ist dabei, dass sich die Rechenzeit \( t \) ungefähr nach \( t \approx {c_1} / {n} + c_2 \) verhält,
+wobei \( n \) die Anzahl der Rechenknoten und \( c_1, c_2 \) geeignet gewählte Konstanten zur Abschätzung des Overheads sind.
+Diese Relation lässt sich dabei auch in den gemessenen Daten in \autoref{fig:scaleGraph} wieder finden.
+
+Es ist jedoch zu beachten, dass somit der
+
+\paragraph{Parallelisierung}
 \begin{figure}
 	\centering
 	\includegraphics[width=\linewidth]{img/Evaluation/parallelism}
-	\caption{Parallelisierungsstrategien:
-	ein MPI Prozess pro Node, 4 MPI Prozesse pro Node \& 4 OpenMP threads pro Node}
+	\caption{Parallelisierungsstrategien:\\
+		1 MPI Prozess pro Node, 4 OpenMP threads pro Node, 2 MPI Prozesse pro Node, 4 MPI Prozesse pro Node }
 	\label{fig:parallelism}
 \end{figure}
 
@@ -138,11 +139,11 @@ wo auch die Gesamtrechenzeit geringer ist, sollte bei der Betrachtung von \autor
 
 \begin{figure}
 	\centering
-    \includegraphics[width=0.45\linewidth]{img/Evaluation/simd/parallelismNaiveBalancing.pdf}
-    \includegraphics[width=0.45\linewidth]{img/Evaluation/simd/parallelismNaiveBalancing64.pdf}
-    \caption{Vergleich zwischen der Performanz mit mehr MPI-Prozessen und SIMD bei naiver Lastbalancierung.
-    Eine Erhöhung der Anzahl an Rechenknoten führt zu einer deutlich größeren Beschleunigung.}
-    \label{fig:SIMDvs4timeMore}
+	\includegraphics[width=0.45\linewidth]{img/Evaluation/simd/parallelismNaiveBalancing.pdf}
+	\includegraphics[width=0.45\linewidth]{img/Evaluation/simd/parallelismNaiveBalancing64.pdf}
+	\caption{Vergleich zwischen der Performanz mit mehr MPI-Prozessen und SIMD bei naiver Lastbalancierung.
+		Eine Erhöhung der Anzahl an Rechenknoten führt zu einer deutlich größeren Beschleunigung.}
+	\label{fig:SIMDvs4timeMore}
 \end{figure}
 
 Insgesamt kann mit SIMD eine deutliche Beschleunigung des Systems bewirkt werden.

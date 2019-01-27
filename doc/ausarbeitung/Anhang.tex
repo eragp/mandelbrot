@@ -11,6 +11,43 @@ Programme wie in \autoref{par:himmuc_build_backend} beschrieben kompiliert werde
 Ist dies nicht gewünscht oder erledigt muss das Backend lediglich noch wie
 in \autoref{par:himmuc_run_backend} beschrieben gestartet werden.
 
+\paragraph{Start des Backends}
+\begin{figure}[h!]
+	\begin{lstlisting}[language=bash, caption={Starten der Entwicklungsumbegung des Backends}]
+# Systemabhängige Installation der Docker Anwendung
+$ sudo apt install docker
+cd backend/ && ./run_docker.sh
+Starting the Build Process
+...
+Host: Core 37 ready!
+# ^C beendet das Backend und verbindet sich mit der shell des Containers
+^C[mpiexec@9cc2d5ac2cd1] Sending Ctrl-C to processes as requested
+[mpiexec@9cc2d5ac2cd1] Press Ctrl-C again to force abort
+# exit schliesst die shell des Containers
+root@9cc2d5ac2cd1:~/eragp-mandelbrot/backend# exit
+        \end{lstlisting}
+\end{figure}
+
+\begin{figure}
+	\begin{lstlisting}[language=bash, caption={Beispielausgabe bei Start der Entwicklungsumbegung auf dem HimMUC}, label={shell:start_himmuc_example}]
+$ eragp-mandelbrot/backend$ python3 himmuc/start_himmuc.py muendler 10 9
+Uploading backend...  sending incremental file list
+backend/himmuc/start_backend.py
+          3,897 100%    3.05MB/s    0:00:00 (xfr#1, to-chk=35/62)
+done
+Start mandelbrot with 1 host and 9 workers on 9 nodes... started mandelbrot
+Search host node... srun: error: Could not find executable worker
+odr00 found
+Establish port 9002 forwarding to host node odr00:9002 ... established
+System running. Websocket connection to backend is now available at
+        ws://himmuc.caps.in.tum.de:9002
+Press enter (in doubt, twice) to stop Warning: Permanently added the ED25519 host key for IP address '10.42.0.54' to the list of known hosts.
+# Enter
+
+Stopping port forwarding... stopped (-9)
+Stopping mandelbrot host and workers... stopped (-9)
+    \end{lstlisting}
+\end{figure}
 
 \paragraph{Lokale Installation der Bibliotheken}\label{par:himmuc_install_libs}
 
@@ -157,6 +194,29 @@ ssh -S .tunnel.ssh -O exit rpi<host number>
 # To stop the node allocation
 scancel -u <user name>
 \end{lstlisting}
+
+\subsection{Abängigkeiten des Frontends}
+\begin{figure}[h!]
+	\begin{lstlisting}[language=bash, caption={Starten des Frontends mit beispielhafter Ausgabe}]
+# Systemabhängige Installation der npm Paketverwaltung
+sudo apt install npm
+# Installiert benötigte Bibliotheken und startet WebServer
+cd frontend/ && npm install ; npm start
+...
+Version: webpack 4.25.1
+Time: 7230ms
+Built at: 12/28/2018 10:48:32 PM
+        Asset      Size  Chunks             Chunk Names
+   index.html  1.65 KiB          [emitted]
+mandelbrot.js  11.7 MiB    main  [emitted]  main
+    style.css   519 KiB    main  [emitted]  main
+Entrypoint main = style.css mandelbrot.js
+...
+        \end{lstlisting}
+\end{figure}
+\begin{figure}[h!]
+	\lstinputlisting[caption={Abh\"angigkeiten des Frontends. Verwaltet durch NPM}]{./code/frontend_dependencies.json}
+\end{figure}
 
 \subsection{Detaillierte Beschreibung der Header und der CMake Instruktionen}
 
