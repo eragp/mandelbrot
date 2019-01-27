@@ -19,7 +19,7 @@ void MandelbrotOpenMPSIMD64::calculateFractal(precision_t* cRealArray, precision
     if(vectorLength == 0){
         throw std::invalid_argument("vectorLength may not be less than 1.");
     }
-    #pragma omp parallel for default(none) shared(cRealArray, cImaginaryArray, maxIteration, vectorLength, dest) schedule(nonmonotonic:dynamic, 10)
+    #pragma omp parallel for default(none) num_threads(4) shared(cRealArray, cImaginaryArray, maxIteration, vectorLength, dest) schedule(nonmonotonic:dynamic, 10)
     for(unsigned int j = 0; j < (vectorLength/2); j++){
     // General form of vector commands
     // v<cmd>q_f<pr>
@@ -71,7 +71,7 @@ void MandelbrotOpenMPSIMD64::calculateFractal(precision_t* cRealArray, precision
     dest[offset+1] = (unsigned short int) vgetq_lane_s64(n, 1);
     }
     #else
-    #pragma omp parallel for default(none) shared(vectorLength, dest) schedule(static)
+    #pragma omp parallel for default(none) num_threads(4) shared(vectorLength, dest) schedule(static)
     for(unsigned int j = 0; j < vectorLength; j++){
         dest[j] = 0;
     }
