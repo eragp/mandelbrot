@@ -271,12 +271,19 @@ In der Implementierung kommen folgende MPI-Funktionen zum Einsatz:
 	
 \end{itemize}
 
+\begin{figure}[h!]
+	% Bindet das als PDF exportierte vsdx ein -> vektorgrafik
+	% -> vsdx bearbeiten statt pdf
+	\centering
+	\includegraphics[angle = 90, origin = c, trim = 0mm 0mm 0mm 0mm, clip, width=0.98\linewidth]{img/Implementierung/MPISequenzdiagrammFarben.pdf}
+	\caption{Sequenzdiagramm zur Kommunikation im Backend}
+	\label{fig:mpi_sequenzdiagramm}
+\end{figure}
+
 \subsubsection{MPI-Designentscheidungen}
 %TODO Namen der Threads überall (auch Grafiken) konsistent halten! Sollte aktuell passen. Vor der Abgabe nochmal überprüfen.
-Im Folgenden wird die Kommunikation zwischen dem MPI-Host-Thread und den MPI-Worker-Threads beschrieben. Zur Veranschaulichung dient folgendes Sequenzdiagramm:
+Im Folgenden wird die Kommunikation zwischen dem MPI-Host-Thread und den MPI-Worker-Threads beschrieben. Zur Veranschaulichung dient das Sequenzdiagramm in \autoref{fig:mpi_sequenzdiagramm}.
 \\ \\
-%TODO MPI Kommunikationsdiagramm einbinden.
-
 Wie oben (TODO Link) beschrieben, werden über die Websocketverbindung und den Websocket-Recv-Thread die zu berechnenden Subregionen in der gemeinsamen Datenstruktur Websocket\_Request\_To\_MPI abgelegt. Aufgabe des MPI-Host-Threads ist es, die einzelnen Subregionen an die verfügbaren MPI-Worker-Threads zu übertragen, die Berechnungsergebnisse von den MPI-Worker-Threads entgegen zu nehmen und in der gemeinsamen Datenstruktur MPI\_To\_Websocket\_Result abzulegen, sodass der Websocket-Result-Thread die Daten an das Frontend übertragen kann.
 \\ \\
 Wird während einer laufenden Berechnung eine neue Berechnung angefordert, so werden die auf den Workern noch laufenden Berechnungen abgebrochen und mit der neuen Berechnung begonnen. Ein entsprechendes Sequenzdiagramm ist im Anhang (TODO Link) zu finden.
