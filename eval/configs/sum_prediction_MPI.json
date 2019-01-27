@@ -6,11 +6,11 @@
   "balancers": ["predictionRecursive"],
   "implementations": ["mandelbrot64"],
   "maxIteration": [1019],
-  "nodeCount": [40],
+  "nodeCount": [160],
   "predictionAccuracy": [4],
   "runs": 10,
   "cluster": "himmuc",
-  "description": "Testting all optimizations on top of each other, with predictionBalancer",
+  "description": "Testting all optimizations on top of each other, with predictionBalancer & OpenMP",
   "pois": [
     { "real": -1.3876571655273438, "imag": 1.0193025922075134, "zoom": 2 },
     { "real": -0.86151123046875, "imag": 0.37890625, "zoom": 11 },
