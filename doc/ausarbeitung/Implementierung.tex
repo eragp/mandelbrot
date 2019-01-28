@@ -525,6 +525,22 @@ nutzt sie die C++11 nativen mutex-Mechanismen um über das Vorhandensein neuer R
 	\caption{Benutzeroberfläche der Mandelbrot Anwendung}
 	\label{fig:ui-screenshot}
 \end{figure}
+Um das Frontend zu implementieren, wurde sich für die Programmiersprache TypeScript\footnote{\url{https://www.typescriptlang.org/}}(Erweiterung von JavaScript um Typisierung) entschieden.
+Da diese zu JavaScript kompiliert, werden die Vortele von JavaScript, wie Ausführung im Webbrowser des Benutzers und eine vielzahl verfügbarer Bibliotheken,
+mit den Vorteilen einer typisierten Programmiersprache vereint.
+
+
+Für die graphische Benutzeroberfläche wurde ebenfalls TypeScript mit dem React Framework\footnote{\url{https://reactjs.org/}} verwendet, welches es ermöglicht,
+graphische Komponenten nativ in TypeScript zu erstellen und dynamisch zu verändern.
+Es wurde für jede Komponente eine eigene TypeScript Klasse zu erstellt, welche dann den betreffenden
+das betreffende Verhalten und dessen Darstellung enthält.
+
+
+Um das Fraktal darzustellen wird die Leaflet\footnote{\url{https://leafletjs.com/}} Bibliothek verwendet.
+Diese, für Onlinekarten konzipierte, Bibliothek stellt den Bereich der komplexen Ebene, auf der die Mandelbrotmenge liegt dar.
+Dabei wird der momentan sichtbare Ausschnitt der Menge mit Hilfe der WebSockets Verbindung (siehe \autoref{sec:fontend_communication}) an das Backend versendet und vom ausgewählten Lastbalancierer in Teilregionen unterteilt (siehe \autoref{sec:load_balancing}).
+Jeder der vom Backend berechneten Teilregionen wird, sobald diese empfangen wurden, im Frontend angezeigt und die Komponenten
+zu Visualisierung der Rechenzeit aktualisiert.
 
 \subsubsection{Kommunikation mit dem Backend}\label{sec:fontend_communication}
 Zur Kommunikation mit dem Backend wird im Frontend ein Objekt der Klasse \verb|WebSocketClient| erzeugt.
