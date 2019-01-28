@@ -256,6 +256,19 @@ erfolgreichen Initialisierung der eigentliche \hyperref[cls:Host]{Host-Prozess} 
 	\lstinputlisting[caption={Initialisierung der MPI-Prozesse in init.cpp}, label={src:init.cpp}, firstline=15, lastline=39, firstnumber=15]{../../backend/src/init.cpp}
 \end{figure}
 
+\subsection{Sequenzdiagramm zur Kommunikation im Backend mit Abbruch eines Workers}
+
+Ein Sequenzdiagramm zur Kommunikation im Backend mit Abbruch eines Workers ist in \autoref{fig:mpi_sequenzdiagramm_abbruch} zu finden.
+
+\begin{figure}[ph!]
+	% Bindet das als PDF exportierte vsdx ein -> vektorgrafik
+	% -> vsdx bearbeiten statt pdf
+	\hspace{10mm}
+	\includegraphics[angle = 90, origin = c, trim = 0mm 0mm 60mm 0mm, clip, width=0.98\linewidth]{img/Implementierung/MPISequenzdiagrammAbbruchFarben.pdf}
+	\caption{Sequenzdiagramm zur Kommunikation im Backend mit Abbruch eines Workers}
+	\label{fig:mpi_sequenzdiagramm_abbruch}
+\end{figure}
+
 \subsection{Detaillierter Ablauf der Host::handle\_region\_request Methode}
 
 Nach dem Parsen der Nachricht wird die Region global festgelegt und beim korrekten Lastbalancierer eine Zerlegung der angefragten Region über \verb|Balancer::balanceLoad| gestartet.
