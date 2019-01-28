@@ -50,21 +50,18 @@ Dazu haben wir ebenfalls für jede der Klassen eine niedrige, mittlere und hohe 
 Gemessen wurden alle folgenden Daten auf dem \verb|HimMUC|\footnote{\url{http://www.caps.in.tum.de/himmuc/}}
 Cluster unabhängiger Rechenknoten des Lehrstuhls für Rechnerarchitektur und Verteilte Systeme\footnote{\url{https://www.caps.in.tum.de/startseite/}} der TUM.
 Dieses besteht aus jeweils 40 Raspberry Pi B+\footnote{Für ein Beispiel, siehe \url{https://www.raspberrypi.org/products/raspberry-pi-3-model-b/}} und
-ODroids C2\footnote{\url{https://www.hardkernel.com/shop/odroid-c2/}}. Wobei ausschließlich die ODroid C2 Rechner verwendet wurden.
+40 ODroids C2\footnote{\url{https://www.hardkernel.com/shop/odroid-c2/}}. Wobei ausschließlich die ODroid C2 Rechner verwendet wurden.
 Auf dem Rechencluster wird als MPI-Implementierung \verb|OpenMPI|\footnote{\url{https://www.open-mpi.org/doc/v3.1/}} verwendet,
 welches einen starken Fokus auf Effizienz legt und auch die Nutzung von Threads unterstützt, was laut der offiziellen \verb|MPI-Dokumentation|\footnote{\url{https://www.mpi-forum.org/docs/mpi-3.1/mpi31-report.pdf}} ein optionales Feature ist.
 
-
 \subsection{Evaluierung der MPI-Kommunikation}
 
-\subsubsection{Skalierung der MPI-Kommunikation}
+\paragraph{Skalierung}
 
-..... NOCH NICHT GANZ KLAR, WARUM DAS SO IST.....
-\\
-\\
-Generell lässt sich beobachten, dass die MPI-Kommunikationszeit nur sehr gering (um ca. 50 Millisekunden) pro Regionstyp bei steigender Anzahl an Workern fluktuiert. Sie wird daher für die folgende Evaluierung als nahezu konstant angenommen.
-
-\subsubsection{Optimale Anzahl an Workern für Standardimplementierung}
+% ..... NOCH NICHT GANZ KLAR, WARUM DAS SO IST.....
+Generell lässt sich beobachten, dass die MPI-Kommunikationszeit nur sehr gering
+(um ca. \( 50ms \)) pro Regionstyp bei steigender Anzahl an Rechenknoten fluktuiert.
+Sie wird daher für die folgende Evaluierung als nahezu konstant angenommen.
 
 \begin{figure}[h!]
 	\centering
@@ -74,16 +71,24 @@ Generell lässt sich beobachten, dass die MPI-Kommunikationszeit nur sehr gering
 	\caption{Skalierungsgraph von \( 1-40 \) Rechenknoten, Strategie mit Vorhersage (rekursiv)}
 	\label{fig:scaleGraph}
 \end{figure}
+\paragraph{Optimale Anzahl an Workern für Standardimplementierung}
+Bei der verteilten Berechnung ist ein wesentlicher Aspekt, dass der MPI-Kommunikationsoverhead
+im Verhältnis zur Rechenzeit je Worker nicht zu groß wird und damit die Gesamtperformance schlechter wird,
+als bei der Verwendung von weniger Rechenknoten.
+Je mehr Knoten verwendet werden, desto geringer wird die benötigte Rechenzeit bei in etwa gleichbleibender Kommunikationszeit \( t \approx c / n \).
+Die optimale Anzahl an Konten ist dabei erreicht, wenn \( \text{MPIKommunikationszeit} + \text{Rechenzeit} \) minimal ist.
 
-Bei der verteilten Berechnung ist ein wesentlicher Aspekt, dass der MPI-Kommunkationsoverhead im Verhältnis zur Rechenzeit je Worker nicht zu groß wird und damit die Gesamtperformance schlechter wird als bei der Verwendung von weniger Workern. Je mehr Worker verwendet werden, desto geringer wird die benötigte Rechenzeit bei in etwa gleichbleibender Kommunikationszeit. Die optimale Anzahl an Workern ist erreicht, wenn \( MPIKommunikationszeit + Rechenzeit \) minimal ist. Diese optimale Anzahl an Workern ist auf jeden Fall überschritten, wenn die MPI-Kommunikationszeit größer ist als die Rechenzeit.
-\\
-\\
-In \autoref{fig:scaleGraph} ist für jeden Regionstyp (Außen-, Rand-, Innenregion) die MPI-Kommunikationszeit und die maximale Berechnungszeit pro Anzahl an Workern dargestellt. Dabei wurde in den Workern keine weitere Parallelisierung (weder mit OpenMP, noch mit SIMD) vorgenommen.
+In \autoref{fig:scaleGraph} ist für jeden Regionstyp (Außen-, Rand-, Innenregion) die MPI-Kommunikationszeit
+und die maximale Berechnungszeit pro Anzahl an Knoten dargestellt, wobei keine weitere Parallelisierung, wie OpenMP oder SIMD verwendet.
+Die Erwartung ist dabei, dass für die optimale Anzahl an Knoten die Relation \( \text{Aussen-} \leq \text{Rand-} \leq \text{Innenregionen} \) gilt,
+da die selbe Relation auch für die Rechenzeiten der Regionstypen gilt und
+damit der MPI-Kommunikationsoverhead bspw. für Außenregionen früher eine signifikante Rolle spielt als bei
+den anderen Regionstypen.
 
-Die Erwartung ist, dass für die optimale Anzahl an Workern die Relation \( Aussenregionen \leqslant Randregionen \leqslant Innenregionen \) gilt, da die selbe Relation auch für die Rechenzeiten der Regionstypen gilt und damit der MPI-Kommunikationsoverhead bspw. für Außenregionen früher eine signifikante Rolle spielt als bei den anderen Regionstypen.
-\\
-\\
-In \autoref{fig:scaleGraph} ist zu erkennen, dass die optimale Anzahl an Workern für Außenregionen bei xx liegt. Für Rand- und Außenregionen liegt diese Anzahl bei 40, was die maximale Anzahl an zur Verfügung stehenden Workern ist. Es kann angenommen werden, dass diese Anzahl noch größer sein würde, ständen mehr Worker zur Verfügung. Damit stimmen die Messergebnisse mit den Erwartungen überein.
+In \autoref{fig:scaleGraph} ist zu erkennen, dass die optimale Anzahl an Rechenknoten für Außenregionen bei monoton fällt.
+Somit ist anzunehmen, dass die maximale Rechenzeit mit zunehmender Anzahl an Rechenknoten fallen würde, womit das Optimum
+für das HimMUC cluster möglichst groß gewählt werden sollte, da die MPI Zeit im vergleich zur Rechenzeit vernachlässigbar ist.
+Damit stimmen die Messergebnisse mit den Erwartungen überein.
 %TODO Noch Strich in der Grafik einfügen für Minimum von MPI-Kommunikationszeit + Rechenzeit
 
 
@@ -108,7 +113,7 @@ In \autoref{fig:scaleGraph} ist zu erkennen, dass die optimale Anzahl an Workern
 
 SIMD unterstützt in den Präzisionen 32 und 64 bit Parallelisierung von einer Rechenoperationen auf
 4 beziehungsweise 2 unterschiedlichen Werten. Der Effekt beläuft sich dabei, wie in \autoref{fig:SIMD-speedup} zu sehen,
-bei einer Beschränkung auf 1019 Iterationen auf eine durchschnittliche Beschleunigung um den Faktor $2,3$ und $1,2$.
+bei einer Beschränkung auf 1019 Iterationen auf eine durchschnittliche Beschleunigung um den Faktor $\approx2,3$ und $\approx1,2$.
 
 \begin{figure}
 	\centering
@@ -212,7 +217,7 @@ Durch die Betrachtung von Tiles (in diesem Test $64\times64$ Pixel) als atomare 
 % Genauigkeit der Vorhersage vs maximale Rechenzeit für Randregionen 
 % Plot: y: max comp time, balancer time  x: prediction Accuracy (Randregion)
 % 	Diese "optimale" Genauigkeit wird aber bereits in allen vorherigen Evaluierungen des prediction Balancers verwendet
-\subsubsection{Vorhersagegenauigkeit}
+\paragraph{Vorhersagegenauigkeit}
 
 Die Qualität einer Lastbalancierung ist immer davon abhängig, wie gut die Vorhersage für eine Region ist.
 Hier kann eine Abwägung zwischen genauerer Vorhersage und schnellerer Vorhersage getroffen werden.
@@ -221,11 +226,12 @@ Dazu werden für verschiedene Genauigkeiten die maximale Rechenzeit eines Worker
 Die Messungen fanden unter den selben Bedingungen wie die Obigen statt, allerdings wurden für die Implementierung hier 32-bit floats verwendet, was die absoluten Rechenzeiten verkürzt.
 Außerdem wird dem Balancierer eine freie Aufteilung auf 2x2-Kacheln erlaubt, um genauere Vorhersagen besser durch die Aufteilung zu reflektieren.
 
+% TODO: durch Plot mit realistischer tile Größe ersetzen, da dieser keinem use case in unserer Anwendung entspricht 
 \begin{figure}
 	\centering
 	\includegraphics[width=0.9\linewidth]{img/Evaluation/prediction_accuracy_tile2_cropped.pdf}
-    \caption{Maximale Rechenzeit pro Region im Vergleich zur benötigte Zeit für die Vorhersage für verschiedene Vorhersagegenauigkeiten bei minimaler Teilbarkeit von 2.
-    Eine Vorhersagegenauigkeit von $0$ ist genau eine Vorhersage pro 2x2-Kachel. Eine negative Zahl bedeutet eine Vorhersage für mehrere Kacheln. Eine positive Zahl bedeutet mehrere Vorhersagen für eine Kachel.}
+	\caption{Maximale Rechenzeit pro Region im Vergleich zur benötigte Zeit für die Vorhersage für verschiedene Vorhersagegenauigkeiten bei minimaler Teilbarkeit von 2.
+		Eine Vorhersagegenauigkeit von $0$ ist genau eine Vorhersage pro 2x2-Kachel. Eine negative Zahl bedeutet eine Vorhersage für mehrere Kacheln. Eine positive Zahl bedeutet mehrere Vorhersagen für eine Kachel.}
 	\label{fig:balancers_prediction_accuracy}
 \end{figure}
 
