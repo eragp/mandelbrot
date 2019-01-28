@@ -403,24 +403,39 @@ Die benötigte Anzahl an Iterationen wird in ein übergebenes Array geschrieben.
 \subsubsection{Berechnung mithilfe von SIMD}\label{subsec:simd}
 
 Um das Parallelisierungskonzept mithilfe von SIMD zu erklären,
-ist es hilfreich zunächst vor Augen zu führen, wie ein Vektor komplexer Koordinaten ohne SIMD verarbeitet würde.
+ist es hilfreich zunächst vor Augen zu führen, wie ein Vektor komplexer Koordinaten ohne SIMD verarbeitet würde,
+sodass die Schleife über den Vektor parallel ausgeführt werden kann.
 Dies ist in \autoref{src:MandelbrotVect} zu sehen.
 Die Berechnung der einzelnen Kooridnaten bleibt gleich, nur die Abbruchbedingung wird auf alle bearbeiteten Koordinaten erweitert.
 
-Es muss dabei solange weiter iteriert werden, bis für alle Komponenten die Berechnung abgebrochen werden darf.
+Es muss also solange weiter iteriert werden, bis für alle Komponenten die Berechnung abgebrochen werden darf.
 Hierbei ist es kein Problem mit den abgebrochenen Punkten weiter zu rechnen, sofern die
 Iterationszahl nur hochgezählt wird wenn das $z_n$ der Koordinate Betragsmäßig kleiner gleich $2$ ist.
 Dies gilt, da alle $|z_{n+i}| > 2$ sofern $|z_n| > 2$ \cite{424331}.
 
 Außerdem ist zu beachten, dass die Iterationszahl vor der Berechnung der nächsten Iteration erhöht werden muss.
-Dies liegt darin begründet die Iterationszahl die Anzahl der Rechenschritte repräsentieren soll und
-der nächste Schritt sicher ausgeführt wird. Auch dann, wenn in auf Basis der neuen Berechnung bereits abgebrochen wäre.
+Dies liegt darin begründet, dass die Iterationszahl die Anzahl der Rechenschritte repräsentieren soll und
+der nächste Schritt sicher ausgeführt wird.
+Auch dann, wenn in auf Basis der neuen Berechnung bereits abgebrochen würde.
 
 \begin{figure}[h!]
 	\lstinputlisting[caption={Bearbeitung eines Vektors komplexer Koordinaten in Pseudocode}, label={src:MandelbrotVect}]{code/mandelbrotvect.pseudo}
 \end{figure}
 
-Mithilfe der in \autoref{par:introduction_simd} beschriebenen SIMD-Intrinsics ist die Umsetzung dieses Codes gut möglich.
+Für ARMv8-Architektur-Prozessoren wie die Prozessoren des Raspberry Pi 3 B+ oder ODroid
+existieren zur Implementierung von SIMD Instruktionen in Hochsprachen wie C und C++ sogenannte
+NEON Compiler Intrinsics\footnote{Details im Abschnitt \enquote{Compiler Intrinsics} unter \url{https://developer.arm.com/technologies/neon}}.
+
+Diese Intrinsics ermöglichen eine Verwendung der nativen SIMD-Befehle, wobei der Compiler sich um die Verwendung der SIMD-Register kümmert.
+Dadurch wird lesbarer Code ermöglicht, der sich stärker am zu implementierenden Algorithmus orientiert.
+
+Zu den hier benötigten mathematischen Operationen (z.B. der Addition) wird hierbei das Compiler Intrinsic nach folgendem Schema erzeugt:
+\texttt{v\textit{opc}q\_f\textit{pr}} mit dem Operationscode \textit{opc} (z.B. \textit{add} für Addition).
+\verb|v| ist das allgemeine Prefix für Vektoroperationen und \verb|q| bedeutet, dass doppelt so viele Register verwendet werden wie ohne \enquote{q}.
+Das Postfix f\textit{pr} bestimmt, dass die Register als Gleitkommazahlen der Präzision \textit{pr} bit (in diesem Fall 32 oder 64) interpretiert werden sollen.
+Damit werden in jeder Operation 4 mal 32 bit Gleitkommazahlen oder 2 mal 64 bit Gleitkommazahlen verrechnet.
+
+Mithilfe der in SIMD-Intrinsics ist die Umsetzung dieses Codes sehr direkt möglich.
 Bei der Hardware-beschleunigten Variante mit SIMD, wurde stets das Postfix \verb|q| eingebunden.
 Damit werden alle verfügbaren SIMD-Register des ARMv8-A Prozessors des ODroids und Raspberry Pi 3 B+ herangezogen.
 

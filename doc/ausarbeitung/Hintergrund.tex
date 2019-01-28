@@ -37,7 +37,8 @@ Das entstehende Fraktal ist aufgrund seiner Form auch als “Apfelmännchen” b
 Am Rand der Menge bilden sich viele kleine und sehr komplexe Formen, die visuell ansprechend sind.
 
 \subsection{MPI}
-Das Message Passing Interface\footnote{\url{https://www.mpi-forum.org/}} ist eine weit verbreitete Spezifikation, für die Kommunikation zwischen unabhängigen Rechenkernen.
+Das Message Passing Interface\footnote{\url{https://www.mpi-forum.org/}} ist eine weit verbreitete Spezifikation, für die Kommunikation zwischen unabhängigen Rechenknoten.
+Es basiert wie der Name bereits andeutet auf dem Konzept, Daten explizit auszutauschen und zwischen den Knoten zu senden statt auf einen geteilten Speicher zuzugreifen.
 Dadurch existieren viele gut funktionierende Umsetzungen in einer Vielzahl von Programmiersprachen.
 Es ermöglicht echte Parallelisierung mit geringem Overhead.
 So können die einzelnen Berechnungen auf jeweils eigenen unabhängigen Rechenkernen laufen und
@@ -47,6 +48,12 @@ Die Gestaltung von MPI erlaubt dabei beliebige Zuordnungen, von Kernen auf einem
 % Was ist OpenMP -> Tobi
 \subsection{OpenMP}
 
+OpenMP ist ein Programminterface, das mit geringen Umständen Parallelisierung innerhalb eines Mehrkernrechenbausteines
+ermöglicht.
+Schlüsselkonzept ist dabei, dass Threads erzeugt werden, die Schleifen paralleliseren und dabei auf den geteilten Speicher
+der Kerne zugreifen um Daten auszutauschen oder zusammenzutragen.
+Damit können Mehrkernarchitekturen effizient und einfach programmierbar ausgenutzt werden.
+
 % Was ist SIMD -> Niels
 \subsection{SIMD} \label{par:introduction_simd}
 \enquote{Single Instruction, Multiple Data} setzt auf Hardwareebene um, was der Name bereits andeutet:
@@ -54,15 +61,3 @@ Eine Instruktion wird auf verschiedene Daten gleichzeitig angewendet.
 Bei einem Projekt wie dem Mandelbrot kann diese Prinzip der Parallelisierung auch gut angewendet werden,
 da die einzelnen Punkte unabhängig voneinander sind.
 
-Für ARMv8-Architektur-Prozessoren wie die Prozessoren des Raspberry Pi 3 B+ oder ODroid
-existieren zur Implementierung von SIMD Instruktionen in Hochsprachen wie C und C++ sogenannte
-NEON Compiler Intrinsics\footnote{Details im Abschnitt \enquote{Compiler Intrinsics} unter \url{https://developer.arm.com/technologies/neon}}.
-
-Diese Intrinsics ermöglichen eine Verwendung der nativen SIMD-Befehle, wobei der Compiler sich um die Verwendung der SIMD-Register kümmert.
-Dadurch wird lesbarer Code ermöglicht, der sich stärker am zu implementierenden Algorithmus orientiert.
-
-Zu den hier benötigten mathematischen Operationen (z.B. der Addition) wird hierbei das Compiler Intrinsic nach folgendem Schema erzeugt:
-\texttt{v\textit{opc}q\_f\textit{pr}} mit dem Operationscode \textit{opc} (z.B. \textit{add} für Addition).
-\verb|v| ist das allgemeine Prefix für Vektoroperationen und \verb|q| bedeutet, dass doppelt so viele Register verwendet werden wie ohne \enquote{q}.
-Das Postfix f\textit{pr} bestimmt, dass die Register als Gleitkommazahlen der Präzision \textit{pr} bit (in diesem Fall 32 oder 64) interpretiert werden sollen.
-Damit werden in jeder Operation 4 mal 32 bit Gleitkommazahlen oder 2 mal 64 bit Gleitkommazahlen verrechnet.
