@@ -6,7 +6,7 @@ export const PredictionAccuracy = 4;
 
 // Maximum number of regions to display to the user.
 // If more are delivered by the backend, grouping will occur.
-export const MAX_DISPLAY_REGIONS = 4;
+export const MAX_DISPLAY_REGIONS = 100;
 // (real, imaginary) bounds of the complex plane
 // x/-x and y/-y have to be the same (symmetric)
 export const bounds = [4, 4];
