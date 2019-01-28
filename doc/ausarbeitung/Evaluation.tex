@@ -212,21 +212,33 @@ Durch die Betrachtung von Tiles (in diesem Test $64\times64$ Pixel) als atomare 
 % Genauigkeit der Vorhersage vs maximale Rechenzeit für Randregionen 
 % Plot: y: max comp time, balancer time  x: prediction Accuracy (Randregion)
 % 	Diese "optimale" Genauigkeit wird aber bereits in allen vorherigen Evaluierungen des prediction Balancers verwendet
-Bei der Strategie mit Vorhersage lässt sich die Genauigkeit der Vorhersage einstellen (vgl. \autoref{par:predicter}).
-Deshalb wird hier eine Kosten-Nutzen Analyse durchgeführt.
-Dazu werden für verschiedene Genauigkeiten die maximale Rechenzeit eines Workers und die Dauer der Vorhersage aufgetragen.
-Die Messungen fanden unter den selben Bedingungen wie die Obigen statt, allerdings wurden für die Implementierung hier 64-bit floats verwendet, was die absoluten Rechenzeiten durch die geringere Genauigkeit verkürzt.
+\subsubsection{Vorhersagegenauigkeit}
+
+Die Qualität einer Lastbalancierung ist immer davon abhängig, wie gut die Vorhersage für eine Region ist.
+Hier kann eine Abwägung zwischen genauerer Vorhersage und schnellerer Vorhersage getroffen werden.
+
+Dazu werden für verschiedene Genauigkeiten die maximale Rechenzeit eines Workers und die Dauer der Vorhersage verglichen.
+Die Messungen fanden unter den selben Bedingungen wie die Obigen statt, allerdings wurden für die Implementierung hier 32-bit floats verwendet, was die absoluten Rechenzeiten verkürzt.
+Außerdem wird dem Balancierer eine freie Aufteilung auf 2x2-Kacheln erlaubt, um genauere Vorhersagen besser durch die Aufteilung zu reflektieren.
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.9\linewidth]{img/Evaluation/balancers/prediction_accuracy_32.png}
-	\caption{Maximale Rechenzeit pro Region und für die Lastbalancierung benötigte Zeit für verschiedene Vorhersagegenauigkeiten}
+	\includegraphics[width=0.9\linewidth]{img/Evaluation/prediction_accuracy_tile2_cropped.pdf}
+    \caption{Maximale Rechenzeit pro Region im Vergleich zur benötigte Zeit für die Vorhersage für verschiedene Vorhersagegenauigkeiten bei minimaler Teilbarkeit von 2.
+    Eine Vorhersagegenauigkeit von $0$ ist genau eine Vorhersage pro 2x2-Kachel. Eine negative Zahl bedeutet eine Vorhersage für mehrere Kacheln. Eine positive Zahl bedeutet mehrere Vorhersagen für eine Kachel.}
 	\label{fig:balancers_prediction_accuracy}
 \end{figure}
 
-In \autoref{fig:balancers_prediction_accuracy} sieht man, dass sich die maximale Rechenzeit schon ab einer Vorhersagegenauigkeit von 4 nicht mehr signifikant verbessert, davor ist die Beschleunigung aber deutlich sichtbar.
-Die für die Lastbalancierung benötigte Zeit steigt exponentiell an, was bei der Definition der Genauigkeit zu erwarten war.
-Ab Genauigkeit 22 übersteigt die Zeit für die Vorhersage sogar die maximale Berechnungsdauer einer Region, was dem Sinn einer Lastbalancierung widerspricht.
+In \autoref{fig:balancers_prediction_accuracy} sieht man, dass die maximale Rechenzeit bereits ab einer Genauigkeit von
+einer Stichprobe pro 40 2x2-Kacheln, also 160 Pixeln nicht mehr signifikant fällt.
+Die für die Lastbalancierung benötigte Zeit steigt exponentiell an, da jede Erhöhung der Genauigkeit um 1 eine Verdopplung der zu berechnenden Pixel bedeutet.
+Jedoch erst recht spät, bei einer Genauigkeit von einer Vorhersage pro 40 Pixeln beginnt dieses Wachstum sichtbar zu werden
+und erst bei 10 Pixeln übersteigt sie die maximale Berechnungsdauer einer Region.
+
+Damit kann beobachtet werden, dass in diesem Fall Lastbalancierung bis zu einem hohen Grad an Genauigkeit nützlich ist
+und die Gesamtrechendauer effektiv senken kann.
+Dies ist zu erwarten, da für die Berechnung einer geringer aufgelösten Region
+der Rechenaufwand im zweidimensionalen quadratisch sinkt.
 
 %% TODO folgenden absatz einbauen --> ist bereits in Implementierung, haben wir ja auch währenddessen festgestellt
 % Probleme bei der Verwendung des Rekursiven Lastbalanierers:
