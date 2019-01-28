@@ -9,25 +9,23 @@
 \subsection{Verwendung der Mandelbrotmenge}
 
 Es handelt bei der Bestimmung der Mandelbrotmenge um eine rechenintensive Operation, wobei
-die benötigte Zeit durch Erhöhen der Iterationszahl beliebig erhöht werden kann.
-Zusätzlich ist die Berechnung für jede einzelne komplexe Zahl unabhängig von
-jeder anderen Zahl.
+die benötigte Zeit linear mit der maximalen Iterationszahl \( I_{max} \) skaliert.
+Zusätzlich ist die Berechnung für jede einzelne komplexe Zahl \( c\in \mathbb{C} \)	unabhängig paarweise unabhängig.
 
-Diese Eigenschaften ermöglichen es zweierlei Dinge zu kontrollieren:
+Damit wird eine einfache Parallelisierung mit den folgenden Eigenschaften ermöglicht:
 \begin{itemize}
-	\item Die Dauer der Berechnung
-	\item Die Aufteilung der Berechnung auf unterschiedliche Rechenkerne
+	\item Rechendauer kann durch maximale Iterationszahl \( I_{max} \) bestimmt werden.
+	\item Durch die paarweise Unabhängigkeit der Punkte, können diese parallel, ohne Datenaustausch berechnet werden.
 \end{itemize}
 
-Somit kann gesichert werden, dass eine wahrnehmbare Zeit (100-200 ms) zur Berechnung der Punkte innerhalb
-der Mandelbrotmenge benötigt wird.
+Somit kann gesichert werden, dass die Benutzerin eine wahrnehmbare Zeit \( (100 - 200 ms) \) zur Berechnung der Punkte innerhalb
+der Mandelbrotmenge erlebt.
 Aus didaktischer Sicht ist dies wichtig, um Differenzen zwischen den Balancierungsstrategien spürbar zu machen.
 Zudem kann die Unterteilung des zu berechnden Raumes frei gewählt werden, sodass
 verschiedenste Aufteilungen möglich sind und insbesondere bei der Lastbalancierung frei eingeteilt werden kann.
 
-Als Projekt, das an nicht technisch versierten Anwendern spricht auch der ästethische
-Faktor des Mandelbrotfraktals für eine Verwendung.
-Er kann ein erstes Interesse für die Anwendung wecken.
+Da das Projekt auch nicht technisch versierte Anwender durch die Ästhetik der Mandelbrotmenge anspricht, eignet es
+sich, um ein erstes Interesse für Parallelisierung wecken.
 
 % Wie ist die (grobe) Architektur des Programmes (parallelisiertes Backend, Oberfläche)
 \subsection{Architekturübersicht}
@@ -35,48 +33,31 @@ Er kann ein erstes Interesse für die Anwendung wecken.
 	% Bindet das als PDF exportierte pptx ein -> vektorgrafik
 	% -> pptx bearbeiten statt pdf
 	\centering
-	\includegraphics[width=0.98\linewidth]{img/Implementierung/Kommunikation.pdf}
+	\includegraphics[width=\linewidth]{img/Implementierung/ArchitekturAusfuehrlich.pdf}
 	\caption{Architekturübersicht}
-	\label{fig:architekturuebersicht}
+	\label{fig:architekturuebersicht_detail}
 \end{figure}
-
 Die hohe Rechenintesivität sorgt dafür, dass der Berechnungsteil des Projektes möglichst in einer
 hardwarenahen Sprache umgesetzt wird.
 Andererseits sollte die Benutzeroberfläche einfach zu bedienen und auf möglichst vielen verschiedenen Geräten lauffähig sein.
-Daher wurde sich für eine Unterteiltung in ein Frontend, im Browser aufrufbar, und ein Backend, auf einem Cluster
+Daher wurde sich für eine Unterteiltung in ein Frontend, im Browser aufrufbar, und ein Backend, auf einem Rechencluster
 laufend und hardwarenah programmiert.
 
-Zudem soll unterschieden werden, zwischen einem Host-Prozess im Backend, welcher für die Kommunikation mit dem
-Frontend zuständig ist und Workerprozessen, welche die tatsächliche Berechnung der Mandelbrotmenge durchführen.
-Der Hostprozess nimmt damit Rechenaufträge vom Nutzerfrontend entgegen und führt die Lastbalancierung durch.
-Die kleineren Regionen der unterteilten Anfrage werden dann an die jeweiligen Workerprozesse gesendet, welche sie berechnen sollen.
-Damit erhalten wir eine Unterteilung in drei wesentliche Bausteine, wie sie in \autoref{fig:architekturuebersicht} zu sehen sind.
-\\ \\
-ALTERNATIVE VERSION VOM TOBI KOMMT JETZT. HAB LEIDER NICHT GESEHEN, DAS DARAN SCHON WAS GEÄNDERT WURDE. WAS FINDET IHR BESSER?
-\\ \\
-\subsection{Architekturübersicht}
 Die Architektur besteht aus drei wesentlichen Bausteinen, die in \autoref{fig:architekturuebersicht_detail} zu sehen sind:
 \begin{itemize}
 	\item Eine Benutzeroberfläche in einem Web-Browser (“Frontend”), die die Benutzerinteraktionen entgegennimmt und mit dem Backend kommuniziert.
 	\item Ein Backend-Host, der eingehende Rechenaufträge vom Frontend an die Worker verteilt und deren Ergebnisse an das Frontend weiterleitet.
 	\item Mehrere Backend-Worker, die die eigentliche Berechnung parallelisiert durchführen.
 \end{itemize}
-\begin{figure}[h!]
-	% Bindet das als PDF exportierte pptx ein -> vektorgrafik
-	% -> pptx bearbeiten statt pdf
-	\centering
-	\includegraphics[width=0.98\linewidth]{img/Implementierung/ArchitekturAusfuehrlich.pdf}
-	\caption{Detaillierte Architekturübersicht}
-	\label{fig:architekturuebersicht_detail}
-\end{figure}
 Erfolgt eine Nutzereingabe so sendet das Frontend einen entsprechenden Rechenauftrag via Websocket an den Host.
-Der Websocket-Recv-Thread des Hosts nimmt den eingehenden Rechenauftrag an, führt das Balancing durch, übermittelt dem Frontend die getätigte Aufteilung und legt diese in der gemeinsamen Datenstruktur Websocket-Request-To-MPI ab.
-Der MPI-Host-Thread leitet die in dieser Datenstruktur liegenden Rechenaufträge per MPI an die Worker weiter.
+Der Websocket-Recv-Thread des Hosts nimmt den eingehenden Rechenauftrag an, führt das Balancing durch,
+übermittelt dem Frontend die getätigte Aufteilung und legt diese in der gemeinsamen Datenstruktur \verb|Websocket-Request-To-MPI| ab.
+Der \verb|MPI-Host-Thread| leitet die in dieser Datenstruktur liegenden Rechenaufträge per MPI an die Worker weiter.
 Diese nehmen die zugewiesenen Rechenaufträge entgegen und führen diese ggf. mithilfe von SIMD und / oder OpenMP parallelisiert aus.
-Anschließend werden die Rechenergebnisse wieder via MPI an den MPI-Host-Thread übermittelt, welcher diese in der gemeinsamen Datenstruktur MPI-To-Websocket-Result ablegt.
-Der Websocket-Result-Thread überträgt die Rechenergebnisse aus der gemeinsamen Datenstruktur per Websocket an das Frontend, wo die Daten verarbeitet und dargestellt werden.
-
-
+Anschließend werden die Rechenergebnisse wieder via MPI an den \verb|MPI-Host-Thread| übermittelt,
+welcher diese in der gemeinsamen Datenstruktur \verb|MPI-To-Websocket-Result| ablegt.
+Der \verb|Websocket-Result-Thread| überträgt die Rechenergebnisse aus der gemeinsamen Datenstruktur per Websocket an das Frontend, 
+wo die Daten verarbeitet und dargestellt werden.
 
 % Welche Lastbalancierungsmechanismen wurden umgesetzt?
 \subsection{Lastbalancierung}\label{sec:load_balancing_concepts}
@@ -127,15 +108,8 @@ Wo die Grenzen zwischen den Zeilen und Spalten (nicht-rekursiv) bzw. den Hälfte
 \subsection{Nachrichtenaustausch}
 Um eine zwischen den unabhängigen Systemen eine einheitliche Kommunikation zu ermöglichen,
 wurde ein Protokoll spezifiziert um Flächen in der komplexen Ebene und ihre Auflösung eindeutig zu bestimmen.
-Der grobe Inhalt und die Richtung der Nachrichten ist \autoref{fig:concept_messages} zu entnehmen,
+Der grobe Inhalt und die Richtung der Nachrichten ist \autoref{fig:architekturuebersicht_detail} zu entnehmen,
 die exakte Spezifikation in der jeweiligen Sprache ist den angegebenen Dateien zu entnehmen.
-
-% austauschen durch tobis
-\begin{figure}
-	\includegraphics[width=0.9\linewidth]{img/Implementierung/Nachrichtenuebersicht.pdf}
-	\caption{Konzept der versendeten Nachrichten. Die genauen Definitionen der Nachrichten sind in den angegeben Dateien nachzusehen.}
-	\label{fig:concept_messages}
-\end{figure}
 
 % TODO: improve
 Ein Beispiel für eine gültige Regionsanfrage ist in \autoref{src:regionRequest.json} zu finden.
@@ -148,7 +122,6 @@ die linke obere Koordinate der Region bezüglich der gesamten sichtbaren Anfrage
 gewinnen in den Regionsaufteilungen an Bedeutung).
 Der Wert \verb|validation| ist technisch gesehen nicht mehr notwendig, wird aber mit dem Zoom-wert der Leafletkarte gefüllt
 um zu vermeiden dass Regionsdaten von zuvor berechneten Regionen falsch verwendet werden.
-
 \begin{figure}
 	\centering
 	\begin{tikzpicture}[scale=1]
@@ -173,8 +146,6 @@ um zu vermeiden dass Regionsdaten von zuvor berechneten Regionen falsch verwende
 In zurückkehrenden \verb|RegionData|-Nachrichten sind Arrays der berechneten Iterationszahlen eingebunden.
 Dabei wird der Punkt (x, y) in der gesendeten Region (Punkt (x+hOffset, y+vOffset) in der angefragten Region)
 im Datenarray an Index $i = x + y * width$ gespeichert.
-
-% 1 Seite
 
 % Wie wurde die Parallelisierung mit OpenMP angegangen?
 \subsection{Parallelisierung}
