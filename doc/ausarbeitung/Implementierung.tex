@@ -219,7 +219,32 @@ Anschließend muss der Test mittels \verb|cmake| in \verb|backend/tests| neu kom
 
 \subsection{Kommunikation zwischen Host und Worker im Backend}
 
-Zur Kommunikation zwischen dem Host und den Workern im Backend wird ausschließlich das \verb|Message Passing Interface (MPI)| genutzt. Als MPI-Implementierung wird \verb|OpenMPI|\footnote{\url{https://www.open-mpi.org/doc/v3.1/}} verwendet, da dies sehr verbreitet ist und auch die Nutzung von Threads unterstützt, was laut der offiziellen \verb|MPI-Dokumentation|\footnote{\url{https://www.mpi-forum.org/docs/mpi-3.1/mpi31-report.pdf}} ein optionales Feature ist.
+Zur Kommunikation zwischen dem Host und den Workern im Backend wird ausschließlich das \verb|Message Passing Interface (MPI)| genutzt.
+
+\begin{figure}[p]
+	% Bindet das als PDF exportierte vsdx ein -> vektorgrafik
+	% -> vsdx bearbeiten statt pdf
+	\hspace{20mm}
+	\includegraphics[angle = 90, origin = c, trim = 0mm 0mm 0mm 0mm, clip, width=0.98\linewidth]{img/Implementierung/MPISequenzdiagrammFarben.pdf}
+	\caption{Sequenzdiagramm zur Kommunikation im Backend}
+	\label{fig:mpi_sequenzdiagramm}
+\end{figure}
+
+Erfolgt eine Nutzereingabe sendet das Frontend einen entsprechenden Rechenauftrag via Websocket an den Host.
+Der Websocket-Empfangs-Thread des Hosts nimmt den eingehenden Rechenauftrag an, führt die Balancierung durch,
+übermittelt dem Frontend die getätigte Aufteilung und legt diese in einer gemeinsamen Datenstruktur ab.
+Der MPI-Thread des Hosts leitet die in dieser Datenstruktur liegenden Rechenaufträge per MPI an die Worker weiter.
+Diese nehmen die zugewiesenen Rechenaufträge entgegen und führen diese gegebenenfalls mithilfe von SIMD und / oder OpenMP parallelisiert aus.
+Anschließend werden die Rechenergebnisse wieder via MPI an den MPI-Thread übermittelt,
+welcher diese in einer weiteren gemeinsamen Datenstruktur ablegt.
+Der Websocket-Ergebnis-Thread überträgt die Rechenergebnisse aus der gemeinsamen Datenstruktur per Websocket an das Frontend, 
+wo die Daten verarbeitet und dargestellt werden.
+Der Ablauf dieser Kommunikation wird noch einmal in \autoref{fig:mpi_sequenzdiagramm} veranschaulicht.
+
+Wird während einer laufenden Berechnung eine neue Berechnung angefordert, so werden die auf den Workern noch laufenden Berechnungen abgebrochen und mit der neuen Berechnung begonnen. Ein entsprechendes Sequenzdiagramm ist im Anhang (TODO Link) zu finden.
+
+Da mehrere Threads in der Host-Anwendung für die Websocketfunktionalität unumgänglich sind sollte bei dem System,
+auf dem das Program laufen soll, darauf geachtet werden dass die lokale MPI-Implementierung Threads unterstützt.
 
 \subsubsection{Beschreibung der verwendeten MPI-Funktionen}
 
@@ -271,25 +296,9 @@ In der Implementierung kommen folgende MPI-Funktionen zum Einsatz:
 
 \end{itemize}
 
-\begin{figure}[p]
-	% Bindet das als PDF exportierte vsdx ein -> vektorgrafik
-	% -> vsdx bearbeiten statt pdf
-	\hspace{20mm}
-	\includegraphics[angle = 90, origin = c, trim = 0mm 0mm 0mm 0mm, clip, width=0.98\linewidth]{img/Implementierung/MPISequenzdiagrammFarben.pdf}
-	\caption{Sequenzdiagramm zur Kommunikation im Backend}
-	\label{fig:mpi_sequenzdiagramm}
-\end{figure}
-
 \subsubsection{MPI-Designentscheidungen}
 %TODO Namen der Threads überall (auch Grafiken) konsistent halten! Sollte aktuell passen. Vor der Abgabe nochmal überprüfen.
-Im Folgenden wird die Kommunikation zwischen dem MPI-Host-Thread und den MPI-Worker-Threads beschrieben. Zur Veranschaulichung dient das Sequenzdiagramm in \autoref{fig:mpi_sequenzdiagramm}.
-\\ \\
-Wie oben (TODO Link) beschrieben, werden über die Websocketverbindung und den Websocket-Recv-Thread die zu berechnenden Subregionen in der gemeinsamen Datenstruktur Websocket\_Request\_To\_MPI abgelegt. Aufgabe des MPI-Host-Threads ist es, die einzelnen Subregionen an die verfügbaren MPI-Worker-Threads zu übertragen, die Berechnungsergebnisse von den MPI-Worker-Threads entgegen zu nehmen und in der gemeinsamen Datenstruktur MPI\_To\_Websocket\_Result abzulegen, sodass der Websocket-Result-Thread die Daten an das Frontend übertragen kann.
-\\ \\
-Wird während einer laufenden Berechnung eine neue Berechnung angefordert, so werden die auf den Workern noch laufenden Berechnungen abgebrochen und mit der neuen Berechnung begonnen. Ein entsprechendes Sequenzdiagramm ist im Anhang (TODO Link) zu finden.
-\\ \\
 Die Kommunikation soll performanceoptimiert und parallelisiert erfolgen.
-\\ \\
 Für die Implementierung der MPI-Kommunikation wurden daher folgende Designentscheidungen getroffen:
 
 \begin{itemize}
@@ -333,32 +342,24 @@ Für die Implementierung der MPI-Kommunikation wurden daher folgende Designentsc
 
 		      \item Busy waiting im MPI-Worker-Thread
 
-		            Solange keine Berechnungen durchzuführen sind, wäre es ausreichend blockierend auf das Eintreffen neuer Berechnungsaufträge zu warten, um die CPU nicht unnötig zu belasten. Da die blockierende Empfangsoperation MPI\_Recv() aber selbst mit busy waiting implementiert ist, wird auf deren Nutzung verzichtet. Stattdessen wird der MPI-Worker-Thread im Schleifendurchlauf für 1 Millisekunde schlafen gelegt wenn keine Nachrichten zu empfangen sind. Im Vergleich zur Berechnungsdauer einer Subregion (vgl. Evaluationstimer ... TODO) fällt diese 1 Millisekunde nicht ins Gewicht, entlastet aber spürbar die CPU.
+                    Solange keine Berechnungen durchzuführen sind, wäre es ausreichend blockierend auf das Eintreffen neuer Berechnungsaufträge zu warten, um die CPU nicht unnötig zu belasten.
+                    Da die blockierende Empfangsoperation MPI\_Recv() jedoch häufig selbst mit busy waiting implementiert ist, wird auf deren Nutzung verzichtet. Stattdessen wird der MPI-Worker-Thread im Schleifendurchlauf für 1 Millisekunde schlafen gelegt wenn keine Nachrichten zu empfangen sind. Im Vergleich zur Berechnungsdauer einer Subregion fällt diese 1 Millisekunde nicht ins Gewicht, entlastet aber spürbar die CPU.
 		            %TODO Quellen für den Busy Waiting Dreck.
 
 	      \end{itemize}
 
 \end{itemize}
 
-\subsubsection{Beschreibung der implementierten MPI-Hauptroutinen}
-
-In diesem Abschnitt werden die Implementierungen der Hauptroutinen des MPI-Host-Threads und des MPI-Worker-Threads genauer beschrieben.
-
-\paragraph{Ablauf der MPI-Kommunikation im Host}
-
-Im folgenden wird das Kommunikationsverhalten des MPI-Host-Thread genauer beschrieben.
+\subsubsection{MPI-Kommunikation im Host}
 
 %TODO Eventuell noch das Senden der Testregionen beschreiben.
-
 Die Kommunikation zwischen Host (MPI-Host-Thread) und Workern (MPI-Worker-Thread) ist im MPI-Host-Thread als Endlosschleife (busy waiting) implementiert. Die dabei stattfindenden Operationen inklusive ausführlicher Kommentare sind in \autoref{src:mpi_host_pseudo} einzusehen.
 
 \begin{figure}[!h]
 	\lstinputlisting[language=python, caption={MPI Kommunikation im Host in Pseudocode}, label={src:mpi_host_pseudo}]{code/MPIHost.py}
 \end{figure}
 
-\paragraph{Ablauf der MPI-Kommunikation im Worker}\label{para:impl_mpi_worker}
-
-Im folgenden wird das Kommunikationsverhalten des MPI-Worker-Threads genauer beschrieben.
+\subsubsection{Ablauf der MPI-Kommunikation im Worker}\label{para:impl_mpi_worker}
 
 Analog zum Host ist auch der Worker (MPI-Worker-Thread) als Endlosschleife mit busy waiting implementiert. Die Berechnung einer Subregion erfolgt dabei zeilenweise durch einen compute() Aufruf. Der entsprechende Pseudocode inklusive ausführlicher Kommentare ist in \autoref{src:mpi_worker_pseudo} zu finden.
 
@@ -405,6 +406,8 @@ Die benötigte Anzahl an Iterationen wird in ein übergebenes Array geschrieben.
 Um das Parallelisierungskonzept mithilfe von SIMD zu erklären,
 ist es hilfreich zunächst vor Augen zu führen, wie ein Vektor komplexer Koordinaten ohne SIMD verarbeitet würde,
 sodass die Schleife über den Vektor parallel ausgeführt werden kann.
+Für SIMD ist wichtig dass dabei die einzelnen Rechenschritte synchron stattfinden können,
+damit die verschiedenen Werte mit ein und derselben Instruktion verarbeitet wird.
 Dies ist in \autoref{src:MandelbrotVect} zu sehen.
 Die Berechnung der einzelnen Kooridnaten bleibt gleich, nur die Abbruchbedingung wird auf alle bearbeiteten Koordinaten erweitert.
 

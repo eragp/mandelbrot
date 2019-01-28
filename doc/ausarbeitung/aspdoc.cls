@@ -128,7 +128,7 @@
 % Redefine main colors
 \definecolor{blue}{HTML}{348ABD}
 \definecolor{red}{HTML}{E24A33}
-\definecolor{green}{HTML}{8EBA42}
+\definecolor{green}{HTML}{7EAA32}
 
 \definecolor{eclipseStrings}{RGB}{42,0.0,255}
 \definecolor{eclipseKeywords}{RGB}{127,0,85}
