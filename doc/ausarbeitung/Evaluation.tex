@@ -55,8 +55,20 @@ Auf dem Rechencluster wird als MPI-Implementierung \verb|OpenMPI|\footnote{\url{
 welches einen starken Fokus auf Effizienz legt und auch die Nutzung von Threads unterstützt, was laut der offiziellen \verb|MPI-Dokumentation|\footnote{\url{https://www.mpi-forum.org/docs/mpi-3.1/mpi31-report.pdf}} ein optionales Feature ist.
 
 
-\subsection{Skalierung}
-\begin{figure}
+\subsection{Evaluierung der MPI-Kommunikation}
+
+Im Folgenden wird untersucht, wie sich die MPI-Kommunikation bei einer Erhöhung der Workeranzahl verhält.
+
+\subsubsection{Skalierung der MPI-Kommunikation}
+
+..... NOCH NICHT GANZ KLAR, WARUM DAS SO IST.....
+\\
+\\
+Generell lässt sich beobachten, dass die MPI-Kommunikationszeit nur sehr gering (um ca. 50 Millisekunden) pro Regionstyp bei steigender Anzahl an Workern fluktuiert. Sie wird daher für die folgende Evaluierung als nahezu konstant angenommen.
+
+\subsubsection{Optimale Anzahl an Workern für Standardimplementierung}
+
+\begin{figure}[h!]
 	\centering
 	\includegraphics[width=0.32\linewidth]{img/Evaluation/scale_graph_outside}
 	\includegraphics[width=0.32\linewidth]{img/Evaluation/scale_graph_border}
@@ -64,28 +76,18 @@ welches einen starken Fokus auf Effizienz legt und auch die Nutzung von Threads 
 	\caption{Skalierungsgraph von \( 1-40 \) Rechenknoten, Strategie mit Vorhersage (rekursiv)}
 	\label{fig:scaleGraph}
 \end{figure}
-Eine wichtige Performanzmetrik, welche durch das Projekt evaluiert werden solle, ist wie gut sich eine
-unabhängige Berechnung, wie die der Mandelbrotfunktion parallelisieren lässt.
-Dabei ist vor allem von Interesse, wie sich die Rechenzeit der einzelnen Teilreigonen des Balancers im Vergleich
-zur Anzahl der an der Berechnung beteiligten Worker verhält. Dies ist in \autoref{fig:scaleGraph} aufgetragen.
 
-Dabei ist jeweils ein Skalierungsgraph für jede der drei Regionstypen (innerhalb, am Rand und außerhalb) angegeben,
-was nötig wird, da Regionen abhängig von der Anzahl der Pixel, welche innerhalb der Mandelbrotmenge liegen, sehr unterscheidliche
-Rechenzeiten haben.
-Erwartet ist dabei, dass sich die Rechenzeit \( t \) ungefähr nach \( t \approx {c_1} / {n} + c_2 \) verhält,
-wobei \( n \) die Anzahl der Rechenknoten und \( c_1, c_2 \) geeignet gewählte Konstanten zur Abschätzung des Overheads sind.
-Diese Relation lässt sich dabei auch in den gemessenen Daten in \autoref{fig:scaleGraph} wieder finden.
+Bei der verteilten Berechnung ist ein wesentlicher Aspekt, dass der MPI-Kommunkationsoverhead im Verhältnis zur Rechenzeit je Worker nicht zu groß wird und damit die Gesamtperformance schlechter wird als bei der Verwendung von weniger Workern. Je mehr Worker verwendet werden, desto geringer wird die benötigte Rechenzeit bei in etwa gleichbleibender Kommunikationszeit. Die optimale Anzahl an Workern ist erreicht, wenn \( MPIKommunikationszeit + Rechenzeit \) minimal ist. Diese optimale Anzahl an Workern ist auf jeden Fall überschritten, wenn die MPI-Kommunikationszeit größer ist als die Rechenzeit.
+\\
+\\
+In \autoref{fig:scaleGraph} ist für jeden Regionstyp (Außen-, Rand-, Innenregion) die MPI-Kommunikationszeit und die maximale Berechnungszeit pro Anzahl an Workern dargestellt. Dabei wurde in den Workern keine weitere Parallelisierung (weder mit OpenMP, noch mit SIMD) vorgenommen.
 
-Es ist jedoch zu beachten, dass somit der
+Die Erwartung ist, dass für die optimale Anzahl an Workern die Relation \( Aussenregionen \leqslant Randregionen \leqslant Innenregionen \) gilt, da die selbe Relation auch für die Rechenzeiten der Regionstypen gilt und damit der MPI-Kommunikationsoverhead bspw. für Außenregionen früher eine signifikante Rolle spielt als bei den anderen Regionstypen.
+\\
+\\
+In \autoref{fig:scaleGraph} ist zu erkennen, dass die optimale Anzahl an Workern für Außenregionen bei xx liegt. Für Rand- und Außenregionen liegt diese Anzahl bei 40, was die maximale Anzahl an zur Verfügung stehenden Workern ist. Es kann angenommen werden, dass diese Anzahl noch größer sein würde, ständen mehr Worker zur Verfügung. Damit stimmen die Messergebnisse mit den Erwartungen überein.
+%TODO Noch Strich in der Grafik einfügen für Minimum von MPI-Kommunikationszeit + Rechenzeit
 
-\paragraph{Parallelisierung}
-\begin{figure}
-	\centering
-	\includegraphics[width=\linewidth]{img/Evaluation/parallelism}
-	\caption{Parallelisierungsstrategien:\\
-		1 MPI Prozess pro Node, 4 OpenMP threads pro Node, 2 MPI Prozesse pro Node, 4 MPI Prozesse pro Node }
-	\label{fig:parallelism}
-\end{figure}
 
 % OpenMP & MPI skalierung
 % Bar graph (1 MPI Prozess pro worker, 1 MPI Prozess & 4 OpenMP pro Worker, 4 MPI Prozesse pro worker)
