@@ -407,6 +407,21 @@ void Host::send() {
             case mandelbrotSIMD64:
                 fractal_str = "mandelbrotSIMD64";
                 break;
+            case mandelbrotOpenMP32:
+                fractal_str = "mandelbrotopenmp32";
+                break;
+            case mandelbrotOpenMP64:
+                fractal_str = "mandelbrotopenmp64";
+                break;
+            case mandelbrotOpenMPSIMD32:
+                fractal_str = "mandelbrotopenmpsimd32";
+                break;
+            case mandelbrotOpenMPSIMD64:
+                fractal_str = "mandelbrotopenmpsimd64";
+                break;
+            case mandelbrotOpenMP:
+                fractal_str = "mandelbrotopenmp";
+                break;
             default:
                 fractal_str = "mandelbrot";
         }
