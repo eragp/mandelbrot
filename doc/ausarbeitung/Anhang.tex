@@ -29,7 +29,7 @@ root@9cc2d5ac2cd1:~/eragp-mandelbrot/backend# exit
 \end{figure}
 
 \begin{figure}
-	\begin{lstlisting}[language=bash, caption={Beispielausgabe bei Start der Entwicklungsumbegung auf dem HimMUC}, label={shell:start_himmuc_example}]
+	\begin{lstlisting}[language=bash, caption={Beispielausgabe bei Start der Entwicklungsumbegung auf dem HimMUC}, label={shell:start_himmuc_example_anhang}]
 $ eragp-mandelbrot/backend$ python3 himmuc/start_himmuc.py muendler 10 9
 Uploading backend...  sending incremental file list
 backend/himmuc/start_backend.py
@@ -256,6 +256,19 @@ erfolgreichen Initialisierung der eigentliche \hyperref[cls:Host]{Host-Prozess} 
 	\lstinputlisting[caption={Initialisierung der MPI-Prozesse in init.cpp}, label={src:init.cpp}, firstline=15, lastline=39, firstnumber=15]{../../backend/src/init.cpp}
 \end{figure}
 
+\subsection{Sequenzdiagramm zur Kommunikation im Backend mit Abbruch eines Workers}
+
+Ein Sequenzdiagramm zur Kommunikation im Backend mit Abbruch eines Workers ist in \autoref{fig:mpi_sequenzdiagramm_abbruch} zu finden.
+
+\begin{figure}[ph!]
+	% Bindet das als PDF exportierte vsdx ein -> vektorgrafik
+	% -> vsdx bearbeiten statt pdf
+	\hspace{10mm}
+	\includegraphics[angle = 90, origin = c, trim = 0mm 0mm 60mm 0mm, clip, width=0.98\linewidth]{img/Implementierung/MPISequenzdiagrammAbbruchFarben.pdf}
+	\caption{Sequenzdiagramm zur Kommunikation im Backend mit Abbruch eines Workers}
+	\label{fig:mpi_sequenzdiagramm_abbruch}
+\end{figure}
+
 \subsection{Detaillierter Ablauf der Host::handle\_region\_request Methode}
 
 Nach dem Parsen der Nachricht wird die Region global festgelegt und beim korrekten Lastbalancierer eine Zerlegung der angefragten Region über \verb|Balancer::balanceLoad| gestartet.
@@ -291,6 +304,58 @@ dass es die Daten verwirft.
 \begin{figure}[!h]
 	\lstinputlisting[caption={Ausschnitt aus den Daten einer versendeten Teilregion. Punkt (x,y) liegt in \texttt{"data"} an Index $i=x+y*width$.}, label={src:regionData.json}, language=json]{./code/regionData.short.json}
 \end{figure}
+
+\subsubsection{Beschreibung der verwendeten MPI-Funktionen}
+
+In der Implementierung kommen folgende MPI-Funktionen zum Einsatz:
+
+\begin{itemize}
+	\item Initialisierung der MPI-Umgebung mit dem passenden Thread-Level
+
+          Die MPI-Umgebung wird mit einem Aufruf von MPI\_Init\_thread() initialisiert,
+          wobei das als Parameter übergebene Thread-Level mit dem Thread-Modell des eigenen Programms zusammen passen muss.
+          In Abhängigkeit vom verwendeten Thread-Level kann die MPI-Implementierung verschiedene Performanceoptimierungen durchführen.
+
+	\item MPI Sendeoperationen
+
+	      \begin{itemize}
+		      \item Blockierende Sendeoperation
+
+		            Mithilfe der blockierenden Sendeoperation (MPI\_Send()) lassen sich Nachrichten variabler Länge übertragen wobei die Funktion erst zurückkehrt, wenn die Daten komplett an MPI übergeben sind, d.h. der Sendepuffer vollständig ausgelesen wurde.
+
+		      \item Nicht-blockierende Sendeoperation als Persistent Communication Request
+
+		            Der Persistent Communication Request (MPI\_Send\_init() und MPI\_Start()) ist nur für die Übertragung von Nachrichten mit exakt gleicher Konfiguration geeignet. Insbesondere sind dies Länge der Nachricht, verwendeter Datenpuffer, Übertragungstyp, Nachrichtentag und Empfänger. Dadurch wird der Overhead für die Kommunikation mit dem MPI-Kommunikationscontroller reduziert und damit eine Performanceoptimierung erreicht. Der Übertragungsmodus ist bei dem Persistent Communication Request immer nicht-blockierend.
+	      \end{itemize}
+
+	\item MPI Empfangsoperationen
+
+	      \begin{itemize}
+		      \item Test, ob Daten Empfangen werden können
+
+		            Die Funktion MPI\_Probe() prüft, ob Daten zum Empfangen bereit sind und stellt Statusinformationen (z.B. Länge der Nachricht) über die Nachricht bereit. Diese Informationen sind für die eigentlichen Empfangsoperationen wichtig. Diese Funktion gibt es in einer blockierenden (MPI\_Probe()) und nicht-blockierenden (MPI\_Iprobe()) Ausprägung.
+
+		      \item Blockierende Empfangsoperation
+
+		            Die blockierenden Empfangsoperation (MPI\_Recv()) verhält sich analog zur blockierenden Sendeoperation.
+
+		      \item Nicht-blockierende Empfangsoperation als Persistent Communication Request
+
+		            Analog der Sendeoperation Persistent Communication Request gibt es eine nicht-blockierende Empfangsoperation (MPI\_Recv\_init() und MPI\_Start()) für den Empfang von Nachrichten fester Größe mit identischer Konfiguration. Der Übertragungsmodus ist immer nicht-blockierend. Die Verwendung ist unabhängig von der Sendeoperation mit der die Daten übertragen werden.
+
+	      \end{itemize}
+
+	\item Abschluss nicht-blockierender Kommunikation
+
+	      Nicht-blockierende MPI-Kommunikationsoperationen müssen immer mit einem Aufruf von MPI\_Wait() oder MPI\_Test() bzw. deren abgeleiteten Funktionen (z.B. MPI\_Waitall()) abgeschlossen werden.
+
+	      \begin{itemize}
+		      \item MPI\_Test() prüft nicht-blockierend ob eine Sende- oder Empfangsoperation abgeschlossen ist.
+
+		      \item MPI\_Wait() wartet blockierend auf den Abschluss einer Sende- oder Empfangsoperation.
+	      \end{itemize}
+
+\end{itemize}
 
 \subsection{Nutzbarkeit einzelner Worker}
 
