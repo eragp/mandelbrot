@@ -258,15 +258,15 @@ Außerdem wird dem Balancierer eine freie Aufteilung auf 2x2-Kacheln erlaubt, um
 	\centering
 	\includegraphics[width=0.9\linewidth]{img/Evaluation/prediction_accuracy_tile2_cropped.pdf}
 	\caption{Maximale Rechenzeit pro Region im Vergleich zur benötigte Zeit für die Vorhersage für verschiedene Vorhersagegenauigkeiten bei minimaler Teilbarkeit von 2.
-		Eine Vorhersagegenauigkeit von $0$ ist genau eine Vorhersage pro 2x2-Kachel. Eine negative Zahl bedeutet eine Vorhersage für mehrere Kacheln. Eine positive Zahl bedeutet mehrere Vorhersagen für eine Kachel.}
+		Eine Vorhersagegenauigkeit von $1$ bzw. $-1$ ist genau eine Vorhersage pro 2x2-Kachel. Eine negative Zahl bedeutet eine Vorhersage für mehrere Kacheln. Eine positive Zahl bedeutet mehrere Vorhersagen für eine Kachel.}
 	\label{fig:balancers_prediction_accuracy}
 \end{figure}
 
 In \autoref{fig:balancers_prediction_accuracy} sieht man, dass die maximale Rechenzeit bereits ab einer Genauigkeit von
-einer Stichprobe pro 40 2x2-Kacheln, also 160 Pixeln nicht mehr signifikant fällt.
+einer Stichprobe pro 400 2x2-Kacheln (d.h. Genauigkeit -20), also 1600 Pixeln nicht mehr signifikant fällt.
 Die für die Lastbalancierung benötigte Zeit steigt exponentiell an, da jede Erhöhung der Genauigkeit um 1 eine Verdopplung der zu berechnenden Pixel bedeutet.
-Jedoch erst recht spät, bei einer Genauigkeit von einer Vorhersage pro 40 Pixeln beginnt dieses Wachstum sichtbar zu werden
-und erst bei 10 Pixeln übersteigt sie die maximale Berechnungsdauer einer Region.
+Jedoch erst recht spät, bei einer Genauigkeit von einer Vorhersage pro 1600 Pixeln beginnt dieses Wachstum sichtbar zu werden
+und erst bei einer Vorhersage pro 16 Pixeln übersteigt sie die maximale Berechnungsdauer einer Region.
 
 Damit kann beobachtet werden, dass in diesem Fall Lastbalancierung bis zu einem hohen Grad an Genauigkeit nützlich ist
 und die Gesamtrechendauer effektiv senken kann.
