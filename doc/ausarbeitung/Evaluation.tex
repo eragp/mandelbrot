@@ -54,14 +54,41 @@ Dieses besteht aus jeweils 40 Raspberry Pi B+\footnote{Für ein Beispiel, siehe 
 Auf dem Rechencluster wird als MPI-Implementierung \verb|OpenMPI|\footnote{\url{https://www.open-mpi.org/doc/v3.1/}} verwendet,
 welches einen starken Fokus auf Effizienz legt und auch die Nutzung von Threads unterstützt, was laut der offiziellen \verb|MPI-Dokumentation|\footnote{\url{https://www.mpi-forum.org/docs/mpi-3.1/mpi31-report.pdf}} ein optionales Feature ist.
 
+\subsubsection{Skalierung der MPI-Kommunikation}
+
+Die Entwicklung der MPI-Kommunikationszeit bei steigender Anzahl an Workern ist wichtig für Annahmen folgender Evaluierungen und könnte Schwachstellen des Kommunikationskonzepts aufdecken.
+\\
+\\
+In \autoref{fig:scaling_mpi} wird für jeden Regionstyp (Außen-, Rand-, Innenregion) die durchschnittliche MPI-Kommunikationszeit pro Anzahl an Workern dargestellt. Dabei wurde die Strategie mit Vorhersage (rekursiv) verwendet, so dass die Worker eine möglichst identische Rechenzeit haben, womit die MPI-Kommunikation aller Worker auf den etwa gleichen Zeitpunkt fällt, was den Worst-Case darstellt. Eine anderweitige Parallelisierung mittels OpenMP oder SIMD wurde nicht vorgenommen.
+%Implementierung noch erwähnen?
+\\
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=0.9\linewidth]{img/Evaluation/scaling_mpi.png}
+	\caption{Skalierung der MPI-Kommunikation. Strategie mit Vorhersage (rekursiv). Ohne OpenMP oder SIMD.}
+	\label{fig:scaling_mpi}
+\end{figure}
+\\
+Es ist zu erkennen, dass die MPI-Kommunikationszeit für Außenregionen (blau) zunächst ansteigt und dann auf einem konstanten Niveau bleibt.
+Dies ist der Fall, da alle Teilregionen sehr ähnlich sind und eine extrem kurze Rechenzeit haben, wodurch alle Worker etwa zur selben Zeit ihre Berechnung abschließen und die Ergebnisse senden. Damit kommen die Rechenergebnisse zur selben Zeit im Host an, welcher die Empfangsoperationen aber nur sequenziell und nicht parallel ausführt. Das verursacht eine Aufstauung der Nachrichten, was in einer maßgeblichen Verlangsamung der MPI-Kommunikation resultiert.
+% Der Graph bleibt konstant, weil die Nachrichtenlänge sinkt und damit das Empfangen und das anschließende kopieren kürzer ausfällt.
+
+Für Randregionen (rot) fällt auf, dass die MPI-Kommunikationszeit konstant bei etwa \( 40 \) Millisekunden liegt.
+Für diesen Regionstyp liefert der Balancer wenige Teilregionen mit exakt gleicher Rechenzeit (siehe \hyperref[sec:lastbalancierung_eval]{Evaluierung der Lastbalancierung}), was das für die Außenregionen angesprochene Problem abwendet. Die Rechenergebnisse werden nicht gleichzeitig gesendet bzw. empfangen, was einen Stau im Host verhindert.
+
+Für Innenregionen (grün) ist eine deutliche Fluktuation der Kommunikationszeit zu erkennen.
+Es fällt auf, dass die Kommunikationszeit ein deutliches Maximum bei \( 16 \) bzw. \( 32 \) und ein Minimum bei \( 24 \) Workern erreicht. Das liegt an der Genauigkeit des Balancers.
+Für Zweierpotenzen wird die Region in exakt identische Teilregionen aufgeteilt, wodurch alle Worker die selbe Rechenzeit haben. Dies führt wieder zu dem Problem der Aufstauung von Nachrichten im Host, was schon bei den Außernregionen angesprochen wurde.
+Für \( 24 \) Worker (\( 24 \) liegt genau in der Mitte der Zweierpotenzen \( 16 \) und \( 32 \)) ist der Balancer am schlechtesten und produziert keine identischen Teilregionen, was zu etwas unterschiedlichen Rechenzeiten und Sendezeitpunkten in den Workern führt und dadurch den Stau im Host vermeidet (siehe Randregionen).
+Bei sehr genauer Analyse der \autoref{fig:scaling_mpi} zeigt sich dieses Verhalten (lokale Maxima bei Zweierpotenzen und lokale Minima genau in der Mitte der Zweierpotenzen) in der gesamten Kurve der Innenregionen.
+\\
+\\
+Generell lässt sich beobachten, dass die MPI-Kommunikationszeit nur sehr gering (um ca. \( 50 \) Millisekunden) pro Regionstyp bei steigender Anzahl an Workern fluktuiert. Sie wird daher für die folgende Evaluierung als nahezu konstant angenommen.
+
+Eine Verbesserung der MPI-Kommunikation wird als nicht nötig erachtet, da für den Nutzer die Randregionen am interessantesten sind und das Problem des Flaschenhalses im Host hierbei keine Rolle spielt.
+
+% Vorschlag: Das für die schnellste Berechnungsvariante 1x am Ende evaluieren und nicht hier.
 \subsection{Evaluierung der MPI-Kommunikation}
-
-\paragraph{Skalierung}
-
-% ..... NOCH NICHT GANZ KLAR, WARUM DAS SO IST.....
-Generell lässt sich beobachten, dass die MPI-Kommunikationszeit nur sehr gering
-(um ca. \( 50ms \)) pro Regionstyp bei steigender Anzahl an Rechenknoten fluktuiert.
-Sie wird daher für die folgende Evaluierung als nahezu konstant angenommen.
 
 \begin{figure}[h!]
 	\centering
@@ -159,7 +186,7 @@ Stehen jedoch mehr Rechenkerne zur Verfügung, schneidet wie in \autoref{fig:SIM
 Da die Parallelisierungsmethoden jedoch unabhängig voneinander sind, führt die Anwendung von SIMD generell
 zu einer Erhöhung der Performanz und empfiehlt sich bei einfacher Umsetzbarkeit.
 
-\subsection{Lastbalancierung}
+\subsection{Lastbalancierung}\label{sec:lastbalancierung_eval}
 % Florian
 % Wir haben zwei Klassen (naive, prediction) und wählen davon jeweils den besten 
 % (naive Recursive, prediction Recursive)
