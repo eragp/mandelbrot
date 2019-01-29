@@ -260,14 +260,16 @@ erfolgreichen Initialisierung der eigentliche \hyperref[cls:Host]{Host-Prozess} 
 
 Ein Sequenzdiagramm zur Kommunikation im Backend mit Abbruch eines Workers ist in \autoref{fig:mpi_sequenzdiagramm_abbruch} zu finden.
 
-\begin{figure}[ph!]
-	% Bindet das als PDF exportierte vsdx ein -> vektorgrafik
-	% -> vsdx bearbeiten statt pdf
-	\hspace{10mm}
-	\includegraphics[angle = 90, origin = c, trim = 0mm 0mm 60mm 0mm, clip, width=0.98\linewidth]{img/Implementierung/MPISequenzdiagrammAbbruchFarben.pdf}
-	\caption{Sequenzdiagramm zur Kommunikation im Backend mit Abbruch eines Workers}
-	\label{fig:mpi_sequenzdiagramm_abbruch}
-\end{figure}
+\begin{landscape}
+    \begin{figure}
+        % Bindet das als PDF exportierte vsdx ein -> vektorgrafik
+        % -> vsdx bearbeiten statt pdf
+        \centering
+        \includegraphics[origin = c, trim = 0mm 40mm 60mm 0mm, clip, width=0.9\linewidth]{img/Implementierung/MPISequenzdiagrammAbbruchFarben.pdf}
+        \caption{Sequenzdiagramm zur Kommunikation im Backend mit Abbruch eines Workers}
+        \label{fig:mpi_sequenzdiagramm_abbruch}
+    \end{figure}
+\end{landscape}
 
 \subsection{Detaillierter Ablauf der Host::handle\_region\_request Methode}
 

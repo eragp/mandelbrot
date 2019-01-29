@@ -191,14 +191,16 @@ Anschließend muss der Test mittels \verb|cmake| in \verb|backend/tests| neu kom
 
 Zur Kommunikation zwischen dem Host und den Workern im Backend wird ausschließlich das \verb|Message Passing Interface (MPI)| genutzt.
 
-\begin{figure}[p]
-	% Bindet das als PDF exportierte vsdx ein -> vektorgrafik
-	% -> vsdx bearbeiten statt pdf
-	\hspace{20mm}
-	\includegraphics[angle = 90, origin = c, trim = 0mm 0mm 80mm 0mm, clip, width=0.98\linewidth]{img/Implementierung/MPISequenzdiagrammFarben.pdf}
-	\caption{Sequenzdiagramm zur Kommunikation im Backend}
-	\label{fig:mpi_sequenzdiagramm}
-\end{figure}
+\begin{landscape}
+    \begin{figure}
+        % Bindet das als PDF exportierte vsdx ein -> vektorgrafik
+        % -> vsdx bearbeiten statt pdf
+        \centering
+        \includegraphics[origin = c, trim = 0mm 100mm 60mm 0mm, clip, width=0.95\linewidth]{img/Implementierung/MPISequenzdiagrammFarben.pdf}
+        \caption{Sequenzdiagramm zur Kommunikation im Backend}
+        \label{fig:mpi_sequenzdiagramm}
+    \end{figure}
+\end{landscape}
 
 Der MPI-Thread des Hosts erwartet in einer mit dem Websocketthread geteilten Datenstruktur
 Rechenaufträge, die per MPI an die Worker weiter geleitet werden sollen.

@@ -32,6 +32,7 @@
 \RequirePackage{tabularx}
 \RequirePackage{hyperref}
 \RequirePackage{xstring}
+\RequirePackage{pdflscape}
 \RequirePackage[headsepline,footsepline,plainfootsepline,markcase=upper]{scrlayer-scrpage}
 
 \usetikzlibrary{shapes,positioning}
