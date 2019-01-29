@@ -72,15 +72,13 @@ Die Gesamtarchitektur besteht aus drei wesentlichen Bausteinen, die in \autoref{
 
 % Welche Lastbalancierungsmechanismen wurden umgesetzt?
 \subsection{Lastbalancierung}\label{sec:load_balancing_concepts}
-Um die effizienz der parallelen Berechnung der Mandelbrotmenge zu erhöhen, sollte die Rechenlast möglichst gleichmäßig auf die Worker verteilt werden.
+Um die Effizienz der parallelen Berechnung der Mandelbrotmenge zu erhöhen, sollte die Rechenlast möglichst gleichmäßig auf die Worker verteilt werden.
 Die Aufgabe der Lastbalancierung besteht darin zu einer gegebenen Region und einer Anzahl von Workern eine solche Unterteilung in sogenannte Teilregionen zu finden.
-Damit die Unterschiede zwischen guter und schlechter Lastverteilung deutlich werden, stehen in diesem Projekt verschiedene Strategien der Lastbalancierung zur Wahl.
-Die Strategien lassen sich zur Laufzeit austauschen, um einen direkten Vergleich zu ermöglichen.
+Damit die Unterschiede zwischen guter und schlechter Lastverteilung deutlich werden, stehen in diesem Projekt verschiedene, dynamisch austauschbare Strategien der Lastbalancierung zur Wahl.
 
 \paragraph{Naive Strategie}
 Bei der naiven Strategie wird versucht den einzelnen Workern etwa gleich große Teilregionen zuzuweisen.
-Dies geschieht allerdings ohne Beachtung der eventuell unterschiedlichen Rechenzeiten innerhalb der Teilregionen.
-Es kann bei Verwendung dieser Stratgegie also durchaus passieren, dass ein Worker noch rechnet, während alle anderen bereits fertig sind.
+Dies geschieht allerdings ohne Beachtung der eventuell unterschiedlichen Rechenzeiten innerhalb der Teilregionen, was zu einer schlechten Lastverteilung führen kann.
 
 \paragraph{Strategie mit Vorhersage}
 Bei dieser Strategie basiert die Aufteilung der Region auf einer Vorhersage über die Rechenzeit.
@@ -106,7 +104,7 @@ Es ist also wichtig eine Balance zwischen Güte und Geschwindigkeit der Vorhersa
 
 \paragraph{Implementierungsvarianten}
 Sowohl die naive Strategie als auch die Strategie mit Vorhersage lassen sich in zwei Varianten umsetzen.
-Man kann hierbei einen ganzheitlichen oder einen rekursiven Ansatz wählen.
+Man kann einen ganzheitlichen oder einen rekursiven Ansatz wählen.
 Bei ersterem wird die gesamte Region in einem Schritt in die gewünschte Anzahl an Teilregionen geteilt.
 Dazu werden Zeilen und Spalten gebildet.
 Die Grundidee eines rekursiven Ansatzes ist es das Problem so lange in einfachere Teilprobleme aufzuteilen, bis die Lösung offensichtlich ist (Basisfall).
