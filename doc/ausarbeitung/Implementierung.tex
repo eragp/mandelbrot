@@ -56,7 +56,7 @@ Sämtliche Headerdateien sind ohne Untergruppierung im Ordner \verb|include| des
 Sie werden zusammen mit den Header-Bibliotheken \verb|rapidjson| und \verb|websocketpp| sowie der vorkompilierten
 Bibliothek \verb|boost_static| von CMake eingebunden um das Projekt zu builden.
 
-Für einen erfolgreichen Build wird CMake einer Version von mindestens 3.7.0 und die C++11 Standarts vorrausgesetzt.
+Für einen erfolgreichen Build wird CMake einer Version von mindestens 3.7.0 und die C++11 Standards vorrausgesetzt.
 Ergebnis des Builds sind die ausführbaren Dateien \verb|host| und \verb|worker| welche die
 beschriebenen Funktionen innerhalb des Backends umsetzen.
 
@@ -76,7 +76,7 @@ Der Implementierung der Lastbalancierung liegen die in \autoref{sec:load_balanci
 Wichtig bei der Umsetzung dieser ist, dass der garantierte Teiler (\verb|guaranteedDivisor|) von Höhe und Breite der Teilregionen dem der angeforderten Region entspricht (vgl. \autoref{fig:concept_coordinates}).
 Eine Tile (ein Bereich mit Breite und Höhe gleich dem garantierte Teiler\footnote{Eine Region lässt sich also immer in eine ganzzahlige Anzahl von Tiles aufteilen, vgl. \autoref{fig:leafletTiles}}, die Bezeichnung \textit{Tile} kommt aus dem Frontend) muss also als atomare Einheit betrachtet werden, da es sonst im Frontend zu Schwierigkeiten bei der Darstellung kommt.
 
-Die Klassenstruktur der Lastbalancierer entspricht dem Strategy-Pattern (vgl. \cite{gamma_design_1995} S. 315-323). So kann der Balancierer zur Laufzeit leicht gewechselt werden und auch die Erweiterung des Projekts um eine weitere Strategie gestaltet sich einfach.
+Die Klassenstruktur der Lastbalancierer entspricht dem Strategy-Pattern (vgl. \cite{gamma_design_1995} S. 315-323). So kann der Balancierer zur Laufzeit leicht gewechselt werden und auch die Erweiterung des Projekts um eine neue Strategie gestaltet sich einfach.
 Was dabei genau beachtet werden muss findet sich im Teil Erweiterung (\ref{lastbalancierung_erweiterung}).
 
 \subsubsection{Naive Strategie}
@@ -103,8 +103,7 @@ Der Rekursionskontext (\verb|struct BalancingContext|) wurde extern definiert, d
 
 Auch diese Strategie (\verb|PredictionBalancer| und \verb|RecursivePredictionBalancer|) folgt den oben beschriebenen Konzept.
 Allerdings wurde die Berechnung der Vorhersage in eine eigene Klasse ausgelagert, da die Berechnung der Vorhersage für die rekursive und die nicht-rekursive Variante gleich ist.
-Die Struktur der Vorhersage sorgt auch dafür, dass der garantierte Teiler erhalten bleibt.
-Für die Berechnung der Vorhersage ist es notwendig, dass bei der Erststellung eine Referenz auf ein \verb|Fractal|-Objekt (siehe \ref{sec:mandelbrot_calculation}) erhalten.
+Für die Berechnung der Vorhersage ist es notwendig, dass bei der Erststellung eine Referenz auf ein \verb|Fractal|-Objekt (siehe \ref{sec:mandelbrot_calculation}) übergeben wird.
 
 \paragraph*{Bestimmung der Vorhersage}\label{par:predicter}
 % predicter
@@ -131,42 +130,14 @@ Als Abschätzung der Gesamtrechenlast wird die Gesamtsumme der Vorhersage verwen
 Eine Spalte, die als leere Region beginnt, wird nun solange um eine Spalte von Tiles vergrößert bis die optimale Rechenlast erreicht oder überschritten wird.
 Dazu müssen die Spaltensummen der Vorhersage aufaddiert werden.
 Um Lücken auszuschließen werden die Grenzen der Spalten explizit aufeinander gesetzt, d.h. bei zwei benachbarten Teilregionen entspricht die obere Grenze der Einen der unteren Grenze der Anderen.
-Damit es auch für die Aufteilung in Teilregionen eine Vorhersage gibt, wird eine Kopie der Vorhersage erstellt, welche nur die Werte für die aktuelle Spalte enthält (nicht im PSeudocode).
+Damit es auch für die Aufteilung in Teilregionen eine Vorhersage gibt, wird eine Kopie der Vorhersage erstellt, welche nur die Werte für die aktuelle Spalte enthält (nicht im Pseudocode).
 
 \begin{figure}[!h]
-	\begin{lstlisting}[language=python, caption={Aufteilung in Spalten im Pseudocode}, label={src:prediction_pseudo}]
-		def balanceLoad (region, nodeCount)
-			# Will be per tile
-			prediction = sampleFractal(region)
-			cols = computeColCount(nodeCount)
-			deltaRes = region.guaranteedDivisor
-			deltaReal = deltaReal(region)
-			desiredN = computeOptimalLoad(prediction, cols)
-			cur = region
-			curN = 0
-			colsMade = 0
-			for i = 0 to prediction.cols.vectorLength
-				if colsMade + 1 == cols
-					cur = rest of region # Part of region thats not already assigned to a col
-					result.append(cur)
-					break
-				curN += prediction.cols[i]
-				cur.width += deltaRes
-				cur.maxReal += deltaReal
-				# Make sure that each col has at least width = deltaRes
-				if curN >= desiredN OR prediction.cols.length - i - 1 < cols
-					result.append(cur) # Copy of cur
-					cur.minReal = cur.maxReal
-					cur.width = 0
-					curN = 0
-					colsMade++
-					continue
-			return splitColsInParts(result)
-	\end{lstlisting}
+	\lstinputlisting[language=python, caption={Aufteilung in Spalten im Pseudocode}, label={src:prediction_pseudo}]	{./code/predictionbalancer.pseudo}
 \end{figure}
 
 Im eigentlichen Code wurden ein paar Optimierungen am Pseudocode vorgenommen.
-Um float-Ungenauigkeitenbeim wiederholten Addieren zu minimieren werden die Werte in \verb|cur| nicht aufaddiert, sondern aus den Zählern berechnet.
+Um float-Ungenauigkeiten beim wiederholten Addieren zu minimieren werden die Werte in \verb|cur| nicht aufaddiert, sondern aus den Zählern berechnet.
 Außerdem werden die Spalten ohne Zwischenspeicherung in die nötigen Teilregionen aufgeteilt.
 Zusätzlich wird \verb|desiredN| nach jeder abgeschlossenen Spalte für die Verbleibenden neu berechnet, da es sehr unwahrscheinlich ist, dass dieser Wert genau erreicht wird.
 
@@ -178,8 +149,8 @@ Der Unterschied zwischen den beiden Strategien liegt also hauptsächlich in den 
 
 Bei dieser Strategie werden die Regionen nicht einfach halbiert, sondern in zwei Teile aufgeteilt, die laut der Vorhersage ähnlich rechenintensiv sind.
 Dazu wird ähnlich vorgegangen, wie bei der \hyperref[lastbalancierung_vorhersage]{nicht-rekursiven Variante} für die Aufteilung auf zwei Worker.
-Deshalb profitiert diese Strategie auch besonders davon, dass immer parallel zur kürzeren Seite geteilt wird.
-Die Vorhersage ist in diese Richtung nämlich feingliedriger, da weniger Tiles der Vorhersage zu einer Spalte bzw. Zeile zusammengefasst werden müssen als wenn parallel zur längeren Seite aufgeteilt werden würde.
+Deshalb profitiert diese Strategie auch besonders davon, dass immer parallel zur kürzeren Seite geteilt wird, da die Vorhersage in diese Richtung feingliedriger ist.
+Dies liegt daran, dass weniger Tiles der Vorhersage zu einer Spalte bzw. Zeile zusammengefasst werden müssen als wenn parallel zur längeren Seite aufgeteilt werden würde.
 Allerdings wird hier, wenn möglich, sichergestellt, dass beide Teilregionen groß genug sind um jeweils auf die Hälfte der Worker aufgeteilt zu werden, da ansonsten unnötigerweise leere Regionen entstehen.
 Es ist hierbei auch wichtig die Vorhersage so zu teilen, dass es für jede Hälfte eine Vorhersage gibt, die dann an den rekursiven Aufruf übergeben werden kann.
 
@@ -195,7 +166,6 @@ Zuerst muss eine Unterklasse von \verb|Balancer| (\autoref{src:Balancer.h}) erst
 Danach wird die neue Strategie über die Methode \verb|BalancerPolicy::chooseBalancer| verfügbar gemacht.
 Dazu muss sie mithilfe der statischen Variablen \verb|Klassenname::NAME| benannt werden.
 \verb|BalancerPolicy| muss nun so erweitert werden, dass, bei Eingabe des vorher festgelegten Namens, ein neues Objekt der entsprechenden Klasse zurückgegeben wird.
-In \verb|BalancerPolicy| kann auch die Genauigkeit der Vorhersage für die oben aufgeführten Strategien festgelegt werden.
 
 \paragraph*{Bedingungen an Balancer::balanceLoad}
 Bei der Eingabe von \verb|region| und \verb|nodeCount| erfüllt ein korrekter Rückgabewert \verb|subregions| die folgenden Bedingungen:
@@ -225,7 +195,7 @@ Zur Kommunikation zwischen dem Host und den Workern im Backend wird ausschließl
 	% Bindet das als PDF exportierte vsdx ein -> vektorgrafik
 	% -> vsdx bearbeiten statt pdf
 	\hspace{20mm}
-	\includegraphics[angle = 90, origin = c, trim = 0mm 0mm 0mm 0mm, clip, width=0.98\linewidth]{img/Implementierung/MPISequenzdiagrammFarben.pdf}
+	\includegraphics[angle = 90, origin = c, trim = 0mm 0mm 80mm 0mm, clip, width=0.98\linewidth]{img/Implementierung/MPISequenzdiagrammFarben.pdf}
 	\caption{Sequenzdiagramm zur Kommunikation im Backend}
 	\label{fig:mpi_sequenzdiagramm}
 \end{figure}
@@ -331,11 +301,7 @@ Analog zum Host ist auch der Worker (MPI-Worker-Thread) als Endlosschleife mit b
 
 Die Berechnung der einzelnen Punkte der Mandelbrotmenge ist in eine eigene Klasse ausgelagert.
 Wie bei der \hyperref[sec:load_balancing]{Lastbalancierung} sind die Klassen nach dem Strategy-Pattern strukturiert, um eine spätere Erweiterung um andere Fraktale zu vereinfachen.
-Das Interface der Strategien ist hier in der Klasse \verb|Fractal| (\autoref{src:Fractal.h}) definiert.
-
-\begin{figure}
-	\lstinputlisting[caption={Das gemeinsame Interface der Fraktale}, label={src:Fractal.h}, firstline=14, lastline=24]{../../backend/include/Fractal.h}
-\end{figure}
+Das Interface der Strategien ist hier in der Klasse \verb|Fractal| definiert.
 
 Zusätzlich beinhaltet \verb|Fractal| statische Methoden zur Berechnung der Deltas für Real- und Imaginärteil.
 Diese geben die Größe des Bereichs der komplexen Ebene an, der von einem Pixel überdeckt wird.
@@ -351,8 +317,8 @@ Die Deltas werden u.a. für die Berechnung des Fraktals in den Workern verwendet
 \subsubsection{Berechnung ohne SIMD}
 
 Die Klasse \verb|Mandelbrot| stellt die Methode \verb|calculate_fractal| bereit,
-mithilfe derer für ein übergebenes Array an Punkten die Iterationszahl bestimmt wird.
-Diese Art und Weise der Übergabe macht ein gemeinsames Interface mit den \hyperref[subsec:simd]{vektorisierten Versionen} möglich.
+die für ein übergebenes Array an Punkten die Iterationszahl bestimmt.
+Diese Übergabemethode macht ein gemeinsames Interface mit den \hyperref[subsec:simd]{vektorisierten Versionen} möglich.
 
 Die Berechnung eines Punktes ist nun nicht weiter schwer, es muss lediglich \autoref{equ:mandelbrot} als C++-Code umgesetzt werden.
 Bei $|z_n| > 2$ die Berechnung abgebrochen werden, da der Punkt sicher nicht in der Mandelbrotmenge liegt.
@@ -428,7 +394,7 @@ Folgende Parameter werden dabei noch gesetzt:
 	      \begin{itemize}
 		      \item \verb|nonmonotonic| besagt, dass die Schleifeniterationen in beliebiger Reihenfolge ausgeführt werden können.
 
-		      \item \verb|dynamic, 10| bedeutet, dass jeder Thread zunächst 10 Schleifeniterationen zur Berechnung zugewiesen bekommt. Hat ein Thread diese Aufgabe abgeschlossen, bekommt er weitere 10 Iterationen falls noch welche verfügbar sind. Diese Strategie wurde gewählt, um die Rechenlast möglichst gleichmäßig auf alle Threads zu verteilen und so die Gesamtrechenzeit der Schleife zu minimieren ohne ein erneutes Balancing vornehmen zu müssen.
+		      \item \verb|dynamic, 10| bedeutet, dass jeder Thread zunächst 10 Schleifeniterationen zur Berechnung zugewiesen bekommt. Hat ein Thread diese Aufgabe abgeschlossen, bekommt er weitere 10 Iterationen falls noch welche verfügbar sind. Diese Strategie wurde gewählt, um die Rechenlast möglichst gleichmäßig auf alle Threads zu verteilen und so die Gesamtrechenzeit der Schleife zu minimieren ohne eine erneute Lastbalancierung vornehmen zu müssen.
 	      \end{itemize}
 \end{itemize}
 

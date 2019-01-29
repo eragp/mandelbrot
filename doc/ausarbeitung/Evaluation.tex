@@ -50,13 +50,47 @@ Dazu haben wir ebenfalls für jede der Klassen eine niedrige, mittlere und hohe 
 Gemessen wurden alle folgenden Daten auf dem \verb|HimMUC|\footnote{\url{http://www.caps.in.tum.de/himmuc/}}
 Cluster unabhängiger Rechenknoten des Lehrstuhls für Rechnerarchitektur und Verteilte Systeme\footnote{\url{https://www.caps.in.tum.de/startseite/}} der TUM.
 Dieses besteht aus jeweils 40 Raspberry Pi B\footnote{\url{https://www.raspberrypi.org/products/raspberry-pi-3-model-b/}} und
-ODroids C2\footnote{\url{https://www.hardkernel.com/shop/odroid-c2/}}. Wobei ausschließlich die ODroid C2 Rechner verwendet wurden.
+40 ODroids C2\footnote{\url{https://www.hardkernel.com/shop/odroid-c2/}}. Wobei ausschließlich die ODroid C2 Rechner verwendet wurden.
 Auf dem Rechencluster wird als MPI-Implementierung \verb|OpenMPI|\footnote{\url{https://www.open-mpi.org/doc/v3.1/}} verwendet,
 welches einen starken Fokus auf Effizienz legt und auch die Nutzung von Threads unterstützt, was laut der offiziellen \verb|MPI-Dokumentation|\footnote{\url{https://www.mpi-forum.org/docs/mpi-3.1/mpi31-report.pdf}} ein optionales Feature ist.
 
+\subsubsection{Skalierung der MPI-Kommunikation}
 
-\subsection{Skalierung}
-\begin{figure}
+Die Entwicklung der MPI-Kommunikationszeit bei steigender Anzahl an Workern ist wichtig für Annahmen folgender Evaluierungen und könnte Schwachstellen des Kommunikationskonzepts aufdecken.
+\\
+\\
+In \autoref{fig:scaling_mpi} wird für jeden Regionstyp (Außen-, Rand-, Innenregion) die durchschnittliche MPI-Kommunikationszeit pro Anzahl an Workern dargestellt. Dabei wurde die Strategie mit Vorhersage (rekursiv) verwendet, so dass die Worker eine möglichst identische Rechenzeit haben, womit die MPI-Kommunikation aller Worker auf den etwa gleichen Zeitpunkt fällt, was den Worst-Case darstellt. Eine anderweitige Parallelisierung mittels OpenMP oder SIMD wurde nicht vorgenommen.
+%Implementierung noch erwähnen?
+\\
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=0.9\linewidth]{img/Evaluation/scaling_mpi.png}
+	\caption{Skalierung der MPI-Kommunikation. Strategie mit Vorhersage (rekursiv). Ohne OpenMP oder SIMD.}
+	\label{fig:scaling_mpi}
+\end{figure}
+\\
+Es ist zu erkennen, dass die MPI-Kommunikationszeit für Außenregionen (blau) zunächst ansteigt und dann auf einem konstanten Niveau bleibt.
+Dies ist der Fall, da alle Teilregionen sehr ähnlich sind und eine extrem kurze Rechenzeit haben, wodurch alle Worker etwa zur selben Zeit ihre Berechnung abschließen und die Ergebnisse senden. Damit kommen die Rechenergebnisse zur selben Zeit im Host an, welcher die Empfangsoperationen aber nur sequenziell und nicht parallel ausführt. Das verursacht eine Aufstauung der Nachrichten, was in einer maßgeblichen Verlangsamung der MPI-Kommunikation resultiert.
+% Der Graph bleibt konstant, weil die Nachrichtenlänge sinkt und damit das Empfangen und das anschließende kopieren kürzer ausfällt.
+
+Für Randregionen (rot) fällt auf, dass die MPI-Kommunikationszeit konstant bei etwa \( 40 \) Millisekunden liegt.
+Für diesen Regionstyp liefert der Balancer wenige Teilregionen mit exakt gleicher Rechenzeit (siehe \hyperref[sec:lastbalancierung_eval]{Evaluierung der Lastbalancierung}), was das für die Außenregionen angesprochene Problem abwendet. Die Rechenergebnisse werden nicht gleichzeitig gesendet bzw. empfangen, was einen Stau im Host verhindert.
+
+Für Innenregionen (grün) ist eine deutliche Fluktuation der Kommunikationszeit zu erkennen.
+Es fällt auf, dass die Kommunikationszeit ein deutliches Maximum bei \( 16 \) bzw. \( 32 \) und ein Minimum bei \( 24 \) Workern erreicht. Das liegt an der Genauigkeit des Balancers.
+Für Zweierpotenzen wird die Region in exakt identische Teilregionen aufgeteilt, wodurch alle Worker die selbe Rechenzeit haben. Dies führt wieder zu dem Problem der Aufstauung von Nachrichten im Host, was schon bei den Außernregionen angesprochen wurde.
+Für \( 24 \) Worker (\( 24 \) liegt genau in der Mitte der Zweierpotenzen \( 16 \) und \( 32 \)) ist der Balancer am schlechtesten und produziert keine identischen Teilregionen, was zu etwas unterschiedlichen Rechenzeiten und Sendezeitpunkten in den Workern führt und dadurch den Stau im Host vermeidet (siehe Randregionen).
+Bei sehr genauer Analyse der \autoref{fig:scaling_mpi} zeigt sich dieses Verhalten (lokale Maxima bei Zweierpotenzen und lokale Minima genau in der Mitte der Zweierpotenzen) in der gesamten Kurve der Innenregionen.
+\\
+\\
+Generell lässt sich beobachten, dass die MPI-Kommunikationszeit nur sehr gering (um ca. \( 50 \) Millisekunden) pro Regionstyp bei steigender Anzahl an Workern fluktuiert. Sie wird daher für die folgende Evaluierung als nahezu konstant angenommen.
+
+Eine Verbesserung der MPI-Kommunikation wird als nicht nötig erachtet, da für den Nutzer die Randregionen am interessantesten sind und das Problem des Flaschenhalses im Host hierbei keine Rolle spielt.
+
+% Vorschlag: Das für die schnellste Berechnungsvariante 1x am Ende evaluieren und nicht hier.
+\subsection{Evaluierung der MPI-Kommunikation}
+
+\begin{figure}[h!]
 	\centering
 	\includegraphics[width=0.32\linewidth]{img/Evaluation/scale_graph_outside}
 	\includegraphics[width=0.32\linewidth]{img/Evaluation/scale_graph_border}
@@ -64,28 +98,26 @@ welches einen starken Fokus auf Effizienz legt und auch die Nutzung von Threads 
 	\caption{Skalierungsgraph von \( 1-40 \) Rechenknoten, Strategie mit Vorhersage (rekursiv)}
 	\label{fig:scaleGraph}
 \end{figure}
-Eine wichtige Performanzmetrik, welche durch das Projekt evaluiert werden solle, ist wie gut sich eine
-unabhängige Berechnung, wie die der Mandelbrotfunktion parallelisieren lässt.
-Dabei ist vor allem von Interesse, wie sich die Rechenzeit der einzelnen Teilreigonen des Balancers im Vergleich
-zur Anzahl der an der Berechnung beteiligten Worker verhält. Dies ist in \autoref{fig:scaleGraph} aufgetragen.
+\paragraph{Optimale Anzahl an Workern für Standardimplementierung}
+Bei der verteilten Berechnung ist ein wesentlicher Aspekt, dass der MPI-Kommunikationsoverhead
+im Verhältnis zur Rechenzeit je Worker nicht zu groß wird und damit die Gesamtperformance schlechter wird,
+als bei der Verwendung von weniger Rechenknoten.
+Je mehr Knoten verwendet werden, desto geringer wird die benötigte Rechenzeit bei in etwa gleichbleibender Kommunikationszeit \( t \approx c / n \).
+Die optimale Anzahl an Konten ist dabei erreicht, wenn \( \text{MPIKommunikationszeit} + \text{Rechenzeit} \) minimal ist.
 
-Dabei ist jeweils ein Skalierungsgraph für jede der drei Regionstypen (innerhalb, am Rand und außerhalb) angegeben,
-was nötig wird, da Regionen abhängig von der Anzahl der Pixel, welche innerhalb der Mandelbrotmenge liegen, sehr unterscheidliche
-Rechenzeiten haben.
-Erwartet ist dabei, dass sich die Rechenzeit \( t \) ungefähr nach \( t \approx {c_1} / {n} + c_2 \) verhält,
-wobei \( n \) die Anzahl der Rechenknoten und \( c_1, c_2 \) geeignet gewählte Konstanten zur Abschätzung des Overheads sind.
-Diese Relation lässt sich dabei auch in den gemessenen Daten in \autoref{fig:scaleGraph} wieder finden.
+In \autoref{fig:scaleGraph} ist für jeden Regionstyp (Außen-, Rand-, Innenregion) die MPI-Kommunikationszeit
+und die maximale Berechnungszeit pro Anzahl an Knoten dargestellt, wobei keine weitere Parallelisierung, wie OpenMP oder SIMD verwendet.
+Die Erwartung ist dabei, dass für die optimale Anzahl an Knoten die Relation \( \text{Aussen-} \leq \text{Rand-} \leq \text{Innenregionen} \) gilt,
+da die selbe Relation auch für die Rechenzeiten der Regionstypen gilt und
+damit der MPI-Kommunikationsoverhead bspw. für Außenregionen früher eine signifikante Rolle spielt als bei
+den anderen Regionstypen.
 
-Es ist jedoch zu beachten, dass somit der
+In \autoref{fig:scaleGraph} ist zu erkennen, dass die optimale Anzahl an Rechenknoten für Außenregionen bei monoton fällt.
+Somit ist anzunehmen, dass die maximale Rechenzeit mit zunehmender Anzahl an Rechenknoten fallen würde, womit das Optimum
+für das HimMUC cluster möglichst groß gewählt werden sollte, da die MPI Zeit im vergleich zur Rechenzeit vernachlässigbar ist.
+Damit stimmen die Messergebnisse mit den Erwartungen überein.
+%TODO Noch Strich in der Grafik einfügen für Minimum von MPI-Kommunikationszeit + Rechenzeit
 
-\paragraph{Parallelisierung}
-\begin{figure}
-	\centering
-	\includegraphics[width=\linewidth]{img/Evaluation/parallelism}
-	\caption{Parallelisierungsstrategien:\\
-		1 MPI Prozess pro Node, 4 OpenMP threads pro Node, 2 MPI Prozesse pro Node, 4 MPI Prozesse pro Node }
-	\label{fig:parallelism}
-\end{figure}
 
 % OpenMP & MPI skalierung
 % Bar graph (1 MPI Prozess pro worker, 1 MPI Prozess & 4 OpenMP pro Worker, 4 MPI Prozesse pro worker)
@@ -108,7 +140,7 @@ Es ist jedoch zu beachten, dass somit der
 
 SIMD unterstützt in den Präzisionen 32 und 64 bit Parallelisierung von einer Rechenoperationen auf
 4 beziehungsweise 2 unterschiedlichen Werten. Der Effekt beläuft sich dabei, wie in \autoref{fig:SIMD-speedup} zu sehen,
-bei einer Beschränkung auf 1019 Iterationen auf eine durchschnittliche Beschleunigung um den Faktor $2,3$ und $1,2$.
+bei einer Beschränkung auf 1019 Iterationen auf eine durchschnittliche Beschleunigung um den Faktor $\approx2,3$ und $\approx1,2$.
 
 \begin{figure}
 	\centering
@@ -154,7 +186,7 @@ Insgesamt kann mit SIMD eine deutliche Beschleunigung des Systems bewirkt werden
 Da die Parallelisierungsmethode zu MPI und OpenMP unabhängig ist, führt die Anwendung von SIMD generell
 zu einer Erhöhung der Performanz und empfiehlt sich bei einfacher Umsetzbarkeit.
 
-\subsection{Lastbalancierung}
+\subsection{Lastbalancierung}\label{sec:lastbalancierung_eval}
 % Florian
 % Wir haben zwei Klassen (naive, prediction) und wählen davon jeweils den besten 
 % (naive Recursive, prediction Recursive)
@@ -212,7 +244,7 @@ Durch die Betrachtung von Tiles (in diesem Test $64\times64$ Pixel) als atomare 
 % Genauigkeit der Vorhersage vs maximale Rechenzeit für Randregionen 
 % Plot: y: max comp time, balancer time  x: prediction Accuracy (Randregion)
 % 	Diese "optimale" Genauigkeit wird aber bereits in allen vorherigen Evaluierungen des prediction Balancers verwendet
-\subsubsection{Vorhersagegenauigkeit}
+\paragraph{Vorhersagegenauigkeit}
 
 Die Qualität einer Lastbalancierung ist immer davon abhängig, wie gut die Vorhersage für eine Region ist.
 Hier kann eine Abwägung zwischen genauerer Vorhersage und schnellerer Vorhersage getroffen werden.
@@ -221,19 +253,20 @@ Dazu werden für verschiedene Genauigkeiten die maximale Rechenzeit eines Worker
 Die Messungen fanden unter den selben Bedingungen wie die Obigen statt, allerdings wurden für die Implementierung hier 32-bit floats verwendet, was die absoluten Rechenzeiten verkürzt.
 Außerdem wird dem Balancierer eine freie Aufteilung auf 2x2-Kacheln erlaubt, um genauere Vorhersagen besser durch die Aufteilung zu reflektieren.
 
+% TODO: durch Plot mit realistischer tile Größe ersetzen, da dieser keinem use case in unserer Anwendung entspricht 
 \begin{figure}
 	\centering
 	\includegraphics[width=0.9\linewidth]{img/Evaluation/prediction_accuracy_tile2_cropped.pdf}
-    \caption{Maximale Rechenzeit pro Region im Vergleich zur benötigte Zeit für die Vorhersage für verschiedene Vorhersagegenauigkeiten bei minimaler Teilbarkeit von 2.
-    Eine Vorhersagegenauigkeit von $0$ ist genau eine Vorhersage pro 2x2-Kachel. Eine negative Zahl bedeutet eine Vorhersage für mehrere Kacheln. Eine positive Zahl bedeutet mehrere Vorhersagen für eine Kachel.}
+	\caption{Maximale Rechenzeit pro Region im Vergleich zur benötigte Zeit für die Vorhersage für verschiedene Vorhersagegenauigkeiten bei minimaler Teilbarkeit von 2.
+		Eine Vorhersagegenauigkeit von $1$ bzw. $-1$ ist genau eine Vorhersage pro 2x2-Kachel. Eine negative Zahl bedeutet eine Vorhersage für mehrere Kacheln. Eine positive Zahl bedeutet mehrere Vorhersagen für eine Kachel.}
 	\label{fig:balancers_prediction_accuracy}
 \end{figure}
 
 In \autoref{fig:balancers_prediction_accuracy} sieht man, dass die maximale Rechenzeit bereits ab einer Genauigkeit von
-einer Stichprobe pro 40 2x2-Kacheln, also 160 Pixeln nicht mehr signifikant fällt.
+einer Stichprobe pro 400 2x2-Kacheln (d.h. Genauigkeit -20), also 1600 Pixeln nicht mehr signifikant fällt.
 Die für die Lastbalancierung benötigte Zeit steigt exponentiell an, da jede Erhöhung der Genauigkeit um 1 eine Verdopplung der zu berechnenden Pixel bedeutet.
-Jedoch erst recht spät, bei einer Genauigkeit von einer Vorhersage pro 40 Pixeln beginnt dieses Wachstum sichtbar zu werden
-und erst bei 10 Pixeln übersteigt sie die maximale Berechnungsdauer einer Region.
+Jedoch erst recht spät, bei einer Genauigkeit von einer Vorhersage pro 1600 Pixeln beginnt dieses Wachstum sichtbar zu werden
+und erst bei einer Vorhersage pro 16 Pixeln übersteigt sie die maximale Berechnungsdauer einer Region.
 
 Damit kann beobachtet werden, dass in diesem Fall Lastbalancierung bis zu einem hohen Grad an Genauigkeit nützlich ist
 und die Gesamtrechendauer effektiv senken kann.
