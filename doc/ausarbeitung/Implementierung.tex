@@ -301,11 +301,7 @@ Analog zum Host ist auch der Worker (MPI-Worker-Thread) als Endlosschleife mit b
 
 Die Berechnung der einzelnen Punkte der Mandelbrotmenge ist in eine eigene Klasse ausgelagert.
 Wie bei der \hyperref[sec:load_balancing]{Lastbalancierung} sind die Klassen nach dem Strategy-Pattern strukturiert, um eine spätere Erweiterung um andere Fraktale zu vereinfachen.
-Das Interface der Strategien ist hier in der Klasse \verb|Fractal| (\autoref{src:Fractal.h}) definiert.
-
-\begin{figure}
-	\lstinputlisting[caption={Das gemeinsame Interface der Fraktale}, label={src:Fractal.h}, firstline=14, lastline=24]{../../backend/include/Fractal.h}
-\end{figure}
+Das Interface der Strategien ist hier in der Klasse \verb|Fractal| definiert.
 
 Zusätzlich beinhaltet \verb|Fractal| statische Methoden zur Berechnung der Deltas für Real- und Imaginärteil.
 Diese geben die Größe des Bereichs der komplexen Ebene an, der von einem Pixel überdeckt wird.
@@ -321,8 +317,8 @@ Die Deltas werden u.a. für die Berechnung des Fraktals in den Workern verwendet
 \subsubsection{Berechnung ohne SIMD}
 
 Die Klasse \verb|Mandelbrot| stellt die Methode \verb|calculate_fractal| bereit,
-mithilfe derer für ein übergebenes Array an Punkten die Iterationszahl bestimmt wird.
-Diese Art und Weise der Übergabe macht ein gemeinsames Interface mit den \hyperref[subsec:simd]{vektorisierten Versionen} möglich.
+die für ein übergebenes Array an Punkten die Iterationszahl bestimmt.
+Diese Übergabemethode macht ein gemeinsames Interface mit den \hyperref[subsec:simd]{vektorisierten Versionen} möglich.
 
 Die Berechnung eines Punktes ist nun nicht weiter schwer, es muss lediglich \autoref{equ:mandelbrot} als C++-Code umgesetzt werden.
 Bei $|z_n| > 2$ die Berechnung abgebrochen werden, da der Punkt sicher nicht in der Mandelbrotmenge liegt.
@@ -398,7 +394,7 @@ Folgende Parameter werden dabei noch gesetzt:
 	      \begin{itemize}
 		      \item \verb|nonmonotonic| besagt, dass die Schleifeniterationen in beliebiger Reihenfolge ausgeführt werden können.
 
-		      \item \verb|dynamic, 10| bedeutet, dass jeder Thread zunächst 10 Schleifeniterationen zur Berechnung zugewiesen bekommt. Hat ein Thread diese Aufgabe abgeschlossen, bekommt er weitere 10 Iterationen falls noch welche verfügbar sind. Diese Strategie wurde gewählt, um die Rechenlast möglichst gleichmäßig auf alle Threads zu verteilen und so die Gesamtrechenzeit der Schleife zu minimieren ohne ein erneutes Balancing vornehmen zu müssen.
+		      \item \verb|dynamic, 10| bedeutet, dass jeder Thread zunächst 10 Schleifeniterationen zur Berechnung zugewiesen bekommt. Hat ein Thread diese Aufgabe abgeschlossen, bekommt er weitere 10 Iterationen falls noch welche verfügbar sind. Diese Strategie wurde gewählt, um die Rechenlast möglichst gleichmäßig auf alle Threads zu verteilen und so die Gesamtrechenzeit der Schleife zu minimieren ohne eine erneute Lastbalancierung vornehmen zu müssen.
 	      \end{itemize}
 \end{itemize}
 
