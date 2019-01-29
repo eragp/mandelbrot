@@ -19,11 +19,6 @@ struct WorkerInfo {
     unsigned long computationTime;
 
     /**
-     * The time that was not used for MPI-Communication in Worker in microseconds
-     */
-    unsigned long mpiOverheadTime;
-
-    /**
      * The region that was computed.
      */
     Region region;
