@@ -49,7 +49,7 @@ Dazu haben wir ebenfalls für jede der Klassen eine niedrige, mittlere und hohe 
 
 Gemessen wurden alle folgenden Daten auf dem \verb|HimMUC|\footnote{\url{http://www.caps.in.tum.de/himmuc/}}
 Cluster unabhängiger Rechenknoten des Lehrstuhls für Rechnerarchitektur und Verteilte Systeme\footnote{\url{https://www.caps.in.tum.de/startseite/}} der TUM.
-Dieses besteht aus jeweils 40 Raspberry Pi B+\footnote{Für ein Beispiel, siehe \url{https://www.raspberrypi.org/products/raspberry-pi-3-model-b/}} und
+Dieses besteht aus jeweils 40 Raspberry Pi B\footnote{\url{https://www.raspberrypi.org/products/raspberry-pi-3-model-b/}} und
 ODroids C2\footnote{\url{https://www.hardkernel.com/shop/odroid-c2/}}. Wobei ausschließlich die ODroid C2 Rechner verwendet wurden.
 Auf dem Rechencluster wird als MPI-Implementierung \verb|OpenMPI|\footnote{\url{https://www.open-mpi.org/doc/v3.1/}} verwendet,
 welches einen starken Fokus auf Effizienz legt und auch die Nutzung von Threads unterstützt, was laut der offiziellen \verb|MPI-Dokumentation|\footnote{\url{https://www.mpi-forum.org/docs/mpi-3.1/mpi31-report.pdf}} ein optionales Feature ist.
@@ -140,18 +140,18 @@ Damit wird die Beschleunigung durch SIMD kleiner, je inhomogener die Iterationsz
 Dass die Iterationszahlen im Allgemeinen am Rand der Mandelbrotmenge inhomogener sind,
 wo auch die Gesamtrechenzeit geringer ist, sollte bei der Betrachtung von \autoref{fig:SIMD-speedup-vs-comptime} berücksichtigt werden.
 
-\begin{figure}
-	\centering
-	\includegraphics[width=0.45\linewidth]{img/Evaluation/simd/parallelismNaiveBalancing.pdf}
-	\includegraphics[width=0.45\linewidth]{img/Evaluation/simd/parallelismNaiveBalancing64.pdf}
-	\caption{Vergleich zwischen der Performanz mit mehr MPI-Prozessen und SIMD bei naiver Lastbalancierung.
-		Eine Erhöhung der Anzahl an Rechenknoten führt zu einer deutlich größeren Beschleunigung.}
-	\label{fig:SIMDvs4timeMore}
-\end{figure}
+%\begin{figure}
+%	\centering
+%	\includegraphics[width=0.45\linewidth]{img/Evaluation/simd/parallelismNaiveBalancing.pdf}
+%	\includegraphics[width=0.45\linewidth]{img/Evaluation/simd/parallelismNaiveBalancing64.pdf}
+%	\caption{Vergleich zwischen der Performanz mit mehr MPI-Prozessen und SIMD bei naiver Lastbalancierung.
+%		Eine Erhöhung der Anzahl an Rechenknoten führt zu einer deutlich größeren Beschleunigung.}
+%	\label{fig:SIMDvs4timeMore}
+%\end{figure}
 
 Insgesamt kann mit SIMD eine deutliche Beschleunigung des Systems bewirkt werden.
-Stehen jedoch mehr Rechenkerne zur Verfügung, schneidet wie in \autoref{fig:SIMDvs4timeMore} zu sehen eine Erhöhung der MPI-Prozesse besser ab.
-Da die Parallelisierungsmethoden jedoch unabhängig voneinander sind, führt die Anwendung von SIMD generell
+%Stehen jedoch mehr Rechenkerne zur Verfügung, schneidet wie in \autoref{fig:SIMDvs4timeMore} zu sehen eine Erhöhung der MPI-Prozesse besser ab.
+Da die Parallelisierungsmethode zu MPI und OpenMP unabhängig ist, führt die Anwendung von SIMD generell
 zu einer Erhöhung der Performanz und empfiehlt sich bei einfacher Umsetzbarkeit.
 
 \subsection{Lastbalancierung}
