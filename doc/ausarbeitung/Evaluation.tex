@@ -54,7 +54,11 @@ Dieses besteht aus jeweils 40 Raspberry Pi B\footnote{\url{https://www.raspberry
 Auf dem Rechencluster wird als MPI-Implementierung \verb|OpenMPI|\footnote{\url{https://www.open-mpi.org/doc/v3.1/}} verwendet,
 welches einen starken Fokus auf Effizienz legt und auch die Nutzung von Threads unterstützt, was laut der offiziellen \verb|MPI-Dokumentation|\footnote{\url{https://www.mpi-forum.org/docs/mpi-3.1/mpi31-report.pdf}} ein optionales Feature ist.
 
-\subsubsection{Skalierung der MPI-Kommunikation}
+
+% Evtl. Namen der Paragraphen anpassen.
+\subsection{MPI-Kommunikation}
+
+\paragraph{Skalierung der MPI-Kommunikation}
 
 Die Entwicklung der MPI-Kommunikationszeit bei steigender Anzahl an Workern ist wichtig für Annahmen folgender Evaluierungen und könnte Schwachstellen des Kommunikationskonzepts aufdecken.
 \\
@@ -87,36 +91,24 @@ Generell lässt sich beobachten, dass die MPI-Kommunikationszeit nur sehr gering
 
 Eine Verbesserung der MPI-Kommunikation wird als nicht nötig erachtet, da für den Nutzer die Randregionen am interessantesten sind und das Problem des Flaschenhalses im Host hierbei keine Rolle spielt.
 
-% Vorschlag: Das für die schnellste Berechnungsvariante 1x am Ende evaluieren und nicht hier.
-\subsection{Evaluierung der MPI-Kommunikation}
+\paragraph{Speedup-Faktor durch Parallelisierung mittels MPI}
 
+Eine wichtige Performancemetrik ist, wie gut sich eine unabhängige Berechnung - wie die der Mandelbrotmenge - parallelisieren lässt. Dabei ist vor allem von Interesse, wie sich die Rechenzeit der einzelnen Teilregionen im Vergleich zur Anzahl der an der Berechnung beteiligten Worker verhält.
+\\
+\\
+In \autoref{fig:scaleGraph} ist für jeden Regionstyp (Außen-, Rand-, Innenregion) ein Skalierungsgraph abgebildet, der den Speedup-Faktor in Abhängigkeit der Anzahl der genutzten Worker darstellt. Dabei kam weder OpenMP noch SIMD zum Einsatz. Es wird erwartet, dass sich der Speedup-Faktor \( s \) ungefähr nach \( s \approx \frac{c_1 + c_2}{(c_1/n) + c_2} \) verhält, wobei \( n \) die Anzahl der an der Berechnung beteiligten Worker, \( c_1 \) die Rechenzeit ohne jegliche Parallelisierung (also mit genau einem Worker) und \( c_2 \) der konstante MPI-Kommunikationsoverhead ist. Da für jeden Regionstyp die \( c_1 \) unterschiedlich groß ist, fällt \( c_2 \) mehr oder weniger ins Gewicht, was zu unterschiedlichen Speedup-Faktoren führt. Konkret wird erwartet, dass für die Speedup-Faktoren die Relation Außenregion \( \leqslant \) Randregion \( \leqslant \) Innenregion gilt.
+\\
 \begin{figure}[h!]
 	\centering
 	\includegraphics[width=0.32\linewidth]{img/Evaluation/scale_graph_outside}
 	\includegraphics[width=0.32\linewidth]{img/Evaluation/scale_graph_border}
 	\includegraphics[width=0.32\linewidth]{img/Evaluation/scale_graph_inside}
-	\caption{Skalierungsgraph von \( 1-40 \) Rechenknoten, Strategie mit Vorhersage (rekursiv)}
+	\caption{Speedup-Faktor von \( 1-40 \) Rechenknoten. Strategie mit Vorhersage (rekursiv). Ohne OpenMP oder SIMD}
 	\label{fig:scaleGraph}
 \end{figure}
-\paragraph{Optimale Anzahl an Workern für Standardimplementierung}
-Bei der verteilten Berechnung ist ein wesentlicher Aspekt, dass der MPI-Kommunikationsoverhead
-im Verhältnis zur Rechenzeit je Worker nicht zu groß wird und damit die Gesamtperformance schlechter wird,
-als bei der Verwendung von weniger Rechenknoten.
-Je mehr Knoten verwendet werden, desto geringer wird die benötigte Rechenzeit bei in etwa gleichbleibender Kommunikationszeit \( t \approx c / n \).
-Die optimale Anzahl an Konten ist dabei erreicht, wenn \( \text{MPIKommunikationszeit} + \text{Rechenzeit} \) minimal ist.
-
-In \autoref{fig:scaleGraph} ist für jeden Regionstyp (Außen-, Rand-, Innenregion) die MPI-Kommunikationszeit
-und die maximale Berechnungszeit pro Anzahl an Knoten dargestellt, wobei keine weitere Parallelisierung, wie OpenMP oder SIMD verwendet.
-Die Erwartung ist dabei, dass für die optimale Anzahl an Knoten die Relation \( \text{Aussen-} \leq \text{Rand-} \leq \text{Innenregionen} \) gilt,
-da die selbe Relation auch für die Rechenzeiten der Regionstypen gilt und
-damit der MPI-Kommunikationsoverhead bspw. für Außenregionen früher eine signifikante Rolle spielt als bei
-den anderen Regionstypen.
-
-In \autoref{fig:scaleGraph} ist zu erkennen, dass die optimale Anzahl an Rechenknoten für Außenregionen bei monoton fällt.
-Somit ist anzunehmen, dass die maximale Rechenzeit mit zunehmender Anzahl an Rechenknoten fallen würde, womit das Optimum
-für das HimMUC cluster möglichst groß gewählt werden sollte, da die MPI Zeit im vergleich zur Rechenzeit vernachlässigbar ist.
+\\
+Es ist in \autoref{fig:scaleGraph} zu erkennen, dass der Speedup-Faktor bei 40 Workern für Außenregionen bei xx, für Randregionen bei xx und für Innenregionen bei xx liegt. Da der Speedup-Faktor monoton steigt, kann angenommen werden, dass dieses Verhalten auch für weit mehr als 40 Worker gilt, wobei sich dem Speedup-Faktor \( s_{max} \approx \frac{c_1 + c_2}{c_2} \) immer näher angenähert wird.
 Damit stimmen die Messergebnisse mit den Erwartungen überein.
-%TODO Noch Strich in der Grafik einfügen für Minimum von MPI-Kommunikationszeit + Rechenzeit
 
 
 % OpenMP & MPI skalierung
