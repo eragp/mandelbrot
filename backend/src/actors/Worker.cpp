@@ -71,8 +71,9 @@ void Worker::init(int world_rank, int world_size) {
     MPI_Start(&request);
     // Start with actual work of this worker
     while (true) {
-        MPI_Test(&request, &flag, &status);
-        if (flag != 0) {
+        MPI_Wait(&request, &status);
+        //MPI_Test(&request, &flag, &status);
+        //if (flag != 0) {
             // Set current region to newRegion, copy value explicitly (solve more beautiful if you want to)
             std::memcpy(&region, &newRegion, sizeof(Region));
             // Debug Output
@@ -193,10 +194,10 @@ void Worker::init(int world_rank, int world_size) {
             }
             delete[] data;
             delete f;
-        } else {
+        //} else {
             // Reduce processor usage on idle
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
+            //std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        //}
     }
     MPI_Cancel(&request);
     MPI_Request_free(&request);
