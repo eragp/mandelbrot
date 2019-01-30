@@ -12,7 +12,16 @@ wie Leerlauf zu vermeiden.
 % Evaluierungskriterien für erzielbare Benefits/Effekte -> Begründung/ Basis für Evaluation gegen Ende
 \subsection{Problemstellung und Motivation}
 
-Das zugrundeliegende Problem ist, dass bei der Lastaufteilung einer unabhängigen Menge
+Mathematisch formuliert, gilt es folgendes Problem zu lösen:
+
+\begin{equation}
+minimiere\ {max_{i \in N}(t_i)}\ mit \sum_{i \in N} {t_i} = C \leftrightarrow t_1 = ... = t_n = \frac{1}{C}
+\end{equation}
+
+Die Gesamtrechenzeit ist äquivalent zur maximalen Rechendauer eines einzelnen Knotens.
+Um diese zu minimieren ist ein Ansatz, die Rechendauer aller Knoten anzugleichen.
+
+Anschaulich beschrieben ist das Problem, dass bei der Lastaufteilung einer unabhängigen Menge
 von Berechnungen in einem Cluster eine fixe Zuordnung von
 zu berechnenden Bereichen auf Rechenkerne erzeugt wird. Dauert die Bearbeitung eines Bereiches jedoch deutlich kürzer
 als diejenige anderer Abschnitte, so verbringt der reservierte Rechenkern die Zeit bis zum Abschluss der anderen Berechnungen
