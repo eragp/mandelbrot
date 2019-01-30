@@ -60,7 +60,7 @@ export default class WorkerLayer extends L.GeoJSON {
       let regionStyle = {
         weight: 1.5,
         opacity: 1,
-        color: "white",
+        color: "#FBC15E",
         fillColor: "white",
         dashArray: "3",
         fillOpacity: 0.3
@@ -72,7 +72,7 @@ export default class WorkerLayer extends L.GeoJSON {
       } else {
         regionStyle = Object.assign(regionStyle, {
           fillOpacity: 0,
-          weight: 1
+          weight: 5
         });
       }
       return regionStyle;

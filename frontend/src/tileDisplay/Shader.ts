@@ -11,7 +11,7 @@ class Shader {
   }
   // Copied from https://giansass.com/blog/mandelbrot-set-part-2-opengl-program/
   public static logSmooth(n: number, maxIteration: number): number[] {
-    const sl = n - n / maxIteration + 4;
+    let sl = n - n / maxIteration + 4;
     // const al = hermite(-0.1, 0, Math.sin(0.5 * 6.2831 * 1));
     // const l =linear(n, sl, al);
     // const l = sl;
