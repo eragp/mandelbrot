@@ -136,7 +136,6 @@ Damit stimmen die Messergebnisse mit den Erwartungen überein.
 % Bar graph (1 MPI Prozess pro worker, 1 MPI Prozess & 4 OpenMP pro Worker, 4 MPI Prozesse pro worker)
 % 	Worker & Iteration Anzahl fest, optimal wählen, Randregion
 \subsection{OpenMP}
-
 In den vorangegangenen Evaluierungen wurde nur ein Rechenkern pro Computer im Cluster für die Berechnung der Mandelbrotmenge genutzt. 
 Nun soll die Performancesteigerung durch die Nutzung von mehreren Rechenkernen pro Computer 
 untersucht werden. Bei dem für diese Evaluierung verwendeten ODroid C2 stehen vier Rechenkerne zur Verfügung.
@@ -328,14 +327,3 @@ der Rechenaufwand im zweidimensionalen quadratisch sinkt.
 %
 % Dies kann abgeschwächt werden, indem eine Region stets nur soviel Workerressourcen erhält,
 % wie sie maximal auslasten könnte (Fläche/Fläche minimaler Aufteilung)
-
-\subsection{Zusammenfassung}
-% Speedup
-% Kombinationen von Unterschiedlichen Verbesserungen. als Plot.
-% (Eine Klasse von Regionen)
-
-%Im Evaluationsteil des Projekts wurde der Effekt der verschiedenen Parallelisierungsarten auf die Berechnungsdauer ausgewertet.
-
-Es stellt sich heraus, dass es auf jeden Fall sinnvoll ist mehrere Worker zur Berechnung einzusetzen, auch wenn der durch einen neuen Worker erzielte Effekt immer geringer wird.
-Auch der Einsatz von SIMD ist lohnenswert. % Und OpenMP auch? --> noch nicht klar
-Die Lastbalancierung mit Vorhersage ist deutlich besser als die naive Strategie, trotzdem gibt es Potential für eine noch bessere Lastverteilung.
