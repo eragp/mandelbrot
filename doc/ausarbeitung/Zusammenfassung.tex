@@ -11,7 +11,7 @@
 Abschließend lassen sich noch die unterschiedlichen, in den vorheringen Abschnitten erläuterten,
 Strategien zur Parallelisierung der Berechnung der Mandelbrotmenge miteinander kombinieren. Dadurch
 kann die maximal erzielbare Verringerung der Rechenzeiten evaluiert werden, welche in \autoref{fig:overallScaling}\footnote{\enquote{Speedup} bezieht sich dabei auf
-	die Maximale Rechenzeit für die Berechnung der 3 Randregionen mit 40 Knoten \( (730 ms) \)}
+	die Maximale Rechenzeit für die Berechnung der 3 Randregionen mit 40 Knoten \( (723 ms) \)}
 dargestellt sind.
 
 \begin{figure}[h!]
@@ -31,7 +31,7 @@ dargestellt sind.
 
 Somit ergibt sich, dass wir unter der Verwendung aller implementierten Parallelisierungen eine Verbesserung
 der maximalen Rechenzeit im Vergleich zu einer naiven Lastbalancierung vom Faktor \( \approx 7 \) erzielen konnten,
-was einer absoluten Rechenzeit von \( 120ms \) für \( 1280px \times 720px \) große Ausschnitte am Rand der Mandelbrotmenge erzielen konnten.
+was einer absoluten Rechenzeit von \( 104ms \) für \( 1280px \times 720px \) große Ausschnitte am Rand der Mandelbrotmenge erzielen konnten.
 
 \pagebreak
 Ziel des Projektes war es, ein Programm zur parallelen Berechnung der Mandelbrotmenge auf einem Rechnercluster zu erstellen.
