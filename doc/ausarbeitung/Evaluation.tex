@@ -300,3 +300,9 @@ der Rechenaufwand im zweidimensionalen quadratisch sinkt.
 % Speedup
 % Kombinationen von Unterschiedlichen Verbesserungen. als Plot.
 % (Eine Klasse von Regionen)
+
+%Im Evaluationsteil des Projekts wurde der Effekt der verschiedenen Parallelisierungsarten auf die Berechnungsdauer ausgewertet.
+
+Es stellt sich heraus, dass es auf jeden Fall sinnvoll ist mehrere Worker zur Berechnung einzusetzen, auch wenn der durch einen neuen Worker erzielte Effekt immer geringer wird.
+Auch der Einsatz von SIMD ist lohnenswert. % Und OpenMP auch? --> noch nicht klar
+Die Lastbalancierung mit Vorhersage ist deutlich besser als die naive Strategie, trotzdem gibt es Potential für eine noch bessere Lastverteilung.
