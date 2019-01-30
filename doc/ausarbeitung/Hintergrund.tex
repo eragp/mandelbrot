@@ -48,11 +48,12 @@ Die Gestaltung von MPI erlaubt dabei beliebige Zuordnungen, von Kernen auf einem
 % Was ist OpenMP -> Tobi
 \subsection{OpenMP}
 
-OpenMP ist ein Programminterface, das mit geringen Umständen Parallelisierung innerhalb eines Mehrkernrechenbausteines
+OpenMP\footnote{\url{https://www.openmp.org/wp-content/uploads/openmp-4.5.pdf}} (Open Multi-Processing) ist ein API, das auf die Parallelisierung von Schleifen und Programmabschnitten auf Shared Memory Systemen spezialisiert ist.
+Parallel ausführbare Programmteile werden durch eine spezielle Präprozessor Anweisung für die parallele Ausführung in mehreren Threads gekennzeichnet.
+So wird mit geringen Umständen Parallelisierung innerhalb eines Mehrkernrechenbausteines
 ermöglicht.
 Schlüsselkonzept ist dabei, dass Threads erzeugt werden, die Schleifen paralleliseren und dabei auf den geteilten Speicher
 der Kerne zugreifen um Daten auszutauschen oder zusammenzutragen.
-Damit können Mehrkernarchitekturen effizient und einfach programmierbar ausgenutzt werden.
 
 % Was ist SIMD -> Niels
 \subsection{SIMD} \label{par:introduction_simd}

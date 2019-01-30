@@ -116,6 +116,20 @@ Damit stimmen die Messergebnisse mit den Erwartungen überein.
 % 	Worker & Iteration Anzahl fest, optimal wählen, Randregion
 \subsection{OpenMP}
 
+In den vorangegangenen Evaluierungen wurde nur ein Rechenkern pro Computer im Cluster für die Berechnung der Mandelbrotmenge genutzt. Nun soll die Performancesteigerung durch die Nutzung von mehreren Rechenkernen pro Computer untersucht werden. Bei dem für diese Evaluierung verwendeten ODroid C2 stehen vier Rechenkerne zur Verfügung.
+\\
+\\
+In \autoref{fig:parallelism} ist durchschnittliche Rechenzeit von einem MPI-Prozess (rot), zwei MPI-Prozessen (blau), einem MPI-Prozess mit 4 OpenMP-Threads (lila) und vier MPI-Prozessen (grün) pro ODroid dargestellt. Es wird erwartet, dass sich die Speedup-Faktor \( s \) nach \( s \approx \frac{c}{n} \) verhält, wobei c die Rechenzeit des einen MPI-Prozesses (rot) und n die Anzahl an verwendeten Prozessen bzw. Threads pro ODroid darstellt.
+\\
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=0.9\linewidth]{img/Evaluation/parallelism.pdf}
+	\caption{Rechenzeiten mit verschiedenen Parallelisierungen. Strategie mit Vorhersage (rekursiv). Ohne SIMD.}
+	\label{fig:parallelism}
+\end{figure}
+\\
+Für einen MPI-Prozess mit vier OpenMP-Threads pro ODroid wurde ein Speedup-Faktor von 3,2 und für vier MPI-Prozesse pro ODroid wurde ein Speedup von ca. 3,9 gemessen. OpenMP bleibt damit etwas hinter den Erwartungen zurück. Dies ist der Fall, da für die OpenMP-Threads keine Lastbalancierung durch den Balancer durchgeführt werden kann. Stattdessen weißt OpenMP jedem Thread ein Pixel der Mandelbrotmenge zur Berechnung zu. Ist die Berechung abgeschlossen bekommt der Thread einen neuen Pixel zugewiesen. Der durch dieses dynamische Scheduling entstehende Overhead sorgt für den Performanceverlust. Die vier MPI-Prozesse hingegen müssen die ihnen zugewiesenen Teilregionen nicht mehr aufteilen, da dies der Lastbalancierer bereits erledigt hat.
+
 
 \subsection{SIMD}
 

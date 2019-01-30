@@ -378,28 +378,13 @@ Die Summe über die Komponenten entspricht damit der negierten Anzahl an noch ni
 
 \subsection{Leistungssteigerung durch Parallelisierung auf Thread Level mithilfe von OpenMP}
 
-\verb|OpenMP|\footnote{\url{https://www.openmp.org/wp-content/uploads/openmp-4.5.pdf}} (Open Multi-Processing) ist ein API, das auf die Parallelisierung von Schleifen und Programmabschnitten auf Shared Memory Systemen spezialisiert ist. Parallel ausführbare Programmteile werden durch eine spezielle Präprozessor Anweisung für die parallele Ausführung in mehreren Threads gekennzeichnet.
-\\ \\
-Bei der Berechnung der Mandelbrotmenge wird OpenMP im Worker verwendet um die for-Berechnungsschleife parallel auf den zur Verfügung stehenden Threads auszuführen. Dies dient dazu, die Leistung des Workers signifikant zu steigern. Die dabei genutzte Anweisung setzt sich folgendermaßen zusammen:
+Die Schleifenparallelisierung von OpenMP wurde für die Mandelbrotberechnungsroutine verwendet.
+Dabei kann die Eigenschaft der Unabhängigkeit der Pixel über das Schlüsselwort \texttt{nonmonotonic}
+ausgenutzt werden, womit die Beliebigkeit der Ausführungsreihenfolge gekennzeichnet wird.
 
-\begin{itemize}
-	\item \verb|#pragma omp parallel for| kennzeichnet die darauf folgende for-Schleife für die parallele Ausführung.
-\end{itemize}
-
-Folgende Parameter werden dabei noch gesetzt:
-
-\begin{itemize}
-	\item \verb|shared(<Datenstrukturen>)| kennzeichnet diejenigen Datenstrukturen die parallel beschreibbar sind.
-
-	\item \verb|schedule(<Parameter>)| setzt die gewählte Schedulingstrategie fest. Als Parameter wurde genutzt:
-
-	      \begin{itemize}
-		      \item \verb|nonmonotonic| besagt, dass die Schleifeniterationen in beliebiger Reihenfolge ausgeführt werden können.
-
-		      \item \verb|dynamic, 10| bedeutet, dass jeder Thread zunächst 10 Schleifeniterationen zur Berechnung zugewiesen bekommt. Hat ein Thread diese Aufgabe abgeschlossen, bekommt er weitere 10 Iterationen falls noch welche verfügbar sind. Diese Strategie wurde gewählt, um die Rechenlast möglichst gleichmäßig auf alle Threads zu verteilen und so die Gesamtrechenzeit der Schleife zu minimieren ohne eine erneute Lastbalancierung vornehmen zu müssen.
-	      \end{itemize}
-\end{itemize}
-
+Über dynamisches Threadscheduling wird außerdem eine zusätzliche Form der Lastbalancierung ausgenutzt.
+Standartmäßig wird jedem Thread 1 Iteration zugewiesen bevor er sich eine neue aus einer geteilten Warteschlange nimmt\cite{intelOpenMP}.
+Diese Konfiguration zeigte in unserer Implementierung deutlich höhere Performanz als größere Blöcke.
 
 \subsection{Websocketverbindung}\label{cls:Host}
 
