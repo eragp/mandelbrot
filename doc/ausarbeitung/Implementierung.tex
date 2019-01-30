@@ -68,7 +68,7 @@ Zur Initialisierung der Prozesse muss zunächst die MPI-Umgebung aktiviert und a
 Dies geschieht für beide Programme gleich, über die Initialisierungsfunktion in \autoref{src:init.cpp}.
 Sie erwartet lediglich eine Beschreibung des Prozesses für den Log und eine Initialisierungsfunktion,
 die erst zurückkehrt, wenn das Programm abgeschlossen ist und MPI beendet werden soll.
-Die Funktion muss als Parameter den Rang bzw. die Id des aktuellen MPI-Prozesses und die Anzahl der initialisierten
+Die Funktion muss als Parameter den Rang bzw. die ID des aktuellen MPI-Prozesses und die Anzahl der initialisierten
 Prozesse entgegen nehmen.
 
 \subsection{Implementierung der Lastbalancierung}\label{sec:load_balancing}
@@ -187,104 +187,97 @@ Dazu muss der neue Testfall (\verb|struct TestCase|) durch Angabe von Name, Anza
 Dann kann er an der im Quellcode markierten Stelle zum Vektor der Testfälle hinzugefügt werden.
 Anschließend muss der Test mittels \verb|cmake| in \verb|backend/tests| neu kompiliert werden.
 
-\subsection{Kommunikation zwischen Host und Worker im Backend}
 
-Zur Kommunikation zwischen dem Host und den Workern im Backend wird ausschließlich das \verb|Message Passing Interface (MPI)| genutzt.
+\subsection{Kommunikation zwischen Host und Worker im Backend mittels MPI}
+
+Zur Kommunikation zwischen dem Host und den Workern im Backend wird ausschließlich das \verb|Message Passing Interface (MPI)|\cite{mpi} genutzt. Als MPI-Implementierung wird \verb|OpenMPI|\cite{openmpi} verwendet, da dies sehr verbreitet ist und auch die Nutzung von Threads unterstützt, was laut der offiziellen \verb|MPI-Dokumentation|\cite{mpi} ein optionales Feature ist.
+\\
+\\
+Zur Veranschaulichung der MPI-Kommunikation dient das Sequenzdiagramm in \autoref{fig:mpi_sequenzdiagramm}.
 
 \begin{landscape}
-    \begin{figure}
-        % Bindet das als PDF exportierte vsdx ein -> vektorgrafik
-        % -> vsdx bearbeiten statt pdf
-        \centering
-        \includegraphics[origin = c, trim = 0mm 100mm 60mm 0mm, clip, width=0.95\linewidth]{img/Implementierung/MPISequenzdiagrammFarben.pdf}
-        \caption{Sequenzdiagramm zur Kommunikation im Backend}
-        \label{fig:mpi_sequenzdiagramm}
-    \end{figure}
+	\begin{figure}
+		% Bindet das als PDF exportierte vsdx ein -> vektorgrafik
+		% -> vsdx bearbeiten statt pdf
+		\centering
+		\includegraphics[origin = c, trim = 0mm 100mm 60mm 0mm, clip, width=0.95\linewidth]{img/Implementierung/MPISequenzdiagrammFarben.pdf}
+		\caption{Sequenzdiagramm zur Kommunikation im Backend}
+		\label{fig:mpi_sequenzdiagramm}
+	\end{figure}
 \end{landscape}
 
-Der MPI-Thread des Hosts erwartet in einer mit dem Websocketthread geteilten Datenstruktur
-Rechenaufträge, die per MPI an die Worker weiter geleitet werden sollen.
-Diese führen die zugewiesenen Rechenaufträge gegebenenfalls mithilfe von SIMD und / oder OpenMP parallelisiert aus.
-Anschließend werden die Rechenergebnisse wieder via MPI an den MPI-Thread übermittelt,
-welcher diese in einer weiteren gemeinsamen Datenstruktur ablegt.
+Wie auch in der \hyperref[sec:architektur]{Architekturübersicht} beschrieben, erwartet der MPI-Thread des Hosts in einer mit dem Websocket-Anfrage-Thread geteilten Datenstruktur Rechenaufträge, die per MPI an die Worker weitergeleitet werden sollen.
+Diese führen die zugewiesenen Rechenaufträge parallelisiert aus.
+Anschließend werden die Rechenergebnisse wieder via MPI an den MPI-Thread des Hosts übermittelt,
+welcher diese in einer weiteren gemeinsamen Datenstruktur für den Websocket-Ergebnis-Thread ablegt.
 
-Der Ablauf dieser Kommunikation wird in \autoref{fig:mpi_sequenzdiagramm} veranschaulicht.
-
-Wird während einer laufenden Berechnung eine neue Berechnung angefordert, so werden die auf den Workern noch laufenden Berechnungen abgebrochen und mit der neuen Berechnung begonnen. Ein entsprechendes Sequenzdiagramm ist im Anhang (TODO Link) zu finden.
-
-Da mehrere Threads in der Host-Anwendung für die Websocketfunktionalität unumgänglich sind sollte bei dem System
-auf dem das Program laufen soll darauf geachtet werden, dass die lokale MPI-Implementierung das Threadlevel \verb|MPI_THREAD_FUNNELED| unterstützt.
+Wird während einer laufenden Berechnung eine neue Berechnung angefordert, so werden die auf den Workern noch laufenden Berechnungen abgebrochen und mit der neuen Berechnung begonnen. Ein entsprechendes Sequenzdiagramm ist in \autoref{fig:mpi_sequenzdiagramm_abbruch} im Anhang zu finden.
 
 \subsubsection{MPI-Designentscheidungen}
 %TODO Namen der Threads überall (auch Grafiken) konsistent halten! Sollte aktuell passen. Vor der Abgabe nochmal überprüfen.
-Für die Implementierung der MPI-Kommunikation wurden zur Performanzsteigerung folgende Designentscheidungen getroffen:
+Für die Implementierung der MPI-Kommunikation wurden mit dem Ziel der Performancesteigerung folgende Designentscheidungen getroffen:
+
+\paragraph{Initialisierung der MPI-Umgebung mit MPI\_THREAD\_FUNNELED}\label{item:mpi_init}
+
+In der gewählten Architektur arbeiten sowohl Host als auch Worker mit mehreren Threads, wobei nur der Hauptthread MPI-Aufrufe tätigt.
+Für die MPI-Konfiguration bedeutet dies, dass sie mit MPI\_THREAD\_FUNNELED initialisiert werden muss.
+Durch die Einschränkung auf einen MPI-Thread ist MPI in der Lage Optimierungen durchzuführen, was der Performance der Kommunikation zu Gute kommt.
+Es wurde sich bewusst gegen den Einsatz von MPI in mehreren Threads (MPI\_THREAD\_MULTIPLE) entschieden, da OpenMPI hierfür zwar eine korrekte aber nicht performanceoptimierte Implementierung anbietet.\cite{openmpithread}
+
+\paragraph{Datenübertragung als uninterpretierte Byte-Datenströme}
+
+Alle per MPI übertragenen Daten werden uninterpretiert als Byte-Datenströme geschickt.
+Das bedeutet, dass die Interpretation der Daten maschinenabhängig ist.
+Allerdings macht dies die Übertragung einfach und performant, da im gesamten Backend mit den selben Structs ohne eine Umformatierung gearbeitet werden kann.
+
+\paragraph{Nicht-blockierendes Senden der Subregionen vom Host an die Worker}
+
+Der MPI-Host-Thread verwendet Persistent Communication Requests für das performante Senden der Arbeitsaufträge zu den Workern,
+da hier die Nachrichtengröße konstant ist und die Sendeparameter identisch sind.
+Der gewählte Übertragungsmodus ist nicht-blockierend, da dieser Modus es erlaubt, alle Sendeoperationen an alle Worker zu starten und erst danach auf deren Abschluss mit einem MPI\_Waitall() zu warten. Dies gewährleistet, dass die Subregionen möglichst schnell an die Worker verteilt werden und diese somit mit minimaler Verzögerung die Berechnung beginnen können.
+Dieser Aufruf ist in der Grafik mit "MPI\_PCR\_Start()" bezeichnet.
+
+\paragraph{Nicht-blockierendes Empfangen der vom Host gesendeten Subregionen in den Workern}
+
+Analog zum MPI-Host-Thread nutzt auch der MPI-Worker-Thread Persistent Communication Requests um eine Subregion
+mit möglichst wenig Overhead, zu empfangen.
+Es wurde der nicht-blockierende Übertragungsmodus gewählt, um laufende Berechnungen abbrechen zu können,
+sobald ein neuer Rechenauftrag empfangen wird (siehe \hyperref[para:impl_mpi_worker]{Implementierung der MPI-Kommunikation im Worker}).
+
+\paragraph{Struktur der von den Workern an den Host gesendeten Daten}
+
+Es müssen generelle Informationen in Form eines WorkerInfo-Structs (allgemeine Daten zur Subregion, Nummer des Workers, Berechnungsdauer) und ein Array der berechneten Daten von den Workern an den Host gesendet werden.
+Da die Anzahl der berechneten Daten und damit die Länge des Datenarrays variiert, wird das Datenarray direkt hinter das WorkerInfo-Struct kopiert und zusammen versendet.
+
+\paragraph{Blockierendes Senden der berechneten Subregion von den Workern an den Host}
+
+Diese flexible Operation wird für das Versenden der Rechenergebnisse vom Worker zum Host verwendet, da die zu übertragende Datenmenge von der Größe der berechneten Region abhängt. Nicht-blockierendes Senden ist hier nicht notwendig, da nach der abgeschlossenen Berechnung neben dem Senden keine weiteren Operationen durchzuführen sind. Im Sequenzdiagramm ist dieser Aufruf mit "MPI\_Send()" bezeichnet.
+
+\paragraph{Blockierendes Empfangen der von den Workern berechneten Subregion im Host}
+
+Wenn ein Worker Daten zum Versenden bereit hält (dies wird nicht-blockierend mit MPI\_Iprobe() getestet), werden die Daten blockierend Empfangen und sofort im richtigen Format in die MPI\_To\_Websocket\_Result Datenstruktur abgelegt. Eine nicht-blockierende Empfangsoperation bietet in diesem Anwendungsfall keine Vorteile.
+
+\paragraph{Busy Waiting}
 
 \begin{itemize}
-
-	\item \label{item:mpi_init} Initialisierung der MPI-Umgebung mit MPI\_THREAD\_FUNNELED
-
-          In der gewählten Architektur arbeiten sowohl Host als auch Worker mit mehreren Threads, wobei nur der Hauptthread MPI-Aufrufe tätigt.
-          Für die MPI-Konfiguration bedeutet dies, dass sie mit MPI\_THREAD\_FUNNELED initialisiert werden muss.
-          Durch die Beschränkung auf einen MPI-Thread werden MPI-Seitig Optimierunge ermöglicht.
-          Es wurde sich bewusst gegen den Einsatz von MPI in mehreren Threads (MPI\_THREAD\_MULTIPLE) entschieden, da OpenMPI hierfür zwar eine korrekte aber nicht performanceoptimierte Implementierung anbietet \footnote{siehe Abschnitt 'MPI\_THREAD\_MULTIPLE Support' unter \url{https://www.open-mpi.org/doc/v3.1/man3/MPI_Init_thread.3.php}}.
-
-	\item Datenübertragung als uninterpretierte Byte-Datenströme
-
-          Alle per MPI übertragenen Daten werden uninterpretiert als Byte-Datenströme geschickt.
-          Das bedeutet, dass die Interpretation der Daten Maschinenabhängig ist.
-          Allerdings macht dies die Übertragung einfach und performant, da im gesamten Backend mit den selben Structs ohne eine Umformatierung gearbeitet werden kann.
-
-	\item Nicht-blockierendes Senden der Subregionen vom Host an die Worker
-
-          Der MPI-Host-Thread verwendet Persistent Communication Requests für das performante Senden der Arbeitsaufträge zu den Workern,
-          da hier die Nachrichtengröße konstant ist und die Sendeparameter identisch sind.
-          Die Übertragung wird nicht-blockierend durchgeführt,
-          sodass alle Sendeoperationen parallel starten und anschließend auf deren Abschluss mit einem MPI\_Waitall() zu warten.
-          Dieser Aufruf ist in der Grafik mit "MPI\_PCR\_Start()" bezeichnet.
-
-	\item Nicht-blockierendes Empfangen der vom Host gesendeten Subregionen in den Workern
-
-          Analog zum MPI-Host-Thread nutzt auch der MPI-Worker-Thread Persistent Communication Requests um eine Subregion
-          mit möglichst wenig Overhead, zu empfangen.
-          Es wurde der nicht-blockierende Übertragungsmodus gewählt, um laufende Berechnungen abbrechen zu können,
-          sobald ein neuer Rechenauftrag empfangen wird (siehe \hyperref[para:impl_mpi_worker]{Implementierung der MPI-Kommunikation im Worker}).
-
-	\item Struktur der von den Workern an den Host gesendeten Daten
-
-          Es müssen generelle Informationen in Form eines WorkerInfo-Structs (allgemeine Daten zur Subregion, Nummer des Workers, Berechnungsdauer) und ein Array der berechneten Daten von den Workern an den Host gesendet werden.
-          Da die Anzahl der berechneten Daten und damit die Länge des Datenarrays variiert, wird das Datenarray direkt hinter das WorkerInfo-Struct kopiert und zusammen versendet.
-
-	\item Blockierendes Senden der berechneten Subregion von den Workern an den Host
-
-          Nicht-blockierendes Senden ist hier nicht notwendig, da nach der abgeschlossenen Berechnung neben dem Senden keine weiteren Operationen durchzuführen sind.
-          Im Sequenzdiagramm ist dieser Aufruf mit "MPI\_Send()" bezeichnet.
-
-	\item Blockierendes Empfangen der von den Workern berechneten Subregionen im Host
-
-          Wenn ein Worker Daten zum Versenden bereit hält (dies wird nicht-blockierend mit MPI\_Iprobe() getestet), werden die Daten blockierend Empfangen und sofort im richtigen Format in die MPI\_To\_Websocket\_Result Datenstruktur abgelegt.
-
-	\item Busy Waiting
-
-	      \begin{itemize}
-		      \item Busy waiting im MPI-Host-Thread
-
-		            Im Host ist busy waiting unumgänglich, da einerseits auf neue Arbeitsaufträge und andererseits auf Rechenergebnisse reagiert werden muss. Um busy waiting zu umgehen, wäre eine Lösung, einen Sendethread und einen Empfangsthread zu implementieren, was aber die MPI-Kommunikation insgesamt verlangsamen würde, da ein höherer Isolation-Level gesetzt werden muss (siehe \hyperref[item:mpi_init]{Initialisierung der MPI-Umgebung mit MPI\_THREAD\_FUNNELED}). Um die CPU zu entlasten, wird der MPI-Host-Thread für 100 Mikrosekunden schlafen gelegt, falls im aktuellen Schleifendurchlauf weder eine Sendeoperation noch eine Empfangsoperation durchgeführt wurde. Diese Pause hat keine signifikante Auswirkung auf die Gesamtperformance aufgrund der im Vergleich deutlich längeren Berechnungsdauer einer Subregion.
-		            %TODO Evtl. nicht-blockierend mit Sendeoperation daweil starten
-
-		      \item Busy waiting im MPI-Worker-Thread
-
-                    Solange keine Berechnungen durchzuführen sind, wäre es ausreichend blockierend auf das Eintreffen neuer Berechnungsaufträge zu warten, um die CPU nicht unnötig zu belasten.
-                    Da die blockierende Empfangsoperation MPI\_Recv() jedoch häufig selbst mit busy waiting implementiert ist, wird auf deren Nutzung verzichtet. Stattdessen wird der MPI-Worker-Thread im Schleifendurchlauf für 1 Millisekunde schlafen gelegt wenn keine Nachrichten zu empfangen sind. Im Vergleich zur Berechnungsdauer einer Subregion fällt diese 1 Millisekunde nicht ins Gewicht, entlastet aber spürbar die CPU.
-		            %TODO Quellen für den Busy Waiting Dreck.
-
-	      \end{itemize}
-
+	\item Busy waiting im MPI-Host-Thread
+	
+	Im Host ist busy waiting unumgänglich, da einerseits auf neue Arbeitsaufträge und andererseits auf Rechenergebnisse reagiert werden muss. Um busy waiting zu umgehen, wäre eine Lösung, einen Sendethread und einen Empfangsthread zu implementieren, was aber die MPI-Kommunikation insgesamt verlangsamen würde, da ein höherer Isolation-Level gesetzt werden muss (siehe \hyperref[item:mpi_init]{Initialisierung der MPI-Umgebung mit MPI\_THREAD\_FUNNELED}). Um die CPU zu entlasten, wird der MPI-Host-Thread für 100 Mikrosekunden schlafen gelegt, falls im aktuellen Schleifendurchlauf weder eine Sendeoperation noch eine Empfangsoperation durchgeführt wurde. Diese Pause hat keine signifikante Auswirkung auf die Gesamtperformance aufgrund der im Vergleich deutlich längeren Berechnungsdauer einer Subregion.
+	%TODO vgl. schnellste Berechnungszeit der Zusammenfassung
+	
+	\item Busy waiting im MPI-Worker-Prozess
+	
+	Solange keine Berechnungen durchzuführen sind, wäre es ausreichend blockierend auf das Eintreffen neuer Berechnungsaufträge zu warten, um die CPU nicht unnötig zu belasten.
+	Da blockierende Empfangsoperationen bei OpenMPI mittels busy waiting implementiert sind (Agressive-Mode), falls die Anzahl an laufenden MPI-Prozessen gleich oder niedriger der Anzahl an verfügbaren Prozessoren ist, wird auf deren Nutzung verzichtet \footnote{\url{https://www.open-mpi.org/faq/?category=running\#oversubscribing}} (Anmerkung: Die Nutzung des Degraded-Modes durch setzen des entsprechenden MCA-Parameters war auf dem verwendetem Cluster leider nicht möglich). Stattdessen wird der MPI-Worker-Prozess im Schleifendurchlauf für 1 Millisekunde schlafen gelegt wenn keine Nachrichten zu empfangen sind. Im Vergleich zur Berechnungsdauer einer Subregion fällt diese 1 Millisekunde nicht ins Gewicht, entlastet aber spürbar die CPU.
+	%TODO: vgl wieder schnellste Berechnung
+	%TODO Quellen für den Busy Waiting Dreck.
+	
 \end{itemize}
 
-\subsubsection{MPI-Kommunikation im Host}
+\subsubsection{Ablauf der MPI-Kommunikation im Host}
 
 %TODO Eventuell noch das Senden der Testregionen beschreiben.
-Die Kommunikation zwischen Host (MPI-Host-Thread) und Workern (MPI-Worker-Thread) ist im MPI-Host-Thread als Endlosschleife (busy waiting) implementiert. Die dabei stattfindenden Operationen inklusive ausführlicher Kommentare sind in \autoref{src:mpi_host_pseudo} einzusehen.
+Die Kommunikation zwischen Host (MPI-Host-Thread) und Workern (MPI-Worker-Prozess) ist im MPI-Host-Thread als Endlosschleife (busy waiting) implementiert. Die dabei stattfindenden Operationen inklusive ausführlicher Kommentare sind in \autoref{src:mpi_host_pseudo} einzusehen.
 
 \begin{figure}[!h]
 	\lstinputlisting[language=python, caption={MPI Kommunikation im Host in Pseudocode}, label={src:mpi_host_pseudo}]{code/MPIHost.py}
@@ -292,7 +285,7 @@ Die Kommunikation zwischen Host (MPI-Host-Thread) und Workern (MPI-Worker-Thread
 
 \subsubsection{Ablauf der MPI-Kommunikation im Worker}\label{para:impl_mpi_worker}
 
-Analog zum Host ist auch der Worker (MPI-Worker-Thread) als Endlosschleife mit busy waiting implementiert. Die Berechnung einer Subregion erfolgt dabei zeilenweise durch einen compute() Aufruf. Der entsprechende Pseudocode inklusive ausführlicher Kommentare ist in \autoref{src:mpi_worker_pseudo} zu finden.
+Analog zum Host ist auch der Worker (MPI-Worker-Prozess) als Endlosschleife mit busy waiting implementiert. Die Berechnung einer Subregion erfolgt dabei zeilenweise durch einen compute() Aufruf. Der entsprechende Pseudocode inklusive ausführlicher Kommentare ist in \autoref{src:mpi_worker_pseudo} zu finden.
 
 \begin{figure}[!h]
 	\lstinputlisting[language=python, caption={MPI Kommunikation im Worker in Pseudocode}, label={src:mpi_worker_pseudo}]{code/MPIWorker.py}
@@ -376,14 +369,14 @@ Um im weiteren Verlauf effizient die Vektorkomponenten aufzuaddieren (\textit{ad
 Jede Komponente für die die Bedingung zu wahr evaluiert hat, kann nun als $-1$ interpretiert werden.
 Die Summe über die Komponenten entspricht damit der negierten Anzahl an noch nicht abgeschlossenen Punkten.
 
-\subsection{Leistungssteigerung durch Parallelisierung auf Thread Level mithilfe von OpenMP}
+\subsection{Parallelisierung auf Thread Level mithilfe von OpenMP}
 
 Die Schleifenparallelisierung von OpenMP wurde für die Mandelbrotberechnungsroutine verwendet.
 Dabei kann die Eigenschaft der Unabhängigkeit der Pixel über das Schlüsselwort \texttt{nonmonotonic}
 ausgenutzt werden, womit die Beliebigkeit der Ausführungsreihenfolge gekennzeichnet wird.
 
 Über dynamisches Threadscheduling wird außerdem eine zusätzliche Form der Lastbalancierung ausgenutzt.
-Standartmäßig wird jedem Thread 1 Iteration zugewiesen bevor er sich eine neue aus einer geteilten Warteschlange nimmt\cite{intelOpenMP}.
+Standardmäßig wird jedem Thread 1 Iteration zugewiesen bevor er sich eine neue aus einer geteilten Warteschlange nimmt\cite{intelOpenMP}.
 Diese Konfiguration zeigte in unserer Implementierung deutlich höhere Performanz als größere Blöcke.
 
 \subsection{Websocketverbindung}\label{cls:Host}
@@ -391,7 +384,7 @@ Diese Konfiguration zeigte in unserer Implementierung deutlich höhere Performan
 Direkt nach der Initialisierung des Host-Programms wird ein separater Thread gestartet, der über Websocket
 Anfragen zur Berechnung einer Region entgegennimmt sowie ein Thread, der berechnete Regionen an den verbundenen Client übergibt.
 %Die Methode \verb|Host::start_server| initialisiert dabei lediglich den Websocketserver.
-%Über den Typ des Servers wird eine Kompression versendeter Nachrichten über die im Standart akzeptierte Extension \enquote{perMessageDeflate} aktiviert.
+%Über den Typ des Servers wird eine Kompression versendeter Nachrichten über die im Standard akzeptierte Extension \enquote{perMessageDeflate} aktiviert.
 Der Websocketserver wird mit \verb|server.init_asio()| mit der Transport Policy "transport::asio"
 konfiguriert, sodass Multithreadzugriffe auf Sende- und Empfangsmethoden problemlos möglich sind \cite{websocketppManual}.
 

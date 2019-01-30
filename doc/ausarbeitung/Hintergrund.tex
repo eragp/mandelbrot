@@ -14,12 +14,12 @@ Um sie zu berechnen wendet man folgende Formel wiederholt auf eine komplexe Zahl
 	z_{n+1} = z_{n}^2 + c, \quad z_0 = 0
 \end{equation}
 In der Mandelbrotmenge befinden sich alle solche $c$, für die \( \lim_{n \rightarrow \infty} |z_n| < \infty \).
-Wenn nach der \( n \)ten Iteration \( |z_n| > 2 \) ist, so strebt $z$ gegen unendlich, das zugehörige $c$ liegt also nicht in der Menge.
+Wenn nach der \( n \)-ten Iteration \( |z_n| > 2 \) ist, so strebt $z$ gegen unendlich, das zugehörige $c$ liegt also nicht in der Menge.
 Somit sobald $|z_n| > 2$ die Berechnung daher abgebrochen werden\cite{424331}.
 
 Um nun für eine beliebige Zahl zu bestimmen, ob diese in der Mandelbrotmenge liegt, müssen
 theoretisch unendlich viele Rechenschritte durchgeführt werden. Zur computergestützten Bestimmung
-werden die Rechenschritte nach einer bestimmten Iteration abgebrochen die Zahl als in der Menge liegend betrachtet.
+werden die Rechenschritte nach einer bestimmten Iteration abgebrochen und die Zahl als in der Menge liegend betrachtet.
 
 \paragraph{Darstellung der Mandelbrotmenge}
 Eine Komplexe Zahl \( c \in \mathbb{C} \) lässt sich grafisch darstellen, indem man sie in ein zweidimensionales Koordinatensystem einträgt.
@@ -50,7 +50,7 @@ Die Gestaltung von MPI erlaubt dabei beliebige Zuordnungen, von Kernen auf einem
 
 OpenMP\footnote{\url{https://www.openmp.org/wp-content/uploads/openmp-4.5.pdf}} (Open Multi-Processing) ist ein API, das auf die Parallelisierung von Schleifen und Programmabschnitten auf Shared Memory Systemen spezialisiert ist.
 Parallel ausführbare Programmteile werden durch eine spezielle Präprozessor Anweisung für die parallele Ausführung in mehreren Threads gekennzeichnet.
-So wird mit geringen Umständen Parallelisierung innerhalb eines Mehrkernrechenbausteines
+So wird mit geringem Aufwand Parallelisierung innerhalb eines Mehrkernrechenbausteines
 ermöglicht.
 Schlüsselkonzept ist dabei, dass Threads erzeugt werden, die Schleifen paralleliseren und dabei auf den geteilten Speicher
 der Kerne zugreifen um Daten auszutauschen oder zusammenzutragen.
