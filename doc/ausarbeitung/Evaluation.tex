@@ -81,10 +81,10 @@ Für Randregionen (rot) fällt auf, dass die MPI-Kommunikationszeit konstant bei
 Für diesen Regionstyp liefert der Balancer wenige Teilregionen mit exakt gleicher Rechenzeit (siehe \hyperref[sec:lastbalancierung_eval]{Evaluierung der Lastbalancierung}), was das für die Außenregionen angesprochene Problem abwendet. Die Rechenergebnisse werden nicht gleichzeitig gesendet bzw. empfangen, was einen Stau im Host verhindert.
 
 Für Innenregionen (grün) ist eine deutliche Fluktuation der Kommunikationszeit zu erkennen.
-Es fällt auf, dass die Kommunikationszeit ein deutliches Maximum bei \( 16 \) bzw. \( 32 \) und ein Minimum bei \( 24 \) Workern erreicht. Das liegt an der Genauigkeit des Balancers.
-Für Zweierpotenzen wird die Region in exakt identische Teilregionen aufgeteilt, wodurch alle Worker die selbe Rechenzeit haben. Dies führt wieder zu dem Problem der Aufstauung von Nachrichten im Host, was schon bei den Außernregionen angesprochen wurde.
-Für \( 24 \) Worker (\( 24 \) liegt genau in der Mitte der Zweierpotenzen \( 16 \) und \( 32 \)) ist der Balancer am schlechtesten und produziert keine identischen Teilregionen, was zu etwas unterschiedlichen Rechenzeiten und Sendezeitpunkten in den Workern führt und dadurch den Stau im Host vermeidet (siehe Randregionen).
-Bei sehr genauer Analyse der \autoref{fig:scaling_mpi} zeigt sich dieses Verhalten (lokale Maxima bei Zweierpotenzen und lokale Minima genau in der Mitte der Zweierpotenzen) in der gesamten Kurve der Innenregionen.
+Es fällt auf, dass die Kommunikationszeit ein deutliches Maximum bei \( 16 \) bzw. \( 32 \) und ein Minimum bei \( 24 \) Workern erreicht.
+Das liegt daran, dass die Lastbalancierung besser wird, je näher die Workeranzahl einer Zweierpotenz ist.
+Wie bei den Außenregionen führen ähnliche Rechenzeiten zur Anstauung von Nachrichten im Host, was die MPI-Zeit erhöht.
+Dieses Verhalten der lokalen Extrema zeigt sich in der gesamten Kurve der Innenregionen.
 \\
 \\
 Generell lässt sich beobachten, dass die MPI-Kommunikationszeit nur sehr gering (um ca. \( 50 \) Millisekunden) pro Regionstyp bei steigender Anzahl an Workern fluktuiert. Sie wird daher für die folgende Evaluierung als nahezu konstant angenommen.
@@ -94,10 +94,9 @@ Eine Verbesserung der MPI-Kommunikation wird als nicht nötig erachtet, da für 
 \paragraph{Speedup-Faktor durch Parallelisierung mittels MPI}
 
 Eine wichtige Performancemetrik ist, wie gut sich eine unabhängige Berechnung - wie die der Mandelbrotmenge - parallelisieren lässt. Dabei ist vor allem von Interesse, wie sich die Rechenzeit der einzelnen Teilregionen im Vergleich zur Anzahl der an der Berechnung beteiligten Worker verhält.
-\\
-\\
+
 In \autoref{fig:scaleGraph} ist für jeden Regionstyp (Außen-, Rand-, Innenregion) ein Skalierungsgraph abgebildet, der den Speedup-Faktor in Abhängigkeit der Anzahl der genutzten Worker darstellt. Dabei kam weder OpenMP noch SIMD zum Einsatz. Es wird erwartet, dass sich der Speedup-Faktor \( s \) ungefähr nach \( s \approx \frac{c_1 + c_2}{(c_1/n) + c_2} \) verhält, wobei \( n \) die Anzahl der an der Berechnung beteiligten Worker, \( c_1 \) die Rechenzeit ohne jegliche Parallelisierung (also mit genau einem Worker) und \( c_2 \) der konstante MPI-Kommunikationsoverhead ist. Da für jeden Regionstyp die \( c_1 \) unterschiedlich groß ist, fällt \( c_2 \) mehr oder weniger ins Gewicht, was zu unterschiedlichen Speedup-Faktoren führt. Konkret wird erwartet, dass für die Speedup-Faktoren die Relation Außenregion \( \leqslant \) Randregion \( \leqslant \) Innenregion gilt.
-\\
+
 \begin{figure}[h!]
 	\centering
 	\includegraphics[width=0.32\linewidth]{img/Evaluation/scale_graph_outside}
@@ -106,7 +105,15 @@ In \autoref{fig:scaleGraph} ist für jeden Regionstyp (Außen-, Rand-, Innenregi
 	\caption{Speedup-Faktor von \( 1-40 \) Rechenknoten. Strategie mit Vorhersage (rekursiv). Ohne OpenMP oder SIMD}
 	\label{fig:scaleGraph}
 \end{figure}
-\\
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=0.32\linewidth]{img/Evaluation/scale_graph_outside_more_nodes}
+	\includegraphics[width=0.32\linewidth]{img/Evaluation/scale_graph_border_more_nodes}
+	\includegraphics[width=0.32\linewidth]{img/Evaluation/scale_graph_inside_more_nodes}
+	\caption{Speedup-Faktor von \( 1-160 \) MPI Prozessen, dabei erhält jeder Knoten 4 MPI Prozesse.}
+	\label{fig:scaleGraphMoreNodes}
+\end{figure}
+
 Es ist in \autoref{fig:scaleGraph} zu erkennen, dass der Speedup-Faktor bei 40 Workern für Außenregionen bei xx, für Randregionen bei xx und für Innenregionen bei xx liegt. Da der Speedup-Faktor monoton steigt, kann angenommen werden, dass dieses Verhalten auch für weit mehr als 40 Worker gilt, wobei sich dem Speedup-Faktor \( s_{max} \approx \frac{c_1 + c_2}{c_2} \) immer näher angenähert wird.
 Damit stimmen die Messergebnisse mit den Erwartungen überein.
 
@@ -116,19 +123,30 @@ Damit stimmen die Messergebnisse mit den Erwartungen überein.
 % 	Worker & Iteration Anzahl fest, optimal wählen, Randregion
 \subsection{OpenMP}
 
-In den vorangegangenen Evaluierungen wurde nur ein Rechenkern pro Computer im Cluster für die Berechnung der Mandelbrotmenge genutzt. Nun soll die Performancesteigerung durch die Nutzung von mehreren Rechenkernen pro Computer untersucht werden. Bei dem für diese Evaluierung verwendeten ODroid C2 stehen vier Rechenkerne zur Verfügung.
-\\
-\\
-In \autoref{fig:parallelism} ist durchschnittliche Rechenzeit von einem MPI-Prozess (rot), zwei MPI-Prozessen (blau), einem MPI-Prozess mit 4 OpenMP-Threads (lila) und vier MPI-Prozessen (grün) pro ODroid dargestellt. Es wird erwartet, dass sich die Speedup-Faktor \( s \) nach \( s \approx \frac{c}{n} \) verhält, wobei c die Rechenzeit des einen MPI-Prozesses (rot) und n die Anzahl an verwendeten Prozessen bzw. Threads pro ODroid darstellt.
-\\
+In den vorangegangenen Evaluierungen wurde nur ein Rechenkern pro Computer im Cluster für die Berechnung der Mandelbrotmenge genutzt. 
+Nun soll die Performancesteigerung durch die Nutzung von mehreren Rechenkernen pro Computer 
+untersucht werden. Bei dem für diese Evaluierung verwendeten ODroid C2 stehen vier Rechenkerne zur Verfügung.
+In \autoref{fig:parallelism} ist durchschnittliche Rechenzeit von einem MPI-Prozess (rot), zwei MPI-Prozessen (blau), einem MPI-Prozess 
+mit 4 OpenMP-Threads (lila) und vier MPI-Prozessen (grün) pro ODroid dargestellt. 
+Es wird erwartet, dass sich die Speedup-Faktor \( s \) nach \( s \approx \frac{c}{n} \) verhält, 
+wobei c die Rechenzeit des einen MPI-Prozesses (rot) und n die Anzahl an verwendeten Prozessen bzw. 
+Threads pro ODroid darstellt.
 \begin{figure}[h!]
 	\centering
 	\includegraphics[width=0.9\linewidth]{img/Evaluation/parallelism.pdf}
 	\caption{Rechenzeiten mit verschiedenen Parallelisierungen. Strategie mit Vorhersage (rekursiv). Ohne SIMD.}
 	\label{fig:parallelism}
 \end{figure}
-\\
-Für einen MPI-Prozess mit vier OpenMP-Threads pro ODroid wurde ein Speedup-Faktor von 3,2 und für vier MPI-Prozesse pro ODroid wurde ein Speedup von ca. 3,9 gemessen. OpenMP bleibt damit etwas hinter den Erwartungen zurück. Dies ist der Fall, da für die OpenMP-Threads keine Lastbalancierung durch den Balancer durchgeführt werden kann. Stattdessen weißt OpenMP jedem Thread ein Pixel der Mandelbrotmenge zur Berechnung zu. Ist die Berechung abgeschlossen bekommt der Thread einen neuen Pixel zugewiesen. Der durch dieses dynamische Scheduling entstehende Overhead sorgt für den Performanceverlust. Die vier MPI-Prozesse hingegen müssen die ihnen zugewiesenen Teilregionen nicht mehr aufteilen, da dies der Lastbalancierer bereits erledigt hat.
+
+Für einen MPI-Prozess mit vier OpenMP-Threads pro ODroid wurde ein Speedup-Faktor von 3,2 und für vier MPI-Prozesse 
+pro ODroid wurde ein Speedup von ca. 3,9 gemessen. 
+OpenMP bleibt damit etwas hinter den Erwartungen zurück. 
+Dies ist der Fall, da für die OpenMP-Threads keine Lastbalancierung durch den Balancer durchgeführt werden kann. 
+Stattdessen weißt OpenMP jedem Thread ein Pixel der Mandelbrotmenge zur Berechnung zu. 
+Ist die Berechung abgeschlossen bekommt der Thread einen neuen Pixel zugewiesen. 
+Der durch dieses dynamische Scheduling entstehende Overhead sorgt für den Performanceverlust. 
+Die vier MPI-Prozesse hingegen müssen die ihnen zugewiesenen Teilregionen nicht mehr aufteilen, 
+da dies der Lastbalancierer bereits erledigt hat.
 
 
 \subsection{SIMD}

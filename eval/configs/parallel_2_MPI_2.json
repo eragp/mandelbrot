@@ -1,0 +1,17 @@
+{
+  "screen": {
+    "width": 1280,
+    "height": 720
+  },
+  "balancers": ["predictionRecursive"],
+  "implementations": ["mandelbrot64"],
+  "maxIteration": [10000],
+  "nodeCount": [80],
+  "predictionAccuracy": [4],
+  "runs": 10,
+  "cluster": "himmuc",
+  "description": "Testing parallelisation on with 4 MPI processes per worker",
+  "pois": [
+    { "real": -0.7334021404385567, "imag": 0.2165058705628719, "zoom": 11 }
+  ]
+}
