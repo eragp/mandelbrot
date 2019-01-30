@@ -1,0 +1,17 @@
+{
+  "screen": {
+    "width": 1280,
+    "height": 720
+  },
+  "balancers": ["predictionRecursive"],
+  "implementations": ["mandelbrot64"],
+  "maxIteration": [1019],
+  "nodeCount": [1, 160, 1],
+  "predictionAccuracy": [4],
+  "runs": 5,
+  "cluster": "himmuc",
+  "description": "Scaling graph for points on the border of the mandelbrot set",
+  "pois": [
+    { "real": -0.7334021404385567, "imag": 0.2165058705628719, "zoom": 11 }
+  ]
+}
