@@ -81,10 +81,10 @@ Für Randregionen (rot) fällt auf, dass die MPI-Kommunikationszeit konstant bei
 Für diesen Regionstyp liefert der Balancer wenige Teilregionen mit exakt gleicher Rechenzeit (siehe \hyperref[sec:lastbalancierung_eval]{Evaluierung der Lastbalancierung}), was das für die Außenregionen angesprochene Problem abwendet. Die Rechenergebnisse werden nicht gleichzeitig gesendet bzw. empfangen, was einen Stau im Host verhindert.
 
 Für Innenregionen (grün) ist eine deutliche Fluktuation der Kommunikationszeit zu erkennen.
-Es fällt auf, dass die Kommunikationszeit ein deutliches Maximum bei \( 16 \) bzw. \( 32 \) und ein Minimum bei \( 24 \) Workern erreicht. Das liegt an der Genauigkeit des Balancers.
-Für Zweierpotenzen wird die Region in exakt identische Teilregionen aufgeteilt, wodurch alle Worker die selbe Rechenzeit haben. Dies führt wieder zu dem Problem der Aufstauung von Nachrichten im Host, was schon bei den Außernregionen angesprochen wurde.
-Für \( 24 \) Worker (\( 24 \) liegt genau in der Mitte der Zweierpotenzen \( 16 \) und \( 32 \)) ist der Balancer am schlechtesten und produziert keine identischen Teilregionen, was zu etwas unterschiedlichen Rechenzeiten und Sendezeitpunkten in den Workern führt und dadurch den Stau im Host vermeidet (siehe Randregionen).
-Bei sehr genauer Analyse der \autoref{fig:scaling_mpi} zeigt sich dieses Verhalten (lokale Maxima bei Zweierpotenzen und lokale Minima genau in der Mitte der Zweierpotenzen) in der gesamten Kurve der Innenregionen.
+Es fällt auf, dass die Kommunikationszeit ein deutliches Maximum bei \( 16 \) bzw. \( 32 \) und ein Minimum bei \( 24 \) Workern erreicht.
+Das liegt daran, dass die Lastbalancierung besser wird, je näher die Workeranzahl einer Zweierpotenz ist.
+Wie bei den Außenregionen führen ähnliche Rechenzeiten zur Anstauung von Nachrichten im Host, was die MPI-Zeit erhöht.
+Dieses Verhalten der lokalen Extrema zeigt sich in der gesamten Kurve der Innenregionen.
 \\
 \\
 Generell lässt sich beobachten, dass die MPI-Kommunikationszeit nur sehr gering (um ca. \( 50 \) Millisekunden) pro Regionstyp bei steigender Anzahl an Workern fluktuiert. Sie wird daher für die folgende Evaluierung als nahezu konstant angenommen.
