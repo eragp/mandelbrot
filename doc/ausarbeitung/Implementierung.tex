@@ -222,7 +222,7 @@ Für die Implementierung der MPI-Kommunikation wurden mit dem Ziel der Performan
 In der gewählten Architektur arbeiten sowohl Host als auch Worker mit mehreren Threads, wobei nur der Hauptthread MPI-Aufrufe tätigt.
 Für die MPI-Konfiguration bedeutet dies, dass sie mit MPI\_THREAD\_FUNNELED initialisiert werden muss.
 Durch die Einschränkung auf einen MPI-Thread ist MPI in der Lage Optimierungen durchzuführen, was der Performance der Kommunikation zu Gute kommt.
-Es wurde sich bewusst gegen den Einsatz von MPI in mehreren Threads (MPI\_THREAD\_MULTIPLE) entschieden, da OpenMPI hierfür zwar eine korrekte aber nicht performanceoptimierte Implementierung anbietet \footnote{siehe Abschnitt 'MPI\_THREAD\_MULTIPLE Support' unter \url{https://www.open-mpi.org/doc/v3.1/man3/MPI_Init_thread.3.php}}.
+Es wurde sich bewusst gegen den Einsatz von MPI in mehreren Threads (MPI\_THREAD\_MULTIPLE) entschieden, da OpenMPI hierfür zwar eine korrekte aber nicht performanceoptimierte Implementierung anbietet.\cite{openmpithread}
 
 \paragraph{Datenübertragung als uninterpretierte Byte-Datenströme}
 
