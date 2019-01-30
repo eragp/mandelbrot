@@ -68,7 +68,7 @@ Zur Initialisierung der Prozesse muss zunächst die MPI-Umgebung aktiviert und a
 Dies geschieht für beide Programme gleich, über die Initialisierungsfunktion in \autoref{src:init.cpp}.
 Sie erwartet lediglich eine Beschreibung des Prozesses für den Log und eine Initialisierungsfunktion,
 die erst zurückkehrt, wenn das Programm abgeschlossen ist und MPI beendet werden soll.
-Die Funktion muss als Parameter den Rang bzw. die Id des aktuellen MPI-Prozesses und die Anzahl der initialisierten
+Die Funktion muss als Parameter den Rang bzw. die ID des aktuellen MPI-Prozesses und die Anzahl der initialisierten
 Prozesse entgegen nehmen.
 
 \subsection{Implementierung der Lastbalancierung}\label{sec:load_balancing}
@@ -369,14 +369,14 @@ Um im weiteren Verlauf effizient die Vektorkomponenten aufzuaddieren (\textit{ad
 Jede Komponente für die die Bedingung zu wahr evaluiert hat, kann nun als $-1$ interpretiert werden.
 Die Summe über die Komponenten entspricht damit der negierten Anzahl an noch nicht abgeschlossenen Punkten.
 
-\subsection{Leistungssteigerung durch Parallelisierung auf Thread Level mithilfe von OpenMP}
+\subsection{Parallelisierung auf Thread Level mithilfe von OpenMP}
 
 Die Schleifenparallelisierung von OpenMP wurde für die Mandelbrotberechnungsroutine verwendet.
 Dabei kann die Eigenschaft der Unabhängigkeit der Pixel über das Schlüsselwort \texttt{nonmonotonic}
 ausgenutzt werden, womit die Beliebigkeit der Ausführungsreihenfolge gekennzeichnet wird.
 
 Über dynamisches Threadscheduling wird außerdem eine zusätzliche Form der Lastbalancierung ausgenutzt.
-Standartmäßig wird jedem Thread 1 Iteration zugewiesen bevor er sich eine neue aus einer geteilten Warteschlange nimmt\cite{intelOpenMP}.
+Standardmäßig wird jedem Thread 1 Iteration zugewiesen bevor er sich eine neue aus einer geteilten Warteschlange nimmt\cite{intelOpenMP}.
 Diese Konfiguration zeigte in unserer Implementierung deutlich höhere Performanz als größere Blöcke.
 
 \subsection{Websocketverbindung}\label{cls:Host}
@@ -384,7 +384,7 @@ Diese Konfiguration zeigte in unserer Implementierung deutlich höhere Performan
 Direkt nach der Initialisierung des Host-Programms wird ein separater Thread gestartet, der über Websocket
 Anfragen zur Berechnung einer Region entgegennimmt sowie ein Thread, der berechnete Regionen an den verbundenen Client übergibt.
 %Die Methode \verb|Host::start_server| initialisiert dabei lediglich den Websocketserver.
-%Über den Typ des Servers wird eine Kompression versendeter Nachrichten über die im Standart akzeptierte Extension \enquote{perMessageDeflate} aktiviert.
+%Über den Typ des Servers wird eine Kompression versendeter Nachrichten über die im Standard akzeptierte Extension \enquote{perMessageDeflate} aktiviert.
 Der Websocketserver wird mit \verb|server.init_asio()| mit der Transport Policy "transport::asio"
 konfiguriert, sodass Multithreadzugriffe auf Sende- und Empfangsmethoden problemlos möglich sind \cite{websocketppManual}.
 
