@@ -199,6 +199,7 @@ zu einer Erhöhung der Performanz und empfiehlt sich bei einfacher Umsetzbarkeit
 Zur Lastbalancierung gibt es zwei Strategien in jeweils zwei Varianten, zur Evaluierung wird allerdings nur die rekursive Variante der beiden Strategien betrachtet.
 Man stellt leicht fest, dass die nicht-rekursive Variante für Primzahlen als Worker-Anzahl schlecht ist, weil dabei nur eine Aufteilung in Zeilen oder Spalten möglich ist.
 Da die Aufteilungsmöglichkeiten zusätzlich durch die Betrachtung von Tiles als atomaren Einheiten beschränkt werden, erzeugt diese Variante bereits für eine geringe Anzahl an Workern verhältnismäßig viele Leerregionen (d.h. untätige Worker).
+Deshalb wird für die Evaluation jeweils die rekursive Variante verwendet.
 
 % Erst naiver Balancer, dann prediction dafür jeweils:
 % 	Plot der distribution function (Median, Max)
@@ -257,7 +258,7 @@ Hier kann eine Abwägung zwischen genauerer Vorhersage und schnellerer Vorhersag
 
 Dazu werden für verschiedene Genauigkeiten die maximale Rechenzeit eines Workers und die Dauer der Vorhersage verglichen.
 Die Messungen fanden unter den selben Bedingungen wie die Obigen statt, allerdings wurden für die Implementierung hier 32-bit floats verwendet, was die absoluten Rechenzeiten verkürzt.
-Außerdem wird dem Balancierer eine freie Aufteilung auf 2x2-Kacheln erlaubt, um genauere Vorhersagen besser durch die Aufteilung zu reflektieren.
+Außerdem wird dem Balancierer eine freie Aufteilung auf 2x2-Tiles erlaubt, um genauere Vorhersagen besser durch die Aufteilung zu reflektieren.
 
 % TODO: durch Plot mit realistischer tile Größe ersetzen, da dieser keinem use case in unserer Anwendung entspricht 
 \begin{figure}
@@ -273,6 +274,11 @@ einer Stichprobe pro 400 2x2-Kacheln (d.h. Genauigkeit -20), also 1600 Pixeln ni
 Die für die Lastbalancierung benötigte Zeit steigt exponentiell an, da jede Erhöhung der Genauigkeit um 1 eine Verdopplung der zu berechnenden Pixel bedeutet.
 Jedoch erst recht spät, bei einer Genauigkeit von einer Vorhersage pro 1600 Pixeln beginnt dieses Wachstum sichtbar zu werden
 und erst bei einer Vorhersage pro 16 Pixeln übersteigt sie die maximale Berechnungsdauer einer Region.
+
+Man sieht auch, dass die maximale Rechendauer manchmal trotz Erhöhung der Genauigkeit ansteigt.
+Dies liegt daran, dass für diese Genauigkeiten die Pixel der Vorhersage ungünstig liegen.
+Zum Beispiel könnte ein Bereich, der laut Vorhersage außerhalb der Mandelbrotmenge liegt, tatsächlich zum größten Teil in der Menge liegen.
+Die Vorhersage ist also nicht repräsentativ für den von ihr abgedeckten Bereich, was zu einer schlechteren Aufteilung führt.
 
 Damit kann beobachtet werden, dass in diesem Fall Lastbalancierung bis zu einem hohen Grad an Genauigkeit nützlich ist
 und die Gesamtrechendauer effektiv senken kann.
