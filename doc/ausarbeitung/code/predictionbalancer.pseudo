@@ -1,0 +1,26 @@
+def balanceLoad (region, nodeCount)
+    prediction = sampleFractal(region) # Will be per tile
+    cols = computeColCount(nodeCount)
+    deltaRes = region.guaranteedDivisor
+    deltaReal = deltaReal(region)
+    desiredN = computeOptimalLoad(prediction, cols)
+    cur = region
+    curN = 0
+    colsMade = 0
+    for i = 0 to prediction.cols.vectorLength
+        if colsMade + 1 == cols
+            cur = rest of region # Part of region thats not already assigned to a col
+            result.append(cur)
+            break
+        curN += prediction.cols[i]
+        cur.width += deltaRes
+        cur.maxReal += deltaReal
+        # Make sure that each col has at least width = deltaRes
+        if curN >= desiredN OR prediction.cols.length - i - 1 < cols
+            result.append(cur) # Copy of cur
+            cur.minReal = cur.maxReal
+            cur.width = 0
+            curN = 0
+            colsMade++
+            continue
+    return splitColsInParts(result)

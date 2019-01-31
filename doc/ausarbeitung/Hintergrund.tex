@@ -2,27 +2,31 @@
 
 % Was ist die Mandelbrotmenge
 \subsection{Die Mandelbrotmenge}
-
+\begin{figure}
+	\centering
+	\includegraphics[width=1\linewidth]{img/Einleitung/mandelbrot}
+	\caption{Die Mandelbrotmenge, visualisiert in einem Ausschnitt des komplexen Zahlenraumes.}
+	\label{fig:mandelbrot_visualisierung_beispiel}
+\end{figure}
 Die Mandelbrotmenge ist eine Teilmenge der komplexen Zahlen.
-Um sie zu berechnen wendet man folgende Formel wiederholt auf jede komplexe Zahl $c$ an:
+Um sie zu berechnen wendet man folgende Formel wiederholt auf eine komplexe Zahl $c \in \mathbb{C}$ an:
 \begin{equation}\label{equ:mandelbrot}
 	z_{n+1} = z_{n}^2 + c, \quad z_0 = 0
 \end{equation}
-In der Mandelbrotmenge befinden sich alle $c$, für die der Betrag von $z_n$ für beliebig große $n$ endlich bleibt.
-Wenn der Betrag von $z$ nach einer Iteration größer als 2 ist, so strebt $z$ gegen unendlich, das zugehörige $c$ liegt also nicht in der Menge.
-Sobald $|z_n| > 2$ kann die Berechnung daher abgebrochen werden \cite{424331}.
+In der Mandelbrotmenge befinden sich alle solche $c$, für die \( \lim_{n \rightarrow \infty} |z_n| < \infty \).
+Wenn nach der \( n \)-ten Iteration \( |z_n| > 2 \) ist, so strebt $z$ gegen unendlich, das zugehörige $c$ liegt also nicht in der Menge.
+Somit sobald $|z_n| > 2$ die Berechnung daher abgebrochen werden\cite{424331}.
 
 Um nun für eine beliebige Zahl zu bestimmen, ob diese in der Mandelbrotmenge liegt, müssen
 theoretisch unendlich viele Rechenschritte durchgeführt werden. Zur computergestützten Bestimmung
-werden die Rechenschritte nach einer bestimmten Iteration abgebrochen die Zahl als in der Menge liegend betrachtet.
+werden die Rechenschritte nach einer bestimmten Iteration abgebrochen und die Zahl als in der Menge liegend betrachtet.
 
-\subsection{Darstellung der Mandelbrotmenge}
-
-Eine Komplex Zahl \( c \in \mathbb{C} \) lässt sich auch grafisch darstellen, indem man sie in ein zweidimensionales Koordinatensystem einträgt.
+\paragraph{Darstellung der Mandelbrotmenge}
+Eine Komplexe Zahl \( c \in \mathbb{C} \) lässt sich grafisch darstellen, indem man sie in ein zweidimensionales Koordinatensystem einträgt.
 Dabei entspricht die x-Koordinate dem Realteil \( Re(c) \) und die y-Koordinate dem Imaginärteil \( Im(c) \).
 Für das Projekt wird ein Ausschnitt des Bildschirmes als zweidimensionale Darstellung des komplexen Raumes
 betrachtet und für jeden darin liegenden Punkt die Zugehörigkeit zur Mandelbrotmenge bestimmt.
-Dabei wird der Raum jedoch diskretisiert, indem jedem Pixel des Bildschirmes die komplexen Koordinaten $c$
+Dabei wird die komplexe Ebene \( \mathbb{C} \) jedoch diskretisiert, indem jedem Pixel des Bildschirmes die komplexen Koordinaten $c$
 der linken oberen Ecke zugeordnet werden.
 
 Die grafische Darstellung der Mandelbrotmenge wird durch Einfärbung des zu $c$ gehörigen Pixels erhalten.
@@ -30,19 +34,11 @@ Die Zahl der benötigten Iterationen bis zum Abbruch der Berechnung bestimmt dab
 innerhalb der Menge und alle Pixel außerhalb jeweils gleichfarbig sind.
 
 Das entstehende Fraktal ist aufgrund seiner Form auch als “Apfelmännchen” bekannt (siehe \autoref{fig:mandelbrot_visualisierung_beispiel}).
-Die Menge ist zusammenhängend, jedoch bilden sich an ihren Rändern viele kleine und sehr komplexe Formen, die visuell ansprechend sind.
+Am Rand der Menge bilden sich viele kleine und sehr komplexe Formen, die visuell ansprechend sind.
 
-\begin{figure}
-	\centering
-	\includegraphics[width=0.9\linewidth]{img/Einleitung/Mandelbrot_visualization_example.png}
-	\caption{Die Mandelbrotmenge, visualisiert in einem Ausschnitt des komplexen Zahlenraumes.}
-	\label{fig:mandelbrot_visualisierung_beispiel}
-\end{figure}
-
-% Was ist MPI
 \subsection{MPI}
-
-Das Message Passing Interface\footnote{\url{https://www.mpi-forum.org/}} ist eine weit verbreitete Spezifikation, für die Kommunikation zwischen unabhängigen Rechenkernen.
+Das Message Passing Interface\footnote{\url{https://www.mpi-forum.org/}} ist eine weit verbreitete Spezifikation, für die Kommunikation zwischen unabhängigen Rechenknoten.
+Es basiert wie der Name bereits andeutet auf dem Konzept, Daten explizit auszutauschen und zwischen den Knoten zu senden statt auf einen geteilten Speicher zuzugreifen.
 Dadurch existieren viele gut funktionierende Umsetzungen in einer Vielzahl von Programmiersprachen.
 Es ermöglicht echte Parallelisierung mit geringem Overhead.
 So können die einzelnen Berechnungen auf jeweils eigenen unabhängigen Rechenkernen laufen und
@@ -50,45 +46,19 @@ die Art der Aufteilung erhält größtmögliche Bedeutung.
 Die Gestaltung von MPI erlaubt dabei beliebige Zuordnungen, von Kernen auf einem Prozessor bis hin zu unabhängigen Clusterknoten, die lediglich eine SSH-Verbindung besitzen.
 
 % Was ist OpenMP -> Tobi
-% wenn verwendet
+\subsection{OpenMP}
+
+OpenMP\footnote{\url{https://www.openmp.org/wp-content/uploads/openmp-4.5.pdf}} (Open Multi-Processing) ist ein API, das auf die Parallelisierung von Schleifen und Programmabschnitten auf Shared Memory Systemen spezialisiert ist.
+Parallel ausführbare Programmteile werden durch eine spezielle Präprozessor Anweisung für die parallele Ausführung in mehreren Threads gekennzeichnet.
+So wird mit geringem Aufwand Parallelisierung innerhalb eines Mehrkernrechenbausteines
+ermöglicht.
+Schlüsselkonzept ist dabei, dass Threads erzeugt werden, die Schleifen paralleliseren und dabei auf den geteilten Speicher
+der Kerne zugreifen um Daten auszutauschen oder zusammenzutragen.
 
 % Was ist SIMD -> Niels
-
 \subsection{SIMD} \label{par:introduction_simd}
-
-\enquote{Simultaneous Instruction, Multiple Data} setzt auf Hardwareebene um, was der Name bereits andeutet:
+\enquote{Single Instruction, Multiple Data} setzt auf Hardwareebene um, was der Name bereits andeutet:
 Eine Instruktion wird auf verschiedene Daten gleichzeitig angewendet.
 Bei einem Projekt wie dem Mandelbrot kann diese Prinzip der Parallelisierung auch gut angewendet werden,
 da die einzelnen Punkte unabhängig voneinander sind.
 
-Für ARMv8-Architektur-Prozessoren wie die Prozessoren des Raspberry Pi 3 B+ oder ODroid
-existieren zur Implementierung von SIMD Instruktionen in Hochsprachen wie C und C++ sogenannte
-NEON Compiler Intrinsics\footnote{Details im Abschnitt 'Compiler Intrinsics' unter \url{https://developer.arm.com/technologies/neon}}.
-
-Diese Intrinsics ermöglichen eine Verwendung der nativen SIMD-Befehle, wobei der Compiler sich um die Verwendung der SIMD-Register kümmert.
-Dadurch wird lesbarer Code ermöglicht, der sich stärker am zu implementierenden Algorithmus orientiert.
-
-Zu den hier benötigten mathematischen Operationen (z.B. der Addition) wird hierbei das Compiler Intrinsic nach folgendem Schema erzeugt:
-\texttt{v\textit{opc}q\_f\textit{pr}} mit dem Operationscode \textit{opc} (z.B. \textit{add} für Addition).
-\verb|v| ist das allgemeine Prefix für Vektoroperationen und \verb|q| bedeutet, dass doppelt so viele Register verwendet werden wie ohne \enquote{q}.
-Das Postfix f\textit{pr} bestimmt, dass die Register als Gleitkommazahlen der Präzision \textit{pr} bit (in diesem Fall 32 oder 64) interpretiert werden sollen.
-Damit werden in jeder Operation 4 mal 32 bit Gleitkommazahlen oder 2 mal 64 bit Gleitkommazahlen verrechnet.
-
-
-\subsection{TypeScript und React}
-Um das Frontend zu implementieren, wurde sich für die Programmiersprache TypeScript\footnote{\url{https://www.typescriptlang.org/}}(Erweiterung von JavaScript um Typisierung) entschieden.
-Da diese zu JavaScript kompiliert, werden die Vortele von JavaScript, wie Ausführung im Webbrowser des Benutzers und eine vielzahl verfügbarer Bibliotheken,
-mit den Vorteilen einer typisierten Programmiersprache vereint.
-
-
-Für die graphische Benutzeroberfläche wurde ebenfalls TypeScript mit dem React Framework\footnote{\url{https://reactjs.org/}} verwendet, welches es ermöglicht,
-graphische Komponenten nativ in TypeScript zu erstellen und dynamisch zu verändern.
-Es wurde für jede Komponente eine eigene TypeScript Klasse zu erstellt, welche dann den betreffenden
-das betreffende Verhalten und dessen Darstellung enthält.
-
-
-Um das Fraktal darzustellen wird die Leaflet\footnote{\url{https://leafletjs.com/}} Bibliothek verwendet.
-Diese, für Onlinekarten konzipierte, Bibliothek stellt den Bereich der komplexen Ebene, auf der die Mandelbrotmenge liegt dar.
-Dabei wird der momentan sichtbare Ausschnitt der Menge mit Hilfe der WebSockets Verbindung (siehe \autoref{sec:fontend_communication}) an das Backend versendet und vom ausgewählten Lastbalancierer in Teilregionen unterteilt (siehe \autoref{sec:load_balancing}).
-Jeder der vom Backend berechneten Teilregionen wird, sobald diese empfangen wurden, im Frontend angezeigt und die Komponenten
-zu Visualisierung der Rechenzeit aktualisiert.

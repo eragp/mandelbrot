@@ -11,6 +11,43 @@ Programme wie in \autoref{par:himmuc_build_backend} beschrieben kompiliert werde
 Ist dies nicht gewünscht oder erledigt muss das Backend lediglich noch wie
 in \autoref{par:himmuc_run_backend} beschrieben gestartet werden.
 
+\paragraph{Start des Backends}
+\begin{figure}[h!]
+	\begin{lstlisting}[language=bash, caption={Starten der Entwicklungsumbegung des Backends}]
+# Systemabhängige Installation der Docker Anwendung
+$ sudo apt install docker
+cd backend/ && ./run_docker.sh
+Starting the Build Process
+...
+Host: Core 37 ready!
+# ^C beendet das Backend und verbindet sich mit der shell des Containers
+^C[mpiexec@9cc2d5ac2cd1] Sending Ctrl-C to processes as requested
+[mpiexec@9cc2d5ac2cd1] Press Ctrl-C again to force abort
+# exit schliesst die shell des Containers
+root@9cc2d5ac2cd1:~/eragp-mandelbrot/backend# exit
+        \end{lstlisting}
+\end{figure}
+
+\begin{figure}
+	\begin{lstlisting}[language=bash, caption={Beispielausgabe bei Start der Entwicklungsumbegung auf dem HimMUC}, label={shell:start_himmuc_example_anhang}]
+$ eragp-mandelbrot/backend$ python3 himmuc/start_himmuc.py muendler 10 9
+Uploading backend...  sending incremental file list
+backend/himmuc/start_backend.py
+          3,897 100%    3.05MB/s    0:00:00 (xfr#1, to-chk=35/62)
+done
+Start mandelbrot with 1 host and 9 workers on 9 nodes... started mandelbrot
+Search host node... srun: error: Could not find executable worker
+odr00 found
+Establish port 9002 forwarding to host node odr00:9002 ... established
+System running. Websocket connection to backend is now available at
+        ws://himmuc.caps.in.tum.de:9002
+Press enter (in doubt, twice) to stop Warning: Permanently added the ED25519 host key for IP address '10.42.0.54' to the list of known hosts.
+# Enter
+
+Stopping port forwarding... stopped (-9)
+Stopping mandelbrot host and workers... stopped (-9)
+    \end{lstlisting}
+\end{figure}
 
 \paragraph{Lokale Installation der Bibliotheken}\label{par:himmuc_install_libs}
 
@@ -158,6 +195,29 @@ ssh -S .tunnel.ssh -O exit rpi<host number>
 scancel -u <user name>
 \end{lstlisting}
 
+\subsection{Abängigkeiten des Frontends}
+\begin{figure}[h!]
+	\begin{lstlisting}[language=bash, caption={Starten des Frontends mit beispielhafter Ausgabe}]
+# Systemabhängige Installation der npm Paketverwaltung
+sudo apt install npm
+# Installiert benötigte Bibliotheken und startet WebServer
+cd frontend/ && npm install ; npm start
+...
+Version: webpack 4.25.1
+Time: 7230ms
+Built at: 12/28/2018 10:48:32 PM
+        Asset      Size  Chunks             Chunk Names
+   index.html  1.65 KiB          [emitted]
+mandelbrot.js  11.7 MiB    main  [emitted]  main
+    style.css   519 KiB    main  [emitted]  main
+Entrypoint main = style.css mandelbrot.js
+...
+        \end{lstlisting}
+\end{figure}
+\begin{figure}[h!]
+	\lstinputlisting[caption={Abh\"angigkeiten des Frontends. Verwaltet durch NPM}]{./code/frontend_dependencies.json}
+\end{figure}
+
 \subsection{Detaillierte Beschreibung der Header und der CMake Instruktionen}
 
 Die zusammenstellung der ausführbaren Dateien wird in CMake definiert.
@@ -196,6 +256,21 @@ erfolgreichen Initialisierung der eigentliche \hyperref[cls:Host]{Host-Prozess} 
 	\lstinputlisting[caption={Initialisierung der MPI-Prozesse in init.cpp}, label={src:init.cpp}, firstline=15, lastline=39, firstnumber=15]{../../backend/src/init.cpp}
 \end{figure}
 
+\subsection{Sequenzdiagramm zur Kommunikation im Backend mit Abbruch eines Workers}
+
+Ein Sequenzdiagramm zur Kommunikation im Backend mit Abbruch eines Workers ist in \autoref{fig:mpi_sequenzdiagramm_abbruch} zu finden.
+
+\begin{landscape}
+    \begin{figure}
+        % Bindet das als PDF exportierte vsdx ein -> vektorgrafik
+        % -> vsdx bearbeiten statt pdf
+        \centering
+        \includegraphics[origin = c, trim = 0mm 40mm 60mm 0mm, clip, width=0.9\linewidth]{img/Implementierung/MPISequenzdiagrammAbbruchFarben.pdf}
+        \caption{Sequenzdiagramm zur Kommunikation im Backend mit Abbruch eines Workers}
+        \label{fig:mpi_sequenzdiagramm_abbruch}
+    \end{figure}
+\end{landscape}
+
 \subsection{Detaillierter Ablauf der Host::handle\_region\_request Methode}
 
 Nach dem Parsen der Nachricht wird die Region global festgelegt und beim korrekten Lastbalancierer eine Zerlegung der angefragten Region über \verb|Balancer::balanceLoad| gestartet.
@@ -232,6 +307,58 @@ dass es die Daten verwirft.
 	\lstinputlisting[caption={Ausschnitt aus den Daten einer versendeten Teilregion. Punkt (x,y) liegt in \texttt{"data"} an Index $i=x+y*width$.}, label={src:regionData.json}, language=json]{./code/regionData.short.json}
 \end{figure}
 
+\subsubsection{Beschreibung der verwendeten MPI-Funktionen}
+
+In der Implementierung kommen folgende MPI-Funktionen zum Einsatz:
+
+\begin{itemize}
+	\item Initialisierung der MPI-Umgebung mit dem passenden Thread-Level
+
+          Die MPI-Umgebung wird mit einem Aufruf von MPI\_Init\_thread() initialisiert,
+          wobei das als Parameter übergebene Thread-Level mit dem Thread-Modell des eigenen Programms zusammen passen muss.
+          In Abhängigkeit vom verwendeten Thread-Level kann die MPI-Implementierung verschiedene Performanceoptimierungen durchführen.
+
+	\item MPI Sendeoperationen
+
+	      \begin{itemize}
+		      \item Blockierende Sendeoperation
+
+		            Mithilfe der blockierenden Sendeoperation (MPI\_Send()) lassen sich Nachrichten variabler Länge übertragen wobei die Funktion erst zurückkehrt, wenn die Daten komplett an MPI übergeben sind, d.h. der Sendepuffer vollständig ausgelesen wurde.
+
+		      \item Nicht-blockierende Sendeoperation als Persistent Communication Request
+
+		            Der Persistent Communication Request (MPI\_Send\_init() und MPI\_Start()) ist nur für die Übertragung von Nachrichten mit exakt gleicher Konfiguration geeignet. Insbesondere sind dies Länge der Nachricht, verwendeter Datenpuffer, Übertragungstyp, Nachrichtentag und Empfänger. Dadurch wird der Overhead für die Kommunikation mit dem MPI-Kommunikationscontroller reduziert und damit eine Performanceoptimierung erreicht. Der Übertragungsmodus ist bei dem Persistent Communication Request immer nicht-blockierend.
+	      \end{itemize}
+
+	\item MPI Empfangsoperationen
+
+	      \begin{itemize}
+		      \item Test, ob Daten Empfangen werden können
+
+		            Die Funktion MPI\_Probe() prüft, ob Daten zum Empfangen bereit sind und stellt Statusinformationen (z.B. Länge der Nachricht) über die Nachricht bereit. Diese Informationen sind für die eigentlichen Empfangsoperationen wichtig. Diese Funktion gibt es in einer blockierenden (MPI\_Probe()) und nicht-blockierenden (MPI\_Iprobe()) Ausprägung.
+
+		      \item Blockierende Empfangsoperation
+
+		            Die blockierenden Empfangsoperation (MPI\_Recv()) verhält sich analog zur blockierenden Sendeoperation.
+
+		      \item Nicht-blockierende Empfangsoperation als Persistent Communication Request
+
+		            Analog der Sendeoperation Persistent Communication Request gibt es eine nicht-blockierende Empfangsoperation (MPI\_Recv\_init() und MPI\_Start()) für den Empfang von Nachrichten fester Größe mit identischer Konfiguration. Der Übertragungsmodus ist immer nicht-blockierend. Die Verwendung ist unabhängig von der Sendeoperation mit der die Daten übertragen werden.
+
+	      \end{itemize}
+
+	\item Abschluss nicht-blockierender Kommunikation
+
+	      Nicht-blockierende MPI-Kommunikationsoperationen müssen immer mit einem Aufruf von MPI\_Wait() oder MPI\_Test() bzw. deren abgeleiteten Funktionen (z.B. MPI\_Waitall()) abgeschlossen werden.
+
+	      \begin{itemize}
+		      \item MPI\_Test() prüft nicht-blockierend ob eine Sende- oder Empfangsoperation abgeschlossen ist.
+
+		      \item MPI\_Wait() wartet blockierend auf den Abschluss einer Sende- oder Empfangsoperation.
+	      \end{itemize}
+
+\end{itemize}
+
 \subsection{Nutzbarkeit einzelner Worker}
 
 Es besteht die Möglichkeit, explizit zu definieren ob ein Worker Rechenaufträge bekommen soll oder nicht.
@@ -260,3 +387,30 @@ Sie werden in den nächsten Schleifendurchläufen von MPI\_Testsome ignoriert.
 Nachdem die Schleife abgebrochen wurde, muss noch überprüft werden, welche Sendeoperationen erfolgreich waren und welche nicht.
 War die Operation erfolgreich, wird der entsprechende Worker als nutzbar eingestuft.
 Falls nicht, wird die noch laufende Sendeoperation mit MPI\_Cancel abgebrochen und der Worker als nicht benutzbar eingestuft.
+
+\subsection{Entwicklung des Beschleunigungsfaktors von SIMD für höhere Iterationszahlen}
+\label{par:SIMD-speedup-entwicklung}
+
+Wie durch den konstanten Mehraufwand der SIMD-Verwendung zu erwarten, steigt der Beschleunigungsfaktor
+monoton und wächst ab circa 6000 Iterationen pro Pixel nicht mehr wesentlich.
+Dies kann \autoref{fig:SIMD-speedup-vs-comptime-10000} entnommen werden.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\linewidth]{img/Evaluation/simd/speedup_10000.pdf}
+	\caption{Beschleunigungsfaktor durch SIMD in Abhängigkeit von der durchschnittlichen Iterationszahl. Auswertung von 360 Regionen mit zwei Durchläufen. Die Iterationszahl für einen Abbruch war 10000.}
+	\label{fig:SIMD-speedup-vs-comptime-10000}
+\end{figure}
+
+Dass hier auch nicht in der Homogeninät der Iterationszahlen in Bereichen hoher Rechenintensität liegt,
+zeigt \autoref{fig:SIMD-speedup-vs-comptime-150}.
+Sie hat jedoch einen deutlich erkennbaren Einfluss auf die Beschleunigung.
+Während in bei einem frühzeitigen Abbruch bei \hyperref[fig:SIMD-speedup-vs-comptime]{1019 Iterationen} eine Beschleunigung von über 2
+erst ab etwa 200 Iterationen gemessen wird, tritt sie bei \hyperref[fig:SIMD-speedup-vs-comptime-150]{maximal 150 Iterationen} bereits ab etwa 140 auf.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\linewidth]{img/Evaluation/simd/speedup150.pdf}
+	\caption{Beschleunigungsfaktor durch SIMD in Abhängigkeit von der durchschnittlichen Iterationszahl. Auswertung von 360 Regionen mit zwei Durchläufen. Die Iterationszahl für einen Abbruch war 150.}
+	\label{fig:SIMD-speedup-vs-comptime-150}
+\end{figure}
