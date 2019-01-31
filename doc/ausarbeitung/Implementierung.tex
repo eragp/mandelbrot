@@ -56,7 +56,7 @@ Sämtliche Headerdateien sind ohne Untergruppierung im Ordner \verb|include| des
 Sie werden zusammen mit den Header-Bibliotheken \verb|rapidjson| und \verb|websocketpp| sowie der vorkompilierten
 Bibliothek \verb|boost_static| von CMake eingebunden um das Projekt zu builden.
 
-Für einen erfolgreichen Build wird CMake einer Version von mindestens 3.7.0 und die C++11 Standarts vorrausgesetzt.
+Für einen erfolgreichen Build wird CMake einer Version von mindestens 3.7.0 und die C++11 Standards vorrausgesetzt.
 Ergebnis des Builds sind die ausführbaren Dateien \verb|host| und \verb|worker| welche die
 beschriebenen Funktionen innerhalb des Backends umsetzen.
 
@@ -68,79 +68,15 @@ Zur Initialisierung der Prozesse muss zunächst die MPI-Umgebung aktiviert und a
 Dies geschieht für beide Programme gleich, über die Initialisierungsfunktion in \autoref{src:init.cpp}.
 Sie erwartet lediglich eine Beschreibung des Prozesses für den Log und eine Initialisierungsfunktion,
 die erst zurückkehrt, wenn das Programm abgeschlossen ist und MPI beendet werden soll.
-Die Funktion muss als Parameter den Rang bzw. die Id des aktuellen MPI-Prozesses und die Anzahl der initialisierten
+Die Funktion muss als Parameter den Rang bzw. die ID des aktuellen MPI-Prozesses und die Anzahl der initialisierten
 Prozesse entgegen nehmen.
-
-\subsection{Host Funktionalitäten}\label{cls:Host}
-
-\subsubsection{Websocketverbindung}
-
-Direkt nach der Initialisierung des Host-Programms wird ein separater Thread gestartet, der über Websocket
-Anfragen zur Berechnung einer Region entgegennimmt sowie ein Thread, der berechnete Regionen an den verbundenen Client übergibt.
-%Die Methode \verb|Host::start_server| initialisiert dabei lediglich den Websocketserver.
-Über den Typ des Servers wird eine Kompression versendeter Nachrichten über die im Standart akzeptierte Extension \enquote{perMessageDeflate} aktiviert.
-Zudem wird der Websocketserver mit \verb|server.init_asio()| mit der Transport Policy "transport::asio"
-konfiguriert, sodass Multithreadzugriff auf Sende- und Empfangsmethoden problemlos möglich ist \cite{websocketppManual}.
-
-Der Server behandelt zu jedem Zeitpunkt maximal eine Verbindung und speichert lediglich die zuletzt geöffnete Verbindung.
-
-Empfangene Nachrichten werden mit der Methode \hyperref[cls:Host::handle_region_request]{\texttt{Host::handle\_region\_request}} behandelt.
-
-Der zweite bei der Initialisierung gestartete Thread führt die Methode \hyperref[cls:Host::send]{\texttt{Host::send}} aus.
-
-\paragraph{Host::handle\_region\_request}\label{cls:Host::handle_region_request}
-
-Die Methode dekodiert einen empfangene Nachricht als JSON Regionsanfrage und behandelt sie nach folgendem Schema:
-
-\begin{enumerate}
-	\item Parse das empfangene RegionRequest-Objekt. Bei Fehlern wird die Funktion abgebrochen.
-	\item Involviere den spezifizierten Lastbalancierer um eine Aufteilung der Region zu erhalten
-	\item Bestimme den Rang des Workers, der eine Region bearbeiten wird. Hierzu wird der Algorithmus aus \autoref{src:Host.cpp.handle_region_request} verwendet.
-	\item Sende die Aufteilung inklusive der Ränge aller beteiligten Worker als Regions-Objekt an das Frontend
-	\item Übergebe die aufgeteilten Regionen an den Thread, der diese per MPI an die Worker sendet.
-\end{enumerate}
-
-In dem JSON wird unter dem Schlüssel \texttt{"balancer"} ein String erwartet, der den zu wählenden Lastbalancierer bestimmt.
-Mögliche Zeichenketten hierfür sind in den Klassen der Balancierer unter \verb|backend/src/balancer| in der globalen Variable
-\verb|Klassenname::NAME| gespeichert.
-
-Es ist hierbei wichtig, dass das senden an die Worker erst nach der Antwort an das Frontend geschieht und wird daher garantiert.
-Dadurch kann im Frontend sichergestellt sein, dass alle eintreffenden RegionData-Objekte zu einer Regionsaufteilung gehören,
-die bereits empfangen wurde.
-
-\paragraph{Host::send}\label{cls:Host::send}
-
-Während ein Thread das Empfangen von Nachrichten übernimmt, behandelt diese Methode von den Workern fertig berechnete Regionen.
-Die Methode setzt dabei eine Dauerschleife nach folgendem Schema um:
-
-\begin{enumerate}
-    \item Überprüfe auf das Vorhandensein fertig berechneter Regionen \label{enum:Host::send.step1}
-    \item Ist keine Region verfügbar
-    \begin{enumerate}
-        \item Warte blockierend auf eine Änderung
-        \item Springe zu Schritt \ref{enum:Host::send.step1}
-    \end{enumerate}
-    \item Ist eine Region verfügbar
-    \begin{enumerate}
-        \item Locke die geteilte Datenstruktur
-        \item Entnimm eine Region daraus
-        \item Löse das Lock
-    \end{enumerate}
-    \item Codiere die Regionsdaten in JSON und versende sie über Websocket an den aktuell verbundenen Client
-    \item Springe anschließend zu Schritt \ref{enum:Host::send.step1}
-\end{enumerate}
-
-Ein Beispiel für versendete Regionsdaten kann \autoref{src:regionData.json} entnommen werden.
-
-Mithilfe einer \texttt{condition\_variable}\footnote{\url{https://en.cppreference.com/w/cpp/thread/condition_variable}}
-nutzt sie die C++11 nativen mutex-Mechanismen um über das Vorhandensein neuer Regionen informiert zu werden.
 
 \subsection{Implementierung der Lastbalancierung}\label{sec:load_balancing}
 Der Implementierung der Lastbalancierung liegen die in \autoref{sec:load_balancing_concepts} beschriebenen Konzepte zugrunde.
 Wichtig bei der Umsetzung dieser ist, dass der garantierte Teiler (\verb|guaranteedDivisor|) von Höhe und Breite der Teilregionen dem der angeforderten Region entspricht (vgl. \autoref{fig:concept_coordinates}).
 Eine Tile (ein Bereich mit Breite und Höhe gleich dem garantierte Teiler\footnote{Eine Region lässt sich also immer in eine ganzzahlige Anzahl von Tiles aufteilen, vgl. \autoref{fig:leafletTiles}}, die Bezeichnung \textit{Tile} kommt aus dem Frontend) muss also als atomare Einheit betrachtet werden, da es sonst im Frontend zu Schwierigkeiten bei der Darstellung kommt.
 
-Die Klassenstruktur der Lastbalancierer entspricht dem Strategy-Pattern (vgl. \cite{gamma_design_1995} S. 315-323). So kann der Balancierer zur Laufzeit leicht gewechselt werden und auch die Erweiterung des Projekts um eine weitere Strategie gestaltet sich einfach.
+Die Klassenstruktur der Lastbalancierer entspricht dem Strategy-Pattern (vgl. \cite{gamma_design_1995} S. 315-323). So kann der Balancierer zur Laufzeit leicht gewechselt werden und auch die Erweiterung des Projekts um eine neue Strategie gestaltet sich einfach.
 Was dabei genau beachtet werden muss findet sich im Teil Erweiterung (\ref{lastbalancierung_erweiterung}).
 
 \subsubsection{Naive Strategie}
@@ -165,12 +101,11 @@ Der Rekursionskontext (\verb|struct BalancingContext|) wurde extern definiert, d
 
 \subsubsection{Strategie mit Vorhersage}
 
-Auch diese Strategie (\verb|PredictionBalancer| und \verb|RecursivePredictionBalancer|) folgt den oben beschriebenen Konzept. 
+Auch diese Strategie (\verb|PredictionBalancer| und \verb|RecursivePredictionBalancer|) folgt den oben beschriebenen Konzept.
 Allerdings wurde die Berechnung der Vorhersage in eine eigene Klasse ausgelagert, da die Berechnung der Vorhersage für die rekursive und die nicht-rekursive Variante gleich ist.
-Die Struktur der Vorhersage sorgt auch dafür, dass der garantierte Teiler erhalten bleibt.
-Für die Berechnung der Vorhersage ist es notwendig, dass bei der Erststellung eine Referenz auf ein \verb|Fractal|-Objekt (siehe \ref{sec:mandelbrot_calculation}) erhalten.
+Für die Berechnung der Vorhersage ist es notwendig, dass bei der Erststellung eine Referenz auf ein \verb|Fractal|-Objekt (siehe \ref{sec:mandelbrot_calculation}) übergeben wird.
 
-\paragraph*{Bestimmung der Vorhersage}
+\paragraph*{Bestimmung der Vorhersage}\label{par:predicter}
 % predicter
 Die Vorhersage (\verb|struct Prediction|) wird von der Klasse \verb|Predicter| angestellt.
 Dazu wird die Region in einer sehr viel geringeren Auflösung berechnet.
@@ -195,42 +130,14 @@ Als Abschätzung der Gesamtrechenlast wird die Gesamtsumme der Vorhersage verwen
 Eine Spalte, die als leere Region beginnt, wird nun solange um eine Spalte von Tiles vergrößert bis die optimale Rechenlast erreicht oder überschritten wird.
 Dazu müssen die Spaltensummen der Vorhersage aufaddiert werden.
 Um Lücken auszuschließen werden die Grenzen der Spalten explizit aufeinander gesetzt, d.h. bei zwei benachbarten Teilregionen entspricht die obere Grenze der Einen der unteren Grenze der Anderen.
-Damit es auch für die Aufteilung in Teilregionen eine Vorhersage gibt, wird eine Kopie der Vorhersage erstellt, welche nur die Werte für die aktuelle Spalte enthält (nicht im PSeudocode).
+Damit es auch für die Aufteilung in Teilregionen eine Vorhersage gibt, wird eine Kopie der Vorhersage erstellt, welche nur die Werte für die aktuelle Spalte enthält (nicht im Pseudocode).
 
 \begin{figure}[!h]
-	\begin{lstlisting}[language=python, caption={Aufteilung in Spalten im Pseudocode}, label={src:prediction_pseudo}]
-		def balanceLoad (region, nodeCount)
-			# Will be per tile
-			prediction = sampleFractal(region)
-			cols = computeColCount(nodeCount)
-			deltaRes = region.guaranteedDivisor
-			deltaReal = deltaReal(region)
-			desiredN = computeOptimalLoad(prediction, cols)
-			cur = region
-			curN = 0
-			colsMade = 0
-			for i = 0 to prediction.cols.vectorLength
-				if colsMade + 1 == cols
-					cur = rest of region # Part of region thats not already assigned to a col
-					result.append(cur)
-					break
-				curN += prediction.cols[i]
-				cur.width += deltaRes
-				cur.maxReal += deltaReal
-				# Make sure that each col has at least width = deltaRes
-				if curN >= desiredN OR prediction.cols.length - i - 1 < cols
-					result.append(cur) # Copy of cur
-					cur.minReal = cur.maxReal
-					cur.width = 0
-					curN = 0
-					colsMade++
-					continue
-			return splitColsInParts(result)
-	\end{lstlisting}
+	\lstinputlisting[language=python, caption={Aufteilung in Spalten im Pseudocode}, label={src:prediction_pseudo}]	{./code/predictionbalancer.pseudo}
 \end{figure}
 
 Im eigentlichen Code wurden ein paar Optimierungen am Pseudocode vorgenommen.
-Um float-Ungenauigkeitenbeim wiederholten Addieren zu minimieren werden die Werte in \verb|cur| nicht aufaddiert, sondern aus den Zählern berechnet.
+Um float-Ungenauigkeiten beim wiederholten Addieren zu minimieren werden die Werte in \verb|cur| nicht aufaddiert, sondern aus den Zählern berechnet.
 Außerdem werden die Spalten ohne Zwischenspeicherung in die nötigen Teilregionen aufgeteilt.
 Zusätzlich wird \verb|desiredN| nach jeder abgeschlossenen Spalte für die Verbleibenden neu berechnet, da es sehr unwahrscheinlich ist, dass dieser Wert genau erreicht wird.
 
@@ -242,9 +149,9 @@ Der Unterschied zwischen den beiden Strategien liegt also hauptsächlich in den 
 
 Bei dieser Strategie werden die Regionen nicht einfach halbiert, sondern in zwei Teile aufgeteilt, die laut der Vorhersage ähnlich rechenintensiv sind.
 Dazu wird ähnlich vorgegangen, wie bei der \hyperref[lastbalancierung_vorhersage]{nicht-rekursiven Variante} für die Aufteilung auf zwei Worker.
-Deshalb profitiert diese Strategie auch besonders davon, dass immer parallel zur kürzeren Seite geteilt wird.
-Die Vorhersage ist in diese Richtung nämlich feingliedriger, da weniger Tiles der Vorhersage zu einer Spalte bzw. Zeile zusammengefasst werden müssen als wenn parallel zur längeren Seite aufgeteilt werden würde.
-Allerdings wird hier, wenn möglich, sichergestellt, dass beide Teilregionen groß genug sind um jeweils auf die Hälfte der Worker aufgeteilt zu werden.
+Deshalb profitiert diese Strategie auch besonders davon, dass immer parallel zur kürzeren Seite geteilt wird, da die Vorhersage in diese Richtung feingliedriger ist.
+Dies liegt daran, dass weniger Tiles der Vorhersage zu einer Spalte bzw. Zeile zusammengefasst werden müssen als wenn parallel zur längeren Seite aufgeteilt werden würde.
+Allerdings wird hier, wenn möglich, sichergestellt, dass beide Teilregionen groß genug sind um jeweils auf die Hälfte der Worker aufgeteilt zu werden, da ansonsten unnötigerweise leere Regionen entstehen.
 Es ist hierbei auch wichtig die Vorhersage so zu teilen, dass es für jede Hälfte eine Vorhersage gibt, die dann an den rekursiven Aufruf übergeben werden kann.
 
 \subsubsection{Erweiterung}\label{lastbalancierung_erweiterung}
@@ -259,7 +166,6 @@ Zuerst muss eine Unterklasse von \verb|Balancer| (\autoref{src:Balancer.h}) erst
 Danach wird die neue Strategie über die Methode \verb|BalancerPolicy::chooseBalancer| verfügbar gemacht.
 Dazu muss sie mithilfe der statischen Variablen \verb|Klassenname::NAME| benannt werden.
 \verb|BalancerPolicy| muss nun so erweitert werden, dass, bei Eingabe des vorher festgelegten Namens, ein neues Objekt der entsprechenden Klasse zurückgegeben wird.
-In \verb|BalancerPolicy| kann auch die Genauigkeit der Vorhersage für die oben aufgeführten Strategien festgelegt werden.
 
 \paragraph*{Bedingungen an Balancer::balanceLoad}
 Bei der Eingabe von \verb|region| und \verb|nodeCount| erfüllt ein korrekter Rückgabewert \verb|subregions| die folgenden Bedingungen:
@@ -281,230 +187,116 @@ Dazu muss der neue Testfall (\verb|struct TestCase|) durch Angabe von Name, Anza
 Dann kann er an der im Quellcode markierten Stelle zum Vektor der Testfälle hinzugefügt werden.
 Anschließend muss der Test mittels \verb|cmake| in \verb|backend/tests| neu kompiliert werden.
 
-\subsection{Kommunikation der Prozesse per MPI}\label{sec:mpi}
 
-% TODO: Irgendwo muss noch erwähnt werden, dass es nur auf gleichen Rechnern funktioniert, da wir Byte-Ströme übertragen
+\subsection{Kommunikation zwischen Host und Worker im Backend mittels MPI}
 
-Das Message Passing Interface (MPI) wird ausschließlich im Backend zur Kommunikation zwischen dem Host und den Workern verwendet.
+Zur Kommunikation zwischen dem Host und den Workern im Backend wird ausschließlich das \verb|Message Passing Interface (MPI)|\cite{mpi} genutzt. Als MPI-Implementierung wird \verb|OpenMPI|\cite{openmpi} verwendet, da dies sehr verbreitet ist und auch die Nutzung von Threads unterstützt, was laut der offiziellen \verb|MPI-Dokumentation|\cite{mpi} ein optionales Feature ist.
+\\
+\\
+Zur Veranschaulichung der MPI-Kommunikation dient das Sequenzdiagramm in \autoref{fig:mpi_sequenzdiagramm}.
 
-\paragraph{MPI und Threads}
+\begin{landscape}
+	\begin{figure}
+		% Bindet das als PDF exportierte vsdx ein -> vektorgrafik
+		% -> vsdx bearbeiten statt pdf
+		\centering
+		\includegraphics[origin = c, trim = 0mm 100mm 60mm 0mm, clip, width=0.95\linewidth]{img/Implementierung/MPISequenzdiagrammFarben.pdf}
+		\caption{Sequenzdiagramm zur Kommunikation im Backend}
+		\label{fig:mpi_sequenzdiagramm}
+	\end{figure}
+\end{landscape}
 
-Da sowohl im Host, als auch in den Workern mehrere Threads arbeiten, muss die Kompatibilität von MPI mit Threads genau betrachtet werden.
-Laut der offiziellen \verb|MPI Dokumentation|\footnote{\url{https://www.mpi-forum.org/docs/mpi-3.1/mpi31-report.pdf}} müssen die konkreten Implementierungen von MPI keinerlei Threads unterstützen, die meisten bekannten Implementierungen (wie beispielsweise \verb|Open MPI|\footnote{\url{https://www.open-mpi.org/doc/v3.1/man3/MPI_Init_thread.3.php}}) tun dies aber, falls sie entsprechend konfiguriert wurden.
+Wie auch in der \hyperref[sec:architektur]{Architekturübersicht} beschrieben, erwartet der MPI-Thread des Hosts in einer mit dem Websocket-Anfrage-Thread geteilten Datenstruktur Rechenaufträge, die per MPI an die Worker weitergeleitet werden sollen.
+Diese führen die zugewiesenen Rechenaufträge parallelisiert aus.
+Anschließend werden die Rechenergebnisse wieder via MPI an den MPI-Thread des Hosts übermittelt,
+welcher diese in einer weiteren gemeinsamen Datenstruktur für den Websocket-Ergebnis-Thread ablegt.
 
-Es wurde besonders darauf geachtet, dass nur ein Thread pro Prozess MPI-Aufrufe tätigt, wodurch die Thread-Umgebung mit MPI\_THREAD\_FUNNELED initialisiert werden kann.
-Dadurch kann MPI einige Optimierungen durchführen, die nicht möglich wären, wenn mehrere Threads MPI-Aufrufe tätigen.
-Zudem sind die meisten MPI Implementierungen noch nicht auf eine performante Umsetzung von mehreren Threads ausgelegt, weshalb das Thread-Level so niedrig wie möglich gehalten werden sollte.
+Wird während einer laufenden Berechnung eine neue Berechnung angefordert, so werden die auf den Workern noch laufenden Berechnungen abgebrochen und mit der neuen Berechnung begonnen. Ein entsprechendes Sequenzdiagramm ist in \autoref{fig:mpi_sequenzdiagramm_abbruch} im Anhang zu finden.
 
-\paragraph{Busy-Waiting von MPI}\label{para:mpi_busy_waiting}
+\subsubsection{MPI-Designentscheidungen}
+%TODO Namen der Threads überall (auch Grafiken) konsistent halten! Sollte aktuell passen. Vor der Abgabe nochmal überprüfen.
+Für die Implementierung der MPI-Kommunikation wurden mit dem Ziel der Performancesteigerung folgende Designentscheidungen getroffen:
 
-Bei den verwendeten Implementierungen von MPI, MPICH und OpenMP, wird bei blockierenden Nachrichtensende und -empfangsoperationen Busy-Waiting umgesetzt.
-Das führt einerseits dazu, dass die Verzögerung beim Empfangen von Nachrichten minimiert wird und die Bearbeitung der Daten sofort starten kann.
-Andererseits führt das aber zu einer 100-Prozentigen Auslastung des Rechenkerns, was andere Prozesse von der Durchführung ihrer Arbeit abhalten kann und zu einem erhöhten Stromverbrauch führt.
+\paragraph{Initialisierung der MPI-Umgebung mit MPI\_THREAD\_FUNNELED}\label{item:mpi_init}
 
-Im Fall des blockierenden MPI\_Recv wird solange aktiv ohne Pause getestet, ob eine Nachricht empfangen werden kann, bis dies der Fall ist.
-Falls eine nicht-blockierende Empfangsoperation mit MPI\_Irecv gestartet wird, muss diese anschließend auch abgeschlossen werden.
-Dazu kann einerseits MPI\_Wait dienen, das solange wartet, bis die Empfangsoperation abgeschlossen ist. Hierzu wird ebenfalls Busy-Waiting nutzt.
-Andererseits kann auch MPI\_Test genutzt werden, was nur überprüft, ob die Empfangsoperation abgeschlossen ist ohne auf deren Abschluss zu warten.
-Auch hier gibt es keine andere Möglichkeit, als immer wieder (beispielsweise in einer Schleife) MPI\_Test aufzurufen.
-Der einzige Vorteil besteht darin, dass zwischen diesen wiederholten Aufrufen andere Arbeit erledigt oder der Prozess für eine gewisse Zeit schlafen gelegt werden kann.
-Mit MPI\_Probe bzw. MPI\_Iprobe verhält es sich ähnlich wie mit MPI\_Recv bzw. MPI\_Test.
-Also wird auch hier Busy-Waiting eingesetzt.
+In der gewählten Architektur arbeiten sowohl Host als auch Worker mit mehreren Threads, wobei nur der Hauptthread MPI-Aufrufe tätigt.
+Für die MPI-Konfiguration bedeutet dies, dass sie mit MPI\_THREAD\_FUNNELED initialisiert werden muss.
+Durch die Einschränkung auf einen MPI-Thread ist MPI in der Lage Optimierungen durchzuführen, was der Performance der Kommunikation zu Gute kommt.
+Es wurde sich bewusst gegen den Einsatz von MPI in mehreren Threads (MPI\_THREAD\_MULTIPLE) entschieden, da OpenMPI hierfür zwar eine korrekte aber nicht performanceoptimierte Implementierung anbietet.\cite{openmpithread}
 
-%TODO: x und y bestimmen. x=1?
-In der Implementierung wurde deshalb im Host und im Worker ein eine nicht-blockierende Empfangsmethode gewählt, die den Thread für x Millisekunden schlafen legt, bevor Überprüft wird, ob Daten empfangen wurden.
-Die damit einhergehende Verzögerung verfälscht das Ergebnis nicht schwerwiegend, da die Berechnung einer Region für gewöhnlich deutlich länger als y Millisekunden benötigt.
-%TODO: Im Host das auch wirklich implementieren
+\paragraph{Datenübertragung als uninterpretierte Byte-Datenströme}
 
-\subsubsection{Genereller Aufbau der MPI-Kommunikation}
+Alle per MPI übertragenen Daten werden uninterpretiert als Byte-Datenströme geschickt.
+Das bedeutet, dass die Interpretation der Daten maschinenabhängig ist.
+Allerdings macht dies die Übertragung einfach und performant, da im gesamten Backend mit den selben Structs ohne eine Umformatierung gearbeitet werden kann.
 
-Im Folgenden wird kurz der generelle Aufbau der MPI-Kommunikationsroutinen im Host und in den Workern erklärt.
+\paragraph{Nicht-blockierendes Senden der Subregionen vom Host an die Worker}
 
-\paragraph{MPI-Kommunikation im Host}\label{para:mpi_generell_host}
+Der MPI-Host-Thread verwendet Persistent Communication Requests für das performante Senden der Arbeitsaufträge zu den Workern,
+da hier die Nachrichtengröße konstant ist und die Sendeparameter identisch sind.
+Der gewählte Übertragungsmodus ist nicht-blockierend, da dieser Modus es erlaubt, alle Sendeoperationen an alle Worker zu starten und erst danach auf deren Abschluss mit einem MPI\_Waitall() zu warten. Dies gewährleistet, dass die Subregionen möglichst schnell an die Worker verteilt werden und diese somit mit minimaler Verzögerung die Berechnung beginnen können.
+Dieser Aufruf ist in der Grafik mit "MPI\_PCR\_Start()" bezeichnet.
 
-%TODO: Evtl. Websocket-Thread erwähnen zu Beginn bei den neuen Aufträgen
-Die essenziellen Teile der MPI-Kommunikation des Hosts, also das \hyperref[para:send_host]{Senden von Rechenaufträgen} und das \hyperref[para:recv_host]{Empfangen der berechneten Daten}, befinden sich in einer gemeinsamen Endlosschleife.
-\begin{enumerate}
-    \item Ist das Flag gesetzt, dass neue Rechenaufträge an die Worker zu senden sind \label{enum:Host::mpi.step1}
-    \begin{enumerate}
-        \item Sende alle Aufträge per MPI an die jeweiligen Worker. Der Rang bestimmt sich aus dem Index in der Datenstruktur für die Rechenaufträge.
-    \end{enumerate}
-    \item Können berechnete Daten von einem der Worker empfangen werden
-    \begin{enumerate}
-        \item Formatiere die empfangenen Daten, um Metainformationen hinzuzufügen
-        \item Locke die mit dem Websocket-Sende Thread geteilte Datenstruktur.
-        \item Lege die Daten in die Datenstruktur
-        \item Löse das Lock
-    \end{enumerate}
-    \item Wurde keine Operation durchgeführt, schlafe $z$ ms, um die Prozessorlast zu verringern
-    \item Springe zu Schritt \ref{enum:Host::mpi.step1}
-\end{enumerate}
+\paragraph{Nicht-blockierendes Empfangen der vom Host gesendeten Subregionen in den Workern}
 
-Dabei wird immer zuerst überprüft, ob neue Rechenaufträge an die Worker zu senden sind.
-Gegebenenfalls werden die Sendeoperationen durchgeführt.
-Anschließend wird überprüft, ob berechnete Daten empfangen werden können.
-Ist das der Fall, so wird die Empfangsoperation durchgeführt, die Daten reorganisiert und über eine gemeinsame Datenstruktur an einen Websocket-Thread weitergeleitet, der die Informationen an das Frontend reicht.
-Nun wird die Schleife von neuem begonnen.
-Es wird also sowohl für das überprüfen, ob neue Rechenaufträge vorhanden sind, als auch für das Empfangen der berechneten Daten \hyperref[para:mpi_busy_waiting]{Busy-Waiting} eingesetzt.
+Analog zum MPI-Host-Thread nutzt auch der MPI-Worker-Thread Persistent Communication Requests um eine Subregion
+mit möglichst wenig Overhead, zu empfangen.
+Es wurde der nicht-blockierende Übertragungsmodus gewählt, um laufende Berechnungen abbrechen zu können,
+sobald ein neuer Rechenauftrag empfangen wird (siehe \hyperref[para:impl_mpi_worker]{Implementierung der MPI-Kommunikation im Worker}).
 
-\paragraph{MPI-Kommunikation im Worker}\label{para:mpi_generell_worker}
+\paragraph{Struktur der von den Workern an den Host gesendeten Daten}
 
-Auch hier wird das \hyperref[para:recv_worker]{Empfangen der Rechenaufträge} und das \hyperref[para:send_worker]{Senden der berechneten Daten} in einer Endlosschleife bewerkstelligt.
-Zu beginn wird so lange gewartet, bis ein neuer Rechenauftrag empfangen wurde.
-Direkt im Anschluss wird die Berechnung der empfangenen Region gestartet, wobei während der Kalkulation auf neu ankommende Rechenaufträge gelauscht wird.
-Ist ein neuer Auftrag zu empfangen, so wird die laufende Berechnung abgebrochen und die Schleife von vorne gestartet.
-Falls die Berechnung nicht unterbrochen wurde, werden die Daten organisiert und an den Host geschickt.
-Nun beginnt die Schleife von vorne.
+Es müssen generelle Informationen in Form eines WorkerInfo-Structs (allgemeine Daten zur Subregion, Nummer des Workers, Berechnungsdauer) und ein Array der berechneten Daten von den Workern an den Host gesendet werden.
+Da die Anzahl der berechneten Daten und damit die Länge des Datenarrays variiert, wird das Datenarray direkt hinter das WorkerInfo-Struct kopiert und zusammen versendet.
 
-Es ist auch hier zu erkennen, dass \hyperref[para:mpi_busy_waiting]{Busy-Waiting} für das Empfangen von neuen Rechenaufträgen eingesetzt wird.
+\paragraph{Blockierendes Senden der berechneten Subregion von den Workern an den Host}
 
-\subsubsection{Übertragung neuer Rechenaufträge vom Host an die Worker}
+Diese flexible Operation wird für das Versenden der Rechenergebnisse vom Worker zum Host verwendet, da die zu übertragende Datenmenge von der Größe der berechneten Region abhängt. Nicht-blockierendes Senden ist hier nicht notwendig, da nach der abgeschlossenen Berechnung neben dem Senden keine weiteren Operationen durchzuführen sind. Im Sequenzdiagramm ist dieser Aufruf mit "MPI\_Send()" bezeichnet.
 
-Um neue Rechenaufträge an die Worker zu übertragen, werden im Host und in den Workern Persistent Communication Requests verwendet. Das hat den Vorteil, dass der Kommunikationsoverhead zwischen dem Prozess und dem Kommunikationscontroller reduziert wird. Die Nutzung dieser Persistent Communication Requests ist möglich, da immer die selbe Datenmenge an die selben Empfänger gesendet wird bzw. vom selben Absender (das ist hier der Host) empfangen wird.
+\paragraph{Blockierendes Empfangen der von den Workern berechneten Subregion im Host}
 
-Zur Übertragung der neuen Rechenaufträge wird das Region-Struct verwendet, welches bereits durch einen Websocket-Thread ausgefüllt wurde.
+Wenn ein Worker Daten zum Versenden bereit hält (dies wird nicht-blockierend mit MPI\_Iprobe() getestet), werden die Daten blockierend Empfangen und sofort im richtigen Format in die MPI\_To\_Websocket\_Result Datenstruktur abgelegt. Eine nicht-blockierende Empfangsoperation bietet in diesem Anwendungsfall keine Vorteile.
 
-\paragraph{Initialisierung der Persistent Communication Requests}\label{para:persistent_init}
+\paragraph{Busy Waiting}
 
-Um die Persistent Communication Requests nutzen zu können, müssen diese zunächst Initialisiert werden.
+\begin{itemize}
+	\item Busy waiting im MPI-Host-Thread
+	
+	Im Host ist busy waiting unumgänglich, da einerseits auf neue Arbeitsaufträge und andererseits auf Rechenergebnisse reagiert werden muss. Um busy waiting zu umgehen, wäre eine Lösung, einen Sendethread und einen Empfangsthread zu implementieren, was aber die MPI-Kommunikation insgesamt verlangsamen würde, da ein höherer Isolation-Level gesetzt werden muss (siehe \hyperref[item:mpi_init]{Initialisierung der MPI-Umgebung mit MPI\_THREAD\_FUNNELED}). Um die CPU zu entlasten, wird der MPI-Host-Thread für 100 Mikrosekunden schlafen gelegt, falls im aktuellen Schleifendurchlauf weder eine Sendeoperation noch eine Empfangsoperation durchgeführt wurde. Diese Pause hat keine signifikante Auswirkung auf die Gesamtperformance aufgrund der im Vergleich deutlich längeren Berechnungsdauer einer Subregion.
+	%TODO vgl. schnellste Berechnungszeit der Zusammenfassung
+	
+	\item Busy waiting im MPI-Worker-Prozess
+	
+	Solange keine Berechnungen durchzuführen sind, wäre es ausreichend blockierend auf das Eintreffen neuer Berechnungsaufträge zu warten, um die CPU nicht unnötig zu belasten.
+	Da blockierende Empfangsoperationen bei OpenMPI mittels busy waiting implementiert sind (Agressive-Mode), falls die Anzahl an laufenden MPI-Prozessen gleich oder niedriger der Anzahl an verfügbaren Prozessoren ist, wird auf deren Nutzung verzichtet \footnote{\url{https://www.open-mpi.org/faq/?category=running\#oversubscribing}} (Anmerkung: Die Nutzung des Degraded-Modes durch setzen des entsprechenden MCA-Parameters war auf dem verwendetem Cluster leider nicht möglich). Stattdessen wird der MPI-Worker-Prozess im Schleifendurchlauf für 1 Millisekunde schlafen gelegt wenn keine Nachrichten zu empfangen sind. Im Vergleich zur Berechnungsdauer einer Subregion fällt diese 1 Millisekunde nicht ins Gewicht, entlastet aber spürbar die CPU.
+	%TODO: vgl wieder schnellste Berechnung
+	%TODO Quellen für den Busy Waiting Dreck.
+	
+\end{itemize}
 
-Im Host werden hierzu ein Array mit MPI\_Request, ein Array mit MPI\_Status und ein Array mit Region erstellt. So bekommt jeder Prozess seinen eigenen Request, Status und Puffer für die zu sendende Region. Der Index, an dem sich diese Objekte befinden ist immer der von MPI zugewiesene Rang des Prozesses.
-Anschließend wird die eigentliche Initialisierung der Persistent Communication Requests durch einen Aufruf von MPI\_Send\_init für jeden Prozess durchgeführt, wobei als Tag der Kommunikation die Zahl 1 gewählt wurde. Als Kommunikationsmodus wird eine nicht-blockierende Standardsendeoperation gewählt. Durch diesen Kommunikationsmodus wird die Senden-Operation nur gestartet, d.h. der Aufruf kehrt unter Umständen zurück, bevor die Sendeoperation abgeschlossen ist. Dadurch wird ein paralleles, möglichst schnelles Senden aller Rechenaufträge gewährleistet. Mehr zur Durchführung des Sendens ist im \hyperref[para:send_host]{nächsten} Paragraphen zu finden.
-Die genaue Implementierung der Initialisierung ist in \autoref{src:mpi_send_init_host} zu sehen.
+\subsubsection{Ablauf der MPI-Kommunikation im Host}
 
-% Code in Worker anpassen, so dass Request, Status und Region zusammen mit MPI_Recv_init stehen
-Im Worker werden ebenfalls jeweils ein MPI\_Request, ein MPI\_Status und ein Region Objekt erstellt. Dann wird wieder der Persistent Communication Request durch einen Aufruf von MPI\_Recv\_init initialisiert, wobei der Tag wieder 1 und die Empfangsoperation nicht-blockierend ist. Der Einsatz der nicht-blockierenden Empfangsoperation stellt sicher, dass der Worker laufende Berechnungen bei Erhalt eines neuen Rechenauftrags abbricht und sofort mit der Berechnung der neuen Anfrage beginnt. Mehr hierzu im Paragraphen \hyperref[para:recv_worker]{Empfangen der Rechenaufträge im Worker}.
-Die Implementierung ist in \autoref{src:mpi_recv_init_worker} zu sehen.
+%TODO Eventuell noch das Senden der Testregionen beschreiben.
+Die Kommunikation zwischen Host (MPI-Host-Thread) und Workern (MPI-Worker-Prozess) ist im MPI-Host-Thread als Endlosschleife (busy waiting) implementiert. Die dabei stattfindenden Operationen inklusive ausführlicher Kommentare sind in \autoref{src:mpi_host_pseudo} einzusehen.
 
-\begin{figure}[h!]
-	\lstinputlisting[caption={Initialisierung des Persistent Communication Requests im Host}, label={src:mpi_send_init_host}, firstline=525, firstnumber=525, lastline=531]{../../backend/src/actors/Host.cpp}
+\begin{figure}[!h]
+	\lstinputlisting[language=python, caption={MPI Kommunikation im Host in Pseudocode}, label={src:mpi_host_pseudo}]{code/MPIHost.py}
 \end{figure}
 
-\begin{figure}[h!]
-	\begin{lstlisting}[language=c++, caption={Initialisierung des Persistent Communication Requests im Worker}, label={src:mpi_recv_init_worker}, firstnumber=56]
-	// Init persistent asynchronous receive
-	Region newRegion;
-	MPI_Request request;
-	MPI_Recv_init(&newRegion, sizeof(Region), MPI_BYTE, host_rank, 1, MPI_COMM_WORLD, &request);
-	\end{lstlisting}
+\subsubsection{Ablauf der MPI-Kommunikation im Worker}\label{para:impl_mpi_worker}
+
+Analog zum Host ist auch der Worker (MPI-Worker-Prozess) als Endlosschleife mit busy waiting implementiert. Die Berechnung einer Subregion erfolgt dabei zeilenweise durch einen compute() Aufruf. Der entsprechende Pseudocode inklusive ausführlicher Kommentare ist in \autoref{src:mpi_worker_pseudo} zu finden.
+
+\begin{figure}[!h]
+	\lstinputlisting[language=python, caption={MPI Kommunikation im Worker in Pseudocode}, label={src:mpi_worker_pseudo}]{code/MPIWorker.py}
 \end{figure}
 
-\paragraph{Senden der Rechenaufträge im Host}\label{para:send_host}
-
-Im Host sind neue Rechenaufträge immer dann an die Worker zu übertragen, wenn das Flag mpi\_send\_regions vom entsprechenden Websocket-Thread gesetzt wurde. Hierbei wird Busy-Waiting eingesetzt, da das Empfangen von fertig berechnenden Regionen auch nur mit Busy-Waiting funktioniert und sich das Senden und Empfangen in der selben Schleife befindet. Mehr hierzu in Abschnitten \hyperref[para:mpi_busy_waiting]{Busy-Waiting} und \hyperref[para:mpi_generell_host]{Genereller Aufbau der MPI-Kommunikation im Host}.
-
-Sind neue Rechenaufträge verfügbar, wird jede einzelne Region einem verfügbaren Worker zugeordnet, wobei jeder Worker maximal eine Region bekommt.
-Hierzu wird die Region aus der gemeinsamen Datenstruktur websocket\_request\_to\_mpi in den Sendepuffer des Workers kopiert. Anschließend wird das nicht-blockierende stardard Senden mit MPI\_Start gestartet.
-Die Zuordnung zwischen Rang des Workers und Index der Region wird dabei Deterministisch bestimmt so wie in \autoref{src:Host.cpp.handle_region_request}.
-
-% TODO: Evtl. anmerken, warum nicht gleich der Websocket-Thread in den Sendepuffer kopiert. Grund: Klare Trennung der beiden Threads und vermeiden von unauthorisierten Zugriff auf den Sendepuffer, weil ein lock vergessen wurde zu setzen o.Ä.
-
-Falls nicht genügend Rechenprozesse zur Verfügung stehen (es also mehr zu berechnende Regionen als Rechenprozesse gibt), wird nur ein Fehler ausgegeben, da dieser Fall in der aktuellen Version unmöglich ist. Die restlichen Regionen, denen noch kein Rechenprozess zugeteilt wurde, werden nicht berechnet.
-% In einer erweiterten Version durchaus möglich, aber extrem unwahrscheinlich.
-
-Um sicherzustellen, dass alle Sendeoperationen abgeschlossen sind, wird MPI\_Waitall eingesetzt, welches den Thread des Hosts so lange blockiert, bis die Daten aus allen Sendepuffern ausgelesen wurden. Es wird jedoch nicht gewartet, bis das entsprechende Empfangen in den Workern gestartet bzw. beendet wurde.
-
-Der Code hierzu ist in \autoref{src:mpi_send_host} zu sehen.
-
-\begin{figure}[h!]
-	\lstinputlisting[caption={Senden neuer Rechenaufträge im Host}, label={src:mpi_send_host}, firstline=537, firstnumber=537, lastline=559]{../../backend/src/actors/Host.cpp}
-\end{figure}
-
-\paragraph{Empfangen der Rechenaufträge im Worker}\label{para:recv_worker}
-
-Da der Worker laufende Berechnungen abbrechen soll, falls er einen neuen Rechenauftrag bekommt, wird eine nicht-blockierende Empfangsoperation verwendet (dessen Initialisierung wurde \hyperref[para:persistent_init]{hier} behandelt). Direkt nach der Initialisierung wird die Empfangsoperation mittels MPI\_Start gestartet, der Worker lauscht also nach neuen Rechenaufträgen und empfängt diese im Hintergrund während das Programm weiterläuft.
-
-Direkt danach beginnt eine Endlosschleife (sie stellt den wichtigsten Teil des Workers dar), die zunächst MPI\_Test aufruft, um zu überprüfen, ob ein neuer Rechenauftrag erfolgreich empfangen wurde.
-
-Ist das nicht der Fall, so wird der Worker für eine Millisekunde gestoppt um die Prozessorlast zu reduzieren. Anschließend wird die Schleife von neuem begonnen.
-
-Konnte etwas empfangen werden, so wird die empfangene Region aus dem Empfangspuffer des Persistent Communication Requests (newRegion) in einen neuen Speicherplatz (region) kopiert. Nun wird wieder MPI\_Start aufgerufen, um nach neuen Rechenaufträgen lauschen zu können. Jetzt wird auch klar, warum der Puffer kopiert werden musste. Der Empfangspuffer wird nämlich wiederverwendet. Anschließend wird die Berechnung der empfangenen Region gestartet, wobei nach jedem berechnetem Pixel mittels MPI\_Test überprüft wird, ob eine neue Region empfangen wurde. Ist das der Fall, so wird die Berechnung abgebrochen und die Endlosschleife von vorne begonnen. Falls nicht, wird mit der Berechnung des nächsten Pixels fortgefahren.
-
-Der entsprechende Code ist in \autoref{src:mpi_recv_worker} zu finden.
-
-\begin{figure}[h!]
-	\begin{lstlisting}[language=c++, caption={Empfangen neuer Rechenaufträge im Worker}, label={src:mpi_recv_worker}, firstnumber=59]
-	// Listen for incoming messages
-	MPI_Start(&request);
-	// Start with actual work of this worker
-	while (true) {
-		// Test if receive operation is complete
-		MPI_Test(&request, &flag, &status);
-		if (flag != 0) {
-			// Set current region to newRegion, copy value explicitly
-			std::memcpy(&region, &newRegion, sizeof(Region));
-			// Listen for incoming messages
-			MPI_Start(&request);
-			// Loop over every pixel
-			for (...) {
-				// Compute pixel
-				f->calculateFractal(...)
-				// Test if receive operation in complete
-				MPI_Test(&request, &flag, &status);
-				if (flag != 0) {
-					// Start while loop again
-				}
-			}
-		} else {
-			// Reduce processor usage on idle
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
-		}
-	}
-	\end{lstlisting}
-\end{figure}
-
-\subsubsection{Übertragung der berechneten Daten von den Workern zum Host}
-
-Um dem vom Worker berechneten Teil der Mandelbrotmenge und zusätzliche Informationen wie beispielsweise die Rechendauer an den Host zu schicken, wird ebenfalls wieder MPI benutzt.
-
-\paragraph{Struktur der zu übertragenden Daten}\label{para:struktur_daten}
-
-Die Daten des Workers setzten sich aus zwei Teilen zusammen. Zum einen werden allgemeine Informationen in Form eines WorkerInfo-Structs an den Host geschickt. Dieses Struct beinhaltet den Rang des Workers, die Dauer der Berechnung und das zuvor empfangene Region-Struct, dass den Arbeitsauftrag enthält. Zum anderen müssen natürlich noch die berechneten Daten in Form eines unsigned short int Arrays gesendet werden.
-
-Es ist dabei nicht praktikabel das Array mit den Daten in das WorkerInfo-Struct zu integrieren, da die Länge des Arrays von Region zu Region aufgrund des vorgenommenen Balancings unterschiedlich sein kann. Demnach wäre nur ein Pointer auf den wirklichen Speicherbereich (der außerhalb des Structs liegt) möglich. Wenn die Daten aber per MPI an einen anderen Prozess oder sogar an einen anderen Computer im Cluster gesendet werden sollen, dann ist es nicht zielführend, wenn man nur den Pointer überträgt und nicht die Daten selbst. Auf den vom Pointer referenzierten Speicherbereich kann nämlich gar nicht zugegriffen werden.
-
-%Es ist nicht praktikabel das Array mit den Daten in das WorkerInfo-Struct zu integrieren, da es nicht ohne Probleme möglich ist, ein Struct mit einem Array variabler Größe über MPI zu senden. Ein dynamisches Array für die Ergebnisse der Berechnungen wird benötigt, da nicht zu Compile-Zeit festgelegt werden kann, wie viele Pixel eine Teilregion enthält. Das ist abhängig vom Balancer. Dieses dynamische Array wird in einem Struct aber als Pointer dargestellt. Das heißt, dass die Daten nicht direkt bei den anderen Daten des Structs liegen. Dies hat zur Folge, dass nur ein Pointer mit MPI geschickt werden würde. Das ist aber nicht zielführend, da die Daten ja immer noch auf einem anderen Hardwareknoten liegen und dadurch ein Zugriff nicht möglich wird.
-
-Zur effizienten Lösung dieses Problems werden die beiden Datensätze hintereinander in den Speicher kopiert, wobei zuerst das WorkerInfo-Struct und dann die berechneten Daten kommen. Der Quellcode dazu ist in \autoref{src:pack_worker} zu sehen.
-
-Das Array mit den Daten ist eine eindimensionale Repräsentation der Fraktalwerte der Region. Die Umrechnung von x und y Koordinate innerhalb des Bereiches auf den Index i im Array erfolgt dabei nach folgender Regel, wobei region die berechnete Region ist \quad $i = y * region.width + x$
-
-\begin{figure}[h!]
-	\lstinputlisting[caption={Erstellen der Struktur aus WorkerInfo und den berechneten Daten}, label={src:pack_worker}, firstline=154, firstnumber=154, lastline=158]{../../backend/src/actors/Worker.cpp}
-\end{figure}
-
-\paragraph{Senden der berechneten Daten im Worker}\label{para:send_worker}
-
-Sobald die Berechnungen abgeschlossen sind, werden die Daten mit der blockierenden Standardsendeoperation MPI\_Send mit Tag 2 übertragen. Es wurde die blockierende Variante gewählt, da die Sendeoperation der komplett berechneten Region abgeschlossen sein soll, bevor die Berechnung einer neuen Region startet. Zudem benötigt das Senden im Vergleich zum Berechnen sehr wenig Zeit, so dass die Komplexität, die eine nicht-blockierende Behandlung mitbringen würde in keinem Verhältnis zum Nutzen steht.
-
-Der Code ist in \autoref{src:mpi_send_worker} zu finden.
-
-\begin{figure}[h!]
-	\begin{lstlisting}[language=c++, caption={Senden der berechneten Daten im Worker}, label={src:mpi_send_worker}, firstnumber=161]
-	// Send "ret" to the Host using one MPI_Send operation
-	MPI_Send(ret, ret_len, MPI_BYTE, host_rank, 2, MPI_COMM_WORLD);
-	\end{lstlisting}
-\end{figure}
-
-\paragraph{Empfangen der berechneten Daten im Host}\label{para:recv_host}
-
-Das Empfangen der Daten gestaltet sich etwas schwieriger als das Senden. Zunächst wird mit dem nicht-blockierenden MPI\_Iprobe überprüft, ob neue Daten mit dem Tag 2 empfangen werden können. Damit Daten von jedem Worker empfangen werden können, wird als Source-Argument MPI\_ANY\_SOURCE angegeben. Liegen Daten zum empfangen an, so wird ein MPI\_Status-Objekt von MPI\_Iprobe ausgefüllt. Nun muss die Länge der zu empfangenden Daten ermittelt werden. Dazu wird MPI\_Get\_count mit dem gerade ausgefüllten Status-Objekt aufgerufen. Nachdem der Empfangspuffer in der entsprechenden Größe allokiert wurde, wird die Nachricht mit einem blockierendem MPI\_Recv empfangen. Es wurde der blockierende Empfangsmodus gewählt, da die Daten direkt im Anschluss weiterverarbeitet werden müssen und damit keine Arbeit zwischen dem Starten und Abschließen der Empfangsoperation erledigt werden kann. Nachdem MPI\_Recv zurückgekehrt ist, werden die Daten wieder entsprechend der \hyperref[para:struktur_daten]{Vorgabe} entpackt. Dann wird das WorkerInfo-Struct zusammen mit den berechneten Daten und der gestoppten Zeit der MPI-Kommunikation im Struct RegionData gespeichert und an einen Websocket-Thread übergeben.
-
-Die Implementierung ist in \autoref{src:mpi_recv_host} zu sehen.
-
-\begin{figure}[h!]
-	\lstinputlisting[caption={Empfangen der berechneten Daten im Worker}, label={src:mpi_recv_host}, firstline=562, firstnumber=562, lastline=586]{../../backend/src/actors/Host.cpp}
-\end{figure}
 
 \subsection{Berechnung der Mandelbrotmenge}\label{sec:mandelbrot_calculation}
 
 Die Berechnung der einzelnen Punkte der Mandelbrotmenge ist in eine eigene Klasse ausgelagert.
 Wie bei der \hyperref[sec:load_balancing]{Lastbalancierung} sind die Klassen nach dem Strategy-Pattern strukturiert, um eine spätere Erweiterung um andere Fraktale zu vereinfachen.
-Das Interface der Strategien ist hier in der Klasse \verb|Fractal| (\autoref{src:Fractal.h}) definiert.
-
-\begin{figure}
-	\lstinputlisting[caption={Das gemeinsame Interface der Fraktale}, label={src:Fractal.h}, firstline=14, lastline=24]{../../backend/include/Fractal.h}
-\end{figure}
+Das Interface der Strategien ist hier in der Klasse \verb|Fractal| definiert.
 
 Zusätzlich beinhaltet \verb|Fractal| statische Methoden zur Berechnung der Deltas für Real- und Imaginärteil.
 Diese geben die Größe des Bereichs der komplexen Ebene an, der von einem Pixel überdeckt wird.
@@ -520,8 +312,8 @@ Die Deltas werden u.a. für die Berechnung des Fraktals in den Workern verwendet
 \subsubsection{Berechnung ohne SIMD}
 
 Die Klasse \verb|Mandelbrot| stellt die Methode \verb|calculate_fractal| bereit,
-mithilfe derer für ein übergebenes Array an Punkten die Iterationszahl bestimmt wird.
-Diese Art und Weise der Übergabe macht ein gemeinsames Interface mit den \hyperref[subsec:simd]{vektorisierten Versionen} möglich.
+die für ein übergebenes Array an Punkten die Iterationszahl bestimmt.
+Diese Übergabemethode macht ein gemeinsames Interface mit den \hyperref[subsec:simd]{vektorisierten Versionen} möglich.
 
 Die Berechnung eines Punktes ist nun nicht weiter schwer, es muss lediglich \autoref{equ:mandelbrot} als C++-Code umgesetzt werden.
 Bei $|z_n| > 2$ die Berechnung abgebrochen werden, da der Punkt sicher nicht in der Mandelbrotmenge liegt.
@@ -531,8 +323,43 @@ Die benötigte Anzahl an Iterationen wird in ein übergebenes Array geschrieben.
 
 \subsubsection{Berechnung mithilfe von SIMD}\label{subsec:simd}
 
-Bei der in \autoref{par:introduction_simd} beschriebenen Implementierung einer Hardware-beschleunigten Variante mit SIMD,
-wurde stets das Postfix \verb|q| eingebunden.
+Um das Parallelisierungskonzept mithilfe von SIMD zu erklären,
+ist es hilfreich zunächst vor Augen zu führen, wie ein Vektor komplexer Koordinaten ohne SIMD verarbeitet würde,
+sodass die Schleife über den Vektor parallel ausgeführt werden kann.
+Für SIMD ist wichtig dass dabei die einzelnen Rechenschritte synchron stattfinden können,
+damit die verschiedenen Werte mit ein und derselben Instruktion verarbeitet wird.
+Dies ist in \autoref{src:MandelbrotVect} zu sehen.
+Die Berechnung der einzelnen Kooridnaten bleibt gleich, nur die Abbruchbedingung wird auf alle bearbeiteten Koordinaten erweitert.
+
+Es muss also solange weiter iteriert werden, bis für alle Komponenten die Berechnung abgebrochen werden darf.
+Hierbei ist es kein Problem mit den abgebrochenen Punkten weiter zu rechnen, sofern die
+Iterationszahl nur hochgezählt wird wenn das $z_n$ der Koordinate Betragsmäßig kleiner gleich $2$ ist.
+Dies gilt, da alle $|z_{n+i}| > 2$ sofern $|z_n| > 2$ \cite{424331}.
+
+Außerdem ist zu beachten, dass die Iterationszahl vor der Berechnung der nächsten Iteration erhöht werden muss.
+Dies liegt darin begründet, dass die Iterationszahl die Anzahl der Rechenschritte repräsentieren soll und
+der nächste Schritt sicher ausgeführt wird.
+Auch dann, wenn in auf Basis der neuen Berechnung bereits abgebrochen würde.
+
+\begin{figure}[h!]
+	\lstinputlisting[caption={Bearbeitung eines Vektors komplexer Koordinaten in Pseudocode}, label={src:MandelbrotVect}]{code/mandelbrotvect.pseudo}
+\end{figure}
+
+Für ARMv8-Architektur-Prozessoren wie die Prozessoren des Raspberry Pi 3 B+ oder ODroid
+existieren zur Implementierung von SIMD Instruktionen in Hochsprachen wie C und C++ sogenannte
+NEON Compiler Intrinsics\footnote{Details im Abschnitt \enquote{Compiler Intrinsics} unter \url{https://developer.arm.com/technologies/neon}}.
+
+Diese Intrinsics ermöglichen eine Verwendung der nativen SIMD-Befehle, wobei der Compiler sich um die Verwendung der SIMD-Register kümmert.
+Dadurch wird lesbarer Code ermöglicht, der sich stärker am zu implementierenden Algorithmus orientiert.
+
+Zu den hier benötigten mathematischen Operationen (z.B. der Addition) wird hierbei das Compiler Intrinsic nach folgendem Schema erzeugt:
+\texttt{v\textit{opc}q\_f\textit{pr}} mit dem Operationscode \textit{opc} (z.B. \textit{add} für Addition).
+\verb|v| ist das allgemeine Prefix für Vektoroperationen und \verb|q| bedeutet, dass doppelt so viele Register verwendet werden wie ohne \enquote{q}.
+Das Postfix f\textit{pr} bestimmt, dass die Register als Gleitkommazahlen der Präzision \textit{pr} bit (in diesem Fall 32 oder 64) interpretiert werden sollen.
+Damit werden in jeder Operation 4 mal 32 bit Gleitkommazahlen oder 2 mal 64 bit Gleitkommazahlen verrechnet.
+
+Mithilfe der in SIMD-Intrinsics ist die Umsetzung dieses Codes sehr direkt möglich.
+Bei der Hardware-beschleunigten Variante mit SIMD, wurde stets das Postfix \verb|q| eingebunden.
 Damit werden alle verfügbaren SIMD-Register des ARMv8-A Prozessors des ODroids und Raspberry Pi 3 B+ herangezogen.
 
 Zusätzlich wurden Optimierungen mithilfe der NEON-nativen multiply-add (\textit{mla}) und multiply-subtract (\textit{mls}) Befehle vorgenommen.
@@ -540,24 +367,105 @@ Zudem kann der parallele Vergleich zweier Vektoren (\textit{clt}) ausgenutzt wer
 sondern alle Bits der Ergebnisvektorkomponente auf 1 gesetzt werden sofern die Bedingung erfüllt ist und sonst auf 0.
 Um im weiteren Verlauf effizient die Vektorkomponenten aufzuaddieren (\textit{addv}) wird die ursprünglich vorzeichenlose Zahl als vorzeichenbehaftet interpretiert.
 Jede Komponente für die die Bedingung zu wahr evaluiert hat, kann nun als $-1$ interpretiert werden.
-Die Summe über die Komponenten entspricht damit der negierten Anzahl an noch nicht abgeschlossenen Punkten.  
+Die Summe über die Komponenten entspricht damit der negierten Anzahl an noch nicht abgeschlossenen Punkten.
 
-\begin{figure}
-	\lstinputlisting[caption={Parallelisierte Bearbeitung eines Vektors komplexer Koordinaten in 32 bit Gleitkommapräzision in C++ mit Arm NEON Compiler Intrinsics für SIMD}, label={src:MandelbrotSIMD32.cpp}, firstline=29, lastline=72, firstnumber=29]{../../backend/src/mandelbrot/MandelbrotSIMD32.cpp}
-\end{figure}
+\subsection{Parallelisierung auf Thread Level mithilfe von OpenMP}
 
+Die Schleifenparallelisierung von OpenMP wurde für die Mandelbrotberechnungsroutine verwendet.
+Dabei kann die Eigenschaft der Unabhängigkeit der Pixel über das Schlüsselwort \texttt{nonmonotonic}
+ausgenutzt werden, womit die Beliebigkeit der Ausführungsreihenfolge gekennzeichnet wird.
+
+Über dynamisches Threadscheduling wird außerdem eine zusätzliche Form der Lastbalancierung ausgenutzt.
+Standardmäßig wird jedem Thread 1 Iteration zugewiesen bevor er sich eine neue aus einer geteilten Warteschlange nimmt\cite{intelOpenMP}.
+Diese Konfiguration zeigte in unserer Implementierung deutlich höhere Performanz als größere Blöcke.
+
+\subsection{Websocketverbindung}\label{cls:Host}
+
+Direkt nach der Initialisierung des Host-Programms wird ein separater Thread gestartet, der über Websocket
+Anfragen zur Berechnung einer Region entgegennimmt sowie ein Thread, der berechnete Regionen an den verbundenen Client übergibt.
+%Die Methode \verb|Host::start_server| initialisiert dabei lediglich den Websocketserver.
+%Über den Typ des Servers wird eine Kompression versendeter Nachrichten über die im Standard akzeptierte Extension \enquote{perMessageDeflate} aktiviert.
+Der Websocketserver wird mit \verb|server.init_asio()| mit der Transport Policy "transport::asio"
+konfiguriert, sodass Multithreadzugriffe auf Sende- und Empfangsmethoden problemlos möglich sind \cite{websocketppManual}.
+
+Es sollte beachtet werden, dass der Server zu jedem Zeitpunkt lediglich die zuletzt geöffnete Verbindung speichert.
+Nachrichten vom Frontend werden mit der Methode \hyperref[cls:Host::handle_region_request]{\texttt{Host::handle\_region\_request}} entgegengenommen.
+Der zweite bei der Initialisierung gestartete Thread führt die Methode \hyperref[cls:Host::send]{\texttt{Host::send}} aus, die Nachrichten zurücksendet.
+
+Die entstehende Dynamik kann dem Sequenzdiagramm \autoref{fig:mpi_sequenzdiagramm} entnommen werden.
+
+\paragraph{Host::handle\_region\_request}\label{cls:Host::handle_region_request}
+
+Die Methode dekodiert einen empfangene Nachricht als JSON Regionsanfrage und behandelt sie nach folgendem Schema:
+
+\begin{enumerate}
+	\item Parse das empfangene RegionRequest-Objekt. Bei Fehlern wird die Funktion abgebrochen.
+	\item Involviere den spezifizierten Lastbalancierer um eine Aufteilung der Region zu erhalten
+	\item Bestimme den Rang des Workers, der eine Region bearbeiten wird. Hierzu wird der Algorithmus aus \autoref{src:Host.cpp.handle_region_request} verwendet.
+	\item Sende die Aufteilung inklusive der Ränge aller beteiligten Worker als Regions-Objekt an das Frontend
+	\item Übergebe die aufgeteilten Regionen über eine geteilte Datenstrukutr an den MPI-Thread, der diese an die Worker sendet.
+\end{enumerate}
+
+In dem JSON wird unter dem Schlüssel \texttt{"balancer"} ein String erwartet, der den zu wählenden Lastbalancierer bestimmt.
+Mögliche Zeichenketten hierfür sind in den Klassen der Balancierer unter \verb|backend/src/balancer| in der globalen Variable
+\verb|Klassenname::NAME| gespeichert.
+
+Es ist hierbei wichtig, dass das Senden an die Worker erst nach der Antwort an das Frontend geschieht und wird daher garantiert.
+Dadurch kann im Frontend sichergestellt sein, dass alle eintreffenden RegionData-Objekte zu einer Regionsaufteilung gehören,
+die bereits empfangen wurde.
+
+\paragraph{Host::send}\label{cls:Host::send}
+
+Während ein Thread das Empfangen von Nachrichten übernimmt, behandelt diese Methode von den Workern fertig berechnete Regionen.
+Die Methode setzt dabei eine Dauerschleife nach folgendem Schema um:
+
+\begin{enumerate}
+	\item Überprüfe auf das Vorhandensein fertig berechneter Regionen \label{enum:Host::send.step1}
+	\item Ist keine Region verfügbar
+	      \begin{enumerate}
+		      \item Warte blockierend auf eine Änderung
+		      \item Springe zu Schritt \ref{enum:Host::send.step1}
+	      \end{enumerate}
+	\item Ist eine Region verfügbar
+	      \begin{enumerate}
+		      \item Locke die geteilte Datenstruktur
+		      \item Entnimm eine Region daraus
+		      \item Löse das Lock
+	      \end{enumerate}
+	\item Codiere die Regionsdaten in JSON und versende sie über Websocket an den aktuell verbundenen Client
+	\item Springe anschließend zu Schritt \ref{enum:Host::send.step1}
+\end{enumerate}
+
+Ein Beispiel für versendete Regionsdaten kann \autoref{src:regionData.json} entnommen werden.
+
+Mithilfe einer \texttt{condition\_variable}\footnote{\url{https://en.cppreference.com/w/cpp/thread/condition_variable}}
+nutzt sie die C++11 nativen mutex-Mechanismen um über das Vorhandensein neuer Regionen informiert zu werden.
 
 \subsection{Implementierung des Frontends}
-
-\begin{figure}[h!]
+\begin{figure}
 	\centering
-	\includegraphics[width=\linewidth]{img/Implementierung/UI-Screenshot}
+	\includegraphics[width=\linewidth]{img/Implementierung/ui}
 	\caption{Benutzeroberfläche der Mandelbrot Anwendung}
 	\label{fig:ui-screenshot}
 \end{figure}
+Um das Frontend zu implementieren, wurde sich für die Programmiersprache TypeScript\footnote{\url{https://www.typescriptlang.org/}}(Erweiterung von JavaScript um Typisierung) entschieden.
+Da diese zu JavaScript kompiliert, werden die Vortele von JavaScript, wie Ausführung im Webbrowser des Benutzers und eine vielzahl verfügbarer Bibliotheken,
+mit den Vorteilen einer typisierten Programmiersprache vereint.
+
+
+Für die graphische Benutzeroberfläche wurde ebenfalls TypeScript mit dem React Framework\footnote{\url{https://reactjs.org/}} verwendet, welches es ermöglicht,
+graphische Komponenten nativ in TypeScript zu erstellen und dynamisch zu verändern.
+Es wurde für jede Komponente eine eigene TypeScript Klasse zu erstellt, welche dann den betreffenden
+das betreffende Verhalten und dessen Darstellung enthält.
+
+
+Um das Fraktal darzustellen wird die Leaflet\footnote{\url{https://leafletjs.com/}} Bibliothek verwendet.
+Diese, für Onlinekarten konzipierte, Bibliothek stellt den Bereich der komplexen Ebene, auf der die Mandelbrotmenge liegt dar.
+Dabei wird der momentan sichtbare Ausschnitt der Menge mit Hilfe der WebSockets Verbindung (siehe \autoref{sec:fontend_communication}) an das Backend versendet und vom ausgewählten Lastbalancierer in Teilregionen unterteilt (siehe \autoref{sec:load_balancing}).
+Jeder der vom Backend berechneten Teilregionen wird, sobald diese empfangen wurden, im Frontend angezeigt und die Komponenten
+zu Visualisierung der Rechenzeit aktualisiert.
 
 \subsubsection{Kommunikation mit dem Backend}\label{sec:fontend_communication}
-
 Zur Kommunikation mit dem Backend wird im Frontend ein Objekt der Klasse \verb|WebSocketClient| erzeugt.
 Alle zur Verbindung mit dem Backend verwendeten Codestücke liegen dabei in dem Ordner \verb|src/connection/|.
 
@@ -583,7 +491,6 @@ Die Klasse \verb|WebSocketClient| bietet dabei folgende Methoden:
 
 	      Die übergebenen Callbacks erhalten als Parameter respektive die vorgruppierte Aufteilung als ein Array von Workergruppen (\texttt{RegionGroup})
 	      oder das \verb|JSON|-dekodierte \verb|RegionData|-Objekt.
-
 \end{itemize}
 Zudem wird hierbei bereits eine Filterung der eingehenden Regionsdaten vorgenommen.
 Bei Empfang einer Regionsaufteilung, wird diese zwischengespeichert.
@@ -597,7 +504,6 @@ Die Definitionen der zugehörigen Objekt-Interfaces finden sich in den Dateien \
 Anfragen an das Backend werden dabei mit der folgenden Funktion in \verb|RegionRequest.ts| erstellt:
 \begin{itemize}
 	\item \verb|request(map, balancer, implementation)|:
-
 	      Diese extrahiert aus der übergebenen Sicht auf die Mandelbrotmenge, die in der Leaflet-Karte gespeichert ist,
 	      die Parameter zum Anfragen einer Region.
 	      Dazu werden mithilfe des aktuellen Zooms der linke obere und rechte untere Punkt des Sichtbereiches
@@ -654,7 +560,7 @@ Dieses Verhältnis wird in \autoref{fig:leafletTiles} dargestellt.
 \begin{figure}
 	\centering
 	\includegraphics[width=0.5\linewidth]{img/Implementierung/leafletTiles}
-	\caption{Relation von Backend Regionen zu leaflet Tiles.
+	\caption{Relation von Backend Regionen zu leaflet Tiles (Kachel).
 		Dabei ist beispielhaft eine Region des Backends
 		weiß eingezeichnet, alle leaflet Tiles sind rot umrandet angegeben.
 	}\label{fig:leafletTiles}
@@ -700,15 +606,11 @@ leaflet Bibliothek realisiert:
 	      leaflet Koordinaten zu komplexen Koordinaten.
 \end{itemize}
 
-
 \paragraph{Shader.ts}\label{par:shader}
 Berechnet für einen Iterationswert der Mandelbrotmenge ein Tripel \( (r,g,b) \) von Farbwerten.
-Implementiert ist eine simple Funktion, welche den Iterationswert für jeden Farbkanal mit einer Konstante multipliziert
-und auf den zulässigen ganzzahligen Wertebereich \( [0,255] \) abbildet (siehe \autoref{src:Shader.ts}).
-
-\begin{figure}[h!]
-	\lstinputlisting[caption={Berechnung der \( (r,g,b) \) Farbwerte}, label={src:Shader.ts}, language=TypeScript, firstline=2, lastline=7, firstnumber=2]{../../frontend/src/tileDisplay/Shader.ts}
-\end{figure}
+Implementiert ist sind diverse Shader, wie \verb|logSmooth| welcher standardmäßig verwendet wird.
+Überauß wichtig ist es außerdem, dass der der implementierten Shader effizient berechnet werden kann, da diese
+für jeden Pixel in dem dargestellten Bereich einmal aufgerufen werden.
 
 \paragraph{Project.ts}
 Da die leaflet Bibliothek Tiles verwendet, um die Regionen des Backends anzuzeigen, liegen diese in
@@ -718,60 +620,70 @@ welches jeden Punkt auf der Karte durch das Paar \( (latitude, longitude) \) ide
 \verb|Projekt.ts| enthält Funktionen, um zwischen diesen 3 Koordinatensystemen
 (Tile-Koordinaten, leaflet-Koordinaten und Koordinaten der komplexen Ebene) zu konvertieren.
 
-% TODO:
 \paragraph{Regionsgruppierung (RegionGroup.ts)}\label{par:regionGroup}
+\begin{figure}
+	\centering
+	\includegraphics[width=\linewidth]{img/Implementierung/region_group_error}
+	\caption{Überlappende Ränder von gruppierten Teilregionen, durch inkorrekte Berechnung des Randes der türkisen Region
+	}\label{fig:regionGroupError}
+\end{figure}
+Bei der Verwendung vieler Worker \( > 10 \) kommt es zu einer unübersichtlichen Darstellung
+dieser, da die Aufteilung jedes Workers, sowie dessen Warte- und Rechenzeit separat dargestellt werden.
+Deshalb ist eine Gruppierung der einzelnen Worker implementiert, welche alle vom Backend erzeugeten Worker
+nach der näher der von ihnen berechneten Regionen auf der Komplexen Ebene hierarchisch zusammenfasst. Dabei kann eine maximale
+Anzahl darzustellender Gruppen spezifiziert werden, welche als Grundlage zur Berechnung der Gruppengröße dient (Standardmäßig \( = 4 \)).
+Diese erzeugen Gruppen werden dann äquivalent zu einer einzelnen Region im Rest des Frontends behandelt.
 
-\subsubsection{Visualisierung der Architektur des Backends}
+Da der \verb|WorkerLayer| für jede Gruppe die von dieser berechnete Fläche auf der komplexen Ebene anzeigt,
+muss für eine Gruppe, die aus mehr als einer Region besteht der Rand aller in ihr enthaltenen Flächen berechnet werden.
+Dies wurde mit dem \textit{Graham Search}\cite{Cormen} Algorithmus für das Berechnen einer konvexen Hülle implementiert.
+Da die gruppierten Regionen jedoch nicht immer konvex sein müssen, muss dieser Algorithmus für ie Berechnung einer konkaven Hülle erweitert
+werden, was sich als sehr aufwendig herausgestellt hat und deshalb nur durch eine Vereinfachung implementiert wurde.
+Dadurch kann es bei der Darstellung der Gruppierungen im Frontend zu überlappenden Regionsdarstellungen im \verb|WorkerLayer| kommen (siehe \autoref{fig:regionGroupError}).
 
+\subsubsection{Visualisierung}
 Die Struktur der Parallelisierung wird in einem Netzwerkgraphen unter dem Fraktal dargestellt.
 Mithilfe der Bibliothek \verb|visjs|\footnote{\url{http://visjs.org/}} wird hierzu ein
 Graph (siehe \autoref{fig:networkView}) mit 3 Ebenen erzeugt:
 
 Auf der linken Seite befindet sich ein Knoten in Form eines Programmfensters, der das Browserfrontend darstellt.
-In der Mitte wird ein Knoten für den Backend-Host mit Serverrack als Symbol dargestellt, der mit dem Frontendknoten verbunden ist.
+In der Mitte wird ein Knoten für den Backend-Host mit \enquote{Serverrack} als Symbol dargestellt, der mit dem Frontendknoten verbunden ist.
 Auf der rechten Seite befindet sich schließlich zwischen 2 und 4 Knoten, die jeweils eine Gruppe an Arbeitern
-darstellen. Das Symbol hierfür ist ein Oberkörper mit Arbeitshelm.
-Sie sind wiederum direkt mit dem Host verbunden.
+darstellen, welche wiederum direkt mit dem Host verbunden sind.
 
-Der Code für diese Darstellung findet sich in \verb|components/NetworkView.tsx|.
-Dort wird ein Baumgraph von links nach rechts mit manueller Ebenenverteilung als Grundstruktur für die Darstellung des Graphen definiert.
-Daher wird das Frontend auf der höchsten Ebene und der Backend-Host auf der Ebene darunter spezifiziert.
-Die Arbeiter werden auf Basis der erhaltenen Regionsaufteilung erzeugt und jeweils zu zweit nacheinander
-auf Ebenen verteilt.
-Diese Aufteilung wird nach Erhalt jeder Regionsaufteilung vorgenommen und der Graph neu aufgebaut,
-sowie die Größe der Leinwand an die Anzahl an Knoten angepasst.
-
-\begin{figure}
-	\centering
-	\includegraphics[width=0.5\linewidth]{img/Implementierung/NetworkView}
-	\caption{Darstellung der Architektur der Anwendung als Graph
-	}\label{fig:networkView}
-\end{figure}
+Das Darstellen diesen Graphen wird nach Erhalt jeder Regionsaufteilung des Backends vorgenommen,
+sowie die Größe der Leinwand dynamisch an die Anzahl an Knoten angepasst.
 
 \subsubsection{Visualisierung der Rechenzeiten} % components/
-
-Die zeitbezüglichen Komponenten der Visualisierung werden mithilfe der Charts
-der Bibliothek \verb|chartjs|\footnote{\url{http://www.chartjs.org/}} dargestellt.
-\begin{figure}
-	\centering
-	\begin{minipage}{.5\textwidth}
+Die zeitbezüglichen Komponenten der Visualisierung werden mithilfe der Diagrammfunktionen
+der Bibliothek \verb|chartjs|\footnote{\url{http://www.chartjs.org/}} dargestellt
+\begin{figure*}[t!]
+	\begin{subfigure}[t]{0.3\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{img/Implementierung/NetworkView}
+		\caption{Architektur der Anwendung als Graph
+		}\label{fig:networkView}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.3\textwidth}
 		\centering
 		\includegraphics[height=.5\linewidth]{img/Implementierung/IdleTime}
-		\caption{Idle Time für 5 Gruppen}
+		\caption{Wartezeiten für 5 Gruppen}
 		\label{fig:idleTime}
-	\end{minipage}%
-	\begin{minipage}{.5\textwidth}
+	\end{subfigure}%
+	\begin{subfigure}[t]{0.3\textwidth}
 		\centering
 		\includegraphics[height=.5\linewidth]{img/Implementierung/ComputationTime}
-		\caption{Computation time für 4 Gruppen}
+		\caption{Rechenzeiten für 4 Gruppen}
 		\label{fig:computationTime}
-	\end{minipage}
-\end{figure}
+	\end{subfigure}
+	\caption{Komponenten zur Visualisierung der Rechenzeiten im Frontend}
+\end{figure*}
 
-\paragraph{Idle Time}
 
-Für die kritische Information der verschwendeten Zeit wird ein Balkengraph verwendet.
-Dieser besitzt einen Balken, der die Differenz zwischen der Rechenzeit aller Knoten und dem am längsten rechnenden Knoten
+\paragraph{Wartezeit}
+Falls einer der Worker vor den anderen mit der Berechnung fertig wird, wartet dieser,
+bis er einen neuen Auftrag erhält. Dies ist somit verwschwendete Zeit, welche in einem Balkendiagramm dargestellt wird.
+Dabei wird die Differenz zwischen der Rechenzeit aller Knoten und dem am längsten rechnenden Knoten
 aufsummiert und nach Gruppe sortiert darstellt (siehe \autoref{fig:idleTime}).
 
 Die Darstellung wird bei Empfang einer Regionsaufteilung (mithilfe \verb|registerRegion| in \verb|WebSocketClient|)
@@ -781,16 +693,11 @@ Da die tatsächliche Rechenzeit erst am Ende der Berechnung mit den Regionsdaten
 wird mithilfe eines Intervalls die Rechenzeit live abgeschätzt, indem sie alle \( 50ms \) um
 \( 50ms \) hochgezählt wird, falls die Regionsdaten des Knotens noch nicht empfangen wurden.
 
-Da die Charts nicht zur Animation von Übergängen fähig sind, wird das Objekt mit jedem Update neu gerendert.
-Bei Empfang von Regionsdaten (hierzu wird die erwähnte Methode \verb|registerRegionData| verwendet)
-wird die tatsächlich gemessene Rechenzeit eingetragen und der Rechenknoten als inaktiv gekennzeichnet.
-Der Intervall wird gestoppt, sobald alle Arbeiterknoten die Berechnung abgeschlossen haben.
-
 \paragraph{ComputationTime}
-
-Zur Darstellung des relativen Verhältnisses der Rechenzeiten wird in einem Kuchengraph
+Zur Darstellung des relativen Verhältnisses der Rechenzeiten wird in einem Kuchendiagramm
 die absolute Rechenzeit der Gruppen dargestellt (siehe \autoref{fig:computationTime}).
+Dies setzt die benötigte Rechenzeit einer Region in ein Verhältnis zu allen anderen Regionen,
+wobei möglichst gleichverteilte Stückgrößen eine gute Aufteilung durch die Lastbalancierung darstellen.
 
-\subsubsection{MISC} % misc/
-
-\paragraph{Observable.ts}\label{par:observables}
+Falls eine Gruppierung der Regionen stattgefunden hat, wird die Summe der Rechenzeiten der einzelnen Regionen 
+in einer Gruppe verwendet.

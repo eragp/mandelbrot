@@ -99,7 +99,7 @@ void Host::start_server() {
 }
 
 void Host::handle_region_request(const websocketpp::connection_hdl hdl,
-                                 websocketpp::server<websocketpp::config::asio>::message_ptr msg) {
+                                 server_endpoint_type::message_ptr msg) {
     std::cout << "Handle Region Request" << std::endl;
     
     client = hdl;
@@ -406,6 +406,21 @@ void Host::send() {
                 break;
             case mandelbrotSIMD64:
                 fractal_str = "mandelbrotSIMD64";
+                break;
+            case mandelbrotOpenMP32:
+                fractal_str = "mandelbrotopenmp32";
+                break;
+            case mandelbrotOpenMP64:
+                fractal_str = "mandelbrotopenmp64";
+                break;
+            case mandelbrotOpenMPSIMD32:
+                fractal_str = "mandelbrotopenmpsimd32";
+                break;
+            case mandelbrotOpenMPSIMD64:
+                fractal_str = "mandelbrotopenmpsimd64";
+                break;
+            case mandelbrotOpenMP:
+                fractal_str = "mandelbrotopenmp";
                 break;
             default:
                 fractal_str = "mandelbrot";
