@@ -71,7 +71,7 @@ Eine anderweitige Parallelisierung mittels OpenMP oder SIMD wurde nicht vorgenom
 \begin{figure}[h!]
 	\centering
 	\includegraphics[width=0.9\linewidth]{img/Evaluation/scaling_mpi.png}
-	\caption{Skalierung der MPI-Kommunikation. Strategie mit Vorhersage (rekursiv). Ohne OpenMP oder SIMD.}
+	\caption{Skalierung der MPI-Kommunikation. Strategie mit Vorhersage (rekursiv). 1019 Iterationen. Ohne OpenMP oder SIMD.}
 	\label{fig:scaling_mpi}
 \end{figure}
 Es ist zu erkennen, dass die MPI-Kommunikationszeit für alle Regionstypen annähernd konstant, wenn verglichen mit der Rechenzeit bleibt.
@@ -107,7 +107,7 @@ der den Speedup-Faktor in Abhängigkeit der Anzahl der genutzten Worker darstell
 Dabei kam weder OpenMP noch SIMD zum Einsatz. Es wird erwartet, dass sich der Speedup-Faktor \( s \) ungefähr nach \( s \approx \frac{c_1 + c_2}{(c_1/n) + c_2} \) verhält, 
 wobei \( n \) die Anzahl der an der Berechnung beteiligten Worker, 
 \( c_1 \) die Rechenzeit ohne jegliche Parallelisierung (also mit genau einem Worker) und \( c_2 \) der konstante MPI-Kommunikationsoverhead ist. 
-Da für jeden Regionstyp die \( c_1 \) unterschiedlich groß ist, fällt \( c_2 \) mehr oder weniger ins Gewicht, 
+Da für jeden Regionstyp \( c_1 \) unterschiedlich groß ist, fällt \( c_2 \) mehr oder weniger ins Gewicht, 
 was zu unterschiedlichen Speedup-Faktoren führt. 
 Konkret wird erwartet, dass für die Speedup-Faktoren die Relation Außenregion \( \leqslant \) Randregion \( \leqslant \) Innenregion gilt.
 
@@ -116,7 +116,7 @@ Konkret wird erwartet, dass für die Speedup-Faktoren die Relation Außenregion 
 	\includegraphics[width=0.32\linewidth]{img/Evaluation/scale_graph_outside}
 	\includegraphics[width=0.32\linewidth]{img/Evaluation/scale_graph_border}
 	\includegraphics[width=0.32\linewidth]{img/Evaluation/scale_graph_inside}
-	\caption{Speedup-Faktor von \( 1-40 \) Rechenknoten. Strategie mit Vorhersage (rekursiv). Ohne OpenMP oder SIMD}
+	\caption{Speedup-Faktor von \( 1-40 \) Rechenknoten. Strategie mit Vorhersage (rekursiv). 1019 Iterationen. Ohne OpenMP oder SIMD}
 	\label{fig:scaleGraph}
 \end{figure}
 \begin{figure}[h!]
@@ -124,7 +124,7 @@ Konkret wird erwartet, dass für die Speedup-Faktoren die Relation Außenregion 
 	\includegraphics[width=0.32\linewidth]{img/Evaluation/scale_graph_outside_more_nodes}
 	\includegraphics[width=0.32\linewidth]{img/Evaluation/scale_graph_border_more_nodes}
 	\includegraphics[width=0.32\linewidth]{img/Evaluation/scale_graph_inside_more_nodes}
-	\caption{Speedup-Faktor von \( 1-160 \) MPI-Prozessen, dabei erhält jeder Knoten 4 MPI-Prozesse. Strategie mit Vorhersage (rekursiv). Ohne OpenMP oder SIMD}
+	\caption{Speedup-Faktor von \( 1-160 \) MPI-Prozessen, dabei erhält jeder Knoten 4 MPI-Prozesse. Strategie mit Vorhersage (rekursiv). 1019 Iterationen. Ohne OpenMP oder SIMD}
 	\label{fig:scaleGraphMoreNodes}
 \end{figure}
 
@@ -139,6 +139,7 @@ Damit stimmen die Messergebnisse mit den Erwartungen überein.
 In den vorangegangenen Evaluierungen wurde nur ein Rechenkern pro Computer im Cluster für die Berechnung der Mandelbrotmenge genutzt. 
 Nun soll die Performancesteigerung durch die Nutzung von mehreren Rechenkernen pro Computer 
 untersucht werden. Bei dem für diese Evaluierung verwendeten ODroid C2 stehen vier Rechenkerne zur Verfügung.
+
 In \autoref{fig:parallelism} ist durchschnittliche Rechenzeit von einem MPI-Prozess (rot), zwei MPI-Prozessen (blau), einem MPI-Prozess 
 mit 4 OpenMP-Threads (lila) und vier MPI-Prozessen (grün) pro ODroid dargestellt. 
 Es wird erwartet, dass sich die Speedup-Faktor \( s \) nach \( s \approx \frac{c}{n} \) verhält, 
@@ -147,7 +148,7 @@ Threads pro ODroid darstellt.
 \begin{figure}[h!]
 	\centering
 	\includegraphics[width=0.9\linewidth]{img/Evaluation/parallelism.pdf}
-	\caption{Rechenzeiten mit verschiedenen Parallelisierungen. Strategie mit Vorhersage (rekursiv). Ohne SIMD.}
+	\caption{Rechenzeiten mit verschiedenen Parallelisierungen. Strategie mit Vorhersage (rekursiv). Randregion. 1019 Iterationen. Ohne SIMD.}
 	\label{fig:parallelism}
 \end{figure}
 
@@ -157,9 +158,11 @@ OpenMP bleibt damit etwas hinter den Erwartungen zurück.
 Dies ist der Fall, da für die OpenMP-Threads keine Lastbalancierung durch den Balancer durchgeführt werden kann. 
 Stattdessen weißt OpenMP jedem Thread ein Pixel der Mandelbrotmenge zur Berechnung zu. 
 Ist die Berechung abgeschlossen bekommt der Thread einen neuen Pixel zugewiesen. 
-Der durch dieses dynamische Scheduling entstehende Overhead sorgt für den Performanceverlust. 
+Das sorgt für eine sehr gute Lastbalancierung, aber der durch dieses dynamische Scheduling entstehende Overhead sorgt für einen Performanceverlust. 
 Die vier MPI-Prozesse hingegen müssen die ihnen zugewiesenen Teilregionen nicht mehr aufteilen, 
 da dies der Lastbalancierer bereits erledigt hat.
+
+Falls die Mandelbrotmenge mit mehr Iterationen berechnet wird, wird die Rechenzeit für Pixel in der Mandelbrotmenge größer und damit der Einfluss des Schedluing-Overheads für OpenMP geringer. Zudem ist das dynamische Scheduling genauer als die Lastbalancierung. Das könnte dazu führen, dass 4 OpenMP Threads schneller sind als 4 MPI-Prozesse (vgl. \autoref{fig:overallScaling}).
 
 
 \subsection{SIMD}
