@@ -1,0 +1,19 @@
+{
+  "screen": {
+    "width": 1280,
+    "height": 720
+  },
+  "balancers": ["predictionRecursive"],
+  "implementations": ["mandelbrotopenmp64"],
+  "maxIteration": [10000],
+  "nodeCount": [40],
+  "predictionAccuracy": [4],
+  "runs": 10,
+  "cluster": "himmuc",
+  "description": "Testting all optimizations on top of each other, with predictionBalancer & OpenMP",
+  "pois": [
+    { "real": -1.1352806091308594, "imag": -0.3451214891342549, "zoom": 2 },
+    { "real": -0.7334021404385567, "imag": 0.2165058705628719, "zoom": 11 },
+    { "real": -0.04665714770453633, "imag": 0.9851097719948892, "zoom": 25 }
+  ]
+}
