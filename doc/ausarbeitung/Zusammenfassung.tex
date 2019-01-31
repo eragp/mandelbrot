@@ -2,36 +2,36 @@
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.9\linewidth]{img/Zusammenfassung/overall}
+	\includegraphics[width=0.9\linewidth]{img/Zusammenfassung/overall_10000_both}
 	\caption{Kombination der unterschiedlichen Parallelisierungsstrategien.
-		Es wurden für jede der Konfigurationen \( 3 \) Regionen am Rand mit \( 40 \) Konten evaluiert.}
+		Es wurden für jede der Konfigurationen \( 3 \) Regionen am Rand mit \( 40 \) Konten und maximal \( 10000 \) Iterationen evaluiert.}
 	\label{fig:overallScaling}
 \end{figure}
 
 Abschließend lassen sich noch die unterschiedlichen, in den vorheringen Abschnitten erläuterten,
 Strategien zur Parallelisierung der Berechnung der Mandelbrotmenge miteinander kombinieren. Dadurch
 kann die maximal erzielbare Verringerung der Rechenzeiten evaluiert werden, welche in \autoref{fig:overallScaling}\footnote{\enquote{Speedup} bezieht sich dabei auf
-	die Maximale Rechenzeit für die Berechnung der 3 Randregionen mit 40 Knoten \( (723 ms) \)}
+	die Maximale Rechenzeit für die Berechnung der 3 Randregionen mit 40 Knoten \( (7s) \)}
 dargestellt sind.
 
 \begin{figure}[h!]
 	\centering
 	\begin{tabular}{lc}
-		Konfiguration                             & Speedup    \\
+		Konfiguration                                & Speedup     \\
 		\hline
-		Naive Balancierung                        & \( 1 \)    \\
-		Lastbalancierung mit Vorhersage           & \( 1.95 \) \\
-		4 MPI Prozesse pro Knoten                 & \( 3.69 \) \\
-		4 OpenMP Prozesse pro Knoten              & \( 2.29 \) \\
-		1 MPI Prozess pro Konten mit SIMD 64 bit  & \( 2.43 \) \\
-		4 MPI Prozesse pro Konten mit SIMD 64 bit & \( 3.54 \) \\
-		4 MPI Prozesse pro Konten mit SIMD 32 bit & \( 7.05 \) \\
+		Naive Balancierung                           & \( 1 \)     \\
+		Lastbalancierung mit Vorhersage              & \( 2.76 \)  \\
+		4 MPI Prozesse pro Knoten                    & \( 5.06 \)  \\
+		4 OpenMP Prozesse pro Knoten                 & \( 7.78 \)  \\
+		4 OpenMP Prozesse pro Konten mit SIMD 64 bit & \( 9.1 \)   \\
+		4 OpenMP Prozesse pro Konten mit SIMD 32 bit & \( 7.15 \)  \\
+		4 MPI Prozesse pro Konten mit SIMD 32 bit    & \( 11.59 \) \\
 	\end{tabular}
 \end{figure}
 
 Somit ergibt sich, dass wir unter der Verwendung aller implementierten Parallelisierungen eine Verbesserung
 der maximalen Rechenzeit im Vergleich zu einer naiven Lastbalancierung vom Faktor \( \approx 7 \) erzielen konnten,
-was einer absoluten Rechenzeit von \( 104ms \) für \( 1280px \times 720px \) große Ausschnitte am Rand der Mandelbrotmenge erzielen konnten.
+was einer absoluten Rechenzeit von \( 0.6s \) für \( 1280px \times 720px \) große Ausschnitte mit maximal \( 10000 \) Iterationen am Rand der Mandelbrotmenge erzielen konnten.
 
 \pagebreak
 Ziel des Projektes war es, ein Programm zur parallelen Berechnung der Mandelbrotmenge auf einem Rechnercluster zu erstellen.
