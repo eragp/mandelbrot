@@ -124,11 +124,11 @@ Konkret wird erwartet, dass für die Speedup-Faktoren die Relation Außenregion 
 	\includegraphics[width=0.32\linewidth]{img/Evaluation/scale_graph_outside_more_nodes}
 	\includegraphics[width=0.32\linewidth]{img/Evaluation/scale_graph_border_more_nodes}
 	\includegraphics[width=0.32\linewidth]{img/Evaluation/scale_graph_inside_more_nodes}
-	\caption{Speedup-Faktor von \( 1-160 \) MPI Prozessen, dabei erhält jeder Knoten 4 MPI Prozesse.}
+	\caption{Speedup-Faktor von \( 1-160 \) MPI-Prozessen, dabei erhält jeder Knoten 4 MPI-Prozesse. Strategie mit Vorhersage (rekursiv). Ohne OpenMP oder SIMD}
 	\label{fig:scaleGraphMoreNodes}
 \end{figure}
 
-Es ist in \autoref{fig:scaleGraph} zu erkennen, dass der Speedup-Faktor bei 40 Workern für Außenregionen bei xx, für Randregionen bei xx und für Innenregionen bei xx liegt. Da der Speedup-Faktor monoton steigt, kann angenommen werden, dass dieses Verhalten auch für weit mehr als 40 Worker gilt, wobei sich dem Speedup-Faktor \( s_{max} \approx \frac{c_1 + c_2}{c_2} \) immer näher angenähert wird.
+Es ist in \autoref{fig:scaleGraph} zu erkennen, dass der Speedup-Faktor bei 40 Workern für Außenregionen bei 27, für Randregionen bei 22 und für Innenregionen bei 27 liegt. Auch für 160 Workern ist in \autoref{fig:scaleGraphMoreNodes} ein Speedup von 40 für Außen- und Randregionen bzw. 65 für Innenregionen zu erkennen. Hierbei flacht der Speedup-Faktor aber schon erkennbar ab, was für eine Annäherung an sein Maximum \( s_{max} \approx \frac{c_1 + c_2}{c_2} \) spricht.
 Damit stimmen die Messergebnisse mit den Erwartungen überein.
 
 
