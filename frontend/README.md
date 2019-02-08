@@ -35,6 +35,14 @@ Most of the configuration can be done by changing `Constants.ts`:
 * Complex plane view bounds --> `bounds`
 * Leaflet tile size --> `TileSize`
 
+# URL parameters
+
+* `backend`: Specify the bakend URL
+* `real` and `imag`: Specify the middle of the viewed region in complex coordinates
+* `zoom`: Specify the leaflet zoom level
+
+All URL parameters are optional.
+
 # Client-Server Communication
 The connection between front- and backend is implemented with a websockets connection, that allows us to send data asynchronously between the two.
 
