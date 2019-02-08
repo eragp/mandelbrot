@@ -34,6 +34,16 @@ interface Balancer {
 }
 export const Balancers: Balancer[] = [
   {
+    key: "naiveRecursive",
+    title: "Recursive Naive Balancer",
+    description: "TODO: add doc"
+  },
+  {
+    key: "predictionRecursive",
+    title: "Recursive Prediction Balancer",
+    description: "TODO: add doc"
+  },
+  {
     key: "naive",
     title: "Naive Balancer",
     description: "Divides the visible region into rectangles of equal size."
@@ -48,16 +58,6 @@ export const Balancers: Balancer[] = [
     title: "Prediction Balancer",
     description: "Uses a low resolution of the mandelbrot set to determine an optimal division."
   },
-  {
-    key: "naiveRecursive",
-    title: "Recursive Naive Balancer",
-    description: "TODO: add doc"
-  },
-  {
-    key: "predictionRecursive",
-    title: "Recursive Prediction Balancer",
-    description: "TODO: add doc"
-  }
 ];
 
 // Implementations supported by the backend
@@ -67,11 +67,6 @@ interface Implementation {
   description: string;
 }
 export const Implementations: Implementation[] = [
-  {
-    key: "mandelbrot",
-    title: "80 bit float",
-    description: "TODO: add doc"
-  },
   {
     key: "mandelbrot32",
     title: "32 bit float",
@@ -91,5 +86,10 @@ export const Implementations: Implementation[] = [
     key: "mandelbrotsimd64",
     title: "SIMD 64 bit",
     description: "TODO: add doc"
-  }
+  },
+  {
+    key: "mandelbrot",
+    title: "80 bit float",
+    description: "TODO: add doc"
+  },
 ];
