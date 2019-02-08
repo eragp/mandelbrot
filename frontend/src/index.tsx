@@ -26,7 +26,6 @@ import SelectBox from "./components/SelectBox";
 // CSS
 import "./index.css";
 // Bootstrap
-import registerServiceWorker from "./registerServiceWorker";
 import { StatsCollector } from "./eval/StatsCollector";
 
 class App extends React.Component<{}, {}> {

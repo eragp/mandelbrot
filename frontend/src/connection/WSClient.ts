@@ -95,7 +95,7 @@ export default class WebSocketClient implements WS {
   }
 
   public sendRequest(request: Request) {
-    console.log("sending Region Request: ", request);
+    // console.log("sending Region Request: ", request);
     const message = JSON.stringify(request);
     if (this.socket.readyState === this.socket.OPEN) {
       this.socket.send(message);
