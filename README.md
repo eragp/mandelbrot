@@ -9,9 +9,4 @@ This is an interactive visualization of the mandelbrot set.
 ## Getting Started
 
 To start the back- / frontend check the readme in the readme files in the corresponding folders.
-
-## Links
-
-[Spezifikation]
-
-> Ausarbeitung
+A more thorough documentation (in german) can be found in the `doc` directory.

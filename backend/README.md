@@ -1,6 +1,4 @@
-# c++ Backend
-
-## Environment
+# C++ Backend
 
 ## Quick Start
 
@@ -20,22 +18,15 @@ For running from other hosts and more details, please refer to the documentation
 To run the build pipeline a current version of `docker` needs to 
 be installed on the host system
 
-For testing the app on the local machine just run the `build` script `backend/run.sh`.
+For testing the app on the local machine just run the `build` script `run_docker.sh` from this directory.
 
 ```bash
-$ ./run.sh
+$ ./run_docker.sh
 ```
 
-The first execution of the script will take some time as `docker` needs to download the base images and compile cpprest (~20 min). Successive runs are a lot faster due to caching .
-> TODO: Upload the cached image to docker hub to avoid recompilation of libs
+The first execution of the script will take some time as `docker` needs to download the base images and compile the libraries (~20 min). Successive runs are a lot faster due to caching.
 
-After the script has been executed the compiled MPI program will be launched (with correct settings, hopefully). After pressing ctrl+c an interactive bash is left open. If you want to reastart the binary run
-
-```bash
-$ mpiexec -f hosts ./build/mandelbrot
-```
-
-Parameter `-np {processes}` can be added to specify the number of parallel processes that should be started. Edit the file `hosts` to [add machines with ssh access or to specify the process slots on the local machine](https://wiki.mpich.org/mpich/index.php/Using_the_Hydra_Process_Manager).
+After the script has been executed the compiled MPI program will be launched (with the settings from ). After pressing ctrl+c an interactive bash is left open.
 
 To detach from the container exit the current shell. You will be returned to the previous working directory on the local system
 
@@ -43,7 +34,7 @@ To detach from the container exit the current shell. You will be returned to the
 $ exit
 ```
 
-A connection to the hosted service inside the docker container can be established by connecting to `http://localhost:8080/mandelbrot?x=0&y=1&z=2&size=256` (i.e. via your browser, replace 0/1/2 with x/y/zoom coordinates).
+A websocket connection to the hosted service inside the docker container can be established by connecting to `ws://localhost:9002`
 
 ### Deployment
 
@@ -51,11 +42,9 @@ To deploy the compiled `mandelbrot` binary copy it to the target system.
 
 ## Developer notes
 
->> TODO Update this section
-Http requests are handled by the code in the new actors/Host.cpp. It starts a listener on the url specified above. Incoming requests are stored in an internal request dictionary and a computation command (tag 1) is issued to the next available core (managed through a queue).
+The host uses three threads to manage all the communication. One thread listens for incoming requests on the websocket, performs the loadbalancing and stores the subregions in a shared data structure. The second thread does all the MPI communication with the workers. If a worker finishes it's computation this thread will receive the result and store it in a shared data structure. The third thread will send the results to the frontend.
 
-Parallely the host listens to incoming messages (on tag 2), converts the received data to a JSON array and answers the corresponding request stored in the request dictionary. For finding the correct request, the dictionary identifiers are based on the coordinates of the tile to compute.
-
+The workers will listen for incoming MPI and perform the computation of the fractal. During computation they listen for new requests. If there is a new request the running computation will be aborted.
 
 ### Useful structs
 
@@ -63,56 +52,66 @@ The backend is intended to use three main structs for storing and passing inform
 
 ```cpp
 /**
- * The new and up-to-date Region struct for view and subdivided regions
- */
+* Used to describe a region of the fractal
+*/
 struct Region {
 
     /**
-     * The coordinates for the top left corner of the region
-     * in the complex plane. 
-     * Included in the region.
-     */
-    long double minReal, maxImaginary;
+    * The coordinates for the top left corner of the region
+    * in the complex plane.
+    * Included in the region.
+    */
+    precision_t minReal, maxImaginary;
 
     /**
-     * The coordinates for the bottom right corner of the region
-     * in the complex plane.
-     * Excluded from the region.
-     */
-    long double maxReal, minImaginary;
+    * The coordinates for the bottom right corner of the region
+    * in the complex plane.
+    * Excluded from the region.
+    */
+    precision_t maxReal, minImaginary;
 
     /**
-     * Pixel amount in respective dimension of this region.
-     * Equivalent to resolution in x- and y- dimension.
-     */
+    * Pixel amount in respective dimension of this region.
+    * Equivalent to resolution in x- and y- dimension.
+    */
     unsigned int width, height;
 
     /**
-     * Maximum n value for iteration in this region.
-     */
-    unsigned int maxIteration;
+    * Maximum n value for iteration in this region.
+    */
+    unsigned short int maxIteration;
 
     /**
-     * Frontend specific information, identification/validation value, do not touch
-     * With leaflet frontend equivalent to zoomfactor.
-     * Used to decide whether the data is still needed.
-     */
+    * Frontend specific information, identification/validation value, do not touch
+    * With leaflet frontend equivalent to zoomfactor.
+    * Used to decide whether the data is still needed.
+    */
     int validation;
 
     /**
-     * Value for which it is guaranteed that width and height are divisible by.
-     * Same goes for hOffset and vOffset
-     * Recursivley applies to all subregions
-     */
-    unsigned int guaranteedDivisor; 
+    * Value for which it is guaranteed that width and height are divisible by.
+    * Same goes for hOffset and vOffset
+    * Recursivley applies to all subregions
+    */
+    unsigned int guaranteedDivisor;
 
     /**
-     * Horizontal and vertical offset respective to superregion.
-     * Equivalent to xOffset/yOffset.
-     * Should not become negative usually.
-     */
+    * Horizontal and vertical offset respective to superregion.
+    * Equivalent to xOffset/yOffset.
+    * Should not become negative usually.
+    */
     int hOffset, vOffset;
 
+    /**
+     * Value to determine, which fractal will be computed
+     */
+    enum fractal_type fractal;
+
+    /**
+     * Do not change.
+     * Number of regions the corresponding big region got split into.
+     */
+    unsigned short int regionCount;
 };
 ```
 
@@ -147,23 +146,25 @@ struct WorkerInfo {
  * Usually assembled at the Host and used to transfer data to frontend
  */
 struct RegionData {
-
+    
     /**
-     * Information about which region was computed.
-     */
-    Region region;
-
-    /**
-     * Information about which worker computed the region and other metadata
+     * Information about which worker computed the region, 
+     * including the region itself, computation time and other metadata
      */
     WorkerInfo workerInfo;
+
+    /**
+     * The approximate time that MPI communication has taken in microseconds
+     */
+    unsigned long mpiCommunicationTime;
 
     /**
      * Raw computed data for the fractal in this region.
      * Size: region.width*region.height
      * Index: i (x,y) -> (region.width * y) + region.height
      */
-    int data[];
+    unsigned short int *data;
+    int data_length;
 
 };
 ```

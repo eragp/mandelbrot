@@ -3,7 +3,7 @@
 #include "Fractal.h"
 
 /**
-* The new and up-to-date Region struct for view and subdivided regions
+* Used to describe a region of the fractal
 */
 struct Region {
 
