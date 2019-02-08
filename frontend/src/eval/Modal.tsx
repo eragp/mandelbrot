@@ -4,7 +4,8 @@ import * as React from "react";
 import "./Modal.css";
 
 interface ModalProps {
-  onCloseRequest: (e: void) => void;
+  // @ts-ignore
+  onCloseRequest: () => void;
 }
 interface ModalState {}
 
@@ -36,7 +37,6 @@ export default class Modal extends React.Component<ModalProps, ModalState> {
         <div className="modalCustom" ref={node => (this.modal = node)}>
           <div className="modalContent">{children}</div>
         </div>
-
         <button type="button" className="closeButton" onClick={() => onCloseRequest()} />
       </div>
     );
@@ -54,6 +54,7 @@ export default class Modal extends React.Component<ModalProps, ModalState> {
   private handleOutsideClick(e: KeyboardEvent) {
     const { onCloseRequest } = this.props;
     if (this.modal) {
+      // @ts-ignore
       if (!this.modal.contains(e.target)) {
         onCloseRequest();
         document.removeEventListener("click", this.handleOutsideClick, false);

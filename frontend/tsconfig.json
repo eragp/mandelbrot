@@ -16,11 +16,6 @@
         "jsx": "react",
         "moduleResolution": "node",
         "rootDir": "src",
-        "noImplicitReturns": true,
-        "noImplicitThis": true,
-        "noImplicitAny": true,
-        "strictNullChecks": true,
-        "noUnusedLocals": true
     },
     "include": [
         "./src/**/*"
