@@ -7,6 +7,7 @@ It shows the possible speedup which can be achieved by parallelization on a clus
 
 ## Getting Started
 
+<<<<<<< HEAD
 The Application is split into a backend computing the mandelbrot set and a frontend displaying that data and serving as a user interface.
 A hosted version of this can be found
 [here](https://eragp.github.io/mandelbrot/).
@@ -38,3 +39,7 @@ A hosted version of this can be found
 ```
 
 ```
+=======
+To start the back- / frontend check the readme in the readme files in the corresponding folders.
+A more thorough documentation (in german) can be found in the `doc` directory.
+>>>>>>> dev

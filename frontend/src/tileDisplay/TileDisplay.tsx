@@ -225,6 +225,7 @@ export default class TileDisplay extends React.Component<TileDisplayProps, {}> {
       "Worker Layer": workerLayer
     };
     map.addLayer(mandelbrotLayer);
+    // @ts-ignore
     map.addLayer(workerLayer);
 
     L.control.layers(baseLayer, overlayLayers).addTo(map);

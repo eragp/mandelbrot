@@ -29,7 +29,7 @@
     "lint": "tslint -c tslint.json 'src/**/*.{ts,tsx}' --exclude 'src/tests/*.{ts,tsx}'",
     "start": "webpack-dev-server",
     "test": "jest",
-    "build": "tsc && webpack --progress",
+    "build": "tsc && webpack --config webpack.prod.js --progress",
     "clean": "rd /s/q built",
     "prepare": "tsc && webpack --progress --config webpack.prod.config.js"
   },
