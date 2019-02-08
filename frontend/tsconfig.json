@@ -3,7 +3,7 @@
     "compilerOptions": {
         "outDir": "./built/",
         "module": "esnext",
-        "target": "es5",
+        "target": "es2017",
         "lib": [
             "dom",
             "dom.iterable",
