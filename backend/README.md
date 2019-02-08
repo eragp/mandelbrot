@@ -26,7 +26,7 @@ $ ./run_docker.sh
 
 The first execution of the script will take some time as `docker` needs to download the base images and compile the libraries (~20 min). Successive runs are a lot faster due to caching.
 
-After the script has been executed the compiled MPI program will be launched (with the settings from ). After pressing ctrl+c an interactive bash is left open.
+After the script has been executed the compiled MPI program will be launched (with the settings from `runconfig`). After pressing `ctrl+c` an interactive bash is left open.
 
 To detach from the container exit the current shell. You will be returned to the previous working directory on the local system
 
@@ -38,13 +38,17 @@ A websocket connection to the hosted service inside the docker container can be 
 
 ### Deployment
 
-To deploy the compiled `mandelbrot` binary copy it to the target system.
+To deploy the compiled `host` or `worker` binary copy it to the target system.
 
 ## Developer notes
 
-The host uses three threads to manage all the communication. One thread listens for incoming requests on the websocket, performs the loadbalancing and stores the subregions in a shared data structure. The second thread does all the MPI communication with the workers. If a worker finishes it's computation this thread will receive the result and store it in a shared data structure. The third thread will send the results to the frontend.
+The host uses three threads to manage all the communication. One thread listens for incoming requests on the websocket, performs the loadbalancing and stores the subregions in a shared data structure. The second thread does all the MPI communication with the workers. If a worker finishes its computation this thread will receive the result and store it in a shared data structure. The third thread will send the results to the frontend.
 
 The workers will listen for incoming MPI and perform the computation of the fractal. During computation they listen for new requests. If there is a new request the running computation will be aborted.
+
+### Adding new Balancers and Fractals
+
+The class hierachies for both the fractals and the loadbalancers follow the strategy pattern. So to add a fractal just subclass `Fractal`, in order to add a balancer you will need to inherit from `Balancer`.
 
 ### Useful structs
 
