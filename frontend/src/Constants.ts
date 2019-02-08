@@ -11,6 +11,7 @@ export const MAX_DISPLAY_REGIONS = 4;
 // x/-x and y/-y have to be the same (symmetric)
 export const bounds = [4, 4];
 
+// 0 --> Use all available nodes
 export const NodeCount = 0;
 
 // Color set for Groups

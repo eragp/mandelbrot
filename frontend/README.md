@@ -1,5 +1,5 @@
 # General
-Die JS UI was created with react.
+The frontend was created using `React` and `TypeScript`.
 NPM is used as package manager.
 
 # Getting started
@@ -20,6 +20,28 @@ Compile the javaScript:
 ```bash
 $ npm run build
 ```
+
+# Configuration
+
+Most of the configuration can be done by changing `Constants.ts`:
+
+* Default backend URL --> `WsUrl`
+* Number of region groups --> `MAX_DISPLAY_REGIONS`
+* Select displayed balancers --> `Balancers`
+* Select displayed implemetations --> `Implementations`
+* Amount of used backend nodes --> `NodeCount`
+* Maximum iterations for fractal computation --> `MaxIteration`
+* Accuracy for prediction loadbalancers --> `PredictionAccuracy`
+* Complex plane view bounds --> `bounds`
+* Leaflet tile size --> `TileSize`
+
+# URL parameters
+
+* `backend`: Specify the bakend URL
+* `real` and `imag`: Specify the middle of the viewed region in complex coordinates
+* `zoom`: Specify the leaflet zoom level
+
+All URL parameters are optional.
 
 # Client-Server Communication
 The connection between front- and backend is implemented with a websockets connection, that allows us to send data asynchronously between the two.
